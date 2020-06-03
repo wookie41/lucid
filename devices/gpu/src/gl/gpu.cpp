@@ -30,4 +30,57 @@ namespace lucid::gpu
         SDL_DestroyWindow(window);
         SDL_GL_DeleteContext(context);
     }
+
+    void AddVertexAttribute(const VertexAttribute& Attribute)
+    {
+        glVertexAttribPointer(Attribute.index, Attribute.size, toGLDataType(Attribute.type),
+                              Attribute.normalized, Attribute.stride, (void*)Attribute.offset);
+
+        glEnableVertexAttribArray(Attribute.index);
+        glVertexAttribDivisor(Attribute.index, Attribute.divisor);
+    }
+
+    void AddIntegerVertexAttribute(const VertexAttribute& Attribute)
+    {
+        glVertexAttribIPointer(Attribute.index, Attribute.size, toGLDataType(Attribute.type),
+                               Attribute.stride, (void*)Attribute.offset);
+
+        glEnableVertexAttribArray(Attribute.index);
+        glVertexAttribDivisor(Attribute.index, Attribute.divisor);
+    }
+
+    void AddLongVertexAttribute(const VertexAttribute& Attribute)
+    {
+        glVertexAttribLPointer(Attribute.index, Attribute.size, toGLDataType(Attribute.type),
+                               Attribute.stride, (void*)Attribute.offset);
+
+        glEnableVertexAttribArray(Attribute.index);
+        glVertexAttribDivisor(Attribute.index, Attribute.divisor);
+    }
+
+    GLenum toGLDataType(const Type& type)
+    {
+        switch (type)
+        {
+        case INT_8:
+            return GL_BYTE;
+        case INT_16:
+            return GL_SHORT;
+        case INT_32:
+            return GL_INT;
+        case UINT_8:
+            return GL_UNSIGNED_BYTE;
+        case UINT_16:
+            return GL_UNSIGNED_SHORT;
+        case UINT_32:
+            return GL_UNSIGNED_INT;
+        case FLOAT:
+            return GL_FLOAT;
+        case DOUBLE:
+            return GL_DOUBLE;
+        }
+
+        assert(0);
+        return 0;
+    }
 } // namespace lucid::gpu
