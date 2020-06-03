@@ -41,7 +41,7 @@ SpacesInAngles: false
 SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
-Standard: Cpp20
+Standard: Cpp11
 TabWidth: 4
 UseTab: Never
 DerivePointerAlignment: false
