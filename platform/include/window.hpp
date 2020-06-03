@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include "common/math.hpp"
 
 namespace lucid::platform
 {
@@ -18,6 +18,9 @@ namespace lucid::platform
 
         virtual void Swap() = 0;
         virtual void Prepare() = 0;
+
+        virtual void SetClearColor(const math::vec4& color) = 0;
+        virtual void ClearColor() = 0;
 
         virtual void Show() = 0;
         virtual void Hide() = 0;

@@ -12,6 +12,10 @@ int main(int argc, char** argv)
     window->Prepare();
     window->Show();
 
+    window->SetClearColor({ .2f, .3f, .8f, 1.f });
+    window->ClearColor();
+    window->Swap();
+
     getchar();
 
     window->Destroy();

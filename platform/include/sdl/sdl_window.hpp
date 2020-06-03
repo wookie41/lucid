@@ -15,6 +15,9 @@ namespace lucid::platform
         virtual void Swap() override;
         virtual void Prepare() override;
 
+        void SetClearColor(const math::vec4& color) override;
+        void ClearColor() override;
+
         virtual void Show() override;
         virtual void Hide() override;
 
