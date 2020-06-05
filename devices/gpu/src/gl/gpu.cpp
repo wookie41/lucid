@@ -59,7 +59,7 @@ namespace lucid::gpu
 
     void AddVertexAttribute(const VertexAttribute& Attribute)
     {
-        glVertexAttribPointer(Attribute.index, Attribute.size, toGLDataType(Attribute.type),
+        glVertexAttribPointer(Attribute.index, Attribute.size, GL_TYPES[Attribute.type],
                               Attribute.normalized, Attribute.stride, (void*)Attribute.offset);
 
         glEnableVertexAttribArray(Attribute.index);
@@ -68,7 +68,7 @@ namespace lucid::gpu
 
     void AddIntegerVertexAttribute(const VertexAttribute& Attribute)
     {
-        glVertexAttribIPointer(Attribute.index, Attribute.size, toGLDataType(Attribute.type),
+        glVertexAttribIPointer(Attribute.index, Attribute.size, GL_TYPES[Attribute.type],
                                Attribute.stride, (void*)Attribute.offset);
 
         glEnableVertexAttribArray(Attribute.index);
@@ -77,7 +77,7 @@ namespace lucid::gpu
 
     void AddLongVertexAttribute(const VertexAttribute& Attribute)
     {
-        glVertexAttribLPointer(Attribute.index, Attribute.size, toGLDataType(Attribute.type),
+        glVertexAttribLPointer(Attribute.index, Attribute.size, GL_TYPES[Attribute.type],
                                Attribute.stride, (void*)Attribute.offset);
 
         glEnableVertexAttribArray(Attribute.index);
