@@ -22,10 +22,10 @@ namespace lucid::gpu
     {
         DYNAMIC = 1,
         READ = 2,
-        WRITE = 3,
-        PERSISTENT = 4,
-        COHERENT = 5,
-        CLIENT_STORAGE = 6
+        WRITE = 4,
+        PERSISTENT = 8,
+        COHERENT = 16,
+        CLIENT_STORAGE = 32
     };
 
     enum class BufferAccessPolicy : uint16_t
@@ -46,14 +46,15 @@ namespace lucid::gpu
     class Buffer
     {
       public:
+        virtual uint32_t GetSize() const = 0;
+
         virtual void Bind(const BufferBindPoint& BindPoint) const = 0;
         virtual void BindIndexed(const uint32_t& index, const BufferBindPoint& BindPoint) const = 0;
 
         virtual void Upload(BufferDescription const* Description) = 0;
-        virtual void Download(void* Destination, const uint32_t& Offset = 0, int32_t Size = -1) const = 0;
+        virtual void Download(void* Destination, uint32_t Size = 0, const uint32_t& Offset = 0) const = 0;
 
-        virtual void MemoryMap(BufferDescription const* Description,
-                               const uint16_t& BufferAccessPolicy) const = 0;
+        virtual void* MemoryMap(const uint16_t& AccessPolicy, uint32_t Size = 0, const uint32_t& Offset = 0) const = 0;
 
         virtual void Free() = 0;
     };

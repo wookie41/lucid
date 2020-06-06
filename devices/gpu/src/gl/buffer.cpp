@@ -2,7 +2,7 @@
 #include <cassert>
 
 #define NO_COHERENT_OR_PERSISTENT_BIT_SET(FLAGS) \
-    (((FLAGS | (uint16_t)BufferAccessPolicy::COHERENT) | (FLAGS | (uint16_t)BufferAccessPolicy::PERSISTENT)) == 0)
+    (((FLAGS & (uint16_t)BufferAccessPolicy::COHERENT) | (FLAGS & (uint16_t)BufferAccessPolicy::PERSISTENT)) == 0)
 
 static const GLenum GL_BIND_POINTS[] = { GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER };
 
@@ -18,19 +18,14 @@ static const GLenum GL_MAP_ACCESS_BITS[] = { GL_MAP_READ_BIT, GL_MAP_WRITE_BIT,
 
 namespace lucid::gpu
 {
-    GLBuffer::GLBuffer(const GLuint& BufferHandle, const BufferDescription& Description, const bool& IsImmutable)
-    : glBufferHandle(BufferHandle), description(Description), isImmutable(IsImmutable)
-    {
-    }
-
-    GLbitfield calculateGLMapAccessBits(const uint16_t& BufferAccessPolicy)
+    GLbitfield calculateGLMapAccessBits(const uint16_t& MapPolicy)
     {
         uint8_t accessBit = 1;
-        GLbitfield glAccessBits;
+        GLbitfield glAccessBits = 0;
 
         for (uint8_t accessBitShift = 0; accessBitShift < sizeof(GL_MAP_ACCESS_BITS) / sizeof(GLenum); ++accessBitShift)
         {
-            if (BufferAccessPolicy & (accessBit << accessBitShift))
+            if (MapPolicy & (accessBit << accessBitShift))
             {
                 glAccessBits |= GL_MAP_ACCESS_BITS[accessBitShift];
             }
@@ -42,19 +37,26 @@ namespace lucid::gpu
     GLbitfield calculateImmutableAccessBits(const uint16_t& AccessPolicy)
     {
         uint8_t accessBit = 1;
-        GLbitfield glAccessBits;
+        GLbitfield glAccessBits = 0;
 
         for (uint8_t accessBitShift = 0;
              accessBitShift < sizeof(GL_IMMUTABLE_ACCESS_BITS) / sizeof(GLenum); ++accessBitShift)
         {
             if (AccessPolicy & (accessBit << accessBitShift))
             {
-                glAccessBits |= GL_MAP_ACCESS_BITS[accessBitShift];
+                glAccessBits |= GL_IMMUTABLE_ACCESS_BITS[accessBitShift];
             }
         }
 
         return glAccessBits;
     }
+
+    GLBuffer::GLBuffer(const GLuint& BufferHandle, const BufferDescription& Description, const bool& IsImmutable)
+    : glBufferHandle(BufferHandle), description(Description), isImmutable(IsImmutable)
+    {
+    }
+
+    uint32_t GLBuffer::GetSize() const { return description.size; }
 
     void GLBuffer::Bind(const BufferBindPoint& BindPoint) const
     {
@@ -62,17 +64,17 @@ namespace lucid::gpu
         glBindBuffer(GL_BIND_POINTS[(uint16_t)BindPoint], glBufferHandle);
     }
 
-    void GLBuffer::BindIndexed(const uint32_t& index, const BufferBindPoint& BindPoint) const
+    void GLBuffer::BindIndexed(const uint32_t& Index, const BufferBindPoint& BindPoint) const
     {
         assert(glBufferHandle > 0);
-        glBindBufferBase(GL_BIND_POINTS[(uint16_t)BindPoint], index, glBufferHandle);
+        glBindBufferBase(GL_BIND_POINTS[(uint16_t)BindPoint], Index, glBufferHandle);
     }
 
-    void GLBuffer::Download(void* Destination, const uint32_t& Offset, int32_t Size) const
+    void GLBuffer::Download(void* Destination, uint32_t Size, const uint32_t& Offset) const
     {
         assert(glBufferHandle > 0);
-        
-        if (Size < 0)
+
+        if (Size < 1)
             Size = description.size;
 
         glBindBuffer(GL_COPY_READ_BUFFER, glBufferHandle);
@@ -80,19 +82,22 @@ namespace lucid::gpu
         glBindBuffer(GL_COPY_READ_BUFFER, 0);
     }
 
-    void GLBuffer::MemoryMap(BufferDescription const* Description, const uint16_t& AccessPolicy) const
+    void* GLBuffer::MemoryMap(const uint16_t& AccessPolicy, uint32_t Size, const uint32_t& Offset) const
     {
         assert(glBufferHandle > 0);
         assert(isImmutable ? true : NO_COHERENT_OR_PERSISTENT_BIT_SET(AccessPolicy));
 
+        if (Size < 1)
+            Size = description.size;
+
         GLbitfield accessBits = calculateGLMapAccessBits(AccessPolicy);
 
-        if (Description == nullptr)
-            Description = &description;
-
         glBindBuffer(GL_COPY_READ_BUFFER, glBufferHandle);
-        glMapBufferRange(GL_COPY_READ_BUFFER, Description->offset, Description->size, accessBits);
+        void* mappedRegion = glMapBufferRange(GL_COPY_READ_BUFFER, Offset, Size, accessBits);
         glBindBuffer(GL_COPY_READ_BUFFER, 0);
+        assert(mappedRegion);
+
+        return mappedRegion;
     }
 
     void GLBuffer::Upload(BufferDescription const* Description)

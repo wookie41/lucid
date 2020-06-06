@@ -10,15 +10,17 @@ namespace lucid::gpu
       public:
         GLBuffer(const GLuint& BufferHandle, const BufferDescription& Description, const bool& IsImmutable);
 
-        void Bind(const BufferBindPoint& BindPoint) const override;
-        void BindIndexed(const uint32_t& index, const BufferBindPoint& BindPoint) const override;
+        virtual uint32_t GetSize() const override;
 
-        void Upload(BufferDescription const* Description) override;
-        void Download(void* Destination, const uint32_t& Offset, int32_t Size) const override;
+        virtual void Bind(const BufferBindPoint& BindPoint) const override;
+        virtual void BindIndexed(const uint32_t& Index, const BufferBindPoint& BindPoint) const override;
 
-        void MemoryMap(BufferDescription const* Description, const uint16_t& BufferAccessPolicy) const override;
+        virtual void Upload(BufferDescription const* Description) override;
+        virtual void Download(void* Destination, uint32_t Size, const uint32_t& Offset) const override;
 
-        void Free() override;
+        virtual void* MemoryMap(const uint16_t& AccessPolicy, uint32_t Size, const uint32_t& Offset) const override;
+
+        virtual void Free() override;
 
       private:
         bool isImmutable;
