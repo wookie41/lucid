@@ -1,6 +1,6 @@
 #pragma once
 
-#include "devices/gpu/include/buffer.hpp"
+#include "devices/gpu/buffer.hpp"
 #include "GL/glew.h"
 
 namespace lucid::gpu

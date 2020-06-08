@@ -19,14 +19,34 @@ project "lucid"
 
    includedirs { "." }
 
-   includedirs { "libs/glew/include", "libs/SDL2/include" }
-   libdirs { "libs/glew/lib/x64", "libs/SDL2/lib/x64" }
-   links { "glew32", "opengl32", "SDL2", "SDL2main" }
+   includedirs { 
+      "platform/include", 
+      "devices/include", 
+      "common/include" 
+   }
+
+   includedirs { 
+      "libs/glew/include", 
+      "libs/SDL2/include" 
+   }
+   
+   libdirs { 
+      "libs/glew/lib/x64", 
+      "libs/SDL2/lib/x64" 
+   }
+   
+   links { 
+      "glew32", 
+      "opengl32", 
+      "SDL2", 
+      "SDL2main"
+   }
 
    files { 
       "main.cpp", 
-      "devices/gpu/src/gl/**.cpp",
-      "platform/src/sdl/**.cpp"
+      "devices/src/gpu/gl/**.cpp",
+      "platform/src/sdl/**.cpp",
+      "common/src/**.cpp"
    }
 
    filter "configurations:Debug"
