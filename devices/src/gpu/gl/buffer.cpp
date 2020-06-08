@@ -1,4 +1,4 @@
-#include "devices/gpu/include/gl/buffer.hpp"
+#include "devices/gpu/gl/buffer.hpp"
 #include <cassert>
 
 #define NO_COHERENT_OR_PERSISTENT_BIT_SET(FLAGS) \

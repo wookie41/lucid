@@ -1,4 +1,4 @@
-#include "devices/gpu/include/gpu.hpp"
+#include "devices/gpu/gpu.hpp"
 
 #include "SDL2/SDL.h"
 #include "GL/glew.h"

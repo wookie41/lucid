@@ -1,6 +1,6 @@
-#include "devices/gpu/include/gpu.hpp"
-#include "platform/include/window.hpp"
-#include "devices/gpu/include/buffer.hpp"
+#include "devices/gpu/gpu.hpp"
+#include "platform/window.hpp"
+#include "devices/gpu/buffer.hpp"
 
 #include "stdio.h"
 #include "GL/glew.h"

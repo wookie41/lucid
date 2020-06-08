@@ -1,4 +1,4 @@
-#include "platform/include/sdl/sdl_window.hpp"
+#include "platform/sdl/sdl_window.hpp"
 #include "SDL2/SDL.h"
 #include "common/math.hpp"
 #include "GL/glew.h"
