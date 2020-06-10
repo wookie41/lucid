@@ -1,8 +1,8 @@
 #include "common/collections.hpp"
 #include "common/bytes.hpp"
 
-#include "stdlib.h"
-
+#include <string.h>
+#include <stdlib.h>
 #include <cassert>
 
 namespace lucid
@@ -11,7 +11,7 @@ namespace lucid
     StaticArray<T>::StaticArray(const uint32_t& ArrayCapacity)
     {
         Capacity = ArrayCapacity;
-        SizeInBytes = sizeof(T) * ArrayCapacity; 
+        SizeInBytes = sizeof(T) * ArrayCapacity;
         array = (T*)malloc(SizeInBytes);
         zero(array, SizeInBytes);
     }
@@ -48,5 +48,13 @@ namespace lucid
     StaticArray<T>::operator void*() const
     {
         return array;
+    }
+
+    template <typename T>
+    StaticArray<T> StaticArray<T>::Copy() const
+    {
+        StaticArray<T> newArray(Length);
+        memcpy(newArray.array, array, newArray.SizeInBytes);
+        return newArray;
     }
 } // namespace lucid
