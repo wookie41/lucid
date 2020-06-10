@@ -13,17 +13,17 @@ namespace lucid
         operator T*() const;
         operator void*() const;
 
+        StaticArray<T> Copy() const;
         void Add(const T& Element);
         void Free();
 
         uint32_t Length = 0;
         uint32_t Capacity;
         uint64_t SizeInBytes;
-        
+
       private:
         T* array;
     };
-
 } // namespace lucid
 
 
