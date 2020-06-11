@@ -23,6 +23,7 @@ namespace lucid::gpu
         virtual void SetVector(const String& UniformName, const math::ivec3& Value) const = 0;
         virtual void SetVector(const String& UniformName, const math::ivec4& Value) const = 0;
 
+        virtual ~Shader() = default;
         // TODO Matrices
     };
 

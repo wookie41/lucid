@@ -179,4 +179,6 @@ namespace lucid::gpu
 #endif
         return -1;
     }
+
+    GLShader::~GLShader() { glDeleteShader(glShaderID); }
 } // namespace lucid::gpu
