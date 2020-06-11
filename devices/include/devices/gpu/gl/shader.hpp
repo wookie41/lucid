@@ -35,6 +35,8 @@ namespace lucid::gpu
         virtual void SetVector(const String& UniformName, const math::ivec3& Value) const override;
         virtual void SetVector(const String& UniformName, const math::ivec4& Value) const override;
 
+        virtual ~GLShader();
+
       private:
 
         GLint getUniformLocation(const String& Name, const bool& IsSampler) const;

@@ -4,6 +4,7 @@ namespace lucid
 {
     enum Type
     {
+        BYTE,
         INT_8,
         INT_16,
         INT_32,

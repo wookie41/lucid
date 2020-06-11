@@ -29,45 +29,62 @@ int main(int argc, char** argv)
     window->Show();
     window->SetClearColor({ .2f, .3f, .8f, 1.f });
 
-    lucid::StaticArray<lucid::math::vec3> triangleVerts(3);
+    lucid::StaticArray<lucid::math::vec3> rectangleVerts(4);
+    rectangleVerts.Add({ 0.5f, 0.5f, 0 });
+    rectangleVerts.Add({ 0.5f, -0.5f, 0 });
+    rectangleVerts.Add({ -0.5f, -0.5f, 0 });
+    rectangleVerts.Add({ -0.5f, 0.5f, 0 });
 
-    triangleVerts.Add({ -.5f, -.5f, 0 });
-    triangleVerts.Add({ .5f, -.5f, 0 });
-    triangleVerts.Add({ 0, .5f, 0 });
+    lucid::StaticArray<uint32_t> rectangleIndices(6);
+    rectangleIndices.Add(0);
+    rectangleIndices.Add(1);
+    rectangleIndices.Add(3);
+    rectangleIndices.Add(1);
+    rectangleIndices.Add(2);
+    rectangleIndices.Add(3);
 
     lucid::gpu::BufferDescription bufferDescription;
-    bufferDescription.data = triangleVerts;
-    bufferDescription.size = triangleVerts.SizeInBytes;
+    bufferDescription.data = rectangleVerts;
+    bufferDescription.size = rectangleVerts.SizeInBytes;
     bufferDescription.offset = 0;
 
-    lucid::gpu::Buffer* buffer = lucid::gpu::CreateBuffer(bufferDescription, lucid::gpu::BufferUsage::STATIC);
+    lucid::gpu::Buffer* vertexBuffer =
+    lucid::gpu::CreateBuffer(bufferDescription, lucid::gpu::BufferUsage::STATIC);
+
+    bufferDescription.data = rectangleIndices;
+    bufferDescription.size = rectangleIndices.SizeInBytes;
+
+    lucid::gpu::Buffer* elementBuffer =
+    lucid::gpu::CreateBuffer(bufferDescription, lucid::gpu::BufferUsage::STATIC);
+
+    lucid::StaticArray<lucid::gpu::VertexAttribute> attributes(1);
+    attributes.Add({ 0, 3, lucid::Type::FLOAT, false, 3 * sizeof(float), 0 });
+
+    lucid::gpu::VertexArray* vertexArray =
+    lucid::gpu::CreateVertexArray(&attributes, vertexBuffer, elementBuffer);
+
+    attributes.Free();
 
     lucid::gpu::Shader* simpleShader =
     lucid::gpu::CompileShaderProgram({ VERTEX_SOURCE }, { FRAGMENT_SOURCE });
 
     simpleShader->Use();
-    simpleShader->SetVector("triangleColor", lucid::math::vec3 { 0.6, 0.7, 0.3 } );
+    simpleShader->SetVector("triangleColor", lucid::math::vec3{ 0.6, 0.7, 0.3 });
+    vertexArray->Bind();
 
-    GLuint VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    buffer->Bind(lucid::gpu::BufferBindPoint::VERTEX);
-
-    lucid::gpu::AddVertexAttribute({ 0, 3, lucid::Type::FLOAT, false, 3 * sizeof(float), 0 });
-
-    while (true)
-    {
-        window->ClearColor();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        window->Swap();
-    }
+    window->ClearColor();
+    lucid::gpu::DrawElement(lucid::Type::UINT_32, 6, lucid::gpu::DrawMode::TRIANGLES);
+    window->Swap();
 
     getchar();
 
-    buffer->Free();
+    delete vertexArray;
+    delete simpleShader;
+
+    vertexBuffer->Free();
+    elementBuffer->Free();
+
     window->Destroy();
 
-    delete window;
     return 0;
 }
