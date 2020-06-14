@@ -12,13 +12,13 @@ namespace lucid::gpu
 
     struct VertexAttribute
     {
-        uint32_t Index;
-        int32_t Size;
+        uint32_t Index = 0;
+        int32_t NumComponents = 0;
         Type Type;
-        bool Normalized;
-        uint32_t Stride;
-        uint32_t Offset;
-        uint32_t Divisor;
+        bool Normalized = false;
+        uint32_t Stride = 0;
+        uint32_t FirstElementOffset = 0;
+        uint32_t Divisor = 0;
     };
 
     void AddVertexAttribute(const VertexAttribute& Attribute);
