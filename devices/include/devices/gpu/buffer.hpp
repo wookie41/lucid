@@ -38,9 +38,9 @@ namespace lucid::gpu
 
     struct BufferDescription
     {
-        uint32_t size;
-        uint32_t offset;
-        void* data;
+        uint32_t size = 0;
+        uint32_t offset = 0;
+        void* data = nullptr;
     };
 
     class Buffer

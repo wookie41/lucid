@@ -75,8 +75,8 @@ namespace lucid::gpu
 
     void AddVertexAttribute(const VertexAttribute& Attribute)
     {
-        glVertexAttribPointer(Attribute.Index, Attribute.Size, GL_TYPES[Attribute.Type], GL_FALSE,
-                              Attribute.Stride, (void*)Attribute.Offset);
+        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type], GL_FALSE,
+                              Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
         glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
@@ -84,8 +84,8 @@ namespace lucid::gpu
 
     void AddIntegerVertexAttribute(const VertexAttribute& Attribute)
     {
-        glVertexAttribIPointer(Attribute.Index, Attribute.Size, GL_TYPES[Attribute.Type],
-                               Attribute.Stride, (void*)Attribute.Offset);
+        glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type],
+                               Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
         glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
@@ -93,8 +93,8 @@ namespace lucid::gpu
 
     void AddLongVertexAttribute(const VertexAttribute& Attribute)
     {
-        glVertexAttribLPointer(Attribute.Index, Attribute.Size, GL_TYPES[Attribute.Type],
-                               Attribute.Stride, (void*)Attribute.Offset);
+        glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type],
+                               Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
         glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
@@ -123,7 +123,7 @@ namespace lucid::gpu
 
         for (uint32_t attrIdx = 0; attrIdx < VertexArrayAttributes->Length; ++attrIdx)
         {
-            VertexAttribute* vertexAttribute = VertexArrayAttributes[attrIdx];
+            VertexAttribute* vertexAttribute = (*VertexArrayAttributes)[attrIdx];
 
             switch (vertexAttribute->Type)
             {

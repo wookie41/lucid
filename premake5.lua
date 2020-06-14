@@ -22,7 +22,8 @@ project "lucid"
    includedirs { 
       "platform/include", 
       "devices/include", 
-      "common/include" 
+      "common/include", 
+      "graphics/include" 
    }
 
    includedirs { 
@@ -46,7 +47,8 @@ project "lucid"
       "main.cpp", 
       "devices/src/gpu/gl/**.cpp",
       "platform/src/sdl/**.cpp",
-      "common/src/**.cpp"
+      "common/src/**.cpp",
+      "graphics/src/**.cpp"
    }
 
    filter "configurations:Debug"
