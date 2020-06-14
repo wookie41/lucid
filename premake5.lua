@@ -27,6 +27,7 @@ project "lucid"
    }
 
    includedirs { 
+      "libs/stb", 
       "libs/glew/include", 
       "libs/SDL2/include" 
    }
@@ -45,6 +46,7 @@ project "lucid"
 
    files { 
       "main.cpp", 
+      "devices/src/gpu/**.cpp",
       "devices/src/gpu/gl/**.cpp",
       "platform/src/sdl/**.cpp",
       "common/src/**.cpp",

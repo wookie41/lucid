@@ -55,27 +55,27 @@ namespace lucid::math
     struct ivec2
     {
         union {
-            uint32_t x, r, u;
+            int32_t x, r, u;
         };
 
 
         union {
-            uint32_t y, g, v;
+            int32_t y, g, v;
         };
     };
 
     struct ivec3
     {
         union {
-            uint32_t x, r, u;
+            int32_t x, r, u;
         };
 
         union {
-            uint32_t y, g, v;
+            int32_t y, g, v;
         };
 
         union {
-            uint32_t z, b;
+            int32_t z, b;
         };
     };
 
@@ -83,19 +83,19 @@ namespace lucid::math
     struct ivec4
     {
         union {
-            uint32_t x, r, u;
+            int32_t x, r, u;
         };
 
         union {
-            uint32_t y, g, v;
+            int32_t y, g, v;
         };
 
         union {
-            uint32_t z, b;
+            int32_t z, b;
         };
 
         union {
-            uint32_t w, a;
+            int32_t w, a;
         };
     };
 #pragma pack(pop)

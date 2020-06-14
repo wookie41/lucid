@@ -89,7 +89,8 @@ namespace lucid::gpu
             bool isSampler = uniformType == GL_SAMPLER_2D; // TODO add other kinds of sampler types when needed
             if (isSampler)
             {
-                samplerUniforms.Add({ uniformIdx, CopyString(uniformNameBuff) });
+                uniformVariables.Add({ uniformIdx, CopyString(uniformNameBuff) });
+                // samplerUniforms.Add({ uniformIdx, CopyString(uniformNameBuff) });
                 continue;
             }
 
@@ -113,7 +114,6 @@ namespace lucid::gpu
 
     {
     }
-
 
     void GLShader::Use() const { glUseProgram(glShaderID); }
 
