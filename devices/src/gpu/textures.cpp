@@ -9,24 +9,35 @@
 #include <stdio.h>
 #endif
 
-
 namespace lucid::gpu
 {
-    Texture* CreateTextureFromJPEG(const char const* Path)
+    void InitTextures()
     {
+        stbi_set_flip_vertically_on_load(true);
+    }
+
+    static Texture* LoadWithSTBAndCreate(const char const* Path, bool IsTransparent)
+    {
+        int desiredChannels = IsTransparent ? 4 : 3;
         int channels;
         math::ivec2 size;
 
-        stbi_uc* textureData = stbi_load(Path, &size.x, &size.y, &channels, 3);
-        assert(channels == 3);
+        stbi_uc* textureData = stbi_load(Path, &size.x, &size.y, &channels, desiredChannels);
+        assert(channels == desiredChannels);
 
-#ifndef NDEBUG
-        printf("Loadad a JPEG of size %dx%d\n", size.x ,size.y);
-#endif
-
-        Texture* createdTexture = Create2DTexture(textureData, size, 0, false);
+        Texture* createdTexture = Create2DTexture(textureData, size, 0, IsTransparent);
 
         stbi_image_free(textureData);
         return createdTexture;
+    }
+
+    Texture* CreateTextureFromJPEG(const char const* Path)
+    {
+        return LoadWithSTBAndCreate(Path, false);
+    }
+
+    Texture* CreateTextureFromPNG(const char const* Path)
+    {
+        return LoadWithSTBAndCreate(Path, true);
     }
 } // namespace lucid::gpu

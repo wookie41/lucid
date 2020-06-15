@@ -55,6 +55,7 @@ namespace lucid
     {
         StaticArray<T> newArray(Length);
         memcpy(newArray.array, array, newArray.SizeInBytes);
+        newArray.Length = Length;
         return newArray;
     }
 } // namespace lucid

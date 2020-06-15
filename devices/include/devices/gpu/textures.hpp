@@ -4,6 +4,8 @@
 
 namespace lucid::gpu
 {
+    void InitTextures();
+
     enum class TextureType : uint8_t
     {
         ONE_DIMENSIONAL,
@@ -20,6 +22,7 @@ namespace lucid::gpu
     };
 
     Texture* CreateTextureFromJPEG(const char const* Path);
+    Texture* CreateTextureFromPNG(const char const* Path);
 
     Texture* Create2DTexture(const void const* TextureData,
                              const math::ivec2& TextureSize,

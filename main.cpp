@@ -24,16 +24,20 @@ static char* FRAGMENT_SOURCE =
 "#version 330 core\n"
 "in vec2 TexCoords;\n"
 "out vec4 FragColor;\n"
-"uniform sampler2D textureToUse;\n"
-"void main() { FragColor = texture(textureToUse, TexCoords); }\n";
+"uniform sampler2D textureToUse1;\n"
+"uniform sampler2D textureToUse2;\n"
+"void main() { FragColor = mix(texture(textureToUse1, TexCoords), texture(textureToUse2, TexCoords), 0.2); }\n";
 
 int main(int argc, char** argv)
 {
     lucid::gpu::Init();
+    lucid::gpu::InitTextures();
 
     lucid::platform::Window* window = lucid::platform::CreateWindow({ "Lucid", 200, 200, 800, 600 });
     lucid::graphics::InitBasicShapes();
+
     lucid::gpu::Texture* containerTexture = lucid::gpu::CreateTextureFromJPEG("container.jpg");
+    lucid::gpu::Texture* awesomeFaceTexture = lucid::gpu::CreateTextureFromPNG("awesomeface.png");
 
     window->Prepare();
     window->Show();
@@ -43,10 +47,8 @@ int main(int argc, char** argv)
     lucid::gpu::CompileShaderProgram({ VERTEX_SOURCE }, { FRAGMENT_SOURCE });
 
     simpleShader->Use();
-    // simpleShader->SetVector("triangleColor", lucid::math::vec3{ 0.6, 0.7, 0.3 });
-    simpleShader->SetInt("textureToUse", 0);
-
-    containerTexture->Bind();
+    simpleShader->UseTexture("textureToUse1", containerTexture);
+    simpleShader->UseTexture("textureToUse2", awesomeFaceTexture);
     
     window->ClearColor();
     lucid::graphics::DrawMesh(&lucid::graphics::QuadShape);
