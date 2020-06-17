@@ -18,6 +18,7 @@ namespace lucid::gpu
     {
       public:
         virtual void Bind() = 0;
+        virtual math::ivec3 GetSize() const = 0;
         virtual ~Texture() = default;
     };
 

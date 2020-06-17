@@ -24,6 +24,29 @@ namespace lucid
       private:
         T* array;
     };
+
+    template <typename T>
+    struct LinkedListItem
+    {
+        T* Element = nullptr;
+        LinkedListItem<T>* Next = nullptr;
+        LinkedListItem<T>* Prev = nullptr;
+    };
+
+    template <typename T>
+    struct LinkedList
+    {
+        LinkedList();
+
+        void Add(T* Element);
+        void Remove(T* Element);
+        bool Contains(T* Element);
+
+        ~LinkedList();
+
+        LinkedListItem<T> Head;
+        LinkedListItem<T>* Tail;
+    };
 } // namespace lucid
 
 

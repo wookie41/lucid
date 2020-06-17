@@ -41,6 +41,8 @@ namespace lucid::gpu
         virtual void SetVector(const String& UniformName, const math::ivec3& Value) override;
         virtual void SetVector(const String& UniformName, const math::ivec4& Value) override;
 
+        virtual void SetMatrix(const String& UniformName, const math::mat4& Value) override;
+
         virtual void UseTexture(const String& TextureName, Texture* TextureToUse) override;
 
         virtual ~GLShader();

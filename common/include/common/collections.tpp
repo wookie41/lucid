@@ -58,4 +58,60 @@ namespace lucid
         newArray.Length = Length;
         return newArray;
     }
+
+    template <typename T>
+    LinkedList<T>::LinkedList()
+    {
+        Tail = &Head;
+    }
+
+    template <typename T>
+    void LinkedList<T>::Add(T* Element)
+    {
+        Tail->Element = Element;
+        Tail->Next = new LinkedListItem<T>;
+        Tail->Next->Prev = Tail;
+        Tail = Tail->Next;
+    }
+
+    template <typename T>
+    void LinkedList<T>::Remove(T* Element)
+    {
+        LinkedListItem<T>* current = &Head;
+        while (current != nullptr)
+        {
+            if (current->Element == Element)
+            {
+                current->Prev->Next = current->Next;
+                current->Next->Prev = current->Prev;
+                delete current;
+                return;
+            }
+        }
+    }
+
+    template <typename T>
+    bool LinkedList<T>::Contains(T* Element)
+    {
+        LinkedListItem<T>* current = &Head;
+        while (current != nullptr)
+        {
+            if (current->Element == Element)
+                return true;
+        }
+        return false;
+    }
+
+    template <typename T>
+    LinkedList<T>::~LinkedList()
+    {
+        LinkedListItem<T>* tmp = nullptr;
+        LinkedListItem<T>* current = Head.Next;
+        while (current != nullptr)
+        {
+            tmp = current->Next;
+            delete current;
+            current = tmp;
+        }            
+    }
 } // namespace lucid

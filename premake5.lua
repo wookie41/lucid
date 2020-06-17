@@ -23,7 +23,8 @@ project "lucid"
       "platform/include", 
       "devices/include", 
       "common/include", 
-      "graphics/include" 
+      "graphics/include", 
+      "canvas/include" 
    }
 
    includedirs { 
@@ -49,8 +50,10 @@ project "lucid"
       "devices/src/gpu/**.cpp",
       "devices/src/gpu/gl/**.cpp",
       "platform/src/sdl/**.cpp",
+      "platform/src/**.cpp",
       "common/src/**.cpp",
-      "graphics/src/**.cpp"
+      "graphics/src/**.cpp",
+      "canvas/src/**.cpp"
    }
 
    filter "configurations:Debug"

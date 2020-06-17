@@ -178,6 +178,11 @@ namespace lucid::gpu
         glUniform4iv(getUniformLocation(UniformName), 1, (GLint*)&Value);
     }
 
+    void GLShader::SetMatrix(const String& UniformName, const math::mat4& Value) 
+    {
+        glUniformMatrix4fv(getUniformLocation(UniformName), 1, GL_FALSE, (GLfloat*)&Value);
+    }
+
     void GLShader::UseTexture(const String& TextureName, Texture* TextureToUse)
     {
         TextureBinding* binding = nullptr;
@@ -193,7 +198,7 @@ namespace lucid::gpu
 #ifndef NDEBUG
         if (binding == nullptr)
         {
-            printf("Sampler with name %s not found in shader %d", TextureName.CString, glShaderID);
+            printf("Sampler with name %s not found in shader %d\n", TextureName.CString, glShaderID);
             return;
         }
 #endif
@@ -207,6 +212,7 @@ namespace lucid::gpu
 
     GLint GLShader::getUniformLocation(const String& Name) const
     {
+        //@TODO Replace with a hashmap when we have hashmaps implemented
         for (uint32_t idx = 0; idx < uniformVariables.Length; ++idx)
         {
             if (uniformVariables[idx]->Name.Hash == Name.Hash)
@@ -214,7 +220,7 @@ namespace lucid::gpu
         }
 
 #ifndef NDEBUG
-        printf("Uniform variable with name %s not found in shader %d", Name.CString, glShaderID);
+        printf("Uniform variable with name %s not found in shader %d\n", Name.CString, glShaderID);
 #endif
         return -1;
     }

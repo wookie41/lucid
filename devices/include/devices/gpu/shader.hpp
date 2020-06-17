@@ -24,6 +24,8 @@ namespace lucid::gpu
         virtual void SetVector(const String& UniformName, const math::ivec2& Value) = 0;
         virtual void SetVector(const String& UniformName, const math::ivec3& Value) = 0;
         virtual void SetVector(const String& UniformName, const math::ivec4& Value) = 0;
+        
+        virtual void SetMatrix(const String& UniformName, const math::mat4& Value) = 0;
 
         virtual void UseTexture(const String& TextureName, Texture* TextureToUse) = 0;
 

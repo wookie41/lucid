@@ -46,21 +46,16 @@ namespace lucid::gpu
     Texture* Create2DTexture(const void const* TextureData, const math::ivec2& TextureSize, const int32_t MipMapLevel, bool IsTransparent)
     {
         GLenum format = IsTransparent ? GL_RGBA : GL_RGB;
-        GLuint textureHandle = CreateTexture(
-            TextureType::TWO_DIMENSIONAL, 
-            MipMapLevel, 
-            { TextureSize.x, TextureSize.y, 0 },
-            GL_UNSIGNED_BYTE, 
-            format, 
-            format, 
-            TextureData
-        );
+        GLuint textureHandle =
+        CreateTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, { TextureSize.x, TextureSize.y, 0 },
+                      GL_UNSIGNED_BYTE, format, format, TextureData);
 
-        return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL);
+        return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL,
+                             { TextureSize.x, TextureSize.y, 0 });
     }
 
-    GLTexture::GLTexture(const GLuint& TextureID, const TextureType& Type)
-    : glTextureHandle(TextureID)
+    GLTexture::GLTexture(const GLuint& TextureID, const TextureType& Type, const math::ivec3& Size)
+    : glTextureHandle(TextureID), size(Size)
     {
         switch (Type)
         {
@@ -79,4 +74,7 @@ namespace lucid::gpu
     void GLTexture::Bind() { glBindTexture(textureType, glTextureHandle); }
 
     GLTexture::~GLTexture() { glDeleteTextures(1, &glTextureHandle); }
+
+    math::ivec3 GLTexture::GetSize() const { return size; };
+
 } // namespace lucid::gpu
