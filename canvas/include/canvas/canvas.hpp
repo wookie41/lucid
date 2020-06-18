@@ -47,7 +47,7 @@ namespace lucid::canvas
         math::ivec2 TextureRegionSize;
         math::ivec2 TextureRegionIndex;
 
-        gpu::Texture* TextureToUse;
+        gpu::Texture* TextureToUse = nullptr;
     };
 
 } // namespace lucid::canvas

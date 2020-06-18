@@ -21,6 +21,5 @@ void main()
     vec2 worldPosition = vec2(Position + (SpriteSize * normalizedPos));
 
     TextureCoords = (vec2(SpriteSize * TextureRegionIndex) + vec2(textureCoords * TextureRegionSize)) / TextureSize;
-    TextureCoords.xy *= -1;
     gl_Position = Projection * vec4(worldPosition, -1, 1);
 }

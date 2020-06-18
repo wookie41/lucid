@@ -45,7 +45,11 @@ namespace lucid::canvas
         }
     }
 
-    void CanvasItem::AddChild(CanvasItem* Item) { Children.Add(Item); }
+    void CanvasItem::AddChild(CanvasItem* Item)
+    {
+        Children.Add(Item);
+        Item->Parent = this;
+    }
     void CanvasItem::RemoveChild(CanvasItem* Item) { Children.Remove(Item); }
 
     void Sprite::Draw(gpu::Shader* ShaderToUse)
@@ -55,7 +59,7 @@ namespace lucid::canvas
         if (TextureToUse)
         {
             const auto size = TextureToUse->GetSize();
-            ShaderToUse->SetVector(TEXTURE_SIZE, math::ivec2 { size.x, size.y });
+            ShaderToUse->SetVector(TEXTURE_SIZE, math::ivec2{ size.x, size.y });
             ShaderToUse->UseTexture(SPRITE_TEXTURE, TextureToUse);
         }
         ShaderToUse->SetVector(SPRITE_SIZE, SpriteSize);

@@ -23,13 +23,29 @@ int main(int argc, char** argv)
     lucid::graphics::InitBasicShapes();
 
     lucid::gpu::Texture* containerTexture = lucid::gpu::CreateTextureFromJPEG("container.jpg");
-    lucid::math::ivec3 textureSize = containerTexture->GetSize();
+    lucid::gpu::Texture* faceTexture = lucid::gpu::CreateTextureFromPNG("awesomeface.png");
+    
+    lucid::math::ivec3 containerTextureSize = containerTexture->GetSize();
+    lucid::math::ivec3 faceTextureSize = faceTexture->GetSize();
 
-    lucid::canvas::Sprite sprite;
-    sprite.Position = { 0, 0 };
-    sprite.SpriteSize = { 200, 200 };
-    sprite.TextureRegionSize = { textureSize.x, textureSize.y };
-    sprite.TextureToUse = containerTexture;
+    lucid::canvas::CanvasItem dummyItem;
+    dummyItem.Position = { 400, 300 };
+    
+    lucid::canvas::Sprite sprite1;
+    sprite1.Position = { 200, 0 };
+    sprite1.SpriteSize = { 200, 200 };
+    sprite1.TextureRegionSize = { containerTextureSize.x, containerTextureSize.y };
+    sprite1.TextureToUse = containerTexture;
+
+    lucid::canvas::Sprite sprite2;
+    sprite2.Position = { 0, 100 };
+    sprite2.SpriteSize = { 200, 200 };
+    sprite2.TextureRegionSize = { faceTextureSize.x, faceTextureSize.y };
+    sprite2.TextureToUse = faceTexture;
+    sprite2.RespectParentPosition = false;
+
+    dummyItem.AddChild(&sprite1);
+    dummyItem.AddChild(&sprite2);
 
     window->Prepare();
     window->Show();
@@ -48,7 +64,7 @@ int main(int argc, char** argv)
     while (true)
     {
         window->ClearColor();
-        sprite.Draw(simpleShader);
+        dummyItem.Draw(simpleShader);
         window->Swap();
     }
 
