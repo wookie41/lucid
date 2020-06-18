@@ -26,8 +26,9 @@ int main(int argc, char** argv)
     lucid::math::ivec3 textureSize = containerTexture->GetSize();
 
     lucid::canvas::Sprite sprite;
+    sprite.Position = { 0, 0 };
     sprite.SpriteSize = { 200, 200 };
-    sprite.TextureRegionSize = {textureSize.x, textureSize.y};
+    sprite.TextureRegionSize = { textureSize.x, textureSize.y };
     sprite.TextureToUse = containerTexture;
 
     window->Prepare();
@@ -35,7 +36,7 @@ int main(int argc, char** argv)
     window->SetClearColor({ .2f, .3f, .8f, 1.f });
 
     lucid::math::mat4 ProjectionMatrix =
-    lucid::math::CreateOrthographicProjectionMatrix(0, 800, 0, 600, 0.1f, 1000.0f);
+    lucid::math::CreateOrthographicProjectionMatrix(800, 0, 0, 600, 0.1f, 1000.0f);
 
     lucid::gpu::Shader* simpleShader =
     lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("sprite.vert", true) },
@@ -44,10 +45,12 @@ int main(int argc, char** argv)
     simpleShader->Use();
     simpleShader->SetMatrix("Projection", ProjectionMatrix);
 
-
-    window->ClearColor();
-    sprite.Draw(simpleShader);
-    window->Swap();
+    while (true)
+    {
+        window->ClearColor();
+        sprite.Draw(simpleShader);
+        window->Swap();
+    }
 
     getchar();
 

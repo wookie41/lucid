@@ -17,7 +17,7 @@ uniform mat4 Projection;
 
 void main()
 {
-    vec2 normalizedPos = (Position + 1.0) / 2.0;
+    vec2 normalizedPos = (position + 1.0) / 2.0;
     vec2 worldPosition = vec2(Position + (SpriteSize * normalizedPos));
 
     TextureCoords = (vec2(SpriteSize * TextureRegionIndex) + vec2(textureCoords * TextureRegionSize)) / TextureSize;

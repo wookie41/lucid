@@ -103,7 +103,7 @@ namespace lucid::math
 
     struct mat4
     {
-        float Rows[4][4];
+        float Cols[4][4];
     };
 
     //TODO ViewMatrix
@@ -112,8 +112,8 @@ namespace lucid::math
                                             const float& Left,
                                             const float& Bottom,
                                             const float& Top,
-                                            const float& Far,
-                                            const float& Near);
+                                            const float& Near,
+                                            const float& Far);
 
 #pragma pack(pop)
 } // namespace lucid::math

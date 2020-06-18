@@ -216,7 +216,7 @@ namespace lucid::gpu
         for (uint32_t idx = 0; idx < uniformVariables.Length; ++idx)
         {
             if (uniformVariables[idx]->Name.Hash == Name.Hash)
-                return idx;
+                return uniformVariables[idx]->GLIndex;
         }
 
 #ifndef NDEBUG
