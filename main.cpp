@@ -28,8 +28,8 @@ int main(int argc, char** argv)
     lucid::math::ivec3 containerTextureSize = containerTexture->GetSize();
     lucid::math::ivec3 faceTextureSize = faceTexture->GetSize();
 
-    lucid::canvas::CanvasItem dummyItem;
-    dummyItem.Position = { 400, 300 };
+    lucid::canvas::CanvasItem canvasRoot;
+    canvasRoot.Position = { 400, 300 };
     
     lucid::canvas::Sprite sprite1;
     sprite1.Position = { 200, 0 };
@@ -44,8 +44,9 @@ int main(int argc, char** argv)
     sprite2.TextureToUse = faceTexture;
     sprite2.RespectParentPosition = false;
 
-    dummyItem.AddChild(&sprite1);
-    dummyItem.AddChild(&sprite2);
+    canvasRoot.IsVisible = true;
+    canvasRoot.AddChild(&sprite1);
+    canvasRoot.AddChild(&sprite2);
 
     window->Prepare();
     window->Show();
@@ -64,7 +65,7 @@ int main(int argc, char** argv)
     while (true)
     {
         window->ClearColor();
-        dummyItem.Draw(simpleShader);
+        canvasRoot.Draw(simpleShader);
         window->Swap();
     }
 

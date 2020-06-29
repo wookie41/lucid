@@ -37,6 +37,9 @@ namespace lucid::canvas
 
     void CanvasItem::Draw(gpu::Shader* ShaderToUse)
     {
+        if (!IsVisible)
+            return;
+
         LinkedListItem<CanvasItem>* current = &Children.Head;
         while (current && current->Element)
         {

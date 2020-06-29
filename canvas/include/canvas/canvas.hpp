@@ -30,6 +30,7 @@ namespace lucid::canvas
 
         math::vec2 Position;
         float Rotation = 0;
+        bool IsVisible = true;
 
         CanvasItem* Parent = nullptr;
         LinkedList<CanvasItem> Children;
