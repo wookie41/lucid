@@ -6,8 +6,8 @@
 #include "graphics/static_mesh.hpp"
 #include "devices/gpu/textures.hpp"
 #include "platform/fs.hpp"
-
 #include "canvas/canvas.hpp"
+#include "platform/input.hpp"
 
 #include "stdio.h"
 #include "GL/glew.h"
@@ -62,14 +62,26 @@ int main(int argc, char** argv)
     simpleShader->Use();
     simpleShader->SetMatrix("Projection", ProjectionMatrix);
 
-    while (true)
+    bool isRunning = true;
+    while (isRunning)
     {
+        lucid::ReadEvents();
+
+        if (lucid::WasKeyPressed(SDLK_ESCAPE))
+        {
+            isRunning = false;
+            break;
+        }
+
+        if (lucid::WasKeyPressed(SDLK_a))
+        {
+            canvasRoot.IsVisible = !canvasRoot.IsVisible;
+        }
+
         window->ClearColor();
         canvasRoot.Draw(simpleShader);
         window->Swap();
     }
-
-    getchar();
 
     delete simpleShader;
 
