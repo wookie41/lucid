@@ -10,10 +10,12 @@ namespace lucid::platform
     class SDLWindow : public Window
     {
       public:
-        SDLWindow(SDL_Window* Window, SDL_GLContext Context);
+        SDLWindow(SDL_Window* Window, SDL_GLContext Context, const math::ivec2& Size);
 
         virtual void Swap() override;
         virtual void Prepare() override;
+
+        virtual math::ivec2 GetSize() const override;
 
         void SetClearColor(const math::vec4& color) override;
         void ClearColor() override;
@@ -26,6 +28,7 @@ namespace lucid::platform
         virtual ~SDLWindow() = default;
 
       private:
+        math::ivec2 size;
         SDL_Window* window;
         SDL_GLContext context;
     };

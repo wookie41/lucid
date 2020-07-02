@@ -16,7 +16,7 @@ namespace lucid
         uint8_t keyBit = calculateKeyBit(keyCode);
         uint8_t mapIdx = keyBit / 64;
         keyBit %= 64;
-        keyMap[mapIdx] |= (1 << keyBit);
+        keyMap[mapIdx] |= ((uint64_t)1 << keyBit);
     }
 
     inline void setLow(const SDL_Keycode& keyCode, uint64_t* keyMap)
@@ -24,15 +24,21 @@ namespace lucid
         uint8_t keyBit = calculateKeyBit(keyCode);
         uint8_t mapIdx = keyBit / 64;
         keyBit %= 64;
-        keyMap[mapIdx] &= ~(1 << keyBit);
+        keyMap[mapIdx] &= ~((uint64_t)1 << keyBit);
     }
 
     static KeyboardState keyboardState;
+    static MouseState mouseState;
 
     void ReadEvents()
     {
-        zero(keyboardState.clickedKeys, sizeof(keyboardState.clickedKeys));
-        zero(keyboardState.releasedKeys, sizeof(keyboardState.releasedKeys));
+        for (uint8_t i = 0; i < 4; ++i)
+            keyboardState.clickedKeys[i] = 0;
+
+        for (uint8_t i = 0; i < 4; ++i)
+            keyboardState.releasedKeys[i] = 0;
+
+        mouseState.clickedButtons = mouseState.releasedButtons = 0;
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -48,6 +54,26 @@ namespace lucid
                 setHigh(event.key.keysym.sym, keyboardState.releasedKeys);
                 setLow(event.key.keysym.sym, keyboardState.pressedKeys);
                 break;
+
+            case SDL_MOUSEBUTTONDOWN:
+                mouseState.pressedButtons |=
+                (mouseState.clickedButtons |= (1 << (event.button.button - 1)));
+                break;
+
+            case SDL_MOUSEBUTTONUP:
+                mouseState.pressedButtons &=
+                ~(mouseState.releasedButtons |= (1 << (event.button.button - 1)));
+                break;
+
+            case SDL_MOUSEMOTION:
+                mouseState.positionDelta = { mouseState.position.x - event.motion.x,
+                                             mouseState.position.y - event.motion.y };
+                mouseState.position = { event.motion.x, event.motion.y };
+                break;
+
+            case SDL_MOUSEWHEEL:
+                mouseState.wheelDelta = event.wheel.y;
+                break;
             }
         }
     }
@@ -57,7 +83,7 @@ namespace lucid
         uint8_t keyBit = calculateKeyBit(keyCode);
         uint8_t mapIdx = keyBit / 64;
         keyBit %= 64;
-        return keyMap[mapIdx] & (1 << keyBit);
+        return keyMap[mapIdx] & ((uint64_t)1 << keyBit);
     }
 
     bool IsKeyPressed(const SDL_Keycode& KeyCode)
@@ -74,4 +100,23 @@ namespace lucid
     {
         return isHigh(KeyCode, keyboardState.releasedKeys);
     }
+
+    bool IsMouseButtonPressed(const MouseButton& Button)
+    {
+        return mouseState.pressedButtons & Button;
+    }
+
+    bool WasMouseButtonPressed(const MouseButton& Button)
+    {
+        return mouseState.clickedButtons & Button;
+    }
+
+    bool WasMouseButtonReleased(const MouseButton& Button)
+    {
+        return mouseState.releasedButtons & Button;
+    }
+
+    math::ivec2 GetMousePostion() { return mouseState.position; }
+    math::ivec2 GetMousePostionDelta() { return mouseState.positionDelta; }
+    float GetMouseWheelDelta() { return mouseState.wheelDelta; }
 } // namespace lucid

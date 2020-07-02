@@ -78,6 +78,17 @@ int main(int argc, char** argv)
             canvasRoot.IsVisible = !canvasRoot.IsVisible;
         }
 
+        if (lucid::IsMouseButtonPressed(lucid::MouseButton::LEFT))
+        {
+            sprite2.Position = {(float)lucid::GetMousePostion().x, (float) window->GetSize().y -  lucid::GetMousePostion().y};
+        }
+
+
+        if (lucid::WasMouseButtonPressed(lucid::MouseButton::RIGHT))
+        {
+            sprite2.Position = {0, 0};
+        }
+
         window->ClearColor();
         canvasRoot.Draw(simpleShader);
         window->Swap();

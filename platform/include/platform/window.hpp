@@ -19,6 +19,8 @@ namespace lucid::platform
         virtual void Swap() = 0;
         virtual void Prepare() = 0;
 
+        virtual math::ivec2 GetSize() const = 0;
+
         virtual void SetClearColor(const math::vec4& color) = 0;
         virtual void ClearColor() = 0;
 
