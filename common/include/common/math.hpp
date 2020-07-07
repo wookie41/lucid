@@ -17,7 +17,13 @@ namespace lucid::math
             float y = 0, g, v;
         };
 
-        vec2& operator+=(const vec2& Other);
+        inline vec2& operator+=(const vec2& Other)
+        {
+            x += Other.x;
+            y += Other.y;
+
+            return *this;
+        }
     };
 
     struct vec3
@@ -64,6 +70,8 @@ namespace lucid::math
         union {
             int32_t y = 0, g, v;
         };
+
+        inline ivec2 operator*(const ivec2& Other) { return { x * Other.x, y * Other.y }; }
     };
 
     struct ivec3
@@ -106,7 +114,7 @@ namespace lucid::math
         float Cols[4][4];
     };
 
-    //TODO ViewMatrix
+    // TODO ViewMatrix
 
     mat4 CreateOrthographicProjectionMatrix(const float& Right,
                                             const float& Left,

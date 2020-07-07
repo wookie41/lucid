@@ -4,6 +4,24 @@
 
 namespace lucid
 {
+
+    struct KeyboardState
+    {
+        uint64_t pressedKeys[4] = { 0 }; // keeps track of which keys are currently held down
+        uint64_t clickedKeys[4] = { 0 }; // cleared per frame, only tells which keys were pressed down this frame
+        uint64_t releasedKeys[4] = { 0 }; // cleared per frame, only tells which keys were released this frame
+    };
+
+    struct MouseState
+    {
+        math::ivec2 position = { 0, 0 };
+        math::ivec2 positionDelta = { 0, 0 };
+        float wheelDelta = 0;
+        uint8_t pressedButtons = 0;
+        uint8_t clickedButtons = 0;
+        uint8_t releasedButtons = 0;
+    };
+
     const SDL_Keycode MIN_SPECIAL_KEY_KEYCODE = SDLK_CAPSLOCK;
 
     inline uint8_t calculateKeyBit(const SDL_Keycode& code)

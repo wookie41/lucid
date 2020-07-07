@@ -2,14 +2,6 @@
 
 namespace lucid::math
 {
-    vec2& vec2::operator+=(const vec2& Other)
-    {
-        x += Other.x;
-        y += Other.y;
-
-        return *this;
-    }
-
     mat4 CreateOrthographicProjectionMatrix(const float& Right,
                                             const float& Left,
                                             const float& Bottom,
