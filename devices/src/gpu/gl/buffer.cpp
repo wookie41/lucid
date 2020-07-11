@@ -4,6 +4,8 @@
 #define NO_COHERENT_OR_PERSISTENT_BIT_SET(FLAGS) \
     (((FLAGS & (uint16_t)BufferAccessPolicy::COHERENT) | (FLAGS & (uint16_t)BufferAccessPolicy::PERSISTENT)) == 0)
 
+#define AS_GL_BIND_POINT(bindPoint) (GL_BIND_POINTS[((uint16_t)bindPoint) - 1])
+
 static const GLenum GL_BIND_POINTS[] = { GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER };
 
 static const GLenum GL_MUTABLE_USAGE_HINTS[] = { GL_STATIC_DRAW, GL_DYNAMIC_DRAW,
@@ -58,19 +60,27 @@ namespace lucid::gpu
 
     uint32_t GLBuffer::GetSize() const { return description.size; }
 
-    void GLBuffer::Bind(const BufferBindPoint& BindPoint) const
+    void GLBuffer::Bind(const BufferBindPoint& BindPoint)
     {
         assert(glBufferHandle > 0);
-        glBindBuffer(GL_BIND_POINTS[(uint16_t)BindPoint], glBufferHandle);
+        assert(currentBindPoint == BufferBindPoint::UNBOUND);
+
+        currentBindPoint = BindPoint;
+
+        glBindBuffer(AS_GL_BIND_POINT(BindPoint), glBufferHandle);
     }
 
-    void GLBuffer::BindIndexed(const uint32_t& Index, const BufferBindPoint& BindPoint) const
+    void GLBuffer::BindIndexed(const uint32_t& Index, const BufferBindPoint& BindPoint)
     {
         assert(glBufferHandle > 0);
-        glBindBufferBase(GL_BIND_POINTS[(uint16_t)BindPoint], Index, glBufferHandle);
+        assert(currentBindPoint == BufferBindPoint::UNBOUND);
+
+        currentBindPoint = BindPoint;
+
+        glBindBufferBase(AS_GL_BIND_POINT(BindPoint), Index, glBufferHandle);
     }
 
-    void GLBuffer::Download(void* Destination, uint32_t Size, const uint32_t& Offset) const
+    void GLBuffer::Download(void* Destination, uint32_t Size, const uint32_t& Offset)
     {
         assert(glBufferHandle > 0);
 
@@ -82,10 +92,16 @@ namespace lucid::gpu
         glBindBuffer(GL_COPY_READ_BUFFER, 0);
     }
 
-    void* GLBuffer::MemoryMap(const uint16_t& AccessPolicy, uint32_t Size, const uint32_t& Offset) const
+    void* GLBuffer::MemoryMap(const BufferBindPoint& BindPoint,
+                              const uint16_t& AccessPolicy,
+                              uint32_t Size,
+                              const uint32_t& Offset)
     {
         assert(glBufferHandle > 0);
         assert(isImmutable ? true : NO_COHERENT_OR_PERSISTENT_BIT_SET(AccessPolicy));
+        assert(currentBindPoint == BufferBindPoint::UNBOUND);
+
+        currentBindPoint = BindPoint;
 
         if (Size < 1)
             Size = description.size;
@@ -100,7 +116,12 @@ namespace lucid::gpu
         return mappedRegion;
     }
 
-    void* GLBuffer::MemoryUnmap() const { glUnmapBuffer(GL_COPY_READ_BUFFER); }
+    void* GLBuffer::MemoryUnmap()
+    {
+        assert(currentBindPoint);
+        glUnmapBuffer(AS_GL_BIND_POINT(currentBindPoint));
+        currentBindPoint = BufferBindPoint::UNBOUND;
+    }
 
     void GLBuffer::Upload(BufferDescription const* Description)
     {

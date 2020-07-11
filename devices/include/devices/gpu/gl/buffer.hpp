@@ -12,18 +12,22 @@ namespace lucid::gpu
 
         virtual uint32_t GetSize() const override;
 
-        virtual void Bind(const BufferBindPoint& BindPoint) const override;
-        virtual void BindIndexed(const uint32_t& Index, const BufferBindPoint& BindPoint) const override;
+        virtual void Bind(const BufferBindPoint& BindPoint) override;
+        virtual void BindIndexed(const uint32_t& Index, const BufferBindPoint& BindPoint) override;
 
         virtual void Upload(BufferDescription const* Description) override;
-        virtual void Download(void* Destination, uint32_t Size, const uint32_t& Offset) const override;
+        virtual void Download(void* Destination, uint32_t Size, const uint32_t& Offset) override;
 
-        virtual void* MemoryMap(const uint16_t& AccessPolicy, uint32_t Size, const uint32_t& Offset) const override;
-        virtual void* MemoryUnmap() const override;
+        virtual void* MemoryMap(const BufferBindPoint& BindPoint,
+                                const uint16_t& AccessPolicy,
+                                uint32_t Size,
+                                const uint32_t& Offset) override;
+        virtual void* MemoryUnmap() override;
 
         virtual void Free() override;
 
       private:
+        BufferBindPoint currentBindPoint;
         bool isImmutable;
         GLuint glBufferHandle;
         BufferDescription description;

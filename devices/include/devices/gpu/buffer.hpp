@@ -6,8 +6,10 @@ namespace lucid::gpu
 {
     enum class BufferBindPoint : uint16_t
     {
+        UNBOUND,
         VERTEX,
-        ELEMENT
+        ELEMENT,
+        SHADER_STORAGE
     };
 
     enum class BufferUsage : uint16_t
@@ -48,15 +50,18 @@ namespace lucid::gpu
       public:
         virtual uint32_t GetSize() const = 0;
 
-        virtual void Bind(const BufferBindPoint& BindPoint) const = 0;
-        virtual void BindIndexed(const uint32_t& index, const BufferBindPoint& BindPoint) const = 0;
+        virtual void Bind(const BufferBindPoint& BindPoint) = 0;
+        virtual void BindIndexed(const uint32_t& index, const BufferBindPoint& BindPoint) = 0;
 
         virtual void Upload(BufferDescription const* Description) = 0;
-        virtual void Download(void* Destination, uint32_t Size = 0, const uint32_t& Offset = 0) const = 0;
+        virtual void Download(void* Destination, uint32_t Size = 0, const uint32_t& Offset = 0) = 0;
 
-        virtual void*
-        MemoryMap(const uint16_t& AccessPolicy, uint32_t Size = 0, const uint32_t& Offset = 0) const = 0;
-        virtual void* MemoryUnmap() const = 0;
+        virtual void* MemoryMap(const BufferBindPoint& BindPoint,
+                                const uint16_t& AccessPolicy,
+                                uint32_t Size = 0,
+                                const uint32_t& Offset = 0) = 0;
+
+        virtual void* MemoryUnmap() = 0;
 
         virtual void Free() = 0;
     };
