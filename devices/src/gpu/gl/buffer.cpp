@@ -100,6 +100,8 @@ namespace lucid::gpu
         return mappedRegion;
     }
 
+    void* GLBuffer::MemoryUnmap() const { glUnmapBuffer(GL_COPY_READ_BUFFER); }
+
     void GLBuffer::Upload(BufferDescription const* Description)
     {
         assert(glBufferHandle > 0);

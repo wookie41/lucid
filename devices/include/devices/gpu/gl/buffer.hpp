@@ -19,6 +19,7 @@ namespace lucid::gpu
         virtual void Download(void* Destination, uint32_t Size, const uint32_t& Offset) const override;
 
         virtual void* MemoryMap(const uint16_t& AccessPolicy, uint32_t Size, const uint32_t& Offset) const override;
+        virtual void* MemoryUnmap() const override;
 
         virtual void Free() override;
 

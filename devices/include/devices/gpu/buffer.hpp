@@ -54,7 +54,9 @@ namespace lucid::gpu
         virtual void Upload(BufferDescription const* Description) = 0;
         virtual void Download(void* Destination, uint32_t Size = 0, const uint32_t& Offset = 0) const = 0;
 
-        virtual void* MemoryMap(const uint16_t& AccessPolicy, uint32_t Size = 0, const uint32_t& Offset = 0) const = 0;
+        virtual void*
+        MemoryMap(const uint16_t& AccessPolicy, uint32_t Size = 0, const uint32_t& Offset = 0) const = 0;
+        virtual void* MemoryUnmap() const = 0;
 
         virtual void Free() = 0;
     };
