@@ -21,8 +21,4 @@ namespace lucid::gpu
       private:
         GLuint glVAOHandle;
     };
-
-    VertexArray* CreateVertexArray(const StaticArray<VertexAttribute> const* VertexArrayAttributes,
-                                   const Buffer const* VertexBuffer,
-                                   const Buffer const* ElementBuffer);
 } // namespace lucid::gpu

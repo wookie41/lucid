@@ -75,8 +75,8 @@ namespace lucid::gpu
 
     void AddVertexAttribute(const VertexAttribute& Attribute)
     {
-        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type], GL_FALSE,
-                              Attribute.Stride, (void*)Attribute.FirstElementOffset);
+        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type],
+                              GL_FALSE, Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
         glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
@@ -107,9 +107,9 @@ namespace lucid::gpu
         return glType;
     }
 
-    VertexArray* CreateVertexArray(const StaticArray<VertexAttribute> const* VertexArrayAttributes,
-                                   const Buffer const* VertexBuffer,
-                                   const Buffer const* ElementBuffer)
+    VertexArray* CreateVertexArray(StaticArray<VertexAttribute>* VertexArrayAttributes,
+                                   Buffer* VertexBuffer,
+                                   Buffer* ElementBuffer)
     {
         GLuint VAO;
 

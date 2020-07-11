@@ -37,10 +37,9 @@ namespace lucid::gpu
         virtual ~VertexArray() = default;
     };
 
-    VertexArray* CreateVertexArray(const StaticArray<VertexAttribute> const* VertexArrayAttributes,
-                                   const Buffer const* VertexBuffer,
-                                   const Buffer const* ElementBuffer);
-
+    VertexArray* CreateVertexArray(StaticArray<VertexAttribute>* VertexArrayAttributes,
+                                   Buffer* VertexBuffer,
+                                   Buffer* ElementBuffer);
     enum DrawMode
     {
         POINTS = 0,

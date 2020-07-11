@@ -2,10 +2,18 @@
 
 #include "common/strings.hpp"
 #include "common/math.hpp"
+#include "devices/gpu/buffer.hpp"
 
 namespace lucid::gpu
 {
     class Texture;
+
+    struct BufferBinding
+    {
+        Buffer* BufferToUse = nullptr;
+        BufferBindPoint BindPoint = BufferBindPoint::UNBOUND;
+        int32_t Index = -1;
+    };
 
     class Shader
     {
@@ -24,10 +32,12 @@ namespace lucid::gpu
         virtual void SetVector(const String& UniformName, const math::ivec2& Value) = 0;
         virtual void SetVector(const String& UniformName, const math::ivec3& Value) = 0;
         virtual void SetVector(const String& UniformName, const math::ivec4& Value) = 0;
-        
+
         virtual void SetMatrix(const String& UniformName, const math::mat4& Value) = 0;
 
         virtual void UseTexture(const String& TextureName, Texture* TextureToUse) = 0;
+
+        virtual void AddBinding(BufferBinding* Binding) = 0;
 
         virtual ~Shader() = default;
         // TODO Matrices

@@ -45,6 +45,8 @@ namespace lucid::gpu
 
         virtual void UseTexture(const String& TextureName, Texture* TextureToUse) override;
 
+        virtual void AddBinding(BufferBinding* Binding) override;
+
         virtual ~GLShader();
 
       private:
@@ -54,5 +56,6 @@ namespace lucid::gpu
 
         StaticArray<UniformVariable> uniformVariables;
         StaticArray<TextureBinding> textureBindings;
+        LinkedList<BufferBinding> buffersBindings;
     };
 } // namespace lucid::gpu

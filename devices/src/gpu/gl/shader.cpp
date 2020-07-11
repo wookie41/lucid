@@ -129,6 +129,20 @@ namespace lucid::gpu
                 textureBindings[idx]->BoundTexture->Bind();
             }
         }
+
+        auto bindingNode = buffersBindings.Head;
+        while (bindingNode.Element)
+        {
+            auto binding = bindingNode.Element;
+            if (binding->Index >= 0)
+            {
+                binding->BufferToUse->BindIndexed(binding->Index, binding->BindPoint);
+            }
+            else
+            {
+                binding->BufferToUse->Bind(binding->BindPoint);
+            }
+        }
     }
 
     void GLShader::Disable() { glUseProgram(0); }
@@ -178,7 +192,7 @@ namespace lucid::gpu
         glUniform4iv(getUniformLocation(UniformName), 1, (GLint*)&Value);
     }
 
-    void GLShader::SetMatrix(const String& UniformName, const math::mat4& Value) 
+    void GLShader::SetMatrix(const String& UniformName, const math::mat4& Value)
     {
         glUniformMatrix4fv(getUniformLocation(UniformName), 1, GL_FALSE, (GLfloat*)&Value);
     }
@@ -224,6 +238,8 @@ namespace lucid::gpu
 #endif
         return -1;
     }
+
+    void GLShader::AddBinding(BufferBinding* Binding) { buffersBindings.Add(Binding); }
 
     GLShader::~GLShader() { glDeleteShader(glShaderID); }
 } // namespace lucid::gpu
