@@ -27,7 +27,7 @@ namespace lucid::gpu
         virtual void Free() override;
 
       private:
-        BufferBindPoint currentBindPoint;
+        BufferBindPoint currentBindPoint = BufferBindPoint::UNBOUND;
         bool isImmutable;
         GLuint glBufferHandle;
         BufferDescription description;
