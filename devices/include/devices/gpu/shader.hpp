@@ -21,6 +21,9 @@ namespace lucid::gpu
         virtual void Use() = 0;
         virtual void Disable() = 0;
 
+        virtual void SetupTextureBindings() = 0;
+        virtual void SetupBuffersBindings() = 0;
+
         virtual void SetInt(const String& UniformName, const uint32_t& Value) = 0;
         virtual void SetFloat(const String& UniformName, const float& Value) = 0;
         virtual void SetBool(const String& UniformName, const bool& Value) = 0;

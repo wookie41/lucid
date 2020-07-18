@@ -61,7 +61,7 @@ namespace lucid::gpu
                                 uint32_t Size = 0,
                                 const uint32_t& Offset = 0) = 0;
 
-        virtual void* MemoryUnmap() = 0;
+        virtual void MemoryUnmap() = 0;
 
         virtual void Free() = 0;
     };

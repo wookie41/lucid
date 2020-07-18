@@ -27,6 +27,9 @@ namespace lucid::gpu
                  StaticArray<TextureBinding> TextureBindings);
 
         virtual void Use() override;
+        virtual void SetupTextureBindings() override;
+        virtual void SetupBuffersBindings() override;
+
         virtual void Disable() override;
 
         virtual void SetInt(const String& UniformName, const uint32_t& Value) override;

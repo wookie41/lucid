@@ -1,7 +1,7 @@
 #pragma once
 
 #include "devices/gpu/gpu.hpp"
-#include "gl/glew.h"
+#include "GL/glew.h"
 
 namespace lucid::gpu
 {

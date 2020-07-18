@@ -28,7 +28,15 @@ namespace lucid::gpu
             glBindTexture(GL_TEXTURE_2D, textureHandle);
             glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y,
                          0, DataFormat, DataType, TextureData);
+
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glGenerateMipmap(GL_TEXTURE_2D);
+
+
             glBindTexture(GL_TEXTURE_2D, 0);
             break;
 

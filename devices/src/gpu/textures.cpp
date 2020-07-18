@@ -11,10 +11,7 @@
 
 namespace lucid::gpu
 {
-    void InitTextures()
-    {
-        stbi_set_flip_vertically_on_load(true);
-    }
+    void InitTextures() { stbi_set_flip_vertically_on_load(true); }
 
     static Texture* LoadWithSTBAndCreate(const char const* Path, bool IsTransparent)
     {

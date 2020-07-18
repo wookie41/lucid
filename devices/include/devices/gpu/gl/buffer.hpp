@@ -22,7 +22,7 @@ namespace lucid::gpu
                                 const uint16_t& AccessPolicy,
                                 uint32_t Size,
                                 const uint32_t& Offset) override;
-        virtual void* MemoryUnmap() override;
+        virtual void MemoryUnmap() override;
 
         virtual void Free() override;
 

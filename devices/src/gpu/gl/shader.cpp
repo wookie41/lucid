@@ -117,10 +117,12 @@ namespace lucid::gpu
     {
     }
 
-    void GLShader::Use()
-    {
-        glUseProgram(glShaderID);
+    void GLShader::Use() { glUseProgram(glShaderID); }
 
+    void GLShader::Disable() { glUseProgram(0); }
+
+    void GLShader::SetupTextureBindings()
+    {
         for (uint32_t idx = 0; idx < textureBindings.Length; ++idx)
         {
             if (textureBindings[idx]->BoundTexture != nullptr)
@@ -129,11 +131,14 @@ namespace lucid::gpu
                 textureBindings[idx]->BoundTexture->Bind();
             }
         }
+    }
 
-        auto bindingNode = buffersBindings.Head;
-        while (bindingNode.Element)
+    void GLShader::SetupBuffersBindings()
+    {
+        auto bindingNode = &buffersBindings.Head;
+        while (bindingNode && bindingNode->Element)
         {
-            auto binding = bindingNode.Element;
+            auto binding = bindingNode->Element;
             if (binding->Index >= 0)
             {
                 binding->BufferToUse->BindIndexed(binding->Index, binding->BindPoint);
@@ -142,11 +147,10 @@ namespace lucid::gpu
             {
                 binding->BufferToUse->Bind(binding->BindPoint);
             }
+
+            bindingNode = bindingNode->Next;
         }
     }
-
-    void GLShader::Disable() { glUseProgram(0); }
-
     void GLShader::SetInt(const String& UniformName, const uint32_t& Value)
     {
         glUniform1i(getUniformLocation(UniformName), Value);
