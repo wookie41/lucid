@@ -124,7 +124,7 @@ namespace lucid::gpu
 
     void GLBuffer::MemoryUnmap()
     {
-        assert(currentBindPoint);
+        assert(currentBindPoint != BufferBindPoint::UNBOUND);
         glUnmapBuffer(AS_GL_BIND_POINT(currentBindPoint));
         currentBindPoint = BufferBindPoint::UNBOUND;
     }
