@@ -16,7 +16,7 @@
 
 int main(int argc, char** argv)
 {
-    lucid::gpu::Init();
+    lucid::gpu::Init(4, 3);
     lucid::gpu::InitTextures();
 
     lucid::platform::Window* window = lucid::platform::CreateWindow({ "Lucid", 200, 200, 800, 600 });
