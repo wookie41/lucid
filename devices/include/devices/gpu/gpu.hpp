@@ -6,7 +6,7 @@
 
 namespace lucid::gpu
 {
-    void Init();
+    void Init(const uint8_t& GLMajorVersion, const uint8_t& GLMinorVersion);
 
     class Buffer;
 

@@ -13,12 +13,42 @@ namespace lucid::gpu
         THREE_DIMENSIONAL
     };
 
+    enum class MinTextureFilter : uint8_t
+    {
+        NEAREST,
+        LINEAR,
+        NEAREST_MIPMAP_NEAREST,
+        LINEAR_MIPMAP_NEAREST,
+        NEARST_MIPMAP_LINEAR,
+        LINEAR_MIPMAP_LINEAR
+    };
+
+    enum class MagTextureFilter : uint8_t
+    {
+        NEAREST,
+        LINEAR
+    };
+
+    enum class WrapTextureFilter : uint8_t
+    {
+        CLAMP_TO_EDGE,
+        MIRRORED_REPEAT,
+        REPEAT
+    };
+
     // TODO Texture MIN/MAG filters, sampling methods
     class Texture
     {
       public:
         virtual void Bind() = 0;
+        virtual void Unbind() = 0;
         virtual math::ivec3 GetSize() const = 0;
+
+        virtual void SetMinFilter(const MinTextureFilter& Filter) = 0;
+        virtual void SetMagFilter(const MagTextureFilter& Filter) = 0;
+        virtual void SetWrapSFilter(const WrapTextureFilter& Filter) = 0;
+        virtual void SetWrapTFilter(const WrapTextureFilter& Filter) = 0;
+
         virtual ~Texture() = default;
     };
 

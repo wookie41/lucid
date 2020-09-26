@@ -49,7 +49,7 @@ GLenum GL_DRAW_MODES[] = { GL_POINTS,
 
 namespace lucid::gpu
 {
-    void Init()
+    void Init(const uint8_t& GLMajorVersion, const uint8_t& GLMinorVersion)
     {
         int SDLInitResult = SDL_Init(SDL_INIT_VIDEO);
         assert(SDLInitResult == 0);
@@ -58,8 +58,8 @@ namespace lucid::gpu
 
         // NOTE later on, this could be loaded from some kind of a ini file or something
         // so we can control which version of OpenGL is the engine using
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, GLMajorVersion);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, GLMinorVersion);
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
