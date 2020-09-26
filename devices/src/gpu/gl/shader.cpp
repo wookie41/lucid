@@ -86,6 +86,7 @@ namespace lucid::gpu
 
         for (GLint uniformIdx = 0; uniformIdx < numberOfUniforms; ++uniformIdx)
         {
+            //@TODO exclude gl_ prefixed uniforms https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glGetActiveUniform.xhtml
             glGetActiveUniform(shaderProgramID, uniformIdx, MAX_UNIFORM_VARIABLE_NAME_LENGTH,
                                &uniformNameLength, &uniformSize, &uniformType, uniformNameBuff);
 

@@ -41,7 +41,7 @@ namespace lucid::canvas
         if (!IsVisible)
             return;
 
-         LinkedListItem<CanvasItem>* current = &Children.Head;
+        LinkedListItem<CanvasItem>* current = &Children.Head;
         while (current && current->Element)
         {
             current->Element->Draw(ShaderToUse);
@@ -56,7 +56,7 @@ namespace lucid::canvas
     }
     void CanvasItem::RemoveChild(CanvasItem* Item) { Children.Remove(Item); }
 
-    void Sprite::Draw(gpu::Shader* ShaderToUse) 
+    void Sprite::Draw(gpu::Shader* ShaderToUse)
     {
         CanvasItem::PrepareShader(ShaderToUse);
 

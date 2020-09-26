@@ -63,7 +63,6 @@ namespace lucid::gpu
     void GLBuffer::Bind(const BufferBindPoint& BindPoint)
     {
         assert(glBufferHandle > 0);
-        assert(currentBindPoint == BufferBindPoint::UNBOUND);
 
         currentBindPoint = BindPoint;
 
@@ -73,7 +72,6 @@ namespace lucid::gpu
     void GLBuffer::BindIndexed(const uint32_t& Index, const BufferBindPoint& BindPoint)
     {
         assert(glBufferHandle > 0);
-        assert(currentBindPoint == BufferBindPoint::UNBOUND);
 
         currentBindPoint = BindPoint;
 

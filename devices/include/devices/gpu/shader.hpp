@@ -13,6 +13,8 @@ namespace lucid::gpu
         Buffer* BufferToUse = nullptr;
         BufferBindPoint BindPoint = BufferBindPoint::UNBOUND;
         int32_t Index = -1;
+
+        bool IsValid = false;
     };
 
     class Shader
