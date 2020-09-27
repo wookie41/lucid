@@ -1,6 +1,6 @@
 #pragma once
 
-#include "devices/gpu/textures.hpp"
+#include "devices/gpu/texture.hpp"
 #include "GL/glew.h"
 
 namespace lucid::gpu
@@ -8,9 +8,9 @@ namespace lucid::gpu
     class GLTexture : public Texture
     {
       public:
-        GLTexture(const GLuint& TextureID, const TextureType& Type, const math::ivec3& Size);
+        GLTexture(const GLuint& TextureID, const TextureType& Type, const math::ivec3& TextureDimensions);
 
-        virtual math::ivec3 GetSize() const override;
+        virtual math::ivec3 GetDimensions() const override;
 
         virtual void Bind() override;
         virtual void Unbind() override;
@@ -23,7 +23,7 @@ namespace lucid::gpu
         virtual ~GLTexture();
 
       private:
-        math::ivec3 size;
+        math::ivec3 dimensions;
         GLenum textureType;
         GLuint glTextureHandle;
     };

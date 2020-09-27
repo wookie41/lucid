@@ -42,7 +42,7 @@ namespace lucid::gpu
       public:
         virtual void Bind() = 0;
         virtual void Unbind() = 0;
-        virtual math::ivec3 GetSize() const = 0;
+        virtual math::ivec3 GetDimensions() const = 0;
 
         virtual void SetMinFilter(const MinTextureFilter& Filter) = 0;
         virtual void SetMagFilter(const MagTextureFilter& Filter) = 0;

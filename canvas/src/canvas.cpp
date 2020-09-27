@@ -3,7 +3,7 @@
 #include "devices/gpu/shader.hpp"
 #include "common/strings.hpp"
 #include "graphics/static_mesh.hpp"
-#include "devices/gpu/textures.hpp"
+#include "devices/gpu/texture.hpp"
 
 namespace lucid::canvas
 {
@@ -62,8 +62,8 @@ namespace lucid::canvas
 
         if (TextureToUse)
         {
-            const auto size = TextureToUse->GetSize();
-            ShaderToUse->SetVector(TEXTURE_SIZE, math::ivec2{ size.x, size.y });
+            const auto dimensions = TextureToUse->GetDimensions();
+            ShaderToUse->SetVector(TEXTURE_SIZE, math::ivec2{ dimensions.x, dimensions.y });
             ShaderToUse->UseTexture(SPRITE_TEXTURE, TextureToUse);
         }
         ShaderToUse->SetVector(SPRITE_SIZE, SpriteSize);

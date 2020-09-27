@@ -1,6 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 
-#include "devices/gpu/textures.hpp"
+#include "devices/gpu/texture.hpp"
 #include "stb_image.h"
 
 #include <cassert>

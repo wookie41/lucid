@@ -2,9 +2,9 @@
 #include "common/collections.hpp"
 #include "devices/gpu/buffer.hpp"
 #include "devices/gpu/shader.hpp"
-#include "devices/gpu/gpu.hpp"
+#include "devices/gpu/init.hpp"
 #include "graphics/static_mesh.hpp"
-#include "devices/gpu/textures.hpp"
+#include "devices/gpu/texture.hpp"
 #include "platform/fs.hpp"
 #include "canvas/canvas.hpp"
 #include "platform/input.hpp"
@@ -16,7 +16,11 @@
 
 int main(int argc, char** argv)
 {
-    lucid::gpu::Init(4, 3);
+    if(lucid::gpu::Init({}) < 0) 
+    {
+        puts("Failed to init GPU");
+        return -1;
+    }
     lucid::gpu::InitTextures();
 
     lucid::platform::Window* window = lucid::platform::CreateWindow({ "Lucid", 200, 200, 800, 600 });
@@ -25,8 +29,8 @@ int main(int argc, char** argv)
     lucid::gpu::Texture* containerTexture = lucid::gpu::CreateTextureFromJPEG("container.jpg");
     lucid::gpu::Texture* faceTexture = lucid::gpu::CreateTextureFromPNG("awesomeface.png");
 
-    lucid::math::ivec3 containerTextureSize = containerTexture->GetSize();
-    lucid::math::ivec3 faceTextureSize = faceTexture->GetSize();
+    lucid::math::ivec3 containerTextureSize = containerTexture->GetDimensions();
+    lucid::math::ivec3 faceTextureSize = faceTexture->GetDimensions();
 
     lucid::canvas::CanvasItem canvasRoot;
     canvasRoot.Position = { 400, 300 };

@@ -1,4 +1,4 @@
-#include "devices/gpu/gl/textures.hpp"
+#include "devices/gpu/gl/texture.hpp"
 
 #define TO_GL_MIN_FILTER(gl_filters) (GL_MIN_FILTERS_MAPPING[(uint8_t)gl_filters])
 #define TO_GL_MAG_FILTER(gl_filters) (GL_MAG_FILTERS_MAPPING[(uint8_t)gl_filters])
@@ -59,19 +59,19 @@ namespace lucid::gpu
         return textureHandle;
     }
 
-    Texture* Create2DTexture(const void const* TextureData, const math::ivec2& TextureSize, const int32_t MipMapLevel, bool IsTransparent)
+    Texture* Create2DTexture(const void const* TextureData, const math::ivec2& TextureDimensions, const int32_t MipMapLevel, bool IsTransparent)
     {
         GLenum format = IsTransparent ? GL_RGBA : GL_RGB;
         GLuint textureHandle =
-        CreateTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, { TextureSize.x, TextureSize.y, 0 },
+        CreateTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, { TextureDimensions.x, TextureDimensions.y, 0 },
                       GL_UNSIGNED_BYTE, format, format, TextureData);
 
         return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL,
-                             { TextureSize.x, TextureSize.y, 0 });
+                             { TextureDimensions.x, TextureDimensions.y, 0 });
     }
 
-    GLTexture::GLTexture(const GLuint& TextureID, const TextureType& Type, const math::ivec3& Size)
-    : glTextureHandle(TextureID), size(Size)
+    GLTexture::GLTexture(const GLuint& TextureID, const TextureType& Type, const math::ivec3& Dimensions)
+    : glTextureHandle(TextureID), dimensions(Dimensions)
     {
         switch (Type)
         {
@@ -93,7 +93,7 @@ namespace lucid::gpu
 
     GLTexture::~GLTexture() { glDeleteTextures(1, &glTextureHandle); }
 
-    math::ivec3 GLTexture::GetSize() const { return size; };
+    math::ivec3 GLTexture::GetDimensions() const { return dimensions; };
 
     void GLTexture::SetMinFilter(const MinTextureFilter& Filter)
     {
