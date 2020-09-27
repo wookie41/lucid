@@ -1,7 +1,7 @@
 #include "devices/gpu/gl/shader.hpp"
 #include "common/collections.hpp"
 #include "devices/gpu/buffer.hpp"
-#include "devices/gpu/textures.hpp"
+#include "devices/gpu/texture.hpp"
 
 #ifndef NDEBUG
 #include <stdio.h>

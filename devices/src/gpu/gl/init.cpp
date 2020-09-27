@@ -4,16 +4,22 @@
 #include "GL/glew.h"
 #include <cassert>
 
+#include "common/log.hpp"
+
 namespace lucid::gpu
 {
     int Init(const GPUSettings& Setings)
     {
+        Log(LogLevel::INFO, "Initializing GPU...");
+
         int SDLInitResult = SDL_Init(SDL_INIT_VIDEO);
         if (SDLInitResult != 0)
         {
-            // @TODO LOG
+            LUCID_LOG(LogLevel::ERROR, "Failed to initialize SDL_VIDEO");
             return -1;
         }
+
+        Log(LogLevel::INFO, "Initialized SDL_VIDEO");
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
@@ -27,7 +33,7 @@ namespace lucid::gpu
         SDL_Window* window = SDL_CreateWindow("xxx", 1, 1, 1, 1, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
         if (window == nullptr)
         {
-            // @TODO Log
+            LUCID_LOG(LogLevel::ERROR, "Failed to create dummy window");
             return -1;
         }
 
@@ -36,14 +42,16 @@ namespace lucid::gpu
         GLenum GLEWInitResult = glewInit();
         if (GLEWInitResult != GLEW_OK)
         {
-            //@TODO Log
+
+            Log(LogLevel::INFO, (char*)glewGetErrorString(GLEWInitResult));
             return -1;
         }
 
         SDL_DestroyWindow(window);
         SDL_GL_DeleteContext(context);
 
-        //@TODO Log
+        Log(LogLevel::INFO, "GPU initialized");
+
         return 0;
     }
 } // namespace devices::gpu
