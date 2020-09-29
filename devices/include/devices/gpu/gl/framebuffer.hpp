@@ -35,28 +35,32 @@ namespace lucid::gpu
       public:
         GLFramebuffer(const GLuint& GLFBOHandle);
 
+        virtual void SetupDrawBuffers(const uint8_t& NumOfBuffers) override;
+
+        virtual void EnableDrawBuffer(const uint8_t& BufferIndex, const int8_t& AttachmentIndex) override;
+        virtual void DisableDrawBuffer(const uint8_t& BufferIndex) override;
+
         virtual bool IsComplete() override;
 
-        virtual void Bind() override;
+        virtual void Bind(const FramebufferBindMode& Mode) override;
         virtual void Unbind() override;
 
-        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex, Texture* TextureToUse) override;
-        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex, Renderbuffer* RenderbufferToUse) override;
+        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex, FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
 
-        virtual void SetupDepthAttachment(Texture* TextureToUse) override;
-        virtual void SetupDepthAttachment(Renderbuffer* RenderbufferToUse) override;
-
-        virtual void SetupStencilAttachment(Texture* TextureToUse) override;
-        virtual void SetupStencilAttachment(Renderbuffer* RenderbufferToUse) override;
-
-        virtual void SetupDepthStencilAttachment(Texture* TextureToUse) override;
-        virtual void SetupDepthStencilAttachment(Renderbuffer* RenderbufferToUse) override;
-
-        virtual ~GLFramebuffer() = default;
+        virtual ~GLFramebuffer();
 
       private:
+        GLuint glFBOHandle;
+        
+        bool isBound = 0;
         bool isComplete = false;
-
+        bool isDirty = false;
+        
+        int8_t drawBuffersBindings[MAX_COLOR_ATTACHMENTS] = { -1 }; // -1 means that the draw buffer is not used
+        
         FramebufferAttachment* colorAttachments[MAX_COLOR_ATTACHMENTS] = { nullptr };
         FramebufferAttachment* depthAttachment = nullptr;
         FramebufferAttachment* stencilAttachment = nullptr;

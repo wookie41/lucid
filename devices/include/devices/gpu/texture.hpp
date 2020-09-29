@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/math.hpp"
+#include "devices/gpu/framebuffer.hpp"
 
 namespace lucid::gpu
 {
@@ -37,7 +38,7 @@ namespace lucid::gpu
     };
 
     // TODO Texture MIN/MAG filters, sampling methods
-    class Texture
+    class Texture : public FramebufferAttachment
     {
       public:
         virtual void Bind() = 0;
