@@ -231,7 +231,7 @@ namespace lucid::gpu
 
     GLint GLShader::getUniformLocation(const String& Name) const
     {
-        //@TODO Replace with a hashmap when we have hashmaps implemented
+        //@TODO cache it
         for (uint32_t idx = 0; idx < uniformVariables.Length; ++idx)
         {
             if (uniformVariables[idx]->Name.Hash == Name.Hash)
