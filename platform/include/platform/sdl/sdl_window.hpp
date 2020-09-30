@@ -16,10 +16,7 @@ namespace lucid::platform
         virtual void Prepare() override;
 
         virtual math::ivec2 GetSize() const override;
-
-        void SetClearColor(const math::vec4& color) override;
-        void ClearColor() override;
-
+      
         virtual void Show() override;
         virtual void Hide() override;
 

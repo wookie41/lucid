@@ -77,7 +77,6 @@ int main(int argc, char** argv)
 
     window->Prepare();
     window->Show();
-    window->SetClearColor({ .2f, .3f, .8f, 1.f });
 
     lucid::math::mat4 ProjectionMatrix =
     lucid::math::CreateOrthographicProjectionMatrix(800, 0, 0, 600, 0.1f, 1000.0f);
@@ -90,6 +89,9 @@ int main(int argc, char** argv)
     simpleShader->SetMatrix("Projection", ProjectionMatrix);
 
     lucid::gpu::EnableDepthTest();
+
+    lucid::gpu::Viewport windowViewport {0, 0, 800, 600};
+    lucid::gpu::Viewport framebufferViewort { 0, 0, 400, 300};
 
     bool isRunning = true;
     while (isRunning)
@@ -135,6 +137,7 @@ int main(int argc, char** argv)
 
         testFramebuffer->Bind(lucid::gpu::FramebufferBindMode::READ_WRITE);
 
+        lucid::gpu::SetViewprot(framebufferViewort);
         lucid::gpu::SetClearColor(lucid::RedColor);
         lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR | lucid::gpu::ClearableBuffers::DEPTH));
 
@@ -143,7 +146,8 @@ int main(int argc, char** argv)
         testFramebuffer->Unbind();
 
         // Draw the main framebuffer's contents to the screen
-
+        
+        lucid::gpu::SetViewprot(windowViewport);
         lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
         lucid::gpu::SetClearColor(lucid::BlackColor);
         lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR | lucid::gpu::ClearableBuffers::DEPTH));
@@ -152,7 +156,6 @@ int main(int argc, char** argv)
         sprite2.TextureRegionSize = { colorAttachment->GetDimensions().x,
                                       colorAttachment->GetDimensions().y };
 
-        window->ClearColor();
         canvasRoot.Draw(simpleShader);
         window->Swap();
     }

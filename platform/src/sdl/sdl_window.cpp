@@ -26,13 +26,6 @@ namespace lucid::platform
 
     math::ivec2 SDLWindow::GetSize() const { return size; }
 
-    void SDLWindow::SetClearColor(const math::vec4& color)
-    {
-        glClearColor(color.r, color.g, color.b, color.a);
-    }
-
-    void SDLWindow::ClearColor() { glClear(GL_COLOR_BUFFER_BIT); }
-
     void SDLWindow::Show() { SDL_ShowWindow(window); }
 
     void SDLWindow::Hide() { SDL_HideWindow(window); }
