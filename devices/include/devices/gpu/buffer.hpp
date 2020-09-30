@@ -20,22 +20,22 @@ namespace lucid::gpu
         COPY_WRITE
     };
 
-    enum class ImmutableBufferUsage : uint16_t
+    enum ImmutableBufferUsage : uint16_t
     {
-        DYNAMIC = 1,
-        READ = 2,
-        WRITE = 4,
-        PERSISTENT = 8,
-        COHERENT = 16,
-        CLIENT_STORAGE = 32
+        IMM_BUFFER_DYNAMIC = 1,
+        IMM_BUFFER_READ = 2,
+        IMM_BUFFER_WRITE = 4,
+        IMM_BUFFER_PERSISTENT = 8,
+        IMM_BUFFER_COHERENT = 16,
+        IMM_BUFFER_CLIENT_STORAGE = 32
     };
 
-    enum class BufferAccessPolicy : uint16_t
+    enum BufferAccessPolicy : uint16_t
     {
-        READ = 1,
-        WRITE = 2,
-        PERSISTENT = 4,
-        COHERENT = 8
+        BUFFER_READ = 1,
+        BUFFER_WRITE = 2,
+        BUFFER_PERSISTENT = 4,
+        BUFFER_COHERENT = 8
     };
 
     struct BufferDescription
@@ -57,7 +57,7 @@ namespace lucid::gpu
         virtual void Download(void* Destination, uint32_t Size = 0, const uint32_t& Offset = 0) = 0;
 
         virtual void* MemoryMap(const BufferBindPoint& BindPoint,
-                                const uint16_t& AccessPolicy,
+                                const BufferAccessPolicy& AccessPolicy,
                                 uint32_t Size = 0,
                                 const uint32_t& Offset = 0) = 0;
 
@@ -67,5 +67,5 @@ namespace lucid::gpu
     };
 
     Buffer* CreateBuffer(const BufferDescription& Description, const BufferUsage& Usage);
-    Buffer* CreateImmutableBuffer(const BufferDescription& Description, const uint16_t& ImmutableBufferUsage);
+    Buffer* CreateImmutableBuffer(const BufferDescription& Description, const ImmutableBufferUsage& ImmutableBufferUsage);
 } // namespace lucid::gpu

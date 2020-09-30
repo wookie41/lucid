@@ -2,7 +2,7 @@
 #include <cassert>
 
 #define NO_COHERENT_OR_PERSISTENT_BIT_SET(FLAGS) \
-    (((FLAGS & (uint16_t)BufferAccessPolicy::COHERENT) | (FLAGS & (uint16_t)BufferAccessPolicy::PERSISTENT)) == 0)
+    (((FLAGS & (uint16_t)BufferAccessPolicy::BUFFER_COHERENT) | (FLAGS & (uint16_t)BufferAccessPolicy::BUFFER_PERSISTENT)) == 0)
 
 #define AS_GL_BIND_POINT(bindPoint) (GL_BIND_POINTS[((uint16_t)bindPoint) - 1])
 
@@ -20,7 +20,7 @@ static const GLenum GL_MAP_ACCESS_BITS[] = { GL_MAP_READ_BIT, GL_MAP_WRITE_BIT,
 
 namespace lucid::gpu
 {
-    GLbitfield calculateGLMapAccessBits(const uint16_t& MapPolicy)
+    GLbitfield calculateGLMapAccessBits(const BufferAccessPolicy& MapPolicy)
     {
         uint8_t accessBit = 1;
         GLbitfield glAccessBits = 0;
@@ -36,7 +36,7 @@ namespace lucid::gpu
         return glAccessBits;
     }
 
-    GLbitfield calculateImmutableAccessBits(const uint16_t& AccessPolicy)
+    GLbitfield calculateImmutableAccessBits(const ImmutableBufferUsage& AccessPolicy)
     {
         uint8_t accessBit = 1;
         GLbitfield glAccessBits = 0;
@@ -91,7 +91,7 @@ namespace lucid::gpu
     }
 
     void* GLBuffer::MemoryMap(const BufferBindPoint& BindPoint,
-                              const uint16_t& AccessPolicy,
+                              const BufferAccessPolicy& AccessPolicy,
                               uint32_t Size,
                               const uint32_t& Offset)
     {
@@ -158,7 +158,7 @@ namespace lucid::gpu
         return new GLBuffer(bufferHandle, Description, false);
     };
 
-    Buffer* CreateImmutableBuffer(const BufferDescription& Description, const uint16_t& ImmutableBufferUsage)
+    Buffer* CreateImmutableBuffer(const BufferDescription& Description, const ImmutableBufferUsage& ImmutableBufferUsage)
     {
         GLuint bufferHandle;
 

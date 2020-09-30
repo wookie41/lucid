@@ -9,7 +9,7 @@
 #include "canvas/canvas.hpp"
 #include "platform/input.hpp"
 #include "devices/gpu/framebuffer.hpp"
-
+#include "devices/gpu/gpu.hpp"
 #include "stdio.h"
 #include "GL/glew.h"
 #include "stdlib.h"
@@ -89,6 +89,8 @@ int main(int argc, char** argv)
     simpleShader->Use();
     simpleShader->SetMatrix("Projection", ProjectionMatrix);
 
+    lucid::gpu::EnableDepthTest();
+
     bool isRunning = true;
     while (isRunning)
     {
@@ -129,12 +131,22 @@ int main(int argc, char** argv)
         sprite2.TextureRegionSize = { faceTexture->GetDimensions().x + 300,
                                       faceTexture->GetDimensions().y };
 
+        // Draw to the framebufferr
+
         testFramebuffer->Bind(lucid::gpu::FramebufferBindMode::READ_WRITE);
-        glClear(GL_COLOR_BUFFER_BIT);
+
+        lucid::gpu::SetClearColor(lucid::RedColor);
+        lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR | lucid::gpu::ClearableBuffers::DEPTH));
+
         canvasRoot.Draw(simpleShader);
+
         testFramebuffer->Unbind();
 
+        // Draw the main framebuffer's contents to the screen
+
         lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
+        lucid::gpu::SetClearColor(lucid::BlackColor);
+        lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR | lucid::gpu::ClearableBuffers::DEPTH));
 
         sprite2.TextureToUse = colorAttachment;
         sprite2.TextureRegionSize = { colorAttachment->GetDimensions().x,

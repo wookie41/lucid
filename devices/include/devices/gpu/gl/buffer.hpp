@@ -19,7 +19,7 @@ namespace lucid::gpu
         virtual void Download(void* Destination, uint32_t Size, const uint32_t& Offset) override;
 
         virtual void* MemoryMap(const BufferBindPoint& BindPoint,
-                                const uint16_t& AccessPolicy,
+                                const BufferAccessPolicy& AccessPolicy,
                                 uint32_t Size,
                                 const uint32_t& Offset) override;
         virtual void MemoryUnmap() override;
@@ -32,7 +32,4 @@ namespace lucid::gpu
         GLuint glBufferHandle;
         BufferDescription description;
     };
-
-    Buffer* CreateBuffer(const BufferDescription& Description, const BufferUsage& Usage);
-    Buffer* CreateImmutableBuffer(const BufferDescription& Description, const uint16_t& ImmutableBufferUsage);
 } // namespace lucid::gpu
