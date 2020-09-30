@@ -4,7 +4,8 @@
 
 namespace lucid::gpu
 {
-    GLenum RENDER_BUFFER_TYPE_MAPPING[] = { GL_DEPTH24_STENCIL8 };
+    static GLenum RENDER_BUFFER_TYPE_MAPPING[] = { GL_DEPTH24_STENCIL8 };
+    static GLenum glFramebufferModes[] = { GL_READ_FRAMEBUFFER, GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER };
 
     Framebuffer* CreateFramebuffer()
     {
@@ -29,6 +30,10 @@ namespace lucid::gpu
 
     GLFramebuffer::GLFramebuffer(const GLuint& GLFBOHandle) : glFBOHandle(GLFBOHandle) {}
 
+    void BindDefaultFramebuffer(const FramebufferBindMode& Mode)
+    {
+        glBindFramebuffer(glFramebufferModes[static_cast<uint8_t>(Mode)], 0);
+    }
 
     void GLFramebuffer::SetupDrawBuffers(const uint8_t& NumOfBuffers)
     {
@@ -69,8 +74,6 @@ namespace lucid::gpu
 
     void GLFramebuffer::Bind(const FramebufferBindMode& Mode)
     {
-        static GLenum glFramebufferModes[] = { GL_READ_FRAMEBUFFER, GL_DRAW_FRAMEBUFFER, GL_FRAMEBUFFER };
-
         if (!isBound)
         {
             isBound = true;
@@ -109,4 +112,48 @@ namespace lucid::gpu
     }
 
     GLFramebuffer::~GLFramebuffer() { glDeleteFramebuffers(1, &glFBOHandle); }
+
+    GLRenderbuffer::GLRenderbuffer(const GLuint& GLRBOHandle,
+                                   const RenderbufferFormat& Format,
+                                   const uint32_t& Width,
+                                   const uint32_t& Height)
+    : glRBOHandle(GLRBOHandle), format(Format), width(Width), height(Height)
+    {
+    }
+
+    void GLRenderbuffer::Bind()
+    {
+        if (!isBound)
+        {
+            isBound = true;
+            glBindRenderbuffer(GL_RENDERBUFFER, glRBOHandle);
+        }
+    }
+    void GLRenderbuffer::Unbind() { isBound = false; }
+
+    void GLRenderbuffer::AttachAsColor(const uint8_t& Index)
+    {
+        assert(isBound && Index == 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, glRBOHandle);
+    }
+    void GLRenderbuffer::AttachAsStencil()
+    {
+        assert(isBound);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
+    };
+
+    void GLRenderbuffer::AttachAsDepth()
+    {
+        assert(isBound);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
+    };
+
+    void GLRenderbuffer::AttachAsStencilDepth()
+    {
+        assert(isBound);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
+    };
+
+    GLRenderbuffer::~GLRenderbuffer() { glDeleteRenderbuffers(1, &glRBOHandle); }
+
 } // namespace lucid::gpu

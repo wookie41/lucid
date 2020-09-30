@@ -37,7 +37,6 @@ namespace lucid::gpu
         REPEAT
     };
 
-    // TODO Texture MIN/MAG filters, sampling methods
     class Texture : public FramebufferAttachment
     {
       public:

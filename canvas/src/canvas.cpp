@@ -73,5 +73,10 @@ namespace lucid::canvas
         lucid::graphics::DrawMesh(&lucid::graphics::QuadShape);
 
         CanvasItem::Draw(ShaderToUse);
+
+        if (TextureToUse)
+        {
+            TextureToUse->Unbind();
+        }
     }
 } // namespace lucid::canvas

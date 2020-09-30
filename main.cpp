@@ -8,6 +8,7 @@
 #include "platform/fs.hpp"
 #include "canvas/canvas.hpp"
 #include "platform/input.hpp"
+#include "devices/gpu/framebuffer.hpp"
 
 #include "stdio.h"
 #include "GL/glew.h"
@@ -16,15 +17,37 @@
 
 int main(int argc, char** argv)
 {
-    if(lucid::gpu::Init({}) < 0) 
+    if (lucid::gpu::Init({}) < 0)
     {
         puts("Failed to init GPU");
         return -1;
     }
+
     lucid::gpu::InitTextures();
 
     lucid::platform::Window* window = lucid::platform::CreateWindow({ "Lucid", 200, 200, 800, 600 });
     lucid::graphics::InitBasicShapes();
+
+    lucid::gpu::Texture* colorAttachment = lucid::gpu::Create2DTexture(nullptr, { 800, 600 }, 0, false);
+    lucid::gpu::FramebufferAttachment* renderbuffer =
+    lucid::gpu::CreateRenderbuffer(lucid::gpu::RenderbufferFormat::DEPTH24_STENCIL8, 800, 600);
+    lucid::gpu::Framebuffer* testFramebuffer = lucid::gpu::CreateFramebuffer();
+
+    renderbuffer->Bind();
+    colorAttachment->Bind();
+    colorAttachment->SetMinFilter(lucid::gpu::MinTextureFilter::LINEAR);
+    colorAttachment->SetMagFilter(lucid::gpu::MagTextureFilter::LINEAR);
+    testFramebuffer->Bind(lucid::gpu::FramebufferBindMode::READ_WRITE);
+
+    testFramebuffer->SetupColorAttachment(0, colorAttachment);
+    testFramebuffer->SetupDepthStencilAttachment(renderbuffer);
+    testFramebuffer->IsComplete();
+
+    colorAttachment->Unbind();
+    renderbuffer->Unbind();
+    testFramebuffer->Unbind();
+
+    lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
 
     lucid::gpu::Texture* containerTexture = lucid::gpu::CreateTextureFromJPEG("container.jpg");
     lucid::gpu::Texture* faceTexture = lucid::gpu::CreateTextureFromPNG("awesomeface.png");
@@ -102,6 +125,20 @@ int main(int argc, char** argv)
             sprite2.Position = { 0, 0 };
         }
 
+        sprite2.TextureToUse = faceTexture;
+        sprite2.TextureRegionSize = { faceTexture->GetDimensions().x + 300,
+                                      faceTexture->GetDimensions().y };
+
+        testFramebuffer->Bind(lucid::gpu::FramebufferBindMode::READ_WRITE);
+        glClear(GL_COLOR_BUFFER_BIT);
+        canvasRoot.Draw(simpleShader);
+        testFramebuffer->Unbind();
+
+        lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
+
+        sprite2.TextureToUse = colorAttachment;
+        sprite2.TextureRegionSize = { colorAttachment->GetDimensions().x,
+                                      colorAttachment->GetDimensions().y };
 
         window->ClearColor();
         canvasRoot.Draw(simpleShader);

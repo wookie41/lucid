@@ -17,6 +17,9 @@ namespace lucid::gpu
     class FramebufferAttachment
     {
       public:
+        virtual void Bind() = 0;
+        virtual void Unbind() = 0;
+
         virtual void AttachAsColor(const uint8_t& Index) = 0;
         virtual void AttachAsStencil() = 0;
         virtual void AttachAsDepth() = 0;
@@ -41,6 +44,8 @@ namespace lucid::gpu
         READ_WRITE
     };
 
+    void BindDefaultFramebuffer(const FramebufferBindMode& Mode);
+
     class Framebuffer
     {
       public:
@@ -53,9 +58,10 @@ namespace lucid::gpu
         virtual void Bind(const FramebufferBindMode& Mode) = 0;
         virtual void Unbind() = 0;
 
-        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex, FramebufferAttachment* AttachmentToUse) = 0;
-        virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) = 0 ;
-        virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0 ;
+        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex,
+                                          FramebufferAttachment* AttachmentToUse) = 0;
+        virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) = 0;
+        virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;
         virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;
 
 

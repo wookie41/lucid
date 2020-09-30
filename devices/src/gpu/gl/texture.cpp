@@ -36,6 +36,12 @@ namespace lucid::gpu
             glTexImage1D(GL_TEXTURE_1D, MipMapLevel, InternalFormat, TextureSize.x, 0, DataFormat,
                          DataType, TextureData);
             glGenerateMipmap(GL_TEXTURE_1D);
+
+            if (TextureData)
+            {
+                glGenerateMipmap(GL_TEXTURE_2D);
+            }
+
             glBindTexture(GL_TEXTURE_1D, 0);
             break;
 
@@ -44,7 +50,10 @@ namespace lucid::gpu
             glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y,
                          0, DataFormat, DataType, TextureData);
 
-            glGenerateMipmap(GL_TEXTURE_2D);
+            if (TextureData)
+            {
+                glGenerateMipmap(GL_TEXTURE_2D);
+            }
 
             glBindTexture(GL_TEXTURE_2D, 0);
             break;
@@ -54,6 +63,12 @@ namespace lucid::gpu
             glTexImage3D(GL_TEXTURE_3D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y,
                          TextureSize.z, 0, DataFormat, DataType, TextureData);
             glGenerateMipmap(GL_TEXTURE_3D);
+
+            if (TextureData)
+            {
+                glGenerateMipmap(GL_TEXTURE_2D);
+            }
+
             glBindTexture(GL_TEXTURE_3D, 0);
             break;
         }
@@ -91,9 +106,17 @@ namespace lucid::gpu
         }
     }
 
-    void GLTexture::Bind() { glBindTexture(textureType, glTextureHandle); }
+    void GLTexture::Bind()
+    {
+        if (!isBound)
+        {
+            isBound = true;
+            assert(textureType = GL_TEXTURE_2D);
+            glBindTexture(textureType, glTextureHandle);
+        }
+    }
 
-    void GLTexture::Unbind() { glBindTexture(textureType, 0); }
+    void GLTexture::Unbind() { isBound = false; }
 
     GLTexture::~GLTexture() { glDeleteTextures(1, &glTextureHandle); }
 
@@ -126,7 +149,7 @@ namespace lucid::gpu
     void GLTexture::AttachAsColor(const uint8_t& Index)
     {
         assert(isBound && textureType == GL_TEXTURE_2D);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glTextureHandle, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Index, GL_TEXTURE_2D, glTextureHandle, 0);
     }
 
     void GLTexture::AttachAsStencil()
@@ -143,7 +166,6 @@ namespace lucid::gpu
 
     void GLTexture::AttachAsStencilDepth()
     {
-
         assert(isBound && textureType == GL_TEXTURE_2D);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, glTextureHandle, 0);
     };

@@ -9,7 +9,7 @@ namespace lucid::gpu
     class GLRenderbuffer : public Renderbuffer
     {
       public:
-        GLRenderbuffer(const GLuint& GLFBOHandle,
+        GLRenderbuffer(const GLuint& GLRBOHandle,
                        const RenderbufferFormat& Format,
                        const uint32_t& Width,
                        const uint32_t& Height);
@@ -25,9 +25,10 @@ namespace lucid::gpu
         virtual ~GLRenderbuffer();
 
       private:
+        bool isBound = false;
         RenderbufferFormat format;
-        uint32_t Width, Height;
-        GLuint glFBOHandle;
+        uint32_t width, height;
+        GLuint glRBOHandle;
     };
 
     class GLFramebuffer : public Framebuffer
@@ -45,7 +46,8 @@ namespace lucid::gpu
         virtual void Bind(const FramebufferBindMode& Mode) override;
         virtual void Unbind() override;
 
-        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex, FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex,
+                                          FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
@@ -54,13 +56,13 @@ namespace lucid::gpu
 
       private:
         GLuint glFBOHandle;
-        
+
         bool isBound = 0;
         bool isComplete = false;
-        bool isDirty = false;
-        
+        bool isDirty = true;
+
         int8_t drawBuffersBindings[MAX_COLOR_ATTACHMENTS] = { -1 }; // -1 means that the draw buffer is not used
-        
+
         FramebufferAttachment* colorAttachments[MAX_COLOR_ATTACHMENTS] = { nullptr };
         FramebufferAttachment* depthAttachment = nullptr;
         FramebufferAttachment* stencilAttachment = nullptr;
