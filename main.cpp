@@ -13,7 +13,7 @@
 #include "stdio.h"
 #include "GL/glew.h"
 #include "stdlib.h"
-
+#include "devices/gpu/vao.hpp"
 
 int main(int argc, char** argv)
 {
@@ -88,12 +88,12 @@ int main(int argc, char** argv)
     simpleShader->Use();
     simpleShader->SetMatrix("Projection", ProjectionMatrix);
 
-    lucid::gpu::EnableDepthTest();
+    lucid::gpu::Viewport windowViewport{ 0, 0, 800, 600 };
+    lucid::gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
 
-    lucid::gpu::Viewport windowViewport {0, 0, 800, 600};
-    lucid::gpu::Viewport framebufferViewort { 0, 0, 400, 300};
-
+    lucid::gpu::DisableDepthTest();
     bool isRunning = true;
+    lucid::graphics::QuadVertexArray->Bind();
     while (isRunning)
     {
         lucid::ReadEvents();
@@ -133,24 +133,23 @@ int main(int argc, char** argv)
         sprite2.TextureRegionSize = { faceTexture->GetDimensions().x + 300,
                                       faceTexture->GetDimensions().y };
 
-        // Draw to the framebufferr
+        // Draw to the framebuffer
 
         testFramebuffer->Bind(lucid::gpu::FramebufferBindMode::READ_WRITE);
-
         lucid::gpu::SetViewprot(framebufferViewort);
         lucid::gpu::SetClearColor(lucid::RedColor);
-        lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR | lucid::gpu::ClearableBuffers::DEPTH));
+        lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR));
 
         canvasRoot.Draw(simpleShader);
 
         testFramebuffer->Unbind();
 
         // Draw the main framebuffer's contents to the screen
-        
+
         lucid::gpu::SetViewprot(windowViewport);
         lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
         lucid::gpu::SetClearColor(lucid::BlackColor);
-        lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR | lucid::gpu::ClearableBuffers::DEPTH));
+        lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR));
 
         sprite2.TextureToUse = colorAttachment;
         sprite2.TextureRegionSize = { colorAttachment->GetDimensions().x,

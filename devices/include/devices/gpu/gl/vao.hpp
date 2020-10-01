@@ -33,6 +33,9 @@ namespace lucid::gpu
         virtual uint32_t GetElementCount() const override;
 
         virtual void Draw(const uint32_t& First, const uint32_t& Count) override;
+        virtual void DrawInstanced(const uint32_t& InstancesCount,
+                                   const uint32_t& First = 0,
+                                   const uint32_t& Count = 0) override;
 
         virtual void Free();
 

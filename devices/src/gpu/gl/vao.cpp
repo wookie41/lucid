@@ -74,28 +74,28 @@ namespace lucid::gpu
 
     void GLVertexArray::AddVertexAttribute(const VertexAttribute& Attribute)
     {
+        glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type],
                               GL_FALSE, Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
-        glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
     }
 
     void GLVertexArray::AddIntegerVertexAttribute(const VertexAttribute& Attribute)
     {
+        glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type],
                                Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
-        glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
     }
 
     void GLVertexArray::AddLongVertexAttribute(const VertexAttribute& Attribute)
     {
+        glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type],
                                Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
-        glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
     }
 
@@ -156,6 +156,20 @@ namespace lucid::gpu
         else
         {
             glDrawArrays(GL_DRAW_MODES[drawMode], First, count);
+        }
+    }
+
+    void GLVertexArray::DrawInstanced(const uint32_t& InstancesCount, const uint32_t& First, const uint32_t& Count)
+    {
+        uint32_t count = Count == 0 ? (elementBuffer == nullptr ? vertexCount : elementCount) : Count;
+
+        if (elementBuffer)
+        {
+            glDrawElementsInstanced(GL_DRAW_MODES[drawMode], count, GL_UNSIGNED_INT, nullptr, InstancesCount);;
+        }
+        else
+        {
+            glDrawArraysInstanced(GL_DRAW_MODES[drawMode], First, count, InstancesCount);
         }
     }
 

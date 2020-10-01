@@ -7,13 +7,12 @@ namespace lucid::gpu
 
 namespace lucid::graphics
 {
-
-
     struct StaticMesh
     {
         gpu::VertexArray* VertexArray = nullptr;
     };
 
+    extern gpu::VertexArray* QuadVertexArray;
     extern StaticMesh QuadShape;
 
     void InitBasicShapes();

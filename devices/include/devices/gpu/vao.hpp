@@ -58,6 +58,9 @@ namespace lucid::gpu
 
         // 'First' and 'Count' are 0 by default which basically means 'draw all'
         virtual void Draw(const uint32_t& First = 0, const uint32_t& Count = 0) = 0;
+        virtual void DrawInstanced(const uint32_t& InstancesCount,
+                                   const uint32_t& First = 0,
+                                   const uint32_t& Count = 0) = 0;
 
         virtual void Free() = 0;
 

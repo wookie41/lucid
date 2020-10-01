@@ -19,7 +19,7 @@ namespace lucid::gpu
     static char _infoLog[1024];
 #endif
 
-    void checkCompileErrors(unsigned int Shader, const uint8_t& Type)
+void checkCompileErrors(unsigned int Shader, const uint8_t& Type)
     {
         int success;
         if (Type != _GL_PROGRAM)

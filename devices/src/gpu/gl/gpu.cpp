@@ -39,7 +39,7 @@ namespace lucid::gpu
 
     void EnableDepthTest() { glEnable(GL_DEPTH_TEST); }
 
-    void DisableDepthTest() { glEnable(GL_DEPTH_TEST); }
+    void DisableDepthTest() { glDisable(GL_DEPTH_TEST); }
 
     void SetViewprot(const Viewport& ViewportToUse)
     {

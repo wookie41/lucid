@@ -36,7 +36,7 @@ namespace lucid
 
     const color RedColor{ 1, 0, 0, 1 };
     const color GreenColor{ 0, 1, 0, 1 };
-    const color BlueColor{ 0, 1, 1, 1 };
+    const color BlueColor{ 0, 0, 1, 1 };
     const color WhiteColor{ 1, 1, 1, 1 };
     const color BlackColor{ 0, 0, 0, 1 };
 
