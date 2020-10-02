@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/math.hpp"
 #include "devices/gpu/gpu.hpp"
 
 namespace lucid::platform
@@ -20,7 +19,8 @@ namespace lucid::platform
         virtual void Swap() = 0;
         virtual void Prepare() = 0;
 
-        virtual math::ivec2 GetSize() const = 0;
+        virtual uint16_t GetWidth() const = 0;
+        virtual uint16_t GetHeight() const = 0;
 
         virtual void Show() = 0;
         virtual void Hide() = 0;

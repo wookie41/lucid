@@ -1,7 +1,7 @@
 #pragma once
 
+#include "glm/glm.hpp"
 #include "common/collections.hpp"
-#include "common/math.hpp"
 
 namespace lucid::gpu
 {
@@ -28,7 +28,7 @@ namespace lucid::canvas
         bool RespectParentRotation = true;
         bool RespectParentPosition = true;
 
-        math::vec2 Position;
+        glm::vec2 Position;
         float Rotation = 0;
         bool IsVisible = true;
 
@@ -44,9 +44,9 @@ namespace lucid::canvas
       public:
         virtual void Draw(gpu::Shader* ShaderToUse) override;
 
-        math::ivec2 SpriteSize;
-        math::ivec2 TextureRegionSize;
-        math::ivec2 TextureRegionIndex;
+        glm::ivec2 SpriteSize;
+        glm::ivec2 TextureRegionSize;
+        glm::ivec2 TextureRegionIndex;
 
         gpu::Texture* TextureToUse = nullptr;
     };

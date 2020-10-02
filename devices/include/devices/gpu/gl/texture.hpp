@@ -8,11 +8,11 @@ namespace lucid::gpu
     class GLTexture : public Texture
     {
       public:
-        GLTexture(const GLuint& TextureID, const TextureType& Type, const math::ivec3& TextureDimensions);
+        GLTexture(const GLuint& TextureID, const TextureType& Type, const glm::ivec3& TextureDimensions);
 
         // Texture methods //
 
-        virtual math::ivec3 GetDimensions() const override;
+        virtual glm::ivec3 GetDimensions() const override;
 
         virtual void Bind() override;
         virtual void Unbind() override;
@@ -37,7 +37,7 @@ namespace lucid::gpu
 
       private:
         bool isBound = false;
-        math::ivec3 dimensions;
+        glm::ivec3 dimensions;
         GLenum textureType;
         GLuint glTextureHandle;
     };

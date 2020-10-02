@@ -20,7 +20,7 @@ namespace lucid::gpu
     // TODO extract this function as a public, graphics-API agnostic part of lucid
     static GLuint CreateTexture(const TextureType& TextureType,
                                 const GLint& MipMapLevel,
-                                const math::ivec3& TextureSize,
+                                const glm::ivec3& TextureSize,
                                 const GLenum& DataType,
                                 const GLenum& DataFormat,
                                 const GLenum& InternalFormat,
@@ -76,7 +76,7 @@ namespace lucid::gpu
     }
 
     Texture* Create2DTexture(const void const* TextureData,
-                             const math::ivec2& TextureDimensions,
+                             const glm::ivec2& TextureDimensions,
                              const int32_t MipMapLevel,
                              bool IsTransparent)
     {
@@ -89,7 +89,7 @@ namespace lucid::gpu
                              { TextureDimensions.x, TextureDimensions.y, 0 });
     }
 
-    GLTexture::GLTexture(const GLuint& TextureID, const TextureType& Type, const math::ivec3& Dimensions)
+    GLTexture::GLTexture(const GLuint& TextureID, const TextureType& Type, const glm::ivec3& Dimensions)
     : glTextureHandle(TextureID), dimensions(Dimensions)
     {
         switch (Type)
@@ -120,7 +120,7 @@ namespace lucid::gpu
 
     GLTexture::~GLTexture() { glDeleteTextures(1, &glTextureHandle); }
 
-    math::ivec3 GLTexture::GetDimensions() const { return dimensions; };
+    glm::ivec3 GLTexture::GetDimensions() const { return dimensions; };
 
     void GLTexture::SetMinFilter(const MinTextureFilter& Filter)
     {

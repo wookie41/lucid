@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/math.hpp"
+#include "glm/glm.hpp"
 
 namespace lucid
 {
@@ -32,7 +32,7 @@ namespace lucid
         MAT4
     };
 
-    using color = math::vec4;
+    using color = glm::vec4;
 
     const color RedColor{ 1, 0, 0, 1 };
     const color GreenColor{ 0, 1, 0, 1 };

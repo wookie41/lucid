@@ -14,12 +14,11 @@ namespace lucid
 
     struct MouseState
     {
-        math::ivec2 position = { 0, 0 };
-        math::ivec2 positionDelta = { 0, 0 };
-        float wheelDelta = 0;
-        uint8_t pressedButtons = 0;
-        uint8_t clickedButtons = 0;
-        uint8_t releasedButtons = 0;
+        MousePosition Position;
+        float WheelDelta = 0;
+        uint8_t PressedButtons = 0;
+        uint8_t ClickedButtons = 0;
+        uint8_t ReleasedButtons = 0;
     };
 
     const SDL_Keycode MIN_SPECIAL_KEY_KEYCODE = SDLK_CAPSLOCK;
@@ -56,7 +55,7 @@ namespace lucid
         for (uint8_t i = 0; i < 4; ++i)
             keyboardState.releasedKeys[i] = 0;
 
-        mouseState.clickedButtons = mouseState.releasedButtons = 0;
+        mouseState.ClickedButtons = mouseState.ReleasedButtons = 0;
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -74,23 +73,24 @@ namespace lucid
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
-                mouseState.pressedButtons |=
-                (mouseState.clickedButtons |= (1 << (event.button.button - 1)));
+                mouseState.PressedButtons |=
+                (mouseState.ClickedButtons |= (1 << (event.button.button - 1)));
                 break;
 
             case SDL_MOUSEBUTTONUP:
-                mouseState.pressedButtons &=
-                ~(mouseState.releasedButtons |= (1 << (event.button.button - 1)));
+                mouseState.PressedButtons &=
+                ~(mouseState.ReleasedButtons |= (1 << (event.button.button - 1)));
                 break;
 
             case SDL_MOUSEMOTION:
-                mouseState.positionDelta = { mouseState.position.x - event.motion.x,
-                                             mouseState.position.y - event.motion.y };
-                mouseState.position = { event.motion.x, event.motion.y };
+                mouseState.Position.DeltaX = mouseState.Position.X - event.motion.x;
+                mouseState.Position.DeltaY = mouseState.Position.Y - event.motion.y;
+                mouseState.Position.X = event.motion.x;
+                mouseState.Position.Y = event.motion.y;
                 break;
 
             case SDL_MOUSEWHEEL:
-                mouseState.wheelDelta = event.wheel.y;
+                mouseState.WheelDelta = event.wheel.y;
                 break;
             }
         }
@@ -121,20 +121,19 @@ namespace lucid
 
     bool IsMouseButtonPressed(const MouseButton& Button)
     {
-        return mouseState.pressedButtons & Button;
+        return mouseState.PressedButtons & Button;
     }
 
     bool WasMouseButtonPressed(const MouseButton& Button)
     {
-        return mouseState.clickedButtons & Button;
+        return mouseState.ClickedButtons & Button;
     }
 
     bool WasMouseButtonReleased(const MouseButton& Button)
     {
-        return mouseState.releasedButtons & Button;
+        return mouseState.ReleasedButtons & Button;
     }
 
-    math::ivec2 GetMousePostion() { return mouseState.position; }
-    math::ivec2 GetMousePostionDelta() { return mouseState.positionDelta; }
-    float GetMouseWheelDelta() { return mouseState.wheelDelta; }
+    MousePosition GetMousePostion() { return mouseState.Position; }
+    float GetMouseWheelDelta() { return mouseState.WheelDelta; }
 } // namespace lucid

@@ -167,39 +167,39 @@ void checkCompileErrors(unsigned int Shader, const uint8_t& Type)
         glUniform1i(getUniformLocation(UniformName), Value);
     }
 
-    void GLShader::SetVector(const String& UniformName, const math::vec2& Value)
+    void GLShader::SetVector(const String& UniformName, const glm::vec2& Value)
     {
-        glUniform2fv(getUniformLocation(UniformName), 1, (float*)&Value);
+        glUniform2fv(getUniformLocation(UniformName), 1, &Value[0]);
     }
 
-    void GLShader::SetVector(const String& UniformName, const math::vec3& Value)
+    void GLShader::SetVector(const String& UniformName, const glm::vec3& Value)
     {
-        glUniform3fv(getUniformLocation(UniformName), 1, (float*)&Value);
+        glUniform3fv(getUniformLocation(UniformName), 1, &Value[0]);
     }
 
-    void GLShader::SetVector(const String& UniformName, const math::vec4& Value)
+    void GLShader::SetVector(const String& UniformName, const glm::vec4& Value)
     {
-        glUniform4fv(getUniformLocation(UniformName), 1, (float*)&Value);
+        glUniform4fv(getUniformLocation(UniformName), 1, &Value[0]);
     }
 
-    void GLShader::SetVector(const String& UniformName, const math::ivec2& Value)
+    void GLShader::SetVector(const String& UniformName, const glm::ivec2& Value)
     {
-        glUniform2iv(getUniformLocation(UniformName), 1, (GLint*)&Value);
+        glUniform2iv(getUniformLocation(UniformName), 1, &Value[0]);
     }
 
-    void GLShader::SetVector(const String& UniformName, const math::ivec3& Value)
+    void GLShader::SetVector(const String& UniformName, const glm::ivec3& Value)
     {
-        glUniform3iv(getUniformLocation(UniformName), 1, (GLint*)&Value);
+        glUniform3iv(getUniformLocation(UniformName), 1, &Value[0]);
     }
 
-    void GLShader::SetVector(const String& UniformName, const math::ivec4& Value)
+    void GLShader::SetVector(const String& UniformName, const glm::ivec4& Value)
     {
-        glUniform4iv(getUniformLocation(UniformName), 1, (GLint*)&Value);
+        glUniform4iv(getUniformLocation(UniformName), 1, &Value[0]);
     }
 
-    void GLShader::SetMatrix(const String& UniformName, const math::mat4& Value)
+    void GLShader::SetMatrix(const String& UniformName, const glm::mat4& Value)
     {
-        glUniformMatrix4fv(getUniformLocation(UniformName), 1, GL_FALSE, (GLfloat*)&Value);
+        glUniformMatrix4fv(getUniformLocation(UniformName), 1, GL_FALSE, &Value[0][0]);
     }
 
     void GLShader::UseTexture(const String& TextureName, Texture* TextureToUse)

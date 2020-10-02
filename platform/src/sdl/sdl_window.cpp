@@ -1,6 +1,5 @@
 #include "platform/sdl/sdl_window.hpp"
 #include "SDL2/SDL.h"
-#include "common/math.hpp"
 #include "GL/glew.h"
 namespace lucid::platform
 {
@@ -12,11 +11,11 @@ namespace lucid::platform
 
         SDL_GLContext context = SDL_GL_CreateContext(window);
 
-        return new SDLWindow(window, context, { Definition.width, Definition.height });
+        return new SDLWindow(window, context, Definition.width, Definition.height);
     }
 
-    SDLWindow::SDLWindow(SDL_Window* Window, SDL_GLContext Context, const math::ivec2& Size)
-    : window(Window), context(Context), size(Size)
+    SDLWindow::SDLWindow(SDL_Window* Window, SDL_GLContext Context, const uint16_t& Width, const uint16_t& Height)
+    : window(Window), context(Context), width(Width), height(Height)
     {
     }
 
@@ -24,7 +23,9 @@ namespace lucid::platform
 
     void SDLWindow::Prepare() { SDL_GL_MakeCurrent(window, context); }
 
-    math::ivec2 SDLWindow::GetSize() const { return size; }
+    uint16_t SDLWindow::GetWidth() const { return width; }
+
+    uint16_t SDLWindow::GetHeight() const { return height; }
 
     void SDLWindow::Show() { SDL_ShowWindow(window); }
 

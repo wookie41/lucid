@@ -17,7 +17,7 @@ namespace lucid::gpu
     {
         int desiredChannels = IsTransparent ? 4 : 3;
         int channels;
-        math::ivec2 size;
+        glm::ivec2 size;
 
         stbi_uc* textureData = stbi_load(Path, &size.x, &size.y, &channels, desiredChannels);
         assert(channels == desiredChannels);

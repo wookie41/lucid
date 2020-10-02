@@ -14,6 +14,7 @@
 #include "GL/glew.h"
 #include "stdlib.h"
 #include "devices/gpu/vao.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 int main(int argc, char** argv)
 {
@@ -52,8 +53,8 @@ int main(int argc, char** argv)
     lucid::gpu::Texture* containerTexture = lucid::gpu::CreateTextureFromJPEG("container.jpg");
     lucid::gpu::Texture* faceTexture = lucid::gpu::CreateTextureFromPNG("awesomeface.png");
 
-    lucid::math::ivec3 containerTextureSize = containerTexture->GetDimensions();
-    lucid::math::ivec3 faceTextureSize = faceTexture->GetDimensions();
+    glm::ivec3 containerTextureSize = containerTexture->GetDimensions();
+    glm::ivec3 faceTextureSize = faceTexture->GetDimensions();
 
     lucid::canvas::CanvasItem canvasRoot;
     canvasRoot.Position = { 400, 300 };
@@ -78,9 +79,7 @@ int main(int argc, char** argv)
     window->Prepare();
     window->Show();
 
-    lucid::math::mat4 ProjectionMatrix =
-    lucid::math::CreateOrthographicProjectionMatrix(800, 0, 0, 600, 0.1f, 1000.0f);
-
+    glm::mat4 ProjectionMatrix = glm::ortho(0.0, 800.0, 0.0, 600.0, 0.1, 1000.0);
     lucid::gpu::Shader* simpleShader =
     lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("sprite.vert", true) },
                                      { lucid::platform::ReadFile("sprite.frag", true) });
@@ -120,8 +119,8 @@ int main(int argc, char** argv)
 
         if (lucid::IsMouseButtonPressed(lucid::MouseButton::LEFT))
         {
-            sprite2.Position = { (float)lucid::GetMousePostion().x,
-                                 (float)window->GetSize().y - lucid::GetMousePostion().y };
+            sprite2.Position = { (float)lucid::GetMousePostion().X,
+                                 (float)window->GetHeight() - lucid::GetMousePostion().Y };
         }
 
         if (lucid::WasMouseButtonPressed(lucid::MouseButton::RIGHT))

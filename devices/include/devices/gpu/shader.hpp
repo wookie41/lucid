@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common/strings.hpp"
-#include "common/math.hpp"
 #include "devices/gpu/buffer.hpp"
+#include "glm/glm.hpp"
 
 namespace lucid::gpu
 {
@@ -30,15 +30,15 @@ namespace lucid::gpu
         virtual void SetFloat(const String& UniformName, const float& Value) = 0;
         virtual void SetBool(const String& UniformName, const bool& Value) = 0;
 
-        virtual void SetVector(const String& UniformName, const math::vec2& Value) = 0;
-        virtual void SetVector(const String& UniformName, const math::vec3& Value) = 0;
-        virtual void SetVector(const String& UniformName, const math::vec4& Value) = 0;
+        virtual void SetVector(const String& UniformName, const glm::vec2& Value) = 0;
+        virtual void SetVector(const String& UniformName, const glm::vec3& Value) = 0;
+        virtual void SetVector(const String& UniformName, const glm::vec4& Value) = 0;
 
-        virtual void SetVector(const String& UniformName, const math::ivec2& Value) = 0;
-        virtual void SetVector(const String& UniformName, const math::ivec3& Value) = 0;
-        virtual void SetVector(const String& UniformName, const math::ivec4& Value) = 0;
+        virtual void SetVector(const String& UniformName, const glm::ivec2& Value) = 0;
+        virtual void SetVector(const String& UniformName, const glm::ivec3& Value) = 0;
+        virtual void SetVector(const String& UniformName, const glm::ivec4& Value) = 0;
 
-        virtual void SetMatrix(const String& UniformName, const math::mat4& Value) = 0;
+        virtual void SetMatrix(const String& UniformName, const glm::mat4& Value) = 0;
 
         virtual void UseTexture(const String& TextureName, Texture* TextureToUse) = 0;
 

@@ -24,10 +24,12 @@ project "lucid"
       "devices/include", 
       "common/include", 
       "graphics/include", 
-      "canvas/include" 
+      "canvas/include",
+      "scene/include" 
    }
 
    includedirs { 
+      "libs/glm", 
       "libs/stb", 
       "libs/glew/include", 
       "libs/SDL2/include" 
@@ -53,7 +55,8 @@ project "lucid"
       "platform/src/**.cpp",
       "common/src/**.cpp",
       "graphics/src/**.cpp",
-      "canvas/src/**.cpp"
+      "canvas/src/**.cpp",
+      "scene/src/**.cpp"
    }
 
    filter "configurations:Debug"

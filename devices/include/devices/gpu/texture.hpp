@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common/math.hpp"
 #include "devices/gpu/framebuffer.hpp"
+#include "glm/glm.hpp"
 
 namespace lucid::gpu
 {
@@ -42,7 +42,7 @@ namespace lucid::gpu
       public:
         virtual void Bind() = 0;
         virtual void Unbind() = 0;
-        virtual math::ivec3 GetDimensions() const = 0;
+        virtual glm::ivec3 GetDimensions() const = 0;
 
         virtual void SetMinFilter(const MinTextureFilter& Filter) = 0;
         virtual void SetMagFilter(const MagTextureFilter& Filter) = 0;
@@ -56,7 +56,7 @@ namespace lucid::gpu
     Texture* CreateTextureFromPNG(const char const* Path);
 
     Texture* Create2DTexture(const void const* TextureData,
-                             const math::ivec2& TextureSize,
+                             const glm::ivec2& TextureSize,
                              const int32_t MipMapLevel,
                              bool IsTransparent);
 } // namespace lucid::gpu

@@ -36,15 +36,15 @@ namespace lucid::gpu
         virtual void SetFloat(const String& UniformName, const float& Value) override;
         virtual void SetBool(const String& UniformName, const bool& Value) override;
 
-        virtual void SetVector(const String& UniformName, const math::vec2& Value) override;
-        virtual void SetVector(const String& UniformName, const math::vec3& Value) override;
-        virtual void SetVector(const String& UniformName, const math::vec4& Value) override;
+        virtual void SetVector(const String& UniformName, const glm::vec2& Value) override;
+        virtual void SetVector(const String& UniformName, const glm::vec3& Value) override;
+        virtual void SetVector(const String& UniformName, const glm::vec4& Value) override;
 
-        virtual void SetVector(const String& UniformName, const math::ivec2& Value) override;
-        virtual void SetVector(const String& UniformName, const math::ivec3& Value) override;
-        virtual void SetVector(const String& UniformName, const math::ivec4& Value) override;
+        virtual void SetVector(const String& UniformName, const glm::ivec2& Value) override;
+        virtual void SetVector(const String& UniformName, const glm::ivec3& Value) override;
+        virtual void SetVector(const String& UniformName, const glm::ivec4& Value) override;
 
-        virtual void SetMatrix(const String& UniformName, const math::mat4& Value) override;
+        virtual void SetMatrix(const String& UniformName, const glm::mat4& Value) override;
 
         virtual void UseTexture(const String& TextureName, Texture* TextureToUse) override;
 

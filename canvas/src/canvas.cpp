@@ -20,7 +20,7 @@ namespace lucid::canvas
     void CanvasItem::PrepareShader(gpu::Shader* ShaderToUse)
     {
         float rotation = Rotation;
-        math::vec2 position = Position;
+        glm::vec2 position = Position;
 
         if (Parent)
         {
@@ -63,7 +63,7 @@ namespace lucid::canvas
         if (TextureToUse)
         {
             const auto dimensions = TextureToUse->GetDimensions();
-            ShaderToUse->SetVector(TEXTURE_SIZE, math::ivec2{ dimensions.x, dimensions.y });
+            ShaderToUse->SetVector(TEXTURE_SIZE, glm::ivec2{ dimensions.x, dimensions.y });
             ShaderToUse->UseTexture(SPRITE_TEXTURE, TextureToUse);
         }
         ShaderToUse->SetVector(SPRITE_SIZE, SpriteSize);

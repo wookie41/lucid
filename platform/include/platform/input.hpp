@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include "SDL2/SDL_keycode.h"
-#include "common/math.hpp"
 
 namespace lucid
 {
@@ -11,6 +10,12 @@ namespace lucid
         LEFT = 1,
         MIDDLE = 2,
         RIGHT = 4
+    };
+
+    struct MousePosition
+    {
+        float X, Y;
+        float DeltaX, DeltaY;
     };
 
     void ReadEvents();
@@ -23,7 +28,6 @@ namespace lucid
     bool WasMouseButtonPressed(const MouseButton& Button);
     bool WasMouseButtonReleased(const MouseButton& Button);
 
-    math::ivec2 GetMousePostion();
-    math::ivec2 GetMousePostionDelta();
+    MousePosition GetMousePostion();
     float GetMouseWheelDelta();
 } // namespace lucid
