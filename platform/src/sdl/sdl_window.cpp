@@ -15,7 +15,7 @@ namespace lucid::platform
     }
 
     SDLWindow::SDLWindow(SDL_Window* Window, SDL_GLContext Context, const uint16_t& Width, const uint16_t& Height)
-    : window(Window), context(Context), width(Width), height(Height)
+    : window(Window), context(Context), width(Width), height(Height), aspectRatio(Width / Height)
     {
     }
 
@@ -26,6 +26,8 @@ namespace lucid::platform
     uint16_t SDLWindow::GetWidth() const { return width; }
 
     uint16_t SDLWindow::GetHeight() const { return height; }
+
+    float SDLWindow::GetAspectRatio() const { return aspectRatio; }
 
     void SDLWindow::Show() { SDL_ShowWindow(window); }
 

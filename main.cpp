@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "devices/gpu/vao.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "scene/camera.hpp"
 
 int main(int argc, char** argv)
 {
@@ -26,7 +27,7 @@ int main(int argc, char** argv)
 
     lucid::gpu::InitTextures();
 
-    lucid::platform::Window* window = lucid::platform::CreateWindow({ "Lucid", 200, 200, 800, 600 });
+    lucid::platform::Window* window = lucid::platform::CreateWindow({ "Lucid", 900, 420, 800, 600 });
     lucid::graphics::InitBasicShapes();
 
     lucid::gpu::Texture* colorAttachment = lucid::gpu::Create2DTexture(nullptr, { 800, 600 }, 0, false);
@@ -79,20 +80,34 @@ int main(int argc, char** argv)
     window->Prepare();
     window->Show();
 
-    glm::mat4 ProjectionMatrix = glm::ortho(0.0, 800.0, 0.0, 600.0, 0.1, 1000.0);
-    lucid::gpu::Shader* simpleShader =
-    lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("sprite.vert", true) },
-                                     { lucid::platform::ReadFile("sprite.frag", true) });
+    lucid::gpu::Shader* spriteShader =
+    lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("screen.vert", true) },
+                                     { lucid::platform::ReadFile("texture.frag", true) });
 
-    simpleShader->Use();
-    simpleShader->SetMatrix("Projection", ProjectionMatrix);
+    lucid::gpu::Shader* cubeShader =
+    lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("cube.vert", true) },
+                                     { lucid::platform::ReadFile("texture.frag", true) });
 
-    lucid::gpu::Viewport windowViewport{ 0, 0, 800, 600 };
+    lucid::gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
     lucid::gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
 
-    lucid::gpu::DisableDepthTest();
+    lucid::scene::Camera perspectiveCamera{ lucid::scene::CameraMode::PERSPECTIVE, { 0, 0, 2.5 } };
+    perspectiveCamera.AspectRatio = window->GetAspectRatio();
+
+    lucid::scene::Camera orthographicCamera{ lucid::scene::CameraMode::ORTHOGRAPHIC };
+    orthographicCamera.Left = 0;
+    orthographicCamera.Right = window->GetWidth();
+    orthographicCamera.Bottom = 0;
+    orthographicCamera.Top = window->GetHeight();
+
+    spriteShader->Use();
+    spriteShader->SetMatrix("Projection", orthographicCamera.GetProjectionMatrix());
+    spriteShader->SetMatrix("View", orthographicCamera.GetViewMatrix());
+
+    cubeShader->Use();
+    cubeShader->SetMatrix("Projection", perspectiveCamera.GetProjectionMatrix());
+
     bool isRunning = true;
-    lucid::graphics::QuadVertexArray->Bind();
     while (isRunning)
     {
         lucid::ReadEvents();
@@ -103,21 +118,37 @@ int main(int argc, char** argv)
             break;
         }
 
-        if (lucid::WasKeyPressed(SDLK_d))
+        if (lucid::IsKeyPressed(SDLK_w))
         {
-            faceTexture->Bind();
-            faceTexture->SetWrapSFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
-            faceTexture->Unbind();
+            perspectiveCamera.MoveForward(1.f / 60.f);
         }
 
-        if (lucid::WasKeyPressed(SDLK_a))
+        if (lucid::IsKeyPressed(SDLK_s))
         {
-            faceTexture->Bind();
-            faceTexture->SetWrapSFilter(lucid::gpu::WrapTextureFilter::REPEAT);
-            faceTexture->Unbind();
+            perspectiveCamera.MoveBackward(1.f / 60.f);
+        }
+
+        if (lucid::IsKeyPressed(SDLK_a))
+        {
+            perspectiveCamera.MoveLeft(1.f / 60.f);
+        }
+
+        if (lucid::IsKeyPressed(SDLK_d))
+        {
+            perspectiveCamera.MoveRight(1.f / 60.f);
         }
 
         if (lucid::IsMouseButtonPressed(lucid::MouseButton::LEFT))
+        {
+            auto mousePos = lucid::GetMousePostion();
+
+            if (mousePos.MouseMoved)
+            {
+                perspectiveCamera.AddRotation(-mousePos.DeltaX, mousePos.DeltaY);
+            }
+        }
+
+        if (lucid::IsMouseButtonPressed(lucid::MouseButton::RIGHT))
         {
             sprite2.Position = { (float)lucid::GetMousePostion().X,
                                  (float)window->GetHeight() - lucid::GetMousePostion().Y };
@@ -128,37 +159,56 @@ int main(int argc, char** argv)
             sprite2.Position = { 0, 0 };
         }
 
-        sprite2.TextureToUse = faceTexture;
-        sprite2.TextureRegionSize = { faceTexture->GetDimensions().x + 300,
-                                      faceTexture->GetDimensions().y };
+        // Draw the cube in 3D using perspective projection //
+
+        lucid::gpu::EnableDepthTest();
+        lucid::gpu::SetClearColor(lucid::BlackColor);
+        lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR |
+                                                                lucid::gpu::ClearableBuffers::DEPTH));
+
+        cubeShader->Use();
+        cubeShader->UseTexture("SpriteTexture", containerTexture);
+        cubeShader->SetMatrix("View", perspectiveCamera.GetViewMatrix());
+
+        lucid::graphics::CubeVertexArray->Bind();
+        lucid::graphics::CubeVertexArray->Draw();
+
+
+        // Draw the 2D sprites on top of it using orthograpic camera //
+
+        spriteShader->Use();
+        lucid::gpu::DisableDepthTest();
 
         // Draw to the framebuffer
+
+        sprite2.TextureToUse = faceTexture;
+        sprite2.TextureRegionSize = { faceTexture->GetDimensions().x, faceTexture->GetDimensions().y };
 
         testFramebuffer->Bind(lucid::gpu::FramebufferBindMode::READ_WRITE);
         lucid::gpu::SetViewprot(framebufferViewort);
         lucid::gpu::SetClearColor(lucid::RedColor);
         lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR));
 
-        canvasRoot.Draw(simpleShader);
+        canvasRoot.Draw(spriteShader);
 
         testFramebuffer->Unbind();
 
-        // Draw the main framebuffer's contents to the screen
+        // Draw to the default framebuffer
 
         lucid::gpu::SetViewprot(windowViewport);
         lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
-        lucid::gpu::SetClearColor(lucid::BlackColor);
-        lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR));
 
         sprite2.TextureToUse = colorAttachment;
         sprite2.TextureRegionSize = { colorAttachment->GetDimensions().x,
                                       colorAttachment->GetDimensions().y };
 
-        canvasRoot.Draw(simpleShader);
+        canvasRoot.Draw(spriteShader);
+
         window->Swap();
     }
 
-    delete simpleShader;
+    delete spriteShader;
+    delete cubeShader;
 
     window->Destroy();
 

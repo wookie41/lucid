@@ -13,6 +13,7 @@ namespace lucid::graphics
     };
 
     extern gpu::VertexArray* QuadVertexArray;
+    extern gpu::VertexArray* CubeVertexArray;
     extern StaticMesh QuadShape;
 
     void InitBasicShapes();

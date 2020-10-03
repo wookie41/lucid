@@ -55,7 +55,12 @@ namespace lucid
         for (uint8_t i = 0; i < 4; ++i)
             keyboardState.releasedKeys[i] = 0;
 
-        mouseState.ClickedButtons = mouseState.ReleasedButtons = 0;
+        mouseState.ClickedButtons = 0;
+        mouseState.ReleasedButtons = 0;
+        mouseState.Position.DeltaX = 0;
+        mouseState.Position.DeltaY = 0;
+        mouseState.WheelDelta = 0;
+        mouseState.Position.MouseMoved = false;
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -83,6 +88,7 @@ namespace lucid
                 break;
 
             case SDL_MOUSEMOTION:
+                mouseState.Position.MouseMoved = true;
                 mouseState.Position.DeltaX = mouseState.Position.X - event.motion.x;
                 mouseState.Position.DeltaY = mouseState.Position.Y - event.motion.y;
                 mouseState.Position.X = event.motion.x;

@@ -17,6 +17,7 @@ namespace lucid::platform
 
         virtual uint16_t GetWidth() const override;
         virtual uint16_t GetHeight() const override;
+        virtual float GetAspectRatio() const override;
       
         virtual void Show() override;
         virtual void Hide() override;
@@ -26,6 +27,7 @@ namespace lucid::platform
         virtual ~SDLWindow() = default;
 
       private:
+        float aspectRatio;
         uint16_t width, height;
         SDL_Window* window;
         SDL_GLContext context;

@@ -14,8 +14,9 @@ namespace lucid
 
     struct MousePosition
     {
-        float X, Y;
-        float DeltaX, DeltaY;
+        bool MouseMoved;
+        float X = 0, Y = 0;
+        float DeltaX = 0, DeltaY = 0;
     };
 
     void ReadEvents();

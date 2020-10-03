@@ -12,14 +12,14 @@ uniform ivec2 TextureRegionSize;
 uniform ivec2 TextureRegionIndex;
 uniform ivec2 TextureSize;
 
-// uniform mat4 _bView; //TODO Use it
-uniform mat4 Projection; 
+uniform mat4 View;
+uniform mat4 Projection;
 
 void main()
 {
     vec2 normalizedPos = (position + 1.0) / 2.0;
-    vec2 worldPosition = vec2(Position + (SpriteSize * normalizedPos));
+    vec2 screenPosition = vec2(Position + (SpriteSize * normalizedPos));
 
     TextureCoords = (vec2(SpriteSize * TextureRegionIndex) + vec2(textureCoords * TextureRegionSize)) / TextureSize;
-    gl_Position = Projection * vec4(worldPosition, -1, 1);
+    gl_Position = Projection * View * vec4(screenPosition, -1, 1);
 }
