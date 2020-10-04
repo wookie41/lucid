@@ -10,7 +10,7 @@ namespace lucid::gpu
 {
     int Init(const GPUSettings& Setings)
     {
-        Log(LogLevel::INFO, "Initializing GPU...");
+        LUCID_LOG(LogLevel::INFO, "Initializing GPU...");
 
         int SDLInitResult = SDL_Init(SDL_INIT_VIDEO);
         if (SDLInitResult != 0)
@@ -19,7 +19,7 @@ namespace lucid::gpu
             return -1;
         }
 
-        Log(LogLevel::INFO, "Initialized SDL_VIDEO");
+        LUCID_LOG(LogLevel::INFO, "Initialized SDL_VIDEO");
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
@@ -43,14 +43,14 @@ namespace lucid::gpu
         if (GLEWInitResult != GLEW_OK)
         {
 
-            Log(LogLevel::INFO, (char*)glewGetErrorString(GLEWInitResult));
+            LUCID_LOG(LogLevel::INFO, (char*)glewGetErrorString(GLEWInitResult));
             return -1;
         }
 
         SDL_DestroyWindow(window);
         SDL_GL_DeleteContext(context);
 
-        Log(LogLevel::INFO, "GPU initialized");
+        LUCID_LOG(LogLevel::INFO, "GPU initialized");
 
         return 0;
     }

@@ -22,14 +22,4 @@ namespace lucid::gpu
 
     void EnableDepthTest();
     void DisableDepthTest();
-    
-    /////////////// Viewport ///////////////
-
-    struct Viewport
-    {
-        uint32_t X, Y;
-        uint32_t Width, Height;
-    };
-
-    void SetViewprot(const Viewport& ViewportToUse);
 } // namespace lucid::gpu

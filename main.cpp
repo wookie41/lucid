@@ -11,11 +11,14 @@
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/gpu.hpp"
 #include "stdio.h"
-#include "GL/glew.h"
-#include "stdlib.h"
 #include "devices/gpu/vao.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "scene/camera.hpp"
+#include "devices/gpu/viewport.hpp"
+#include "scene/fwd_blinn_phong_renderer.hpp"
+#include "scene/blinn_phong_material.hpp"
+#include "scene/render_scene.hpp"
+#include "scene/renderable.hpp"
 
 int main(int argc, char** argv)
 {
@@ -84,9 +87,9 @@ int main(int argc, char** argv)
     lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("screen.vert", true) },
                                      { lucid::platform::ReadFile("texture.frag", true) });
 
-    lucid::gpu::Shader* cubeShader =
-    lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("cube.vert", true) },
-                                     { lucid::platform::ReadFile("texture.frag", true) });
+    lucid::gpu::Shader* blinnPhongShader =
+    lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("fwd_blinn_phong.vert", true) },
+                                     { lucid::platform::ReadFile("fwd_blinn_phong.frag", true) });
 
     lucid::gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
     lucid::gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
@@ -100,12 +103,29 @@ int main(int argc, char** argv)
     orthographicCamera.Bottom = 0;
     orthographicCamera.Top = window->GetHeight();
 
+    lucid::scene::ForwardBlinnPhongRenderer renderer{ blinnPhongShader };
+
+    lucid::scene::RenderTarget renderTarget;
+    renderTarget.Camera = &perspectiveCamera;
+    renderTarget.Framebuffer = nullptr;
+    renderTarget.Viewport = windowViewport;
+
     spriteShader->Use();
     spriteShader->SetMatrix("Projection", orthographicCamera.GetProjectionMatrix());
     spriteShader->SetMatrix("View", orthographicCamera.GetViewMatrix());
 
-    cubeShader->Use();
-    cubeShader->SetMatrix("Projection", perspectiveCamera.GetProjectionMatrix());
+    lucid::scene::BlinnPhongMaterial cubeMaterial;
+    cubeMaterial.DiffuseColor = { 0.2, 0.3, 0.4 };
+    cubeMaterial.SpecularColor = { 1, 1, 1 };
+
+    lucid::scene::Renderable cube{ "Cube" };
+    cube.Material = &cubeMaterial;
+    cube.VertexArray = lucid::graphics::CubeVertexArray;
+    cube.Type = lucid::scene::RenderableType::STATIC;
+
+    lucid::scene::RenderScene sceneToRender;
+    sceneToRender.Renderables.Add(&cube);
+    sceneToRender.Renderables.Add(&cube);
 
     bool isRunning = true;
     while (isRunning)
@@ -166,13 +186,7 @@ int main(int argc, char** argv)
         lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR |
                                                                 lucid::gpu::ClearableBuffers::DEPTH));
 
-        cubeShader->Use();
-        cubeShader->UseTexture("SpriteTexture", containerTexture);
-        cubeShader->SetMatrix("View", perspectiveCamera.GetViewMatrix());
-
-        lucid::graphics::CubeVertexArray->Bind();
-        lucid::graphics::CubeVertexArray->Draw();
-
+        renderer.Render(&sceneToRender, &renderTarget);
 
         // Draw the 2D sprites on top of it using orthograpic camera //
 
@@ -185,7 +199,7 @@ int main(int argc, char** argv)
         sprite2.TextureRegionSize = { faceTexture->GetDimensions().x, faceTexture->GetDimensions().y };
 
         testFramebuffer->Bind(lucid::gpu::FramebufferBindMode::READ_WRITE);
-        lucid::gpu::SetViewprot(framebufferViewort);
+        lucid::gpu::SetViewport(framebufferViewort);
         lucid::gpu::SetClearColor(lucid::RedColor);
         lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR));
 
@@ -195,7 +209,7 @@ int main(int argc, char** argv)
 
         // Draw to the default framebuffer
 
-        lucid::gpu::SetViewprot(windowViewport);
+        lucid::gpu::SetViewport(windowViewport);
         lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
 
         sprite2.TextureToUse = colorAttachment;
@@ -208,7 +222,7 @@ int main(int argc, char** argv)
     }
 
     delete spriteShader;
-    delete cubeShader;
+    delete blinnPhongShader;
 
     window->Destroy();
 
