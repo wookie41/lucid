@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/collections.hpp"
+#include "scene/lights.hpp"
 
 namespace lucid::scene
 {
@@ -11,5 +12,6 @@ namespace lucid::scene
     struct RenderScene
     {
         LinkedList<class Renderable> Renderables; 
+        LinkedList<DirectionalLight> DirectionalLights; 
     };
 }

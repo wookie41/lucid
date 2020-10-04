@@ -7,7 +7,11 @@ namespace lucid::scene
     class ForwardBlinnPhongRenderer : public Renderer
     {
       public:
-        explicit ForwardBlinnPhongRenderer(gpu::Shader* DefaultShader) : Renderer(DefaultShader) {}
+        // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
+        ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights, gpu::Shader* DefaultShader)
+        : Renderer(DefaultShader), maxNumOfDirectionalLights(MaxNumOfDirectionalLights)
+        {
+        }
 
         virtual void Render(const RenderScene* SceneToRender, const RenderTarget* Target) override;
 
@@ -19,6 +23,11 @@ namespace lucid::scene
         virtual ~ForwardBlinnPhongRenderer() = default;
 
       private:
-        float ambientStrength = 0.1;
+        inline void SetupFramebuffer(gpu::Framebuffer* Framebuffer);
+        inline void SetupRendererWideUniforms(gpu::Shader* Shader, const RenderTarget* RenderTarget);
+        inline void SetupLights(gpu::Shader* Shader, const RenderScene* Scene);
+
+        float ambientStrength = 0.2;
+        uint32_t maxNumOfDirectionalLights;
     };
 } // namespace lucid::scene

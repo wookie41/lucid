@@ -23,31 +23,18 @@ namespace lucid::scene
     static const String VIEW_MATRIX("uView");
     static const String PROJECTION_MATRIX("uProjection");
 
+    static const String NUM_OF_DIRECTIONAL_LIGHTS("uNumOfDirectionalLight");
+    static const String DIRECTIONAL_LIGHT_DIRECTION("uDirectionalLights[%d].Direction");
+    static const String DIRECTIONAL_LIGHT_COLOR("uDirectionalLights[%d].Color");
+
     void ForwardBlinnPhongRenderer::Render(const RenderScene* SceneToRender, const RenderTarget* Target)
     {
-        // temporary light for testing purposes //
-
-        glm::vec3 lightPos{ 3, 4, 4 };
-
-        //////////////////////////////////////////
-
-        if (Target->Framebuffer)
-        {
-            Target->Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
-        }
-        else
-        {
-            gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
-        }
-
+        SetupFramebuffer(Target->Framebuffer);
         gpu::SetViewport(Target->Viewport);
 
         defaultShader->Use();
-        defaultShader->SetFloat(AMBIENT_STRENGTH, ambientStrength);
-        defaultShader->SetMatrix(PROJECTION_MATRIX, Target->Camera->GetProjectionMatrix());
-        defaultShader->SetMatrix(VIEW_MATRIX, Target->Camera->GetViewMatrix());
-        defaultShader->SetVector(LIGHT_POSITION, lightPos);
-        defaultShader->SetVector(VIEW_POSITION, Target->Camera->Position);
+        SetupRendererWideUniforms(defaultShader, Target);
+        SetupLights(defaultShader, SceneToRender);
 
         auto usedShader = defaultShader;
         auto currentNode = &SceneToRender->Renderables.Head;
@@ -59,17 +46,6 @@ namespace lucid::scene
             auto renderable = currentNode->Element;
             LUCID_LOG(LogLevel::INFO, "Rendering '%s'", renderable->Name.CString);
 
-            // calculate model matrix
-
-            glm::mat4 modelMatrix { 1 };
-            modelMatrix = glm::translate(modelMatrix, renderable->Transform.Translation);
-            modelMatrix = glm::rotate(
-                modelMatrix, 
-                renderable->Transform.Rotation.w,
-                { renderable->Transform.Rotation.x, renderable->Transform.Rotation.y, renderable->Transform.Rotation.z }
-            );
-            modelMatrix  = glm::scale(modelMatrix, renderable->Transform.Scale); //cache ?
-
             // Determine if the material uses a custom shader
             // if yes, then setup the renderer-provied uniforms
 
@@ -77,12 +53,20 @@ namespace lucid::scene
             if (customShader)
             {
                 usedShader = customShader;
-                usedShader->Use();
-                usedShader->SetFloat(AMBIENT_STRENGTH, ambientStrength);
-                usedShader->SetMatrix(PROJECTION_MATRIX, Target->Camera->GetProjectionMatrix());
-                usedShader->SetMatrix(VIEW_MATRIX, Target->Camera->GetViewMatrix());
-                usedShader->SetVector(LIGHT_POSITION, lightPos);
+                customShader->Use();
+                SetupRendererWideUniforms(customShader, Target);
+                SetupLights(defaultShader, SceneToRender);
             }
+
+            // calculate and set the model matrix
+
+            glm::mat4 modelMatrix{ 1 };
+            modelMatrix = glm::translate(modelMatrix, renderable->Transform.Translation);
+            modelMatrix =
+            glm::rotate(modelMatrix, renderable->Transform.Rotation.w,
+                        { renderable->Transform.Rotation.x, renderable->Transform.Rotation.y,
+                          renderable->Transform.Rotation.z });
+            modelMatrix = glm::scale(modelMatrix, renderable->Transform.Scale); // cache ?
 
             usedShader->SetMatrix(MODEL_MATRIX, modelMatrix);
 
@@ -95,11 +79,14 @@ namespace lucid::scene
             renderable->VertexArray->Bind();
             renderable->VertexArray->Draw();
 
+            // if the renderable used a custom material, then restore the default one
+
             if (usedShader != defaultShader)
             {
                 usedShader = defaultShader;
                 defaultShader->Use();
             }
+
             currentNode = currentNode->Next;
         }
 
@@ -107,5 +94,51 @@ namespace lucid::scene
         {
             Target->Framebuffer->Unbind();
         }
+    }
+
+    void ForwardBlinnPhongRenderer::SetupFramebuffer(gpu::Framebuffer* Framebuffer)
+    {
+        if (Framebuffer)
+        {
+            Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        }
+        else
+        {
+            gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
+        }
+    }
+
+    void ForwardBlinnPhongRenderer::SetupRendererWideUniforms(gpu::Shader* Shader, const RenderTarget* Target)
+    {
+        Shader->SetFloat(AMBIENT_STRENGTH, ambientStrength);
+        Shader->SetMatrix(PROJECTION_MATRIX, Target->Camera->GetProjectionMatrix());
+        Shader->SetMatrix(VIEW_MATRIX, Target->Camera->GetViewMatrix());
+        Shader->SetVector(VIEW_POSITION, Target->Camera->Position);
+    }
+
+    void ForwardBlinnPhongRenderer::SetupLights(gpu::Shader* Shader, const RenderScene* Scene)
+    {
+        static char uniformNameBuffer[128];
+        auto lightNode = &Scene->DirectionalLights.Head;
+
+        uint32_t directionalLighsCount = 0;
+        for (uint32_t ligthIdx = 0; ligthIdx < maxNumOfDirectionalLights; ++ligthIdx, ++directionalLighsCount)
+        {
+            if (lightNode == nullptr || lightNode->Element == nullptr)
+            {
+                // no more directional lights in the scene
+                break;
+            }
+
+            sprintf(uniformNameBuffer, DIRECTIONAL_LIGHT_DIRECTION, ligthIdx);
+            Shader->SetVector(uniformNameBuffer, lightNode->Element->Direction);
+
+            sprintf(uniformNameBuffer, DIRECTIONAL_LIGHT_COLOR, ligthIdx);
+            Shader->SetVector(uniformNameBuffer, lightNode->Element->Color);
+
+            lightNode = lightNode->Next;
+        }
+        
+        Shader->SetInt(NUM_OF_DIRECTIONAL_LIGHTS, directionalLighsCount);
     }
 } // namespace lucid::scene

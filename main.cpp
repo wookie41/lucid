@@ -19,6 +19,7 @@
 #include "scene/blinn_phong_material.hpp"
 #include "scene/render_scene.hpp"
 #include "scene/renderable.hpp"
+#include "scene/lights.hpp"
 
 int main(int argc, char** argv)
 {
@@ -103,7 +104,7 @@ int main(int argc, char** argv)
     orthographicCamera.Bottom = 0;
     orthographicCamera.Top = window->GetHeight();
 
-    lucid::scene::ForwardBlinnPhongRenderer renderer{ blinnPhongShader };
+    lucid::scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongShader };
 
     lucid::scene::RenderTarget renderTarget;
     renderTarget.Camera = &perspectiveCamera;
@@ -114,24 +115,46 @@ int main(int argc, char** argv)
     spriteShader->SetMatrix("Projection", orthographicCamera.GetProjectionMatrix());
     spriteShader->SetMatrix("View", orthographicCamera.GetViewMatrix());
 
-    lucid::scene::BlinnPhongMaterial cubeMaterial;
-    cubeMaterial.Shininess = 64.f;
-    cubeMaterial.DiffuseColor = { 0.2, 0.3, 0.4 };
-    cubeMaterial.SpecularColor = { 1, 1, 1 };
+    lucid::scene::BlinnPhongMaterial cubeMaterial1;
+    cubeMaterial1.Shininess = 64.f;
+    cubeMaterial1.DiffuseColor = { 0.2, 0.3, 0.4 };
+    cubeMaterial1.SpecularColor = { 1, 1, 1 };
 
-    lucid::scene::Renderable cube{ "Cube" };
-    cube.Transform.Rotation.x = 0;
-    cube.Transform.Rotation.y = 0;
-    cube.Transform.Rotation.z = 1;
-    cube.Transform.Rotation.w = glm::radians(45.f);
+    lucid::scene::BlinnPhongMaterial cubeMaterial2;
+    cubeMaterial2.Shininess = 128.f;
+    cubeMaterial2.DiffuseColor = { 0.6, 0.3, 0.1 };
+    cubeMaterial2.SpecularColor = { 1, 1, 1 };
 
-    cube.Material = &cubeMaterial;
-    cube.VertexArray = lucid::graphics::CubeVertexArray;
-    cube.Type = lucid::scene::RenderableType::STATIC;
+    lucid::scene::Renderable cube1{ "Cube1" };
+    cube1.Transform.Translation = { -2, 0, -2 };
+    cube1.Material = &cubeMaterial1;
+    cube1.VertexArray = lucid::graphics::CubeVertexArray;
+    cube1.Type = lucid::scene::RenderableType::STATIC;
+
+    lucid::scene::Renderable cube2{ "Cube2" };
+    cube2.Transform.Translation = { 2, 0, -2 };
+    cube2.Material = &cubeMaterial2;
+    cube2.VertexArray = lucid::graphics::CubeVertexArray;
+    cube2.Type = lucid::scene::RenderableType::STATIC;
+
+    lucid::scene::DirectionalLight light1;
+    light1.Direction = { 0, 0, -1 };
+    light1.Color = { 1, 0, 0 };
+
+    lucid::scene::DirectionalLight light2;
+    light2.Direction = { 1, 0, -1 };
+    light2.Color = { 0, 1, 0 };
+
+    lucid::scene::DirectionalLight light3;
+    light3.Direction = { -1, 0, -1 };
+    light3.Color = { 0, 0, 1 };
 
     lucid::scene::RenderScene sceneToRender;
-    sceneToRender.Renderables.Add(&cube);
-    sceneToRender.Renderables.Add(&cube);
+    sceneToRender.Renderables.Add(&cube1);
+    sceneToRender.Renderables.Add(&cube2);
+    sceneToRender.DirectionalLights.Add(&light1);
+    sceneToRender.DirectionalLights.Add(&light2);
+    sceneToRender.DirectionalLights.Add(&light3);
 
     bool isRunning = true;
     while (isRunning)
