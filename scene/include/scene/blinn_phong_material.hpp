@@ -11,6 +11,7 @@ namespace lucid::scene
 
         virtual void SetupShader(gpu::Shader* Shader = nullptr) override;
 
+        float Shininess;
         glm::vec3 DiffuseColor;
         glm::vec3 SpecularColor;
     };

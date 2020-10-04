@@ -16,6 +16,7 @@ uniform vec3 uViewPos;
 
 uniform vec3 uDiffuseColor;
 uniform vec3 uSpecularColor;
+uniform float uShininess;
 
 void main()
 {
@@ -31,7 +32,7 @@ void main()
     vec3 diffuse = uDiffuseColor * diffuseStrength;
 
     vec3 reflectedToLight = reflect(-toLight, normal);
-    float specularStrength = pow(max(dot(toView, reflectedToLight), 0.0), 32);
+    float specularStrength = pow(max(dot(toView, reflectedToLight), 0.0), uShininess);
     vec3 specular = specularStrength * uSpecularColor * uDiffuseColor; 
 
     FragColor = vec4(ambient + diffuse + specular, 1.0);

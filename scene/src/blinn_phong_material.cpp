@@ -3,6 +3,7 @@
 
 namespace lucid::scene
 {
+    static const String SHININESS("uShininess");
     static const String DIFFUSE_COLOR("uDiffuseColor");
     static const String SPECULAR_COLOR("uSpecularColor");
 
@@ -10,7 +11,8 @@ namespace lucid::scene
 
     void BlinnPhongMaterial::SetupShader(gpu::Shader* Shader)
     {
-        Shader->SetVector(DIFFUSE_COLOR, DiffuseColor); 
-        Shader->SetVector(SPECULAR_COLOR, SpecularColor); 
+        Shader->SetFloat(SHININESS, Shininess);
+        Shader->SetVector(DIFFUSE_COLOR, DiffuseColor);
+        Shader->SetVector(SPECULAR_COLOR, SpecularColor);
     };
 } // namespace lucid::scene

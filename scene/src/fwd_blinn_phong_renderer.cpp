@@ -48,7 +48,6 @@ namespace lucid::scene
         defaultShader->SetMatrix(VIEW_MATRIX, Target->Camera->GetViewMatrix());
         defaultShader->SetVector(LIGHT_POSITION, lightPos);
         defaultShader->SetVector(VIEW_POSITION, Target->Camera->Position);
-        defaultShader->SetMatrix(MODEL_MATRIX, glm::mat4{ 1 });
 
         auto usedShader = defaultShader;
         auto currentNode = &SceneToRender->Renderables.Head;
@@ -60,9 +59,16 @@ namespace lucid::scene
             auto renderable = currentNode->Element;
             LUCID_LOG(LogLevel::INFO, "Rendering '%s'", renderable->Name.CString);
 
-            // material properties requried by the renderer
-            glm::vec3* diffuseColor = nullptr;
-            glm::vec3* specularColor = nullptr;
+            // calculate model matrix
+
+            glm::mat4 modelMatrix { 1 };
+            modelMatrix = glm::translate(modelMatrix, renderable->Transform.Translation);
+            modelMatrix = glm::rotate(
+                modelMatrix, 
+                renderable->Transform.Rotation.w,
+                { renderable->Transform.Rotation.x, renderable->Transform.Rotation.y, renderable->Transform.Rotation.z }
+            );
+            modelMatrix  = glm::scale(modelMatrix, renderable->Transform.Scale); //cache ?
 
             // Determine if the material uses a custom shader
             // if yes, then setup the renderer-provied uniforms
@@ -77,6 +83,8 @@ namespace lucid::scene
                 usedShader->SetMatrix(VIEW_MATRIX, Target->Camera->GetViewMatrix());
                 usedShader->SetVector(LIGHT_POSITION, lightPos);
             }
+
+            usedShader->SetMatrix(MODEL_MATRIX, modelMatrix);
 
             // setup the sahder's uniform using material's properties
 

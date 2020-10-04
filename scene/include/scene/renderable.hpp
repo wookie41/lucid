@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include "common/strings.hpp"
+#include "glm/glm.hpp"
+#include "scene/transform.hpp"
 
 namespace lucid::gpu
 {
@@ -24,6 +26,7 @@ namespace lucid::scene
     {
         String              Name;
         RenderableType      Type;
+        Transform3D         Transform;
         gpu::VertexArray*   VertexArray;
         Material*           Material;
     };

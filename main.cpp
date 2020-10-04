@@ -115,10 +115,16 @@ int main(int argc, char** argv)
     spriteShader->SetMatrix("View", orthographicCamera.GetViewMatrix());
 
     lucid::scene::BlinnPhongMaterial cubeMaterial;
+    cubeMaterial.Shininess = 64.f;
     cubeMaterial.DiffuseColor = { 0.2, 0.3, 0.4 };
     cubeMaterial.SpecularColor = { 1, 1, 1 };
 
     lucid::scene::Renderable cube{ "Cube" };
+    cube.Transform.Rotation.x = 0;
+    cube.Transform.Rotation.y = 0;
+    cube.Transform.Rotation.z = 1;
+    cube.Transform.Rotation.w = glm::radians(45.f);
+
     cube.Material = &cubeMaterial;
     cube.VertexArray = lucid::graphics::CubeVertexArray;
     cube.Type = lucid::scene::RenderableType::STATIC;
