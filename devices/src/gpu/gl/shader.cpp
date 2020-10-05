@@ -19,7 +19,7 @@ namespace lucid::gpu
     static char _infoLog[1024];
 #endif
 
-void checkCompileErrors(unsigned int Shader, const uint8_t& Type)
+    void checkCompileErrors(unsigned int Shader, const uint8_t& Type)
     {
         int success;
         if (Type != _GL_PROGRAM)
@@ -152,96 +152,108 @@ void checkCompileErrors(unsigned int Shader, const uint8_t& Type)
             bindingNode = bindingNode->Next;
         }
     }
-    void GLShader::SetInt(const String& UniformName, const uint32_t& Value)
+
+    int32_t GLShader::GetIdForUniform(const String& Name) const
     {
-        glUniform1i(getUniformLocation(UniformName), Value);
-    }
-
-    void GLShader::SetFloat(const String& UniformName, const float& Value)
-    {
-        glUniform1f(getUniformLocation(UniformName), Value);
-    }
-
-    void GLShader::SetBool(const String& UniformName, const bool& Value)
-    {
-        glUniform1i(getUniformLocation(UniformName), Value);
-    }
-
-    void GLShader::SetVector(const String& UniformName, const glm::vec2& Value)
-    {
-        glUniform2fv(getUniformLocation(UniformName), 1, &Value[0]);
-    }
-
-    void GLShader::SetVector(const String& UniformName, const glm::vec3& Value)
-    {
-        glUniform3fv(getUniformLocation(UniformName), 1, &Value[0]);
-    }
-
-    void GLShader::SetVector(const String& UniformName, const glm::vec4& Value)
-    {
-        glUniform4fv(getUniformLocation(UniformName), 1, &Value[0]);
-    }
-
-    void GLShader::SetVector(const String& UniformName, const glm::ivec2& Value)
-    {
-        glUniform2iv(getUniformLocation(UniformName), 1, &Value[0]);
-    }
-
-    void GLShader::SetVector(const String& UniformName, const glm::ivec3& Value)
-    {
-        glUniform3iv(getUniformLocation(UniformName), 1, &Value[0]);
-    }
-
-    void GLShader::SetVector(const String& UniformName, const glm::ivec4& Value)
-    {
-        glUniform4iv(getUniformLocation(UniformName), 1, &Value[0]);
-    }
-
-    void GLShader::SetMatrix(const String& UniformName, const glm::mat4& Value)
-    {
-        glUniformMatrix4fv(getUniformLocation(UniformName), 1, GL_FALSE, &Value[0][0]);
-    }
-
-    void GLShader::UseTexture(const String& TextureName, Texture* TextureToUse)
-    {
-        TextureBinding* binding = nullptr;
-        for (uint32_t idx = 0; idx < textureBindings.Length; ++idx)
-        {
-            if (textureBindings[idx]->Name.Hash == TextureName.Hash)
-            {
-                binding = textureBindings[idx];
-                break;
-            }
-        }
-
-#ifndef NDEBUG
-        if (binding == nullptr)
-        {
-            printf("Sampler with name %s not found in shader %d\n", TextureName.CString, glShaderID);
-            return;
-        }
-#endif
-        binding->BoundTexture = TextureToUse;
-
-        glActiveTexture(GL_TEXTURE0 + binding->TextureIndex);
-        TextureToUse->Bind();
-
-        glUniform1i(binding->TextureIndex, binding->TextureIndex);
-    }
-
-    GLint GLShader::getUniformLocation(const String& Name) const
-    {
-        //@TODO cache it
         for (uint32_t idx = 0; idx < uniformVariables.Length; ++idx)
         {
             if (uniformVariables[idx]->Name.Hash == Name.Hash)
-                return uniformVariables[idx]->GLIndex;
+                return idx;
         }
 
 #ifndef NDEBUG
         printf("Uniform variable with name %s not found in shader %d\n", Name.CString, glShaderID);
 #endif
         return -1;
+    };
+
+    void GLShader::SetInt(const int32_t& UniformId, const uint32_t& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniform1i(uniformVariables[UniformId]->GLIndex, Value);
+    }
+
+    void GLShader::SetFloat(const int32_t& UniformId, const float& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniform1f(uniformVariables[UniformId]->GLIndex, Value);
+    }
+
+    void GLShader::SetBool(const int32_t& UniformId, const bool& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniform1i(uniformVariables[UniformId]->GLIndex, Value);
+    }
+
+    void GLShader::SetVector(const int32_t& UniformId, const glm::vec2& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniform2fv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
+    }
+
+    void GLShader::SetVector(const int32_t& UniformId, const glm::vec3& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniform3fv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
+    }
+
+    void GLShader::SetVector(const int32_t& UniformId, const glm::vec4& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniform4fv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
+    }
+
+    void GLShader::SetVector(const int32_t& UniformId, const glm::ivec2& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniform2iv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
+    }
+
+    void GLShader::SetVector(const int32_t& UniformId, const glm::ivec3& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniform3iv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
+    }
+
+    void GLShader::SetVector(const int32_t& UniformId, const glm::ivec4& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniform4iv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
+    }
+
+    void GLShader::SetMatrix(const int32_t& UniformId, const glm::mat4& Value)
+    {
+        assert(UniformId > -1 && UniformId < uniformVariables.Length);
+        glUniformMatrix4fv(uniformVariables[UniformId]->GLIndex, 1, GL_FALSE, &Value[0][0]);
+    }
+
+    int32_t GLShader::GetTextureId(const String& TextureName)
+    {
+        for (uint32_t idx = 0; idx < textureBindings.Length; ++idx)
+        {
+            if (textureBindings[idx]->Name.Hash == TextureName.Hash)
+            {
+                return idx;
+            }
+        }
+
+#ifndef NDEBUG
+        printf("Sampler with name %s not found in shader %d\n", TextureName.CString, glShaderID);
+#endif
+        return -1;
+    }
+
+    void GLShader::UseTexture(const int32_t& TextureId, Texture* TextureToUse)
+    {
+        assert(TextureId > 0 && TextureId < textureBindings.Length);
+        TextureBinding* binding = textureBindings[TextureId];
+
+        binding->BoundTexture = TextureToUse;
+
+        glActiveTexture(GL_TEXTURE0 + binding->TextureIndex);
+        TextureToUse->Bind();
+
+        glUniform1i(binding->TextureIndex, binding->TextureIndex);
     }
 
     void GLShader::AddBinding(BufferBinding* Binding) { buffersBindings.Add(Binding); }

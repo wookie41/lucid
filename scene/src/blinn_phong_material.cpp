@@ -11,8 +11,24 @@ namespace lucid::scene
 
     void BlinnPhongMaterial::SetupShader(gpu::Shader* Shader)
     {
-        Shader->SetFloat(SHININESS, Shininess);
-        Shader->SetVector(DIFFUSE_COLOR, DiffuseColor);
-        Shader->SetVector(SPECULAR_COLOR, SpecularColor);
+        ReteriveShaderUniformsIds(Shader);
+
+        Shader->SetFloat(shininessUniformId, Shininess);
+        Shader->SetVector(diffuseColorUniformId, DiffuseColor);
+        Shader->SetVector(specularColorUniformId, SpecularColor);
     };
+
+    void BlinnPhongMaterial::ReteriveShaderUniformsIds(gpu::Shader* Shader)
+    {
+        if (Shader == cachedShader)
+        {
+            return;
+        }
+
+        shininessUniformId = Shader->GetIdForUniform(SHININESS);
+        diffuseColorUniformId = Shader->GetIdForUniform(DIFFUSE_COLOR);
+        specularColorUniformId = Shader->GetIdForUniform(SPECULAR_COLOR);
+
+        cachedShader = Shader;
+    }
 } // namespace lucid::scene

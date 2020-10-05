@@ -26,21 +26,25 @@ namespace lucid::gpu
         virtual void SetupTextureBindings() = 0;
         virtual void SetupBuffersBindings() = 0;
 
-        virtual void SetInt(const String& UniformName, const uint32_t& Value) = 0;
-        virtual void SetFloat(const String& UniformName, const float& Value) = 0;
-        virtual void SetBool(const String& UniformName, const bool& Value) = 0;
+        // Return -1 if uniform doesn't exist
+        virtual int32_t GetIdForUniform(const String& UniformName) const = 0;
 
-        virtual void SetVector(const String& UniformName, const glm::vec2& Value) = 0;
-        virtual void SetVector(const String& UniformName, const glm::vec3& Value) = 0;
-        virtual void SetVector(const String& UniformName, const glm::vec4& Value) = 0;
+        virtual void SetInt(const int32_t& UniformId, const uint32_t& Value) = 0;
+        virtual void SetFloat(const int32_t& UniformId, const float& Value) = 0;
+        virtual void SetBool(const int32_t& UniformId, const bool& Value) = 0;
 
-        virtual void SetVector(const String& UniformName, const glm::ivec2& Value) = 0;
-        virtual void SetVector(const String& UniformName, const glm::ivec3& Value) = 0;
-        virtual void SetVector(const String& UniformName, const glm::ivec4& Value) = 0;
+        virtual void SetVector(const int32_t& UniformId, const glm::vec2& Value) = 0;
+        virtual void SetVector(const int32_t& UniformId, const glm::vec3& Value) = 0;
+        virtual void SetVector(const int32_t& UniformId, const glm::vec4& Value) = 0;
 
-        virtual void SetMatrix(const String& UniformName, const glm::mat4& Value) = 0;
+        virtual void SetVector(const int32_t& UniformId, const glm::ivec2& Value) = 0;
+        virtual void SetVector(const int32_t& UniformId, const glm::ivec3& Value) = 0;
+        virtual void SetVector(const int32_t& UniformId, const glm::ivec4& Value) = 0;
 
-        virtual void UseTexture(const String& TextureName, Texture* TextureToUse) = 0;
+        virtual void SetMatrix(const int32_t& UniformId, const glm::mat4& Value) = 0;
+
+        virtual int32_t GetTextureId(const String& TextureName) = 0;
+        virtual void UseTexture(const int32_t& UniformId, Texture* TextureToUse) = 0;
 
         virtual void AddBinding(BufferBinding* Binding) = 0;
 

@@ -24,7 +24,6 @@ project "lucid"
       "devices/include", 
       "common/include", 
       "misc/include", 
-      "canvas/include",
       "scene/include" 
    }
 
@@ -55,7 +54,6 @@ project "lucid"
       "platform/src/**.cpp",
       "common/src/**.cpp",
       "misc/src/**.cpp",
-      "canvas/src/**.cpp",
       "scene/src/**.cpp"
    }
 
