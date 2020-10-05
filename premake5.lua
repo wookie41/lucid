@@ -23,7 +23,7 @@ project "lucid"
       "platform/include", 
       "devices/include", 
       "common/include", 
-      "graphics/include", 
+      "misc/include", 
       "canvas/include",
       "scene/include" 
    }
@@ -54,7 +54,7 @@ project "lucid"
       "platform/src/sdl/**.cpp",
       "platform/src/**.cpp",
       "common/src/**.cpp",
-      "graphics/src/**.cpp",
+      "misc/src/**.cpp",
       "canvas/src/**.cpp",
       "scene/src/**.cpp"
    }

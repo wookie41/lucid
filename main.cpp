@@ -3,7 +3,7 @@
 #include "devices/gpu/buffer.hpp"
 #include "devices/gpu/shader.hpp"
 #include "devices/gpu/init.hpp"
-#include "graphics/static_mesh.hpp"
+#include "misc/basic_shapes.hpp"
 #include "devices/gpu/texture.hpp"
 #include "platform/fs.hpp"
 #include "canvas/canvas.hpp"
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     lucid::gpu::InitTextures();
 
     lucid::platform::Window* window = lucid::platform::CreateWindow({ "Lucid", 900, 420, 800, 600 });
-    lucid::graphics::InitBasicShapes();
+    lucid::misc::InitBasicShapes();
 
     lucid::gpu::Texture* colorAttachment = lucid::gpu::Create2DTexture(nullptr, { 800, 600 }, 0, false);
     lucid::gpu::FramebufferAttachment* renderbuffer =
@@ -128,13 +128,13 @@ int main(int argc, char** argv)
     lucid::scene::Renderable cube1{ "Cube1" };
     cube1.Transform.Translation = { -2, 0, -2 };
     cube1.Material = &cubeMaterial1;
-    cube1.VertexArray = lucid::graphics::CubeVertexArray;
+    cube1.VertexArray = lucid::misc::CubeVertexArray;
     cube1.Type = lucid::scene::RenderableType::STATIC;
 
     lucid::scene::Renderable cube2{ "Cube2" };
     cube2.Transform.Translation = { 2, 0, -2 };
     cube2.Material = &cubeMaterial2;
-    cube2.VertexArray = lucid::graphics::CubeVertexArray;
+    cube2.VertexArray = lucid::misc::CubeVertexArray;
     cube2.Type = lucid::scene::RenderableType::STATIC;
 
     lucid::scene::DirectionalLight light1;

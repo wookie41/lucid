@@ -2,8 +2,9 @@
 
 #include "devices/gpu/shader.hpp"
 #include "common/strings.hpp"
-#include "graphics/static_mesh.hpp"
+#include "misc/basic_shapes.hpp"
 #include "devices/gpu/texture.hpp"
+#include "devices/gpu/vao.hpp"
 
 namespace lucid::canvas
 {
@@ -70,9 +71,8 @@ namespace lucid::canvas
         ShaderToUse->SetVector(TEXTURE_REGION_SIZE, TextureRegionSize);
         ShaderToUse->SetVector(TEXTURE_REGION_INDEX, TextureRegionIndex);
 
-        lucid::graphics::DrawMesh(&lucid::graphics::QuadShape);
-
-        CanvasItem::Draw(ShaderToUse);
+        lucid::misc::QuadVertexArray->Bind();
+        lucid::misc::QuadVertexArray->Draw();
 
         if (TextureToUse)
         {

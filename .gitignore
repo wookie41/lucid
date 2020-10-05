@@ -37,3 +37,4 @@ bin
 *.filters
 obj
 *.sln
+.vs
