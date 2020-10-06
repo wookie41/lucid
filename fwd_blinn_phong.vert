@@ -6,7 +6,7 @@ layout(location = 2) in vec2 aTextureCoords;
 
 out vec3 iNormal;
 out vec3 iWorldPos;
-out vec2 iTextureCoods;
+out vec2 iTextureCoords;
 
 uniform mat4 uModel;
 uniform mat4 uView;
@@ -14,8 +14,8 @@ uniform mat4 uProjection;
 
 void main()
 {
-    iNormal = transpose(inverse(mat3(uModel))) * aNormal;
-    iTextureCoods = aTextureCoords;
+    iNormal = mat3(transpose(inverse(uModel))) * aNormal;
+    iTextureCoords = aTextureCoords;
 
     vec4 worldPos = uModel * vec4(aPosition, 1);
     iWorldPos = worldPos.xyz;

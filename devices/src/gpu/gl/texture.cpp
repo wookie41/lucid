@@ -108,12 +108,9 @@ namespace lucid::gpu
 
     void GLTexture::Bind()
     {
-        if (!isBound)
-        {
-            isBound = true;
-            assert(textureType = GL_TEXTURE_2D);
-            glBindTexture(textureType, glTextureHandle);
-        }
+        isBound = true;
+        assert(textureType = GL_TEXTURE_2D);
+        glBindTexture(textureType, glTextureHandle);
     }
 
     void GLTexture::Unbind() { isBound = false; }

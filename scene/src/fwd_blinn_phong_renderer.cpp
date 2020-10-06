@@ -68,7 +68,7 @@ namespace lucid::scene
                 usedShader = customShader;
                 customShader->Use();
                 SetupRendererWideUniforms(customShader, Target);
-                SetupLights(defaultShader, SceneToRender);
+                SetupLights(customShader, SceneToRender);
                 modelMatrixUniformId = customShader->GetIdForUniform(MODEL_MATRIX);
             }
 
@@ -84,7 +84,7 @@ namespace lucid::scene
 
             usedShader->SetMatrix(modelMatrixUniformId, modelMatrix);
 
-            // setup the sahder's uniform using material's properties
+            // setup the shader's uniform using material's properties
 
             renderable->Material->SetupShader(usedShader);
 

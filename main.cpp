@@ -16,6 +16,7 @@
 #include "devices/gpu/viewport.hpp"
 #include "scene/fwd_blinn_phong_renderer.hpp"
 #include "scene/blinn_phong_material.hpp"
+#include "scene/blinn_phong_maps_material.hpp"
 #include "scene/render_scene.hpp"
 #include "scene/renderable.hpp"
 #include "scene/lights.hpp"
@@ -54,8 +55,16 @@ int main(int argc, char** argv)
 
     lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
 
-    lucid::gpu::Texture* containerTexture = lucid::gpu::CreateTextureFromJPEG("container.jpg");
-    lucid::gpu::Texture* faceTexture = lucid::gpu::CreateTextureFromPNG("awesomeface.png");
+    lucid::gpu::Texture* cubeDiffuseMap = lucid::gpu::CreateTextureFromPNG("cube-diffuse-map.png");
+    cubeDiffuseMap->Bind();
+    cubeDiffuseMap->SetMinFilter(lucid::gpu::MinTextureFilter::LINEAR);
+    cubeDiffuseMap->SetMagFilter(lucid::gpu::MagTextureFilter::LINEAR);
+
+    lucid::gpu::Texture* cubeSpecularMap =
+    lucid::gpu::CreateTextureFromPNG("cube-specular-map.png");
+    cubeSpecularMap->Bind();
+    cubeSpecularMap->SetMinFilter(lucid::gpu::MinTextureFilter::LINEAR);
+    cubeSpecularMap->SetMagFilter(lucid::gpu::MagTextureFilter::LINEAR);
 
     window->Prepare();
     window->Show();
@@ -63,6 +72,11 @@ int main(int argc, char** argv)
     lucid::gpu::Shader* blinnPhongShader =
     lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("fwd_blinn_phong.vert", true) },
                                      { lucid::platform::ReadFile("fwd_blinn_phong.frag", true) });
+
+    lucid::gpu::Shader* blinnPhongMapsShader =
+    lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("fwd_blinn_phong.vert", true) },
+                                     { lucid::platform::ReadFile("fwd_blinn_phong_maps.frag", true) });
+
 
     lucid::gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
     lucid::gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
@@ -77,16 +91,16 @@ int main(int argc, char** argv)
     renderTarget.Framebuffer = nullptr;
     renderTarget.Viewport = windowViewport;
 
-
     lucid::scene::BlinnPhongMaterial cubeMaterial1;
     cubeMaterial1.Shininess = 64.f;
     cubeMaterial1.DiffuseColor = { 0.2, 0.3, 0.4 };
     cubeMaterial1.SpecularColor = { 1, 1, 1 };
 
-    lucid::scene::BlinnPhongMaterial cubeMaterial2;
+    lucid::scene::BlinnPhongMapsMaterial cubeMaterial2;
     cubeMaterial2.Shininess = 128.f;
-    cubeMaterial2.DiffuseColor = { 0.6, 0.3, 0.1 };
-    cubeMaterial2.SpecularColor = { 1, 1, 1 };
+    cubeMaterial2.DiffuseMap = cubeDiffuseMap;
+    cubeMaterial2.SpecularMap = cubeSpecularMap;
+    cubeMaterial2.SetCustomShader(blinnPhongMapsShader);
 
     lucid::scene::Renderable cube1{ "Cube1" };
     cube1.Transform.Translation = { -2, 0, -2 };
@@ -101,7 +115,7 @@ int main(int argc, char** argv)
     cube2.Type = lucid::scene::RenderableType::STATIC;
 
     lucid::scene::DirectionalLight light1;
-    light1.Direction = { 0, 0, -1 };
+    light1.Direction = { 0, -2, -2 };
     light1.Color = { 1, 0, 0 };
 
     lucid::scene::DirectionalLight light2;
