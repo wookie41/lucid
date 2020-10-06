@@ -15,7 +15,6 @@ namespace lucid::gpu
         virtual glm::ivec3 GetDimensions() const override;
 
         virtual void Bind() override;
-        virtual void Unbind() override;
 
         virtual void SetMinFilter(const MinTextureFilter& Filter) override;
         virtual void SetMagFilter(const MagTextureFilter& Filter) override;
@@ -36,7 +35,6 @@ namespace lucid::gpu
         virtual ~GLTexture();
 
       private:
-        bool isBound = false;
         glm::ivec3 dimensions;
         GLenum textureType;
         GLuint glTextureHandle;

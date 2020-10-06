@@ -23,7 +23,6 @@ namespace lucid::gpu
         virtual void Use() = 0;
         virtual void Disable() = 0;
 
-        virtual void SetupTextureBindings() = 0;
         virtual void SetupBuffersBindings() = 0;
 
         // Return -1 if uniform doesn't exist

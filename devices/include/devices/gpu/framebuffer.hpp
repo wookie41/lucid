@@ -18,7 +18,6 @@ namespace lucid::gpu
     {
       public:
         virtual void Bind() = 0;
-        virtual void Unbind() = 0;
 
         virtual void AttachAsColor(const uint8_t& Index) = 0;
         virtual void AttachAsStencil() = 0;
@@ -32,7 +31,6 @@ namespace lucid::gpu
     {
       public:
         virtual void Bind() = 0;
-        virtual void Unbind() = 0;
 
         virtual ~Renderbuffer() = default;
     };
@@ -56,7 +54,6 @@ namespace lucid::gpu
         virtual bool IsComplete() = 0;
 
         virtual void Bind(const FramebufferBindMode& Mode) = 0;
-        virtual void Unbind() = 0;
 
         virtual void SetupColorAttachment(const uint32_t& AttachmentIndex,
                                           FramebufferAttachment* AttachmentToUse) = 0;

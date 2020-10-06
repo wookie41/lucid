@@ -15,7 +15,6 @@ namespace lucid::gpu
                        const uint32_t& Height);
 
         virtual void Bind() override;
-        virtual void Unbind() override;
 
         virtual void AttachAsColor(const uint8_t& Index) override;
         virtual void AttachAsStencil() override;
@@ -25,7 +24,6 @@ namespace lucid::gpu
         virtual ~GLRenderbuffer();
 
       private:
-        bool isBound = false;
         RenderbufferFormat format;
         uint32_t width, height;
         GLuint glRBOHandle;
@@ -44,7 +42,6 @@ namespace lucid::gpu
         virtual bool IsComplete() override;
 
         virtual void Bind(const FramebufferBindMode& Mode) override;
-        virtual void Unbind() override;
 
         virtual void SetupColorAttachment(const uint32_t& AttachmentIndex,
                                           FramebufferAttachment* AttachmentToUse) override;
@@ -57,7 +54,6 @@ namespace lucid::gpu
       private:
         GLuint glFBOHandle;
 
-        bool isBound = 0;
         bool isComplete = false;
         bool isDirty = true;
 

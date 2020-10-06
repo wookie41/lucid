@@ -22,4 +22,33 @@ namespace lucid::gpu
 
     void EnableDepthTest();
     void DisableDepthTest();
+
+    /////////////// GPU Info ///////////////
+
+    // Queries the GPU for it's properties, like the maximum number of samplers
+    // supported extension, which shader/framebuffer/texture and etc is currently bound
+
+    struct GPUInfo
+    {
+        class Framebuffer* CurrentFramebuffer = nullptr;
+        class Framebuffer* CurrentReadFramebuffer = nullptr;
+        class Framebuffer* CurrentWriteFramebuffer = nullptr;
+
+        class Shader* CurrentShader = nullptr;
+        class Texture** BoundTextures = nullptr;
+        class Renderbuffer* CurrentRenderbuffer;
+
+        class Buffer* CurrentVertexBuffer;
+        class Buffer* CurrentElementBuffer;
+        class Buffer* CurrentReadBuffer;
+        class Buffer* CurrentWriteBuffer;
+        class Buffer* CurrentShaderStorageBuffer;
+
+
+        uint32_t ActiveTextureUnit = 0;
+        uint32_t MaxTextureUnits = 0;
+        uint32_t MaxColorAttachments = 0;
+    };
+
+    extern GPUInfo Info;
 } // namespace lucid::gpu

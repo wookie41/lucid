@@ -1,7 +1,7 @@
 #include "devices/gpu/gl/framebuffer.hpp"
 #include "devices/gpu/texture.hpp"
 #include "GL/glew.h"
-
+#include "devices/gpu/gpu.hpp"
 namespace lucid::gpu
 {
     static GLenum RENDER_BUFFER_TYPE_MAPPING[] = { GL_DEPTH24_STENCIL8 };
@@ -65,7 +65,7 @@ namespace lucid::gpu
     {
         if (isDirty)
         {
-            assert(isBound);
+            assert(gpu::Info.CurrentFramebuffer == this);
             isComplete = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
             isDirty = false;
         }
@@ -74,39 +74,51 @@ namespace lucid::gpu
 
     void GLFramebuffer::Bind(const FramebufferBindMode& Mode)
     {
-        if (!isBound)
+        gpu::Framebuffer** target = nullptr;
+        switch (Mode)
         {
-            isBound = true;
+        case FramebufferBindMode::READ:
+            target = &gpu::Info.CurrentReadFramebuffer;
+            break;
+        case FramebufferBindMode::WRITE:
+            target = &gpu::Info.CurrentWriteFramebuffer;
+            break;
+        case FramebufferBindMode::READ_WRITE:
+            target = &gpu::Info.CurrentFramebuffer;
+            break;
+        }
+
+        if (*target != this)
+        {
             glBindFramebuffer(glFramebufferModes[static_cast<uint8_t>(Mode)], glFBOHandle);
+            *target = this;
         }
     }
-    void GLFramebuffer::Unbind() { isBound = false; }
-
 
     void GLFramebuffer::SetupColorAttachment(const uint32_t& AttachmentIndex, FramebufferAttachment* AttachmentToUse)
     {
-        assert(isBound && AttachmentIndex < MAX_COLOR_ATTACHMENTS);
+        assert(gpu::Info.CurrentFramebuffer == this && AttachmentIndex < gpu::Info.MaxColorAttachments);
         colorAttachments[AttachmentIndex] = AttachmentToUse;
         AttachmentToUse->AttachAsColor(AttachmentIndex);
     }
 
     void GLFramebuffer::SetupDepthAttachment(FramebufferAttachment* AttachmentToUse)
     {
-        assert(isBound);
+        assert(gpu::Info.CurrentFramebuffer == this);
         depthAttachment = AttachmentToUse;
         AttachmentToUse->AttachAsDepth();
     }
 
     void GLFramebuffer::SetupStencilAttachment(FramebufferAttachment* AttachmentToUse)
     {
-        assert(isBound);
+        assert(gpu::Info.CurrentFramebuffer == this);
         stencilAttachment = AttachmentToUse;
         AttachmentToUse->AttachAsStencil();
     }
 
     void GLFramebuffer::SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse)
     {
-        assert(isBound);
+        assert(gpu::Info.CurrentFramebuffer == this);
         depthStencilAttachment = AttachmentToUse;
         AttachmentToUse->AttachAsStencilDepth();
     }
@@ -123,34 +135,33 @@ namespace lucid::gpu
 
     void GLRenderbuffer::Bind()
     {
-        if (!isBound)
+        if (gpu::Info.CurrentRenderbuffer != this)
         {
-            isBound = true;
             glBindRenderbuffer(GL_RENDERBUFFER, glRBOHandle);
+            gpu::Info.CurrentRenderbuffer = this;
         }
     }
-    void GLRenderbuffer::Unbind() { isBound = false; }
 
     void GLRenderbuffer::AttachAsColor(const uint8_t& Index)
     {
-        assert(isBound && Index == 0);
+        assert(gpu::Info.CurrentRenderbuffer == this && Index == 0);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, glRBOHandle);
     }
     void GLRenderbuffer::AttachAsStencil()
     {
-        assert(isBound);
+        assert(gpu::Info.CurrentRenderbuffer == this);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
     };
 
     void GLRenderbuffer::AttachAsDepth()
     {
-        assert(isBound);
+        assert(gpu::Info.CurrentRenderbuffer == this);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
     };
 
     void GLRenderbuffer::AttachAsStencilDepth()
     {
-        assert(isBound);
+        assert(gpu::Info.CurrentRenderbuffer == this);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
     };
 

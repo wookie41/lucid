@@ -3,6 +3,8 @@
 
 namespace lucid::gpu
 {
+
+    
     // Buffers functions
     void ClearBuffers(const ClearableBuffers& BuffersToClear)
     {

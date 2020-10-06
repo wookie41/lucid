@@ -1,4 +1,6 @@
 #include "devices/gpu/gl/texture.hpp"
+#include "devices/gpu/gpu.hpp"
+
 #include <cassert>
 
 #define TO_GL_MIN_FILTER(gl_filters) (GL_MIN_FILTERS_MAPPING[(uint8_t)gl_filters])
@@ -7,6 +9,8 @@
 
 namespace lucid::gpu
 {
+
+
     static GLenum GL_MIN_FILTERS_MAPPING[] = { GL_NEAREST,
                                                GL_LINEAR,
                                                GL_NEAREST_MIPMAP_NEAREST,
@@ -108,12 +112,10 @@ namespace lucid::gpu
 
     void GLTexture::Bind()
     {
-        isBound = true;
-        assert(textureType = GL_TEXTURE_2D);
+        gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] = this;
+        assert(textureType == GL_TEXTURE_2D);
         glBindTexture(textureType, glTextureHandle);
     }
-
-    void GLTexture::Unbind() { isBound = false; }
 
     GLTexture::~GLTexture() { glDeleteTextures(1, &glTextureHandle); }
 
@@ -121,49 +123,49 @@ namespace lucid::gpu
 
     void GLTexture::SetMinFilter(const MinTextureFilter& Filter)
     {
-        assert(isBound);
+        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, TO_GL_MIN_FILTER(Filter));
     }
 
     void GLTexture::SetMagFilter(const MagTextureFilter& Filter)
     {
-        assert(isBound);
+        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, TO_GL_MAG_FILTER(Filter));
     }
 
     void GLTexture::SetWrapSFilter(const WrapTextureFilter& Filter)
     {
-        assert(isBound);
+        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(textureType, GL_TEXTURE_WRAP_S, TO_GL_WRAP_FILTER(Filter));
     }
 
     void GLTexture::SetWrapTFilter(const WrapTextureFilter& Filter)
     {
-        assert(isBound);
+        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(textureType, GL_TEXTURE_WRAP_T, TO_GL_WRAP_FILTER(Filter));
     }
 
     void GLTexture::AttachAsColor(const uint8_t& Index)
     {
-        assert(isBound && textureType == GL_TEXTURE_2D);
+        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && textureType == GL_TEXTURE_2D);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Index, GL_TEXTURE_2D, glTextureHandle, 0);
     }
 
     void GLTexture::AttachAsStencil()
     {
-        assert(isBound && textureType == GL_TEXTURE_2D);
+        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && textureType == GL_TEXTURE_2D);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, glTextureHandle, 0);
     }
 
     void GLTexture::AttachAsDepth()
     {
-        assert(isBound && textureType == GL_TEXTURE_2D);
+        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && textureType == GL_TEXTURE_2D);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, glTextureHandle, 0);
     }
 
     void GLTexture::AttachAsStencilDepth()
     {
-        assert(isBound && textureType == GL_TEXTURE_2D);
+        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && textureType == GL_TEXTURE_2D);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, glTextureHandle, 0);
     };
 } // namespace lucid::gpu

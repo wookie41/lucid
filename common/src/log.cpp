@@ -19,7 +19,7 @@ namespace lucid
         sprintf(msgBuff, Format);
         std::time_t t = std::time(0);
         std::tm* now = std::localtime(&t);
-        printf("[%s] %d:%d:%d - %s\n", (LOG_LEVEL_NAMES[static_cast<uint8_t>(Level)]), now->tm_hour,
-               now->tm_min, now->tm_sec, msgBuff);
+        printf("[%s] %d:%d:%d %s:%d - %s\n", (LOG_LEVEL_NAMES[static_cast<uint8_t>(Level)]),
+               now->tm_hour, now->tm_min, now->tm_sec, __FILE__, __LINE__, msgBuff);
     }
 } // namespace lucid

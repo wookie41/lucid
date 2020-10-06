@@ -1,4 +1,5 @@
 #include "devices/gpu/init.hpp"
+#include "devices/gpu/gpu.hpp"
 
 #include "SDL2/SDL.h"
 #include "GL/glew.h"
@@ -8,6 +9,10 @@
 
 namespace lucid::gpu
 {
+    GPUInfo Info;
+
+    void InitGPUInfo();
+
     int Init(const GPUSettings& Setings)
     {
         LUCID_LOG(LogLevel::INFO, "Initializing GPU...");
@@ -47,6 +52,8 @@ namespace lucid::gpu
             return -1;
         }
 
+        InitGPUInfo();
+
         SDL_DestroyWindow(window);
         SDL_GL_DeleteContext(context);
 
@@ -54,4 +61,23 @@ namespace lucid::gpu
 
         return 0;
     }
-} // namespace devices::gpu
+
+    void InitGPUInfo()
+    {
+        GLint property;
+
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &property);
+        LUCID_LOG(LogLevel::INFO, "Available texture units = %d", property);
+        Info.BoundTextures = new Texture*[property];
+        Info.MaxColorAttachments = property;
+
+        glGetIntegerv(GL_MAX_DRAW_BUFFERS, &property);
+        LUCID_LOG(LogLevel::INFO, "Available draw buffers units = %d", property);
+        Info.MaxColorAttachments = property;
+
+        for (int i = 0; i < property; ++i)
+        {
+            Info.BoundTextures[i] = nullptr;
+        }
+    }
+} // namespace lucid::gpu

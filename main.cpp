@@ -49,10 +49,6 @@ int main(int argc, char** argv)
     testFramebuffer->SetupDepthStencilAttachment(renderbuffer);
     testFramebuffer->IsComplete();
 
-    colorAttachment->Unbind();
-    renderbuffer->Unbind();
-    testFramebuffer->Unbind();
-
     lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
 
     lucid::gpu::Texture* cubeDiffuseMap = lucid::gpu::CreateTextureFromPNG("cube-diffuse-map.png");

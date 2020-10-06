@@ -1,4 +1,6 @@
 #include "devices/gpu/gl/buffer.hpp"
+#include "devices/gpu/gpu.hpp"
+
 #include <cassert>
 
 #define NO_COHERENT_OR_PERSISTENT_BIT_SET(FLAGS) \
@@ -97,7 +99,25 @@ namespace lucid::gpu
     {
         assert(glBufferHandle > 0);
         assert(isImmutable ? true : NO_COHERENT_OR_PERSISTENT_BIT_SET(AccessPolicy));
-        assert(currentBindPoint == BufferBindPoint::UNBOUND);
+        
+        gpu::Buffer** target = nullptr;
+        switch (BindPoint)
+        {
+        case BufferBindPoint::VERTEX:
+            target = &gpu::Info.CurrentVertexBuffer;
+            break;
+        case BufferBindPoint::ELEMENT:
+            target = &gpu::Info.CurrentElementBuffer;
+            break;
+        case BufferBindPoint::SHADER_STORAGE:
+            target = &gpu::Info.CurrentShaderStorageBuffer;
+            break;
+        default:
+            break;
+        }
+
+        assert(*target = nullptr);
+        *target = this;
 
         currentBindPoint = BindPoint;
 
@@ -113,7 +133,8 @@ namespace lucid::gpu
         void* mappedRegion = glMapBufferRange(glBindPoint, Offset, Size, accessBits);
 
         if (isImmutable)
-            glBindBuffer(GL_COPY_READ_BUFFER, 0);
+            *target = nullptr;
+            glBindBuffer(glBindPoint, 0);
 
         assert(mappedRegion);
 
@@ -122,7 +143,27 @@ namespace lucid::gpu
 
     void GLBuffer::MemoryUnmap()
     {
-        assert(currentBindPoint != BufferBindPoint::UNBOUND);
+        gpu::Buffer** target = nullptr;
+        switch (currentBindPoint)
+        {
+        case BufferBindPoint::VERTEX:
+            target = &gpu::Info.CurrentVertexBuffer;
+            break;
+        case BufferBindPoint::ELEMENT:
+            target = &gpu::Info.CurrentElementBuffer;
+            break;
+        case BufferBindPoint::SHADER_STORAGE:
+            target = &gpu::Info.CurrentShaderStorageBuffer;
+            break;
+        default:
+            break;
+        }
+
+        // check if this buffer is actually bound to the place it says it's
+
+        assert(*target == this);
+        *target = nullptr;
+
         glUnmapBuffer(AS_GL_BIND_POINT(currentBindPoint));
         currentBindPoint = BufferBindPoint::UNBOUND;
     }

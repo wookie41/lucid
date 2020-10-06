@@ -103,11 +103,6 @@ namespace lucid::scene
 
             currentNode = currentNode->Next;
         }
-
-        if (Target->Framebuffer)
-        {
-            Target->Framebuffer->Unbind();
-        }
     }
 
     void ForwardBlinnPhongRenderer::SetupFramebuffer(gpu::Framebuffer* Framebuffer)

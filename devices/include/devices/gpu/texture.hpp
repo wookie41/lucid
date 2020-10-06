@@ -41,7 +41,6 @@ namespace lucid::gpu
     {
       public:
         virtual void Bind() = 0;
-        virtual void Unbind() = 0;
         virtual glm::ivec3 GetDimensions() const = 0;
 
         virtual void SetMinFilter(const MinTextureFilter& Filter) = 0;
