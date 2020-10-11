@@ -4,7 +4,7 @@ workspace "lucid"
    platforms { "Win32", "Win64", "Linux"}
 
 project "lucid"
-   kind "WindowedApp"
+   kind "ConsoleApp"
    language "C++"
    targetdir "bin/%{cfg.buildcfg}"
    cppdialect "C++17"
@@ -32,32 +32,8 @@ project "lucid"
    }
 
    links { 
-      "SDL2", 
-      "SDL2main"
+      "SDL2" 
    }
-
-   filter "system:linux"
-      
-      links { 
-         "GLEW", 
-         "GL", 
-      }
-
-   filter "system:windows"
-
-      links { 
-         "glew32", 
-         "opengl32", 
-      }
-
-   filter { "platforms:Win64" }
-      architecture "x86_64"
-   
-   filter { "platforms:Win32" }
-      architecture "x86"
-   
-   filter { "platforms:Linux" }
-      architecture "x86_64"
 
    files { 
       "main.cpp", 
@@ -70,6 +46,27 @@ project "lucid"
       "scene/src/**.cpp"
    }
 
+   filter "platforms:Win64"
+      architecture "x86_64"
+   
+   filter "platforms:Win32"
+      architecture "x86"
+   
+   filter "platforms:Linux"
+      architecture "x86_64"
+
+   filter "system:linux"
+      links { 
+         "GLEW", 
+         "GL", 
+      }
+
+   filter "system:windows"
+      links { 
+         "glew32", 
+         "opengl32", 
+      }
+   
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
@@ -79,5 +76,5 @@ project "lucid"
       defines { "NDEBUG" }
       symbols "Off"
       optimize "On"
-
    
+   filter {}
