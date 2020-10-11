@@ -14,7 +14,7 @@ namespace lucid::gpu
     {
         uint32_t Index = 0;
         int32_t NumComponents = 0;
-        Type Type;
+        Type AttributeType;
         bool Normalized = false;
         uint32_t Stride = 0;
         uint32_t FirstElementOffset = 0;

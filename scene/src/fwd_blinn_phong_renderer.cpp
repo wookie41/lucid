@@ -11,6 +11,8 @@
 
 #include "common/log.hpp"
 
+#include <stdio.h>
+
 namespace lucid::scene
 {
     // Shader-wide uniforms
@@ -152,6 +154,7 @@ namespace lucid::scene
                 // no more directional lights in the scene
                 break;
             }
+
 
             sprintf(uniformNameBuffer, DIRECTIONAL_LIGHT_DIRECTION, ligthIdx);
 

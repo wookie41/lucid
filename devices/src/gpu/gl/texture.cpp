@@ -28,7 +28,7 @@ namespace lucid::gpu
                                 const GLenum& DataType,
                                 const GLenum& DataFormat,
                                 const GLenum& InternalFormat,
-                                const void const* TextureData)
+                                void const* TextureData)
     {
         GLuint textureHandle;
         glGenTextures(1, &textureHandle);
@@ -79,10 +79,7 @@ namespace lucid::gpu
         return textureHandle;
     }
 
-    Texture* Create2DTexture(const void const* TextureData,
-                             const glm::ivec2& TextureDimensions,
-                             const int32_t MipMapLevel,
-                             bool IsTransparent)
+    Texture* Create2DTexture(void const* TextureData, const glm::ivec2& TextureDimensions, const int32_t MipMapLevel, bool IsTransparent)
     {
         GLenum format = IsTransparent ? GL_RGBA : GL_RGB;
         GLuint textureHandle = CreateTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel,

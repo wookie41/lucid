@@ -46,7 +46,7 @@ namespace lucid::gpu
         {
             VertexAttribute* vertexAttribute = (*VertexArrayAttributes)[attrIdx];
 
-            switch (vertexAttribute->Type)
+            switch (vertexAttribute->AttributeType)
             {
             case lucid::Type::FLOAT:
                 vertexArray->AddVertexAttribute(*vertexAttribute);
@@ -72,10 +72,14 @@ namespace lucid::gpu
         return vertexArray;
     }
 
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+
     void GLVertexArray::AddVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type],
+        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType],
                               GL_FALSE, Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
@@ -84,7 +88,7 @@ namespace lucid::gpu
     void GLVertexArray::AddIntegerVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type],
+        glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType],
                                Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
@@ -93,11 +97,13 @@ namespace lucid::gpu
     void GLVertexArray::AddLongVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.Type],
+        glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType],
                                Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
     }
+
+#pragma GCC diagnostic pop
 
     GLVertexArray::GLVertexArray(const GLuint& GLVAOHandle,
                                  const DrawMode& DrawMode,
@@ -165,7 +171,8 @@ namespace lucid::gpu
 
         if (elementBuffer)
         {
-            glDrawElementsInstanced(GL_DRAW_MODES[drawMode], count, GL_UNSIGNED_INT, nullptr, InstancesCount);;
+            glDrawElementsInstanced(GL_DRAW_MODES[drawMode], count, GL_UNSIGNED_INT, nullptr, InstancesCount);
+            ;
         }
         else
         {

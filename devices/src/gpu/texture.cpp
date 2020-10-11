@@ -13,7 +13,7 @@ namespace lucid::gpu
 {
     void InitTextures() { stbi_set_flip_vertically_on_load(true); }
 
-    static Texture* LoadWithSTBAndCreate(const char const* Path, bool IsTransparent)
+    static Texture* LoadWithSTBAndCreate(char const* Path, bool IsTransparent)
     {
         int desiredChannels = IsTransparent ? 4 : 3;
         int channels;
@@ -28,13 +28,7 @@ namespace lucid::gpu
         return createdTexture;
     }
 
-    Texture* CreateTextureFromJPEG(const char const* Path)
-    {
-        return LoadWithSTBAndCreate(Path, false);
-    }
+    Texture* CreateTextureFromJPEG(char const* Path) { return LoadWithSTBAndCreate(Path, false); }
 
-    Texture* CreateTextureFromPNG(const char const* Path)
-    {
-        return LoadWithSTBAndCreate(Path, true);
-    }
+    Texture* CreateTextureFromPNG(char const* Path) { return LoadWithSTBAndCreate(Path, true); }
 } // namespace lucid::gpu

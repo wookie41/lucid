@@ -1,18 +1,10 @@
 -- premake5.lua
 workspace "lucid"
    configurations { "Debug", "Release" }
-   
-   platforms { "Shared64" }
-   filter "platforms:Static64"
-      kind "StaticLib"
-      architecture "x64"
-
-   filter "platforms:Shared64"
-      kind "SharedLib"
-      architecture "x64"
+   platforms { "Win32", "Win64", "Linux"}
 
 project "lucid"
-   kind "ConsoleApp"
+   kind "WindowedApp"
    language "C++"
    targetdir "bin/%{cfg.buildcfg}"
    cppdialect "C++17"
@@ -38,13 +30,34 @@ project "lucid"
       "libs/glew/lib/x64", 
       "libs/SDL2/lib/x64" 
    }
-   
+
    links { 
-      "glew32", 
-      "opengl32", 
       "SDL2", 
       "SDL2main"
    }
+
+   filter "system:linux"
+      
+      links { 
+         "GLEW", 
+         "GL", 
+      }
+
+   filter "system:windows"
+
+      links { 
+         "glew32", 
+         "opengl32", 
+      }
+
+   filter { "platforms:Win64" }
+      architecture "x86_64"
+   
+   filter { "platforms:Win32" }
+      architecture "x86"
+   
+   filter { "platforms:Linux" }
+      architecture "x86_64"
 
    files { 
       "main.cpp", 
@@ -60,9 +73,11 @@ project "lucid"
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
+      optimize "Off"
 
    filter "configurations:Release"
       defines { "NDEBUG" }
+      symbols "Off"
       optimize "On"
 
    

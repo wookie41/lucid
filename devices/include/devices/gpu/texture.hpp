@@ -51,11 +51,8 @@ namespace lucid::gpu
         virtual ~Texture() = default;
     };
 
-    Texture* CreateTextureFromJPEG(const char const* Path);
-    Texture* CreateTextureFromPNG(const char const* Path);
+    Texture* CreateTextureFromJPEG(char const* Path);
+    Texture* CreateTextureFromPNG(char const* Path);
 
-    Texture* Create2DTexture(const void const* TextureData,
-                             const glm::ivec2& TextureSize,
-                             const int32_t MipMapLevel,
-                             bool IsTransparent);
+    Texture* Create2DTexture(void const* TextureData, const glm::ivec2& TextureSize, const int32_t MipMapLevel, bool IsTransparent);
 } // namespace lucid::gpu

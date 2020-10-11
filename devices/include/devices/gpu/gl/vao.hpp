@@ -37,7 +37,7 @@ namespace lucid::gpu
                                    const uint32_t& First = 0,
                                    const uint32_t& Count = 0) override;
 
-        virtual void Free();
+        virtual void Free() override;
 
         virtual ~GLVertexArray() = default;
 
@@ -50,7 +50,7 @@ namespace lucid::gpu
         bool autoDestroyBuffers;
         Buffer* vertexBuffer;
         Buffer* elementBuffer;
-        
+
         GLuint glVAOHandle;
     };
 } // namespace lucid::gpu

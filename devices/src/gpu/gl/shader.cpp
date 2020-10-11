@@ -92,11 +92,11 @@ namespace lucid::gpu
 
             if (uniformType == GL_SAMPLER_1D || uniformType == GL_SAMPLER_2D || uniformType == GL_SAMPLER_3D)
             {
-                textureBindings.Add({ uniformIdx, CopyString(uniformNameBuff), texturesCount++ });
+                textureBindings.Add({ uniformIdx, CopyToString(uniformNameBuff), texturesCount++ });
                 continue;
             }
 
-            uniformVariables.Add({ uniformIdx, CopyString(uniformNameBuff) });
+            uniformVariables.Add({ uniformIdx, CopyToString(uniformNameBuff) });
         }
 
         StaticArray<UniformVariable> tmpUniforms = uniformVariables.Copy();

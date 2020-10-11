@@ -38,3 +38,6 @@ bin
 obj
 *.sln
 .vs
+lucid.vcxproj.user
+lucid.make
+Makefile

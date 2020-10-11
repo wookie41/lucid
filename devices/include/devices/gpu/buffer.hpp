@@ -64,8 +64,11 @@ namespace lucid::gpu
         virtual void MemoryUnmap() = 0;
 
         virtual void Free() = 0;
+
+        virtual ~Buffer() = default;
     };
 
     Buffer* CreateBuffer(const BufferDescription& Description, const BufferUsage& Usage);
-    Buffer* CreateImmutableBuffer(const BufferDescription& Description, const ImmutableBufferUsage& ImmutableBufferUsage);
+    Buffer* CreateImmutableBuffer(const BufferDescription& Description,
+                                  const ImmutableBufferUsage& ImmutableBufferUsage);
 } // namespace lucid::gpu

@@ -24,10 +24,10 @@ namespace lucid::scene
 
     struct Renderable
     {
-        String              Name;
-        RenderableType      Type;
-        Transform3D         Transform;
-        gpu::VertexArray*   VertexArray;
-        Material*           Material;
+        String Name;
+        RenderableType Type;
+        Transform3D Transform;
+        gpu::VertexArray* VertexArray;
+        scene::Material* Material;
     };
 } // namespace lucid::scene
