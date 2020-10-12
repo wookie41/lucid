@@ -9,8 +9,6 @@
 
 namespace lucid::gpu
 {
-
-
     static GLenum GL_MIN_FILTERS_MAPPING[] = { GL_NEAREST,
                                                GL_LINEAR,
                                                GL_NEAREST_MIPMAP_NEAREST,
@@ -20,6 +18,18 @@ namespace lucid::gpu
 
     static GLenum GL_MAG_FILTERS_MAPPING[] = { GL_NEAREST, GL_LINEAR };
     static GLenum GL_WRAP_FILTERS_MAPPING[] = { GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, GL_REPEAT };
+
+
+    static inline GLenum toGLTextureFormat(const resources::TextureFormat& Format)
+    {
+        switch (Format)
+        {
+        case resources::TextureFormat::RGB:
+            return GL_RGB;
+        case resources::TextureFormat::RGBA:
+            return GL_RGBA;
+        }
+    }
 
     // TODO extract this function as a public, graphics-API agnostic part of lucid
     static GLuint CreateTexture(const TextureType& TextureType,
@@ -79,15 +89,46 @@ namespace lucid::gpu
         return textureHandle;
     }
 
-    Texture* Create2DTexture(void const* TextureData, const glm::ivec2& TextureDimensions, const int32_t MipMapLevel, bool IsTransparent)
+    Texture* Create2DTexture(resources::TextureResource* TextureResource,
+                             const int32_t& MipMapLevel,
+                             const bool& PerformGammaCorrection)
     {
-        GLenum format = IsTransparent ? GL_RGBA : GL_RGB;
-        GLuint textureHandle = CreateTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel,
-                                             { TextureDimensions.x, TextureDimensions.y, 0 },
-                                             GL_UNSIGNED_BYTE, format, format, TextureData);
+        GLenum dataFormat = toGLTextureFormat(TextureResource->Format);
+        GLenum internalFormat = dataFormat;
+        if (PerformGammaCorrection)
+        {
+            switch (internalFormat)
+            {
+            case GL_RGB:
+                internalFormat = GL_SRGB;
+                break;
+            case GL_RGBA:
+                internalFormat = GL_SRGB8_ALPHA8;
+                break;
+            default:
+                break;
+            }
+        }
+
+        GLuint textureHandle =
+        CreateTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel,
+                      glm::ivec3{ TextureResource->Width, TextureResource->Height, 0 }, GL_UNSIGNED_BYTE,
+                      dataFormat, internalFormat, TextureResource->GetTextureData());
 
         return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL,
-                             { TextureDimensions.x, TextureDimensions.y, 0 });
+                             { TextureResource->Width, TextureResource->Height, 0 });
+    }
+
+    Texture* CreateEmpty2DTexture(const uint32_t& Width,
+                                  const uint32_t& Height,
+                                  const resources::TextureFormat& Format,
+                                  const int32_t& MipMapLevel)
+    {
+        GLenum dataFormat = toGLTextureFormat(Format);
+        GLuint textureHandle = CreateTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
+                                             GL_UNSIGNED_BYTE, dataFormat, dataFormat, nullptr);
+
+        return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 });
     }
 
     GLTexture::GLTexture(const GLuint& TextureID, const TextureType& Type, const glm::ivec3& Dimensions)

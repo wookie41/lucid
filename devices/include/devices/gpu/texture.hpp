@@ -2,11 +2,10 @@
 
 #include "devices/gpu/framebuffer.hpp"
 #include "glm/glm.hpp"
+#include "resources/texture.hpp"
 
 namespace lucid::gpu
 {
-    void InitTextures();
-
     enum class TextureType : uint8_t
     {
         ONE_DIMENSIONAL,
@@ -51,8 +50,6 @@ namespace lucid::gpu
         virtual ~Texture() = default;
     };
 
-    Texture* CreateTextureFromJPEG(char const* Path);
-    Texture* CreateTextureFromPNG(char const* Path);
-
-    Texture* Create2DTexture(void const* TextureData, const glm::ivec2& TextureSize, const int32_t MipMapLevel, bool IsTransparent);
+    Texture* Create2DTexture(resources::TextureResource* TextureResource, const int32_t& MipMapLevel, const bool& PerformGammaCorrection);
+    Texture* CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const resources::TextureFormat& Format, const int32_t& MipMapLevel);
 } // namespace lucid::gpu

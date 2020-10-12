@@ -16,7 +16,8 @@ project "lucid"
       "devices/include", 
       "common/include", 
       "misc/include", 
-      "scene/include" 
+      "scene/include",
+      "resources/include" 
    }
 
    includedirs { 
@@ -36,6 +37,7 @@ project "lucid"
    }
 
    files { 
+      "libs/stb/stb_init.cpp",
       "main.cpp", 
       "devices/src/gpu/**.cpp",
       "devices/src/gpu/gl/**.cpp",
@@ -43,7 +45,8 @@ project "lucid"
       "platform/src/**.cpp",
       "common/src/**.cpp",
       "misc/src/**.cpp",
-      "scene/src/**.cpp"
+      "scene/src/**.cpp",
+      "resources/src/**.cpp"
    }
 
    filter "platforms:Win64"

@@ -20,109 +20,121 @@
 #include "scene/render_scene.hpp"
 #include "scene/renderable.hpp"
 #include "scene/lights.hpp"
+#include "stb_init.hpp"
+#include <time.h>
+
+using namespace lucid;
 
 int main(int argc, char** argv)
 {
-    if (lucid::gpu::Init({}) < 0)
+    srand(time(NULL));
+    InitSTB();
+
+    if (gpu::Init({}) < 0)
     {
         puts("Failed to init GPU");
         return -1;
     }
 
-    lucid::gpu::InitTextures();
+    platform::Window* window = platform::CreateWindow({ "Lucid", 900, 420, 800, 600 });
+    misc::InitBasicShapes();
 
-    lucid::platform::Window* window = lucid::platform::CreateWindow({ "Lucid", 900, 420, 800, 600 });
-    lucid::misc::InitBasicShapes();
-
-    lucid::gpu::Texture* colorAttachment = lucid::gpu::Create2DTexture(nullptr, { 800, 600 }, 0, false);
-    lucid::gpu::FramebufferAttachment* renderbuffer =
-    lucid::gpu::CreateRenderbuffer(lucid::gpu::RenderbufferFormat::DEPTH24_STENCIL8, 800, 600);
-    lucid::gpu::Framebuffer* testFramebuffer = lucid::gpu::CreateFramebuffer();
+    gpu::Texture* colorAttachment =
+    gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(), resources::TextureFormat::RGBA, 0);
+    gpu::FramebufferAttachment* renderbuffer =
+    gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, 800, 600);
+    gpu::Framebuffer* testFramebuffer = gpu::CreateFramebuffer();
 
     renderbuffer->Bind();
     colorAttachment->Bind();
-    colorAttachment->SetMinFilter(lucid::gpu::MinTextureFilter::LINEAR);
-    colorAttachment->SetMagFilter(lucid::gpu::MagTextureFilter::LINEAR);
-    testFramebuffer->Bind(lucid::gpu::FramebufferBindMode::READ_WRITE);
+    colorAttachment->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    colorAttachment->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+    testFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
 
     testFramebuffer->SetupColorAttachment(0, colorAttachment);
     testFramebuffer->SetupDepthStencilAttachment(renderbuffer);
     testFramebuffer->IsComplete();
 
-    lucid::gpu::BindDefaultFramebuffer(lucid::gpu::FramebufferBindMode::READ_WRITE);
+    gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
 
-    lucid::gpu::Texture* cubeDiffuseMap = lucid::gpu::CreateTextureFromPNG("cube-diffuse-map.png");
+    resources::TextureResource* diffuseTextureResource = resources::LoadPNG("cube-diffuse-map.png");
+    resources::TextureResource* specularTextureResource = resources::LoadPNG("cube-specular-map.png");
+    
+    gpu::Texture* cubeDiffuseMap = gpu::Create2DTexture(diffuseTextureResource, 0, false);
+    gpu::Texture* cubeSpecularMap = gpu::Create2DTexture(specularTextureResource, 0, false);
+
+    diffuseTextureResource->FreeResource();
+    specularTextureResource->FreeResource();
+
     cubeDiffuseMap->Bind();
-    cubeDiffuseMap->SetMinFilter(lucid::gpu::MinTextureFilter::LINEAR);
-    cubeDiffuseMap->SetMagFilter(lucid::gpu::MagTextureFilter::LINEAR);
+    cubeDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    cubeDiffuseMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
 
-    lucid::gpu::Texture* cubeSpecularMap =
-    lucid::gpu::CreateTextureFromPNG("cube-specular-map.png");
     cubeSpecularMap->Bind();
-    cubeSpecularMap->SetMinFilter(lucid::gpu::MinTextureFilter::LINEAR);
-    cubeSpecularMap->SetMagFilter(lucid::gpu::MagTextureFilter::LINEAR);
+    cubeSpecularMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    cubeSpecularMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
 
     window->Prepare();
     window->Show();
 
-    lucid::gpu::Shader* blinnPhongShader =
-    lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("fwd_blinn_phong.vert", true) },
-                                     { lucid::platform::ReadFile("fwd_blinn_phong.frag", true) });
+    gpu::Shader* blinnPhongShader =
+    gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong.vert", true) },
+                              { platform::ReadFile("fwd_blinn_phong.frag", true) });
 
-    lucid::gpu::Shader* blinnPhongMapsShader =
-    lucid::gpu::CompileShaderProgram({ lucid::platform::ReadFile("fwd_blinn_phong.vert", true) },
-                                     { lucid::platform::ReadFile("fwd_blinn_phong_maps.frag", true) });
+    gpu::Shader* blinnPhongMapsShader =
+    gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong.vert", true) },
+                              { platform::ReadFile("fwd_blinn_phong_maps.frag", true) });
 
 
-    lucid::gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
-    lucid::gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
+    gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
+    gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
 
-    lucid::scene::Camera perspectiveCamera{ lucid::scene::CameraMode::PERSPECTIVE, { 0, 0, 2.5 } };
+    scene::Camera perspectiveCamera{ scene::CameraMode::PERSPECTIVE, { 0, 0, 2.5 } };
     perspectiveCamera.AspectRatio = window->GetAspectRatio();
 
-    lucid::scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongShader };
+    scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongShader };
 
-    lucid::scene::RenderTarget renderTarget;
+    scene::RenderTarget renderTarget;
     renderTarget.Camera = &perspectiveCamera;
     renderTarget.Framebuffer = nullptr;
     renderTarget.Viewport = windowViewport;
 
-    lucid::scene::BlinnPhongMaterial cubeMaterial1;
+    scene::BlinnPhongMaterial cubeMaterial1;
     cubeMaterial1.Shininess = 64.f;
     cubeMaterial1.DiffuseColor = { 0.2, 0.3, 0.4 };
     cubeMaterial1.SpecularColor = { 1, 1, 1 };
 
-    lucid::scene::BlinnPhongMapsMaterial cubeMaterial2;
+    scene::BlinnPhongMapsMaterial cubeMaterial2;
     cubeMaterial2.Shininess = 128.f;
     cubeMaterial2.DiffuseMap = cubeDiffuseMap;
     cubeMaterial2.SpecularMap = cubeSpecularMap;
     cubeMaterial2.SetCustomShader(blinnPhongMapsShader);
 
-    lucid::scene::Renderable cube1{ "Cube1" };
+    scene::Renderable cube1{ "Cube1" };
     cube1.Transform.Translation = { -2, 0, -2 };
     cube1.Material = &cubeMaterial1;
-    cube1.VertexArray = lucid::misc::CubeVertexArray;
-    cube1.Type = lucid::scene::RenderableType::STATIC;
+    cube1.VertexArray = misc::CubeVertexArray;
+    cube1.Type = scene::RenderableType::STATIC;
 
-    lucid::scene::Renderable cube2{ "Cube2" };
+    scene::Renderable cube2{ "Cube2" };
     cube2.Transform.Translation = { 2, 0, -2 };
     cube2.Material = &cubeMaterial2;
-    cube2.VertexArray = lucid::misc::CubeVertexArray;
-    cube2.Type = lucid::scene::RenderableType::STATIC;
+    cube2.VertexArray = misc::CubeVertexArray;
+    cube2.Type = scene::RenderableType::STATIC;
 
-    lucid::scene::DirectionalLight light1;
+    scene::DirectionalLight light1;
     light1.Direction = { 0, -2, -2 };
     light1.Color = { 1, 0, 0 };
 
-    lucid::scene::DirectionalLight light2;
+    scene::DirectionalLight light2;
     light2.Direction = { 1, 0, -1 };
     light2.Color = { 0, 1, 0 };
 
-    lucid::scene::DirectionalLight light3;
+    scene::DirectionalLight light3;
     light3.Direction = { -1, 0, -1 };
     light3.Color = { 0, 0, 1 };
 
-    lucid::scene::RenderScene sceneToRender;
+    scene::RenderScene sceneToRender;
     sceneToRender.Renderables.Add(&cube1);
     sceneToRender.Renderables.Add(&cube2);
     sceneToRender.DirectionalLights.Add(&light1);
@@ -132,37 +144,37 @@ int main(int argc, char** argv)
     bool isRunning = true;
     while (isRunning)
     {
-        lucid::ReadEvents();
+        ReadEvents();
 
-        if (lucid::WasKeyPressed(SDLK_ESCAPE))
+        if (WasKeyPressed(SDLK_ESCAPE))
         {
             isRunning = false;
             break;
         }
 
-        if (lucid::IsKeyPressed(SDLK_w))
+        if (IsKeyPressed(SDLK_w))
         {
             perspectiveCamera.MoveForward(1.f / 60.f);
         }
 
-        if (lucid::IsKeyPressed(SDLK_s))
+        if (IsKeyPressed(SDLK_s))
         {
             perspectiveCamera.MoveBackward(1.f / 60.f);
         }
 
-        if (lucid::IsKeyPressed(SDLK_a))
+        if (IsKeyPressed(SDLK_a))
         {
             perspectiveCamera.MoveLeft(1.f / 60.f);
         }
 
-        if (lucid::IsKeyPressed(SDLK_d))
+        if (IsKeyPressed(SDLK_d))
         {
             perspectiveCamera.MoveRight(1.f / 60.f);
         }
 
-        if (lucid::IsMouseButtonPressed(lucid::MouseButton::LEFT))
+        if (IsMouseButtonPressed(MouseButton::LEFT))
         {
-            auto mousePos = lucid::GetMousePostion();
+            auto mousePos = GetMousePostion();
 
             if (mousePos.MouseMoved)
             {
@@ -170,10 +182,9 @@ int main(int argc, char** argv)
             }
         }
 
-        lucid::gpu::EnableDepthTest();
-        lucid::gpu::SetClearColor(lucid::BlackColor);
-        lucid::gpu::ClearBuffers((lucid::gpu::ClearableBuffers)(lucid::gpu::ClearableBuffers::COLOR |
-                                                                lucid::gpu::ClearableBuffers::DEPTH));
+        gpu::EnableDepthTest();
+        gpu::SetClearColor(BlackColor);
+        gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
 
         renderer.Render(&sceneToRender, &renderTarget);
 
