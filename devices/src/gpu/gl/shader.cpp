@@ -17,8 +17,6 @@ namespace lucid::gpu
 
 #ifndef NDEBUG
     static char _infoLog[1024];
-#endif
-
     void checkCompileErrors(unsigned int Shader, const uint8_t& Type)
     {
         int success;
@@ -41,6 +39,7 @@ namespace lucid::gpu
             }
         }
     }
+#endif
 
     void compileShader(GLuint shaderProgramID, GLuint shaderID, const char* shaderSource, const uint8_t& Type)
     {
@@ -163,7 +162,7 @@ namespace lucid::gpu
         }
 
 #ifndef NDEBUG
-        printf("Uniform variable with name %s not found in shader %d\n", Name.CString, glShaderID);
+        printf("Uniform variable with name %s not found in shader %d\n", (char const*)Name, glShaderID);
 #endif
         return -1;
     };
@@ -282,7 +281,7 @@ namespace lucid::gpu
         }
 
 #ifndef NDEBUG
-        printf("Sampler with name %s not found in shader %d\n", TextureName.CString, glShaderID);
+        printf("Sampler with name %s not found in shader %d\n", (char const*)TextureName, glShaderID);
 #endif
         return -1;
     }

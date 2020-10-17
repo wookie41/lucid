@@ -13,7 +13,7 @@ namespace lucid
         Capacity = ArrayCapacity;
         SizeInBytes = sizeof(T) * ArrayCapacity;
         array = (T*)malloc(SizeInBytes);
-        zero(array, SizeInBytes);
+        Zero(array, SizeInBytes);
     }
 
     template <typename T>

@@ -57,7 +57,7 @@ namespace lucid::scene
         while (currentNode && currentNode->Element)
         {
             auto renderable = currentNode->Element;
-            LUCID_LOG(LogLevel::INFO, "Rendering '%s'", renderable->Name.CString);
+            LUCID_LOG(LogLevel::INFO, "Rendering '%s'", (char const*)renderable->Name);
 
             uint32_t modelMatrixUniformId = this->modelMatrixUniformId;
 

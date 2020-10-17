@@ -9,7 +9,7 @@ namespace lucid::gpu
 
     struct UniformVariable
     {
-        GLint GLIndex;
+        GLint GLIndex = 0;
         String Name;
     };
 

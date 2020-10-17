@@ -3,6 +3,7 @@
 #include "common/strings.hpp"
 #include "stb_ds.h"
 #include <type_traits>
+#include <cassert>
 
 namespace lucid::resources
 {
@@ -13,55 +14,53 @@ namespace lucid::resources
         virtual ~IResource() = default;
     };
 
-    template <typename T, typename = std::enable_if<std::is_base_of<IResource, T>::value>::type>
+    template <typename R, typename = std::enable_if<std::is_base_of<IResource, R>::value>::type>
     class ResourcesHolder
     {
       public:
         // DefaultResource is returned if the holder doesn't contain the resource
-        ResourcesHolder(T* DefaultResource = nullptr) : defaultResource(DefaultResource) {}
+        ResourcesHolder(R* DefaultResource = nullptr) : defaultResource(DefaultResource) {}
 
-        void SetDefaultResource(T* Resource){ defaultResource = Resource; };
+        inline void SetDefaultResource(R* Resource) { defaultResource = Resource; };
+        inline R* GetDefaultResource() { return defaultResource; };
 
-        // Adds the loaded resource
-        void Add(const String& ResourceName, T* Resource)
+        void Add(char const* ResourceName, R* Resource)
         {
-            assert(shgeti(ResourceName == -1));
-            shput(ResourcesHashMap, ResourceName.CString, Resource);
+            assert(shgeti(resourcesHashMap, ResourceName) == -1);
+            shput(resourcesHashMap, ResourceName, Resource);
         }
 
         // returns nullptr if the resource doesn't exist
-        T* Get(const String& ResourceName) const
+        R* Get(char const* ResourceName)
         {
-            int resourceIndex = shgeti(ResourcesHashMap, ResourceName.CString);
+            int resourceIndex = shgeti(resourcesHashMap, ResourceName);
             if (resourceIndex == -1)
             {
                 return defaultResource;
             }
-            return shget(ResourceName.CString);
+            return shget(resourcesHashMap, ResourceName);
         }
 
         // Removes the loaded resource and calls FreeResource() on it
-        bool Free(const String& ResourceName)
+        void Free(char const* ResourceName)
         {
-            if (shgeti(resourcesHashMap) != -1)
+            if (shgeti(resourcesHashMap, ResourceName) != -1)
             {
-                T* res = shget(resourcesHashMap, ResourceName.CString);
+                R* res = shget(resourcesHashMap, ResourceName);
                 res->FreeResource();
-                shdel(ResourceName.CString);
+                shdel(resourcesHashMap, ResourceName);
             }
         }
 
-
-        bool Contains(const String& ResourceName) const
+        bool Contains(char const* ResourceName)
         {
-            return shgeti(ResourceName.CString) != -1
+            return shgeti(resourcesHashMap, ResourceName) != -1;
         }
 
         // Calls FreeResource() on all loaded resources and empties the holder
         void FreeAll()
         {
-            uint32_t resCount = shlen(resourcesHashMap);
-            for (uint32_t idx = 0; idx < resCount; ++idx)
+            for (uint32_t idx = 0; idx < shlen(resourcesHashMap); ++idx)
             {
                 resourcesHashMap[idx]->FreeResource();
             }
@@ -69,7 +68,7 @@ namespace lucid::resources
         }
 
       private:
-        T* defaultResource = nullptr;
-        T** resourcesHashMap = NULL;
+        R* defaultResource = nullptr;
+        struct { char *key; R* value; } *resourcesHashMap = NULL;
     };
 } // namespace lucid::resources

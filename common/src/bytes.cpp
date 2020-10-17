@@ -1,15 +1,13 @@
 #include "common/bytes.hpp"
 
+#include <stdlib.h>
+
 namespace lucid
-{
-    void zero(void* Address, const uint64_t& NumBytes)
+{    
+    MemBuffer CreateMemBuffer(const uint32_t& BufferCapacity)
     {
-        //TODO this can be done more efficiently with intrinsicts that will omit the CPU cache
-        char* p = (char*)Address;
-        for (uint32_t i = 0; i < NumBytes; ++i) 
-        {
-            p[i] = 0;
-        }
+        char* p = (char*)malloc(BufferCapacity);
+        Zero(p, BufferCapacity);
+        return MemBuffer{ p, BufferCapacity };
     }
-    
 } // namespace lucid

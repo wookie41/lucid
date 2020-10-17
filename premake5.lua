@@ -24,16 +24,19 @@ project "lucid"
       "libs/glm", 
       "libs/stb", 
       "libs/glew/include", 
-      "libs/SDL2/include" 
+      "libs/SDL2/include",
+      "libs/assimp/include" 
    }
    
    libdirs { 
       "libs/glew/lib/x64", 
-      "libs/SDL2/lib/x64" 
+      "libs/SDL2/lib/x64",
+      "libs/assimp/lib/x64" 
    }
 
    links { 
-      "SDL2" 
+      "SDL2",
+      "assimp"
    }
 
    files { 

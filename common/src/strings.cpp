@@ -7,22 +7,25 @@ namespace lucid
 {
     // String //
 
-    String::String(char const* CStr)
+    static inline uint64_t calculateHash(const char const* str)
     {
-        CString = CStr;
-
-        Hash = 0;
-
-        for (Length = 0; CStr[Length] != '\0'; ++Length)
-            Hash = 37 * Hash + CStr[Length];
+        uint64_t hash = 0;
+        for (size_t idx = 0; idx < strlen(str); ++idx)
+            hash = 37 * hash + str[idx];
+        return hash;
     }
 
-    String::operator char const*() const { return CString; }
+    String::String(char const* CStr)
+    : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr)
+    {
+    }
+
+    String::operator char const*() const { return cStr; }
 
     char String::operator[](const uint64_t& Index) const
     {
         assert(Index < Length);
-        return CString[Index];
+        return cStr[Index];
     }
 
     String CopyToString(char const* ToCopy, uint32_t StrLen)
@@ -36,25 +39,17 @@ namespace lucid
 
     // DString //
 
-    DString::DString(char* CStr)
+    DString::DString(char* CStr) : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr)
     {
-        CString = CStr;
-
-        Hash = 0;
-
-        for (Length = 0; CStr[Length] != '\0'; ++Length)
-            Hash = 37 * Hash + CStr[Length];
     }
 
-    DString::operator char*() const { return CString; }
+    DString::operator char*() const { return cStr; }
 
     char DString::operator[](const uint64_t& Index) const
     {
         assert(Index < Length);
-        return CString[Index];
+        return cStr[Index];
     }
-
-    void DString::Free() { free(CString); }
 
     DString CopyToDString(char const* ToCopy, uint32_t StrLen)
     {
@@ -65,4 +60,14 @@ namespace lucid
         return { Copied };
     }
 
+    void DString::Free() { free(cStr); }
+
+    DString Concat(const String& Str1, const String& Str2)
+    {
+        char* concatBuffer = (char*)malloc(Str1.Length + Str2.Length + 1);
+        memcpy(concatBuffer, (const char*)Str1, Str1.Length);
+        memcpy(concatBuffer + Str1.Length, (const char*)Str2, Str2.Length);
+        concatBuffer[Str1.Length + Str2.Length] = '\0';
+        return DString{ concatBuffer };
+    }
 } // namespace lucid
