@@ -36,6 +36,12 @@ namespace lucid::gpu
         REPEAT
     };
 
+    enum class TextureFormat : uint8_t
+    {
+        RGB,
+        RGBA
+    };
+
     class Texture : public FramebufferAttachment
     {
       public:
@@ -47,9 +53,17 @@ namespace lucid::gpu
         virtual void SetWrapSFilter(const WrapTextureFilter& Filter) = 0;
         virtual void SetWrapTFilter(const WrapTextureFilter& Filter) = 0;
 
+        virtual void Free() = 0;
         virtual ~Texture() = default;
     };
 
-    Texture* Create2DTexture(resources::TextureResource* TextureResource, const int32_t& MipMapLevel, const bool& PerformGammaCorrection);
-    Texture* CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const resources::TextureFormat& Format, const int32_t& MipMapLevel);
+    Texture* Create2DTexture(void* Data,
+                             const uint32_t& Width,
+                             const uint32_t& Height,
+                             const TextureFormat& Format,
+                             const int32_t& MipMapLevel,
+                             const bool& PerformGammaCorrection);
+
+    Texture*
+    CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const TextureFormat& Format, const int32_t& MipMapLevel);
 } // namespace lucid::gpu

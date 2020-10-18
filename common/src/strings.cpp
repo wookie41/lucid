@@ -7,7 +7,7 @@ namespace lucid
 {
     // String //
 
-    static inline uint64_t calculateHash(const char const* str)
+    static inline uint64_t calculateHash(char const* str)
     {
         uint64_t hash = 0;
         for (size_t idx = 0; idx < strlen(str); ++idx)
@@ -15,10 +15,7 @@ namespace lucid
         return hash;
     }
 
-    String::String(char const* CStr)
-    : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr)
-    {
-    }
+    String::String(char const* CStr) : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr) {}
 
     String::operator char const*() const { return cStr; }
 
@@ -39,9 +36,7 @@ namespace lucid
 
     // DString //
 
-    DString::DString(char* CStr) : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr)
-    {
-    }
+    DString::DString(char* CStr) : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr) {}
 
     DString::operator char*() const { return cStr; }
 

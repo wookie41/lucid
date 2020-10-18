@@ -28,7 +28,7 @@ namespace lucid::resources
         free(elementData.Pointer);
     }
 
-    static ResourcesHolder<MeshResource> MeshesHolder;
+    ResourcesHolder<MeshResource> MeshesHolder;
 
     static Assimp::Importer assimpImporter;
 
@@ -67,7 +67,8 @@ namespace lucid::resources
 
         loadMeshData(DirectoryPath, scene->mRootNode, scene, vertexDataBuffer, elementDataBuffer);
 
-        LUCID_LOG(LogLevel::INFO, "Vertex data  %d/%d, element data %d/%d", vertexDataBuffer.Length, vertexDataBuffer.Capacity, vertexDataBuffer.Length, vertexDataBuffer.Capacity);
+        LUCID_LOG(LogLevel::INFO, "Vertex data  %d/%d, element data %d/%d", vertexDataBuffer.Length, vertexDataBuffer.Capacity,
+                  vertexDataBuffer.Length, vertexDataBuffer.Capacity);
 
         // load the material
         aiString textureFilePath;

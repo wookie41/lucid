@@ -7,14 +7,20 @@
 
 namespace lucid::resources
 {
-    class IResource
+    // Interface that represents a resource whose data can be stored in main/video memory or both
+    class Resource
     {
       public:
-        virtual void FreeResource() = 0;
-        virtual ~IResource() = default;
+        virtual void FreeMainMemory() = 0;
+        virtual void FreeVideoMemory() = 0;
+        virtual ~Resource() = default;
+
+      protected:
+        bool isVideoMemoryFreed = false;
+        bool isMainMemoryFreed = false;
     };
 
-    template <typename R, typename = std::enable_if<std::is_base_of<IResource, R>::value>::type>
+    template <typename R, typename = std::enable_if<std::is_base_of<Resource, R>::value>>
     class ResourcesHolder
     {
       public:
@@ -47,28 +53,31 @@ namespace lucid::resources
             if (shgeti(resourcesHashMap, ResourceName) != -1)
             {
                 R* res = shget(resourcesHashMap, ResourceName);
-                res->FreeResource();
+                res->FreeMainMemory();
+                res->FreeVideoMemroy();
                 shdel(resourcesHashMap, ResourceName);
             }
         }
 
-        bool Contains(char const* ResourceName)
-        {
-            return shgeti(resourcesHashMap, ResourceName) != -1;
-        }
+        bool Contains(char const* ResourceName) { return shgeti(resourcesHashMap, ResourceName) != -1; }
 
         // Calls FreeResource() on all loaded resources and empties the holder
         void FreeAll()
         {
             for (uint32_t idx = 0; idx < shlen(resourcesHashMap); ++idx)
             {
-                resourcesHashMap[idx]->FreeResource();
+                resourcesHashMap[idx]->FreeMainMemory();
+                resourcesHashMap[idx]->FreeVideoMemory();
             }
             shfree(resourcesHashMap);
         }
 
       private:
         R* defaultResource = nullptr;
-        struct { char *key; R* value; } *resourcesHashMap = NULL;
+        struct
+        {
+            char* key;
+            R* value;
+        }* resourcesHashMap = NULL;
     };
 } // namespace lucid::resources

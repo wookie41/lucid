@@ -32,7 +32,8 @@ namespace lucid::gpu
 
         ///////////////////////////
 
-        virtual ~GLTexture();
+        virtual void Free() override;
+        virtual ~GLTexture() = default;
 
       private:
         glm::ivec3 dimensions;

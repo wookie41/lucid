@@ -19,7 +19,6 @@ namespace lucid::gpu
     static GLenum GL_MAG_FILTERS_MAPPING[] = { GL_NEAREST, GL_LINEAR };
     static GLenum GL_WRAP_FILTERS_MAPPING[] = { GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, GL_REPEAT };
 
-
     static inline GLenum toGLTextureFormat(const resources::TextureFormat& Format)
     {
         switch (Format)
@@ -31,14 +30,13 @@ namespace lucid::gpu
         }
     }
 
-    // TODO extract this function as a public, graphics-API agnostic part of lucid
-    static GLuint CreateTexture(const TextureType& TextureType,
-                                const GLint& MipMapLevel,
-                                const glm::ivec3& TextureSize,
-                                const GLenum& DataType,
-                                const GLenum& DataFormat,
-                                const GLenum& InternalFormat,
-                                void const* TextureData)
+    static GLuint CreateGLTexture(const TextureType& TextureType,
+                                  const GLint& MipMapLevel,
+                                  const glm::ivec3& TextureSize,
+                                  const GLenum& DataType,
+                                  const GLenum& DataFormat,
+                                  const GLenum& InternalFormat,
+                                  void const* TextureData)
     {
         GLuint textureHandle;
         glGenTextures(1, &textureHandle);
@@ -47,8 +45,7 @@ namespace lucid::gpu
         {
         case TextureType::ONE_DIMENSIONAL:
             glBindTexture(GL_TEXTURE_1D, textureHandle);
-            glTexImage1D(GL_TEXTURE_1D, MipMapLevel, InternalFormat, TextureSize.x, 0, DataFormat,
-                         DataType, TextureData);
+            glTexImage1D(GL_TEXTURE_1D, MipMapLevel, InternalFormat, TextureSize.x, 0, DataFormat, DataType, TextureData);
             glGenerateMipmap(GL_TEXTURE_1D);
 
             if (TextureData)
@@ -61,8 +58,8 @@ namespace lucid::gpu
 
         case TextureType::TWO_DIMENSIONAL:
             glBindTexture(GL_TEXTURE_2D, textureHandle);
-            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y,
-                         0, DataFormat, DataType, TextureData);
+            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, 0, DataFormat, DataType,
+                         TextureData);
 
             if (TextureData)
             {
@@ -74,8 +71,8 @@ namespace lucid::gpu
 
         case TextureType::THREE_DIMENSIONAL:
             glBindTexture(GL_TEXTURE_3D, textureHandle);
-            glTexImage3D(GL_TEXTURE_3D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y,
-                         TextureSize.z, 0, DataFormat, DataType, TextureData);
+            glTexImage3D(GL_TEXTURE_3D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, TextureSize.z, 0, DataFormat,
+                         DataType, TextureData);
             glGenerateMipmap(GL_TEXTURE_3D);
 
             if (TextureData)
@@ -89,12 +86,16 @@ namespace lucid::gpu
         return textureHandle;
     }
 
-    Texture* Create2DTexture(resources::TextureResource* TextureResource,
+    Texture* Create2DTexture(void* Data,
+                             const uint32_t& Width,
+                             const uint32_t& Height,
+                             const TextureFormat& Format,
                              const int32_t& MipMapLevel,
                              const bool& PerformGammaCorrection)
     {
-        GLenum dataFormat = toGLTextureFormat(TextureResource->Format);
+        GLenum dataFormat = toGLTextureFormat(Format);
         GLenum internalFormat = dataFormat;
+
         if (PerformGammaCorrection)
         {
             switch (internalFormat)
@@ -110,13 +111,10 @@ namespace lucid::gpu
             }
         }
 
-        GLuint textureHandle =
-        CreateTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel,
-                      glm::ivec3{ TextureResource->Width, TextureResource->Height, 0 }, GL_UNSIGNED_BYTE,
-                      dataFormat, internalFormat, TextureResource->GetTextureData());
+        GLuint textureHandle = CreateGLTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
+                                               GL_UNSIGNED_BYTE, dataFormat, internalFormat, Data);
 
-        return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL,
-                             { TextureResource->Width, TextureResource->Height, 0 });
+        return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 });
     }
 
     Texture* CreateEmpty2DTexture(const uint32_t& Width,
@@ -125,8 +123,8 @@ namespace lucid::gpu
                                   const int32_t& MipMapLevel)
     {
         GLenum dataFormat = toGLTextureFormat(Format);
-        GLuint textureHandle = CreateTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
-                                             GL_UNSIGNED_BYTE, dataFormat, dataFormat, nullptr);
+        GLuint textureHandle = CreateGLTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
+                                               GL_UNSIGNED_BYTE, dataFormat, dataFormat, nullptr);
 
         return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 });
     }
@@ -155,9 +153,7 @@ namespace lucid::gpu
         glBindTexture(textureType, glTextureHandle);
     }
 
-    GLTexture::~GLTexture() { glDeleteTextures(1, &glTextureHandle); }
-
-    glm::ivec3 GLTexture::GetDimensions() const { return dimensions; };
+    void GLTexture::Free() { glDeleteTextures(1, &glTextureHandle); }
 
     void GLTexture::SetMinFilter(const MinTextureFilter& Filter)
     {

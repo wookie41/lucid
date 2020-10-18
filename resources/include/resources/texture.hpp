@@ -2,36 +2,30 @@
 
 #include <cstdint>
 #include "resources/holder.hpp"
+#include "devices/gpu/texture.hpp"
 
 namespace lucid::resources
 {
     void InitTextures();
 
-    enum class TextureFormat : uint8_t
-    {
-        RGB,
-        RGBA
-    };
-
-    class TextureResource : public IResource
+    class TextureResource : public Resource
     {
       public:
-        TextureResource(void* TextureData,
-                        const uint32_t& Width,
-                        const uint32_t& Height,
-                        const bool& IsGammeCorrected,
-                        const TextureFormat& Format);
+        TextureResource(void* Data,
+                        gpu::Texture* Handle,
+                        const uint32_t& W,
+                        const uint32_t& H,
+                        const bool& GammeCorrected,
+                        const gpu::TextureFormat& Fmt);
 
-        virtual void FreeResource() override;
+        virtual void FreeMainMemory() override;
+        virtual void FreeVideoMemory() override;
 
+        void* const TextureData;
+        gpu::Texture* const TextureHandle;
         const uint32_t Width, Height;
         const bool IsGammaCorrected;
-        const TextureFormat Format;
-
-        inline const void* GetTextureData() const { return textureData; };
-
-      private:
-        void* textureData;
+        const gpu::TextureFormat Format;
     };
 
     TextureResource* LoadJPEG(char const* Path);

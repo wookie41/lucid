@@ -18,8 +18,13 @@ namespace lucid::resources
         stbi_uc* textureData = stbi_load(TexturePath, (int*)&Width, (int*)&Height, (int*)&channels, desiredChannels);
         assert(channels == desiredChannels);
 
-        return new TextureResource{ (void*)textureData, Width, Height, false,
-                                    IsTransparent ? TextureFormat::RGBA : TextureFormat::RGB };
+        gpu::Texture* textureHandle = gpu::Create2DTexture(
+          textureData, Width, Height, IsTransparent ? gpu::TextureFormat::RGBA : gpu::TextureFormat::RGB, 0, false);
+        assert(textureHandle);
+
+        return new TextureResource{
+            (void*)textureData, textureHandle, Width, Height, false, IsTransparent ? TextureFormat::RGBA : TextureFormat::RGB
+        };
     }
 
     void InitTextues()
@@ -37,15 +42,30 @@ namespace lucid::resources
     TextureResource* LoadJPEG(char const* Path) { return LoadTextureSTB(Path, false); }
     TextureResource* LoadPNG(char const* Path) { return LoadTextureSTB(Path, true); }
 
-    TextureResource::TextureResource(void* TextureData,
-                                     const uint32_t& Width,
-                                     const uint32_t& Height,
-                                     const bool& IsGammeCorrected,
-                                     const TextureFormat& Format)
-    : textureData(TextureData), Width(Width), Height(Height), IsGammaCorrected(IsGammaCorrected),
-      Format(Format)
+    TextureResource::TextureResource(void* Data,
+                                     gpu::Texture* Handle,
+                                     const uint32_t& W,
+                                     const uint32_t& H,
+                                     const bool& GammeCorrected,
+                                     const gpu::TextureFormat& Fmt)
+    : TextureData(Data), TextureHandle(Handle), Width(W), Height(H) IsGammaCorrected(GammeCorrected), Format(Fmt)
     {
     }
 
-    void TextureResource::FreeResource() { free(textureData); }
+    void TextureResource::FreeMainMemory()
+    {
+        if (!isMainMemoryFreed)
+        {
+            isMainMemoryFreed = true;
+            free(TextureData);
+        }
+    }
+    void TextureResource::FreeVideoMemory()
+    {
+        if (!isVideoMemoryFreed)
+        {
+            TextureHandle->Free();
+            isVideoMemoryFreed = true;
+        }
+    }
 } // namespace lucid::resources
