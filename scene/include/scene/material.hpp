@@ -37,6 +37,10 @@ namespace lucid::scene
         virtual ~Material() = default;
 
       protected:
+
+        // Shader which uniform ids we've cached during the last SetupShader call
+        gpu::Shader* cachedShader = nullptr;
+
         gpu::Shader* customShader;
         MaterialType type;
     };

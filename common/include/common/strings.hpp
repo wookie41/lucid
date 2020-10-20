@@ -29,10 +29,17 @@ namespace lucid
         void Free();
         operator char*() const;
         char operator[](const uint64_t& Index) const;
-        inline bool operator==(const String& rhs) const { return Hash == rhs.Hash; };
+        inline bool operator==(const DString& rhs) const { return Hash == rhs.Hash; };
+        inline DString& operator=(const DString& rhs)
+        {
+            this->Hash = rhs.Hash;
+            this->Length = rhs.Length;
+            this->cStr = rhs.cStr;
+            return *this;
+        };
 
-        const uint64_t Hash;
-        const uint32_t Length; // doesn't include the null terminator
+        uint64_t Hash;
+        uint32_t Length; // doesn't include the null terminator
 
       private:
         char* cStr;

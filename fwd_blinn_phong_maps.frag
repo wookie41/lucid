@@ -98,5 +98,5 @@ vec3 CalculateDirectionalLightContribution(in vec3 DiffuseColor,
     float specularStrength = pow(max(dot(ToView, reflectedLightDir), 0.0), uShininess);
     vec3 specular = specularStrength * SpecularColor * Light.Color;
 
-    return diffuse + specular;
+    return diffuse;
 }

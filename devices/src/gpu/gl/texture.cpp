@@ -19,13 +19,13 @@ namespace lucid::gpu
     static GLenum GL_MAG_FILTERS_MAPPING[] = { GL_NEAREST, GL_LINEAR };
     static GLenum GL_WRAP_FILTERS_MAPPING[] = { GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, GL_REPEAT };
 
-    static inline GLenum toGLTextureFormat(const resources::TextureFormat& Format)
+    static inline GLenum toGLTextureFormat(const TextureFormat& Format)
     {
         switch (Format)
         {
-        case resources::TextureFormat::RGB:
+        case TextureFormat::RGB:
             return GL_RGB;
-        case resources::TextureFormat::RGBA:
+        case TextureFormat::RGBA:
             return GL_RGBA;
         }
     }
@@ -117,10 +117,8 @@ namespace lucid::gpu
         return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 });
     }
 
-    Texture* CreateEmpty2DTexture(const uint32_t& Width,
-                                  const uint32_t& Height,
-                                  const resources::TextureFormat& Format,
-                                  const int32_t& MipMapLevel)
+    Texture*
+    CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const TextureFormat& Format, const int32_t& MipMapLevel)
     {
         GLenum dataFormat = toGLTextureFormat(Format);
         GLuint textureHandle = CreateGLTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
@@ -145,6 +143,8 @@ namespace lucid::gpu
             break;
         }
     }
+
+    glm::ivec3 GLTexture::GetDimensions() const { return dimensions; }
 
     void GLTexture::Bind()
     {

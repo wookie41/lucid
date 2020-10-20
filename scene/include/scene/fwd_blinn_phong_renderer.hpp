@@ -1,6 +1,17 @@
 #pragma once
 
 #include "scene/renderer.hpp"
+#include "common/strings.hpp"
+
+namespace lucid::resources
+{
+    class MeshResource;
+};
+
+namespace lucid::gpu
+{
+    class Shader;
+};
 
 namespace lucid::scene
 {
@@ -12,10 +23,7 @@ namespace lucid::scene
 
         virtual void Render(const RenderScene* SceneToRender, const RenderTarget* Target) override;
 
-        inline void SetAmbientStrength(const float& AmbientStrength)
-        {
-            ambientStrength = AmbientStrength;
-        }
+        inline void SetAmbientStrength(const float& AmbientStrength) { ambientStrength = AmbientStrength; }
 
         virtual ~ForwardBlinnPhongRenderer() = default;
 
@@ -35,4 +43,7 @@ namespace lucid::scene
         int32_t viewMatrixUniformId;
         int32_t viewPositionUniformId;
     };
-} // namespace lucid::scene
+
+    Renderable* CreateBlinnPhongRenderable(DString MeshName, resources::MeshResource* Mesh, gpu::Shader* CustomShader = nullptr);
+
+}; // namespace lucid::scene

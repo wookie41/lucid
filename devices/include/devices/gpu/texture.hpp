@@ -2,7 +2,6 @@
 
 #include "devices/gpu/framebuffer.hpp"
 #include "glm/glm.hpp"
-#include "resources/texture.hpp"
 
 namespace lucid::gpu
 {
@@ -64,6 +63,5 @@ namespace lucid::gpu
                              const int32_t& MipMapLevel,
                              const bool& PerformGammaCorrection);
 
-    Texture*
-    CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const TextureFormat& Format, const int32_t& MipMapLevel);
+    Texture* CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const TextureFormat& Format, const int32_t& MipMapLevel);
 } // namespace lucid::gpu

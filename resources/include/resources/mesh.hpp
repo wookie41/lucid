@@ -3,6 +3,7 @@
 #include "resources/holder.hpp"
 #include "common/bytes.hpp"
 
+#include "devices/gpu/vao.hpp"
 #include <cstdint>
 
 namespace lucid::resources
@@ -20,26 +21,34 @@ namespace lucid::resources
     // to find out whether the mesh contains things like
     // normals, uvs or bones data, check the MeshFeaturesFlags
 
-    class MeshResource : public IResource
+    class MeshResource : public Resource
     {
       public:
-        MeshResource(const uint32_t& FeaturesFlags,
-                     TextureResource* DiffuseMap,
-                     TextureResource* SpecularMap,
-                     TextureResource* NormalMap,
-                     const MemBuffer& VertexData,
-                     const MemBuffer& ElementData);
+        MeshResource(const uint32_t& MeshFeaturesFlags,
+                     TextureResource* MeshDiffuseMap,
+                     TextureResource* MeshSpecularMap,
+                     TextureResource* MeshNormalMap,
+                     gpu::VertexArray* const MeshVAO,
+                     gpu::Buffer* const MeshVertexBuffer,
+                     gpu::Buffer* const MeshElementBuffer,
+                     const MemBuffer& MeshVertexData,
+                     const MemBuffer& MeshElementData);
 
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
-        const uint32_t MeshFeaturesFlag;
+        const uint32_t FeaturesFlag;
 
         TextureResource* const DiffuseMap;
         TextureResource* const SpecularMap;
         TextureResource* const NormalMap;
-        const MemBuffer vertexData;
-        const MemBuffer elementData;
+
+        gpu::VertexArray* const VAO;
+        gpu::Buffer* const VertexBuffer;
+        gpu::Buffer* const ElementBuffer;
+
+        const MemBuffer VertexData;
+        const MemBuffer ElementData;
     };
 
     // Loads the mesh from the given directory, assumes to following things:

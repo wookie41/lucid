@@ -7,7 +7,7 @@ namespace lucid::resources
 {
     static bool texturesInitialized;
 
-    ResourcesHolder<TextureResource> TexturesHolder;
+    ResourcesHolder<TextureResource> TexturesHolder {};
 
     TextureResource* LoadTextureSTB(const String& TexturePath, const bool& IsTransparent)
     {
@@ -23,11 +23,11 @@ namespace lucid::resources
         assert(textureHandle);
 
         return new TextureResource{
-            (void*)textureData, textureHandle, Width, Height, false, IsTransparent ? TextureFormat::RGBA : TextureFormat::RGB
+            (void*)textureData, textureHandle, Width, Height, false, IsTransparent ? gpu::TextureFormat::RGBA : gpu::TextureFormat::RGB
         };
     }
 
-    void InitTextues()
+    void InitTextures()
     {
         if (texturesInitialized)
         {
@@ -36,7 +36,7 @@ namespace lucid::resources
 
         texturesInitialized = true;
 
-        TexturesHolder.SetDefaultResource(LoadTextureSTB("awesomeface.jpg", true));
+        TexturesHolder.SetDefaultResource(LoadTextureSTB("assets/textures/awesomeface.png", true));
     }
 
     TextureResource* LoadJPEG(char const* Path) { return LoadTextureSTB(Path, false); }
@@ -48,7 +48,7 @@ namespace lucid::resources
                                      const uint32_t& H,
                                      const bool& GammeCorrected,
                                      const gpu::TextureFormat& Fmt)
-    : TextureData(Data), TextureHandle(Handle), Width(W), Height(H) IsGammaCorrected(GammeCorrected), Format(Fmt)
+    : TextureData(Data), TextureHandle(Handle), Width(W), Height(H), IsGammaCorrected(GammeCorrected), Format(Fmt)
     {
     }
 

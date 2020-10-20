@@ -31,4 +31,38 @@ namespace lucid::scene
 
         cachedShader = Shader;
     }
+
+    /* ---------------------------------------------------------------------------*/
+
+    static const String DIFFUSE_MAP("uDiffuseMap");
+    static const String SPECULAR_MAP("uSpecularMap");
+    static const String NORMAL_MAP("uNormalMap");
+
+    BlinnPhongMapsMaterial::BlinnPhongMapsMaterial(gpu::Shader* CustomShader) : Material(CustomShader) {}
+
+    void BlinnPhongMapsMaterial::SetupShader(gpu::Shader* Shader)
+    {
+        ReteriveShaderUniformsIds(Shader);
+
+        Shader->SetFloat(shininessUniformId, Shininess);
+        Shader->UseTexture(diffuseMapUniformId, DiffuseMap);
+        Shader->UseTexture(specularMapUniformId, SpecularMap);
+        Shader->UseTexture(normalMapUniformId, NormalMap);
+    };
+
+    void BlinnPhongMapsMaterial::ReteriveShaderUniformsIds(gpu::Shader* Shader)
+    {
+        if (Shader == cachedShader)
+        {
+            return;
+        }
+
+        shininessUniformId = Shader->GetTextureId(SHININESS);
+        diffuseMapUniformId = Shader->GetTextureId(DIFFUSE_MAP);
+        specularMapUniformId = Shader->GetTextureId(SPECULAR_MAP);
+        normalMapUniformId = Shader->GetTextureId(NORMAL_MAP);
+
+        cachedShader = Shader;
+    }
+
 } // namespace lucid::scene

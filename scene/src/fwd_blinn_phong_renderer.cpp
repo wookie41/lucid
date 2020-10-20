@@ -7,7 +7,10 @@
 
 #include "scene/renderable.hpp"
 #include "scene/camera.hpp"
-#include "scene/material.hpp"
+#include "scene/blinn_phong_material.hpp"
+
+#include "resources/texture.hpp"
+#include "resources/mesh.hpp"
 
 #include "common/log.hpp"
 
@@ -29,8 +32,7 @@ namespace lucid::scene
     static const String DIRECTIONAL_LIGHT_DIRECTION("uDirectionalLights[%d].Direction");
     static const String DIRECTIONAL_LIGHT_COLOR("uDirectionalLights[%d].Color");
 
-    ForwardBlinnPhongRenderer::ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights,
-                                                         gpu::Shader* DefaultShader)
+    ForwardBlinnPhongRenderer::ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights, gpu::Shader* DefaultShader)
     : Renderer(DefaultShader), maxNumOfDirectionalLights(MaxNumOfDirectionalLights)
     {
         modelMatrixUniformId = DefaultShader->GetIdForUniform(MODEL_MATRIX);
@@ -57,7 +59,7 @@ namespace lucid::scene
         while (currentNode && currentNode->Element)
         {
             auto renderable = currentNode->Element;
-            LUCID_LOG(LogLevel::INFO, "Rendering '%s'", (char const*)renderable->Name);
+            // LUCID_LOG(LogLevel::INFO, "Rendering '%s'", (char const*)renderable->Name);
 
             uint32_t modelMatrixUniformId = this->modelMatrixUniformId;
 
@@ -78,10 +80,9 @@ namespace lucid::scene
 
             glm::mat4 modelMatrix{ 1 };
             modelMatrix = glm::translate(modelMatrix, renderable->Transform.Translation);
-            modelMatrix =
-            glm::rotate(modelMatrix, renderable->Transform.Rotation.w,
-                        { renderable->Transform.Rotation.x, renderable->Transform.Rotation.y,
-                          renderable->Transform.Rotation.z });
+            modelMatrix = glm::rotate(
+              modelMatrix, renderable->Transform.Rotation.w,
+              { renderable->Transform.Rotation.x, renderable->Transform.Rotation.y, renderable->Transform.Rotation.z });
             modelMatrix = glm::scale(modelMatrix, renderable->Transform.Scale); // cache ?
 
             usedShader->SetMatrix(modelMatrixUniformId, modelMatrix);
@@ -155,7 +156,6 @@ namespace lucid::scene
                 break;
             }
 
-
             sprintf(uniformNameBuffer, DIRECTIONAL_LIGHT_DIRECTION, ligthIdx);
 
             //@TODO all uniform locations can be cached for the default shader
@@ -173,5 +173,51 @@ namespace lucid::scene
         uint32_t numOfDirectionalLightsUniformId = Shader->GetIdForUniform(NUM_OF_DIRECTIONAL_LIGHTS);
 
         Shader->SetInt(numOfDirectionalLightsUniformId, directionalLighsCount);
+    }
+
+    Renderable* CreateBlinnPhongRenderable(DString MeshName, resources::MeshResource* Mesh, gpu::Shader* CustomShader)
+    {
+        auto fallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
+
+        //@TODO Material caching?
+        BlinnPhongMapsMaterial* meshMaterial = new BlinnPhongMapsMaterial(CustomShader);
+        meshMaterial->Shininess = 32;
+
+        if (Mesh->DiffuseMap == nullptr)
+        {
+            LUCID_LOG(LogLevel::INFO, "Mesh is missing a diffuse map");
+            meshMaterial->DiffuseMap = fallbackTexture;
+        }
+        else
+        {
+            meshMaterial->DiffuseMap = Mesh->DiffuseMap->TextureHandle;
+        }
+
+        if (Mesh->SpecularMap == nullptr)
+        {
+            LUCID_LOG(LogLevel::INFO, "Mesh is missing a specular map");
+            meshMaterial->SpecularMap = fallbackTexture;
+        }
+        else
+        {
+            meshMaterial->SpecularMap = Mesh->SpecularMap->TextureHandle;
+        }
+
+        if (Mesh->NormalMap == nullptr)
+        {
+            LUCID_LOG(LogLevel::INFO, "Mesh is missing a normal map");
+            meshMaterial->NormalMap = fallbackTexture;
+        }
+        else
+        {
+            meshMaterial->NormalMap = Mesh->NormalMap->TextureHandle;
+        }
+
+        Renderable* meshRenderable = new Renderable{ MeshName };
+        meshRenderable->Material = meshMaterial;
+        meshRenderable->Type = RenderableType::STATIC;
+        meshRenderable->VertexArray = Mesh->VAO;
+
+        return meshRenderable;
     }
 } // namespace lucid::scene

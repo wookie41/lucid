@@ -16,12 +16,13 @@
 #include "devices/gpu/viewport.hpp"
 #include "scene/fwd_blinn_phong_renderer.hpp"
 #include "scene/blinn_phong_material.hpp"
-#include "scene/blinn_phong_maps_material.hpp"
 #include "scene/render_scene.hpp"
 #include "scene/renderable.hpp"
 #include "scene/lights.hpp"
 #include "stb_init.hpp"
 #include <time.h>
+#include "resources/texture.hpp"
+#include "resources/mesh.hpp"
 
 using namespace lucid;
 
@@ -29,7 +30,7 @@ int main(int argc, char** argv)
 {
     srand(time(NULL));
     InitSTB();
-
+    
     if (gpu::Init({}) < 0)
     {
         puts("Failed to init GPU");
@@ -38,11 +39,10 @@ int main(int argc, char** argv)
 
     platform::Window* window = platform::CreateWindow({ "Lucid", 900, 420, 800, 600 });
     misc::InitBasicShapes();
+    resources::InitTextures();
 
-    gpu::Texture* colorAttachment =
-    gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(), resources::TextureFormat::RGBA, 0);
-    gpu::FramebufferAttachment* renderbuffer =
-    gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, 800, 600);
+    gpu::Texture* colorAttachment = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(), gpu::TextureFormat::RGBA, 0);
+    gpu::FramebufferAttachment* renderbuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, 800, 600);
     gpu::Framebuffer* testFramebuffer = gpu::CreateFramebuffer();
 
     renderbuffer->Bind();
@@ -57,14 +57,17 @@ int main(int argc, char** argv)
 
     gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
 
-    resources::TextureResource* diffuseTextureResource = resources::LoadPNG("cube-diffuse-map.png");
-    resources::TextureResource* specularTextureResource = resources::LoadPNG("cube-specular-map.png");
-    
-    gpu::Texture* cubeDiffuseMap = gpu::Create2DTexture(diffuseTextureResource, 0, false);
-    gpu::Texture* cubeSpecularMap = gpu::Create2DTexture(specularTextureResource, 0, false);
+    resources::TextureResource* diffuseTextureResource = resources::LoadPNG("assets/textures/cube-diffuse-map.png");
+    resources::TextureResource* specularTextureResource = resources::LoadPNG("assets/textures/cube-specular-map.png");
+    resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
-    diffuseTextureResource->FreeResource();
-    specularTextureResource->FreeResource();
+    diffuseTextureResource->FreeMainMemory();
+    specularTextureResource->FreeMainMemory();
+    backPackMesh->FreeMainMemory();
+
+    auto cubeDiffuseMap = diffuseTextureResource->TextureHandle;
+    auto cubeSpecularMap = specularTextureResource->TextureHandle;
+    auto backpackVao = backPackMesh->VAO;
 
     cubeDiffuseMap->Bind();
     cubeDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
@@ -77,14 +80,11 @@ int main(int argc, char** argv)
     window->Prepare();
     window->Show();
 
-    gpu::Shader* blinnPhongShader =
-    gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong.vert", true) },
-                              { platform::ReadFile("fwd_blinn_phong.frag", true) });
+    gpu::Shader* blinnPhongShader = gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong.vert", true) },
+                                                              { platform::ReadFile("fwd_blinn_phong.frag", true) });
 
-    gpu::Shader* blinnPhongMapsShader =
-    gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong.vert", true) },
-                              { platform::ReadFile("fwd_blinn_phong_maps.frag", true) });
-
+    gpu::Shader* blinnPhongMapsShader = gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong.vert", true) },
+                                                                  { platform::ReadFile("fwd_blinn_phong_maps.frag", true) });
 
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
     gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
@@ -92,7 +92,7 @@ int main(int argc, char** argv)
     scene::Camera perspectiveCamera{ scene::CameraMode::PERSPECTIVE, { 0, 0, 2.5 } };
     perspectiveCamera.AspectRatio = window->GetAspectRatio();
 
-    scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongShader };
+    scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongMapsShader };
 
     scene::RenderTarget renderTarget;
     renderTarget.Camera = &perspectiveCamera;
@@ -103,12 +103,12 @@ int main(int argc, char** argv)
     cubeMaterial1.Shininess = 64.f;
     cubeMaterial1.DiffuseColor = { 0.2, 0.3, 0.4 };
     cubeMaterial1.SpecularColor = { 1, 1, 1 };
+    cubeMaterial1.SetCustomShader(blinnPhongShader);
 
     scene::BlinnPhongMapsMaterial cubeMaterial2;
     cubeMaterial2.Shininess = 128.f;
     cubeMaterial2.DiffuseMap = cubeDiffuseMap;
     cubeMaterial2.SpecularMap = cubeSpecularMap;
-    cubeMaterial2.SetCustomShader(blinnPhongMapsShader);
 
     scene::Renderable cube1{ "Cube1" };
     cube1.Transform.Translation = { -2, 0, -2 };
@@ -121,6 +121,8 @@ int main(int argc, char** argv)
     cube2.Material = &cubeMaterial2;
     cube2.VertexArray = misc::CubeVertexArray;
     cube2.Type = scene::RenderableType::STATIC;
+
+    scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
 
     scene::DirectionalLight light1;
     light1.Direction = { 0, -2, -2 };
@@ -135,8 +137,9 @@ int main(int argc, char** argv)
     light3.Color = { 0, 0, 1 };
 
     scene::RenderScene sceneToRender;
-    sceneToRender.Renderables.Add(&cube1);
-    sceneToRender.Renderables.Add(&cube2);
+    // sceneToRender.Renderables.Add(&cube1);
+    // sceneToRender.Renderables.Add(&cube2);
+    sceneToRender.Renderables.Add(backPackRenderable);
     sceneToRender.DirectionalLights.Add(&light1);
     sceneToRender.DirectionalLights.Add(&light2);
     sceneToRender.DirectionalLights.Add(&light3);

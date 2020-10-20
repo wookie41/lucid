@@ -10,6 +10,7 @@ namespace lucid::gpu
     class VertexArray;
 } // namespace lucid::gpu
 
+
 namespace lucid::scene
 {
     // intented to help to renderer in making decistion which Renderables'
@@ -24,7 +25,7 @@ namespace lucid::scene
 
     struct Renderable
     {
-        String Name;
+        DString Name;
         RenderableType Type;
         Transform3D Transform;
         gpu::VertexArray* VertexArray;
