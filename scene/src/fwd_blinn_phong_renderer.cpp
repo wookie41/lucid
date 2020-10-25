@@ -64,7 +64,7 @@ namespace lucid::scene
             uint32_t modelMatrixUniformId = this->modelMatrixUniformId;
 
             // Determine if the material uses a custom shader
-            // if yes, then setup the renderer-provied uniforms
+            // if yes, then setup the renderer-provided uniforms
 
             auto customShader = renderable->Material->GetCustomShader();
             if (customShader)

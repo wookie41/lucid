@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 {
     srand(time(NULL));
     InitSTB();
-    
+
     if (gpu::Init({}) < 0)
     {
         puts("Failed to init GPU");
@@ -41,7 +41,8 @@ int main(int argc, char** argv)
     misc::InitBasicShapes();
     resources::InitTextures();
 
-    gpu::Texture* colorAttachment = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(), gpu::TextureFormat::RGBA, 0);
+    gpu::Texture* colorAttachment =
+      gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(), gpu::TextureFormat::RGBA, 0);
     gpu::FramebufferAttachment* renderbuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, 800, 600);
     gpu::Framebuffer* testFramebuffer = gpu::CreateFramebuffer();
 
@@ -57,25 +58,55 @@ int main(int argc, char** argv)
 
     gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
 
-    resources::TextureResource* diffuseTextureResource = resources::LoadPNG("assets/textures/cube-diffuse-map.png");
-    resources::TextureResource* specularTextureResource = resources::LoadPNG("assets/textures/cube-specular-map.png");
     resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
-    diffuseTextureResource->FreeMainMemory();
-    specularTextureResource->FreeMainMemory();
-    backPackMesh->FreeMainMemory();
+    resources::TextureResource* crateDiffuseMapResource = resources::LoadPNG("assets/textures/crate-diffuse-map.png");
+    resources::TextureResource* crateSpecularMapResource = resources::LoadPNG("assets/textures/crate-specular-map.png");
 
-    auto cubeDiffuseMap = diffuseTextureResource->TextureHandle;
-    auto cubeSpecularMap = specularTextureResource->TextureHandle;
-    auto backpackVao = backPackMesh->VAO;
+    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg");
+    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG("assets/textures/brick-normal-map.png");
 
-    cubeDiffuseMap->Bind();
-    cubeDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    cubeDiffuseMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+    resources::TextureResource* blankTextureResource = resources::LoadPNG("assets/textures/blank.png");
 
-    cubeSpecularMap->Bind();
-    cubeSpecularMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    cubeSpecularMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+    crateDiffuseMapResource->FreeMainMemory();
+    crateSpecularMapResource->FreeMainMemory();
+
+    brickWallDiffuseMapResource->FreeMainMemory();
+    brickWallNormalMapResource->FreeMainMemory();
+
+    blankTextureResource->FreeMainMemory();
+
+    // backPackMesh->FreeMainMemory();
+
+    auto crateDiffuseMap = crateDiffuseMapResource->TextureHandle;
+    auto crateSpecularMap = crateSpecularMapResource->TextureHandle;
+
+    auto brickWallDiffuseMap = brickWallDiffuseMapResource->TextureHandle;
+    auto brickWallNormalMap = brickWallNormalMapResource->TextureHandle;
+
+    auto blankTextureMap = blankTextureResource->TextureHandle;
+
+    // auto backpackVao = backPackMesh->VAO;
+
+    crateDiffuseMap->Bind();
+    crateDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    crateDiffuseMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+
+    crateSpecularMap->Bind();
+    crateSpecularMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    crateSpecularMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+
+    brickWallDiffuseMap->Bind();
+    brickWallDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    brickWallDiffuseMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+
+    brickWallNormalMap->Bind();
+    brickWallNormalMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    brickWallNormalMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+
+    blankTextureMap->Bind();
+    blankTextureMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    blankTextureMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
 
     window->Prepare();
     window->Show();
@@ -99,28 +130,29 @@ int main(int argc, char** argv)
     renderTarget.Framebuffer = nullptr;
     renderTarget.Viewport = windowViewport;
 
-    scene::BlinnPhongMaterial cubeMaterial1;
-    cubeMaterial1.Shininess = 64.f;
-    cubeMaterial1.DiffuseColor = { 0.2, 0.3, 0.4 };
-    cubeMaterial1.SpecularColor = { 1, 1, 1 };
-    cubeMaterial1.SetCustomShader(blinnPhongShader);
+    scene::BlinnPhongMapsMaterial quadMaterial;
+    quadMaterial.Shininess = 32;
+    quadMaterial.DiffuseMap = brickWallDiffuseMap;
+    quadMaterial.SpecularMap = blankTextureMap;
+    quadMaterial.NormalMap = brickWallNormalMap;
 
-    scene::BlinnPhongMapsMaterial cubeMaterial2;
-    cubeMaterial2.Shininess = 128.f;
-    cubeMaterial2.DiffuseMap = cubeDiffuseMap;
-    cubeMaterial2.SpecularMap = cubeSpecularMap;
+    scene::BlinnPhongMapsMaterial cubeMaterial;
+    cubeMaterial.Shininess = 32;
+    cubeMaterial.DiffuseMap = crateDiffuseMap;
+    cubeMaterial.SpecularMap = crateSpecularMap;
+    cubeMaterial.NormalMap = blankTextureMap;
 
-    scene::Renderable cube1{ "Cube1" };
-    cube1.Transform.Translation = { -2, 0, -2 };
-    cube1.Material = &cubeMaterial1;
-    cube1.VertexArray = misc::CubeVertexArray;
-    cube1.Type = scene::RenderableType::STATIC;
+    scene::Renderable quad{ "Quad" };
+    quad.Transform.Translation = { -2, 0, -2 };
+    quad.Material = &quadMaterial;
+    quad.VertexArray = misc::QuadVertexArray;
+    quad.Type = scene::RenderableType::STATIC;
 
-    scene::Renderable cube2{ "Cube2" };
-    cube2.Transform.Translation = { 2, 0, -2 };
-    cube2.Material = &cubeMaterial2;
-    cube2.VertexArray = misc::CubeVertexArray;
-    cube2.Type = scene::RenderableType::STATIC;
+    scene::Renderable cube{ "Cube" };
+    cube.Transform.Translation = { 2, 0, -2 };
+    cube.Material = &cubeMaterial;
+    cube.VertexArray = misc::CubeVertexArray;
+    cube.Type = scene::RenderableType::STATIC;
 
     scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
 
@@ -137,8 +169,8 @@ int main(int argc, char** argv)
     light3.Color = { 0, 0, 1 };
 
     scene::RenderScene sceneToRender;
-    // sceneToRender.Renderables.Add(&cube1);
-    // sceneToRender.Renderables.Add(&cube2);
+    sceneToRender.Renderables.Add(&cube);
+    sceneToRender.Renderables.Add(&quad);
     sceneToRender.Renderables.Add(backPackRenderable);
     sceneToRender.DirectionalLights.Add(&light1);
     sceneToRender.DirectionalLights.Add(&light2);

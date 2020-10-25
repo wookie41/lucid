@@ -14,7 +14,7 @@ namespace lucid::scene
         virtual void SetupShader(gpu::Shader* Shader) override;
 
         // Material properties
-        float Shininess;
+        uint32_t Shininess;
         glm::vec3 DiffuseColor;
         glm::vec3 SpecularColor;
 
@@ -41,7 +41,7 @@ namespace lucid::scene
         virtual void SetupShader(gpu::Shader* Shader) override;
 
         // Material properties
-        float Shininess;
+        uint32_t Shininess;
         gpu::Texture* DiffuseMap;
         gpu::Texture* SpecularMap;
         gpu::Texture* NormalMap;

@@ -44,7 +44,7 @@ uniform DirectionalLight uDirectionalLights[MAX_DIRECTIONAL_LIGHTS];
 
 uniform sampler2D uDiffuseMap;
 uniform sampler2D uSpecularMap;
-uniform float uShininess;
+uniform int uShininess;
 
 ///////////////////////////////
 
@@ -89,14 +89,14 @@ vec3 CalculateDirectionalLightContribution(in vec3 DiffuseColor,
                                            in vec3 Normal,
                                            in DirectionalLight Light)
 {
-    vec3 lightDir = normalize(-Light.Direction);
+    vec3 toLightDir = normalize(-Light.Direction);
 
-    float diffuseStrength = max(dot(Normal, lightDir), 0.0);
+    float diffuseStrength = max(dot(Normal, toLightDir), 0.0);
     vec3 diffuse = diffuseStrength * DiffuseColor *  Light.Color;
 
-    vec3 reflectedLightDir = reflect(-lightDir, Normal);
+    vec3 reflectedLightDir = reflect(-toLightDir, Normal);
     float specularStrength = pow(max(dot(ToView, reflectedLightDir), 0.0), uShininess);
     vec3 specular = specularStrength * SpecularColor * Light.Color;
 
-    return diffuse;
+    return diffuse + specular;
 }

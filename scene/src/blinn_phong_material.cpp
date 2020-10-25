@@ -13,7 +13,7 @@ namespace lucid::scene
     {
         ReteriveShaderUniformsIds(Shader);
 
-        Shader->SetFloat(shininessUniformId, Shininess);
+        Shader->SetInt(shininessUniformId, Shininess);
         Shader->SetVector(diffuseColorUniformId, DiffuseColor);
         Shader->SetVector(specularColorUniformId, SpecularColor);
     };
@@ -44,7 +44,7 @@ namespace lucid::scene
     {
         ReteriveShaderUniformsIds(Shader);
 
-        Shader->SetFloat(shininessUniformId, Shininess);
+        Shader->SetInt(shininessUniformId, Shininess);
         Shader->UseTexture(diffuseMapUniformId, DiffuseMap);
         Shader->UseTexture(specularMapUniformId, SpecularMap);
         Shader->UseTexture(normalMapUniformId, NormalMap);
@@ -57,7 +57,7 @@ namespace lucid::scene
             return;
         }
 
-        shininessUniformId = Shader->GetTextureId(SHININESS);
+        shininessUniformId = Shader->GetIdForUniform(SHININESS);
         diffuseMapUniformId = Shader->GetTextureId(DIFFUSE_MAP);
         specularMapUniformId = Shader->GetTextureId(SPECULAR_MAP);
         normalMapUniformId = Shader->GetTextureId(NORMAL_MAP);

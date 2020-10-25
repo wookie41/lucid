@@ -85,9 +85,10 @@ namespace lucid::gpu
 
         for (GLint uniformIdx = 0; uniformIdx < numberOfUniforms; ++uniformIdx)
         {
-            //@TODO exclude gl_ prefixed uniforms https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glGetActiveUniform.xhtml
-            glGetActiveUniform(shaderProgramID, uniformIdx, MAX_UNIFORM_VARIABLE_NAME_LENGTH,
-                               &uniformNameLength, &uniformSize, &uniformType, uniformNameBuff);
+            //@TODO exclude gl_ prefixed uniforms
+            //https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glGetActiveUniform.xhtml
+            glGetActiveUniform(shaderProgramID, uniformIdx, MAX_UNIFORM_VARIABLE_NAME_LENGTH, &uniformNameLength, &uniformSize,
+                               &uniformType, uniformNameBuff);
 
             if (uniformType == GL_SAMPLER_1D || uniformType == GL_SAMPLER_2D || uniformType == GL_SAMPLER_3D)
             {
@@ -246,7 +247,6 @@ namespace lucid::gpu
             glUniform3iv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
         }
     }
-
 
     void GLShader::SetVector(const int32_t& UniformId, const glm::ivec4& Value)
     {
