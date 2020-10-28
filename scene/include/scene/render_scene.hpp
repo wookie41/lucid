@@ -11,7 +11,8 @@ namespace lucid::scene
 
     struct RenderScene
     {
-        LinkedList<class Renderable> Renderables; 
+        LinkedList<class Renderable> StaticGeometry;  
+        LinkedList<class Renderable> DynamicGeometry;  
         LinkedList<DirectionalLight> DirectionalLights; 
     };
 }

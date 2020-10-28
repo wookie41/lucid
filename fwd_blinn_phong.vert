@@ -2,24 +2,27 @@
 
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
-layout(location = 2) in vec3 aTangent;
+layout(location = 2) in vec3 aTangentSpace;
 layout(location = 3) in vec2 aTextureCoords;
-
-out vec3 iNormal;
-out vec3 iWorldPos;
-out vec2 iTextureCoords;
 
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
 
+out VS_OUT
+{
+    vec3 Normal;
+    vec3 WorldPos;
+}
+vsOut;
+
 void main()
 {
-    iNormal = mat3(transpose(inverse(uModel))) * aNormal;
-    iTextureCoords = aTextureCoords;
-
+    mat3 normalMatrix = mat3(transpose(inverse(uModel)));
     vec4 worldPos = uModel * vec4(aPosition, 1);
-    iWorldPos = worldPos.xyz;
+
+    vsOut.WorldPos = worldPos.xyz;
+    vsOut.Normal = normalMatrix * aNormal;
 
     gl_Position = uProjection * uView * worldPos;
 }

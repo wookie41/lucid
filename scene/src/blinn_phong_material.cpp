@@ -3,9 +3,9 @@
 
 namespace lucid::scene
 {
-    static const String SHININESS("uShininess");
-    static const String DIFFUSE_COLOR("uDiffuseColor");
-    static const String SPECULAR_COLOR("uSpecularColor");
+    static const String SHININESS("uMaterial.Shininess");
+    static const String DIFFUSE_COLOR("uMaterial.DiffuseColor");
+    static const String SPECULAR_COLOR("uMaterial.SpecularColor");
 
     BlinnPhongMaterial::BlinnPhongMaterial(gpu::Shader* CustomShader) : Material(CustomShader) {}
 
@@ -34,9 +34,9 @@ namespace lucid::scene
 
     /* ---------------------------------------------------------------------------*/
 
-    static const String DIFFUSE_MAP("uDiffuseMap");
-    static const String SPECULAR_MAP("uSpecularMap");
-    static const String NORMAL_MAP("uNormalMap");
+    static const String DIFFUSE_MAP("uMaterial.DiffuseMap");
+    static const String SPECULAR_MAP("uMaterial.SpecularMap");
+    static const String NORMAL_MAP("uMaterial.NormalMap");
 
     BlinnPhongMapsMaterial::BlinnPhongMapsMaterial(gpu::Shader* CustomShader) : Material(CustomShader) {}
 

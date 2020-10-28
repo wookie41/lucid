@@ -28,20 +28,16 @@ namespace lucid::scene
         virtual ~ForwardBlinnPhongRenderer() = default;
 
       private:
+
+        void RenderStaticGeometry(const RenderScene* SceneToRender, const RenderTarget* Target);
+        void Render(gpu::Shader* Shader, Renderable* const ToRender);
+        void SetupDirectionalLight(gpu::Shader* Shader, const DirectionalLight* Light);
+
         inline void SetupFramebuffer(gpu::Framebuffer* Framebuffer);
         inline void SetupRendererWideUniforms(gpu::Shader* Shader, const RenderTarget* RenderTarget);
-        inline void SetupLights(gpu::Shader* Shader, const RenderScene* Scene);
 
         float ambientStrength = 0.2;
         uint32_t maxNumOfDirectionalLights;
-
-        // cached default shader uniform locations
-
-        int32_t modelMatrixUniformId;
-        int32_t ambientStrengthUniformId;
-        int32_t projectionMatrixUniformId;
-        int32_t viewMatrixUniformId;
-        int32_t viewPositionUniformId;
     };
 
     Renderable* CreateBlinnPhongRenderable(DString MeshName, resources::MeshResource* Mesh, gpu::Shader* CustomShader = nullptr);

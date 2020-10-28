@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 
     gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
 
-    resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
+    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
     resources::TextureResource* crateDiffuseMapResource = resources::LoadPNG("assets/textures/crate-diffuse-map.png");
     resources::TextureResource* crateSpecularMapResource = resources::LoadPNG("assets/textures/crate-specular-map.png");
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
     gpu::Shader* blinnPhongShader = gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong.vert", true) },
                                                               { platform::ReadFile("fwd_blinn_phong.frag", true) });
 
-    gpu::Shader* blinnPhongMapsShader = gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong.vert", true) },
+    gpu::Shader* blinnPhongMapsShader = gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong_maps.vert", true) },
                                                                   { platform::ReadFile("fwd_blinn_phong_maps.frag", true) });
 
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
@@ -129,6 +129,12 @@ int main(int argc, char** argv)
     renderTarget.Camera = &perspectiveCamera;
     renderTarget.Framebuffer = nullptr;
     renderTarget.Viewport = windowViewport;
+
+    scene::BlinnPhongMaterial flatMaterial;
+    flatMaterial.Shininess = 32;
+    flatMaterial.DiffuseColor = glm::vec3(0.4, 0.2, 0.7);
+    flatMaterial.SpecularColor = glm::vec3(0.4, 0.2, 0.7);
+    flatMaterial.SetCustomShader(blinnPhongShader);
 
     scene::BlinnPhongMapsMaterial quadMaterial;
     quadMaterial.Shininess = 32;
@@ -147,35 +153,45 @@ int main(int argc, char** argv)
     quad.Material = &quadMaterial;
     quad.VertexArray = misc::QuadVertexArray;
     quad.Type = scene::RenderableType::STATIC;
+    glm::vec3 rotAxis = glm::normalize(glm::vec3(-1.0, 0.0, 0.0));
+    quad.Transform.Rotation.x = rotAxis.x;
+    quad.Transform.Rotation.y = rotAxis.y;
+    quad.Transform.Rotation.z = rotAxis.z;
 
     scene::Renderable cube{ "Cube" };
     cube.Transform.Translation = { 2, 0, -2 };
-    cube.Material = &cubeMaterial;
+    cube.Material = &flatMaterial;
     cube.VertexArray = misc::CubeVertexArray;
     cube.Type = scene::RenderableType::STATIC;
 
-    scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
+    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
 
-    scene::DirectionalLight light1;
-    light1.Direction = { 0, -2, -2 };
-    light1.Color = { 1, 0, 0 };
+    scene::DirectionalLight redLight;
+    redLight.Direction = { 0, -2, -2 };
+    redLight.Color = { 1, 0, 0 };
 
-    scene::DirectionalLight light2;
-    light2.Direction = { 1, 0, -1 };
-    light2.Color = { 0, 1, 0 };
+    scene::DirectionalLight greenLight;
+    greenLight.Direction = { 1, 0, -1 };
+    greenLight.Color = { 0, 1, 0 };
 
-    scene::DirectionalLight light3;
-    light3.Direction = { -1, 0, -1 };
-    light3.Color = { 0, 0, 1 };
+    scene::DirectionalLight blueLight;
+    blueLight.Direction = { -1, 0, -1 };
+    blueLight.Color = { 0, 0, 1 };
+
+    scene::DirectionalLight whiteLight;
+    whiteLight.Direction = { -0.5, 0, -0.3 };
+    whiteLight.Color = { 1, 1, 1 };
 
     scene::RenderScene sceneToRender;
-    sceneToRender.Renderables.Add(&cube);
-    sceneToRender.Renderables.Add(&quad);
-    sceneToRender.Renderables.Add(backPackRenderable);
-    sceneToRender.DirectionalLights.Add(&light1);
-    sceneToRender.DirectionalLights.Add(&light2);
-    sceneToRender.DirectionalLights.Add(&light3);
+    sceneToRender.StaticGeometry.Add(&cube);
+    sceneToRender.StaticGeometry.Add(&quad);
+    // sceneToRender.Renderables.Add(backPackRenderable);
+    sceneToRender.DirectionalLights.Add(&whiteLight);
+    // sceneToRender.DirectionalLights.Add(&redLight);
+    // sceneToRender.DirectionalLights.Add(&greenLight);
+    // sceneToRender.DirectionalLights.Add(&blueLight);
 
+    int currentRotation = 0;
     bool isRunning = true;
     while (isRunning)
     {
@@ -205,6 +221,12 @@ int main(int argc, char** argv)
         if (IsKeyPressed(SDLK_d))
         {
             perspectiveCamera.MoveRight(1.f / 60.f);
+        }
+
+        if (IsKeyPressed(SDLK_r))
+        {
+            currentRotation += 1;
+            quad.Transform.Rotation.w = glm::radians((float)(currentRotation % 360));
         }
 
         if (IsMouseButtonPressed(MouseButton::LEFT))

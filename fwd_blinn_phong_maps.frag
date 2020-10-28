@@ -1,102 +1,60 @@
 #version 330 core
 
-// Shader constants //
-
-#define MAX_DIRECTIONAL_LIGHTS 32
-
-///////////////////////////////
-
-// Shader inputs //
-
-in vec3 iNormal;
-in vec3 iWorldPos;
-in vec2 iTextureCoords;
-
-///////////////////////////////
-
-// Shader outputs //
-
-out vec4 oFragColor;
-
-// Lights types //
-
 struct DirectionalLight
 {
     vec3 Direction;
     vec3 Color;
 };
 
-///////////////////////////////
+in VS_OUT
+{
+    vec3 TangentSpaceFragPos;
+    vec3 TangentSpaceViewPos;
+    DirectionalLight TangentSpaceLight;
+    vec2 TextureCoords;
+}
+fsIn;
 
-
-// Shader-wide properties
+struct Material
+{
+    int Shininess;
+    sampler2D DiffuseMap;
+    sampler2D SpecularMap;
+    sampler2D NormalMap;
+};
 
 uniform float uAmbientStrength;
-uniform vec3 uViewPos;
 
-uniform int uNumOfDirectionalLight;
-uniform DirectionalLight uDirectionalLights[MAX_DIRECTIONAL_LIGHTS];
+uniform Material uMaterial;
 
-///////////////////////////////
+vec3 CalculateDirectionalLightContribution(vec3 ToView, vec3 FragNormal, in vec3 FragDiffuseColor, in vec3 FragSpecularColor);
 
-
-// Material properties
-
-uniform sampler2D uDiffuseMap;
-uniform sampler2D uSpecularMap;
-uniform int uShininess;
-
-///////////////////////////////
-
-
-// Lighting function //
-
-vec3 CalculateDirectionalLightContribution(in vec3 DiffuseColor,
-                                           in vec3 SpecularColor,
-                                           in vec3 ToView,
-                                           in vec3 Normal,
-                                           in DirectionalLight Light);
-
-///////////////////////////////
+out vec4 oFragColor;
 
 void main()
 {
-    // normalize the interpolated normal
-    vec3 normal = normalize(iNormal);
-    vec3 toView = normalize(uViewPos - iWorldPos);
+    vec3 toView = normalize(fsIn.TangentSpaceViewPos - fsIn.TangentSpaceFragPos);
 
-    vec3 diffuseColor = texture(uDiffuseMap, iTextureCoords).rgb;
-    vec3 specularColor = texture(uSpecularMap, iTextureCoords).rgb;
+    vec3 normal = normalize((texture(uMaterial.NormalMap, fsIn.TextureCoords).rgb * 2) - 1); // normals are in tangent space
+    vec3 diffuseColor = texture(uMaterial.DiffuseMap, fsIn.TextureCoords).rgb;
+    vec3 specularColor = texture(uMaterial.SpecularMap, fsIn.TextureCoords).rgb;
 
     vec3 ambient = diffuseColor * uAmbientStrength;
-    vec3 fragColor = ambient;
-
-    int numOfDirectionalLight = uNumOfDirectionalLight > MAX_DIRECTIONAL_LIGHTS ? 
-        MAX_DIRECTIONAL_LIGHTS : 
-        uNumOfDirectionalLight;
-
-    for (int lightIdx = 0; lightIdx < numOfDirectionalLight; ++lightIdx)
-    {
-        fragColor += CalculateDirectionalLightContribution(diffuseColor, specularColor, toView, normal, uDirectionalLights[lightIdx]);
-    }
+    vec3 fragColor = ambient + CalculateDirectionalLightContribution(toView, normal, diffuseColor, specularColor);
 
     oFragColor = vec4(fragColor, 1.0);
 }
 
-vec3 CalculateDirectionalLightContribution(in vec3 DiffuseColor,
-                                           in vec3 SpecularColor,
-                                           in vec3 ToView,
-                                           in vec3 Normal,
-                                           in DirectionalLight Light)
+vec3 CalculateDirectionalLightContribution(vec3 ToView, vec3 FragNormal, in vec3 FragDiffuseColor, in vec3 FragSpecularColor)
 {
-    vec3 toLightDir = normalize(-Light.Direction);
+    vec3 toLightDir = normalize(-fsIn.TangentSpaceLight.Direction);
 
-    float diffuseStrength = max(dot(Normal, toLightDir), 0.0);
-    vec3 diffuse = diffuseStrength * DiffuseColor *  Light.Color;
+    float diffuseStrength = max(dot(FragNormal, toLightDir), 0.0);
+    vec3 diffuse = diffuseStrength * FragDiffuseColor * fsIn.TangentSpaceLight.Color;
 
-    vec3 reflectedLightDir = reflect(-toLightDir, Normal);
-    float specularStrength = pow(max(dot(ToView, reflectedLightDir), 0.0), uShininess);
-    vec3 specular = specularStrength * SpecularColor * Light.Color;
+    vec3 reflectedLightDir = reflect(-toLightDir, FragNormal);
+    float specularStrength = pow(max(dot(ToView, reflectedLightDir), 0.0), uMaterial.Shininess);
+    vec3 specular = specularStrength * FragSpecularColor * fsIn.TangentSpaceLight.Color;
 
     return diffuse + specular;
 }

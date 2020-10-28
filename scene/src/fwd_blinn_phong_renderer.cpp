@@ -21,25 +21,18 @@ namespace lucid::scene
     // Shader-wide uniforms
     static const String AMBIENT_STRENGTH("uAmbientStrength");
 
-    static const String LIGHT_POSITION("uLightPos");
     static const String VIEW_POSITION("uViewPos");
 
     static const String MODEL_MATRIX("uModel");
     static const String VIEW_MATRIX("uView");
     static const String PROJECTION_MATRIX("uProjection");
 
-    static const String NUM_OF_DIRECTIONAL_LIGHTS("uNumOfDirectionalLight");
-    static const String DIRECTIONAL_LIGHT_DIRECTION("uDirectionalLights[%d].Direction");
-    static const String DIRECTIONAL_LIGHT_COLOR("uDirectionalLights[%d].Color");
+    static const String LIGHT_DIRECTION("uLight.Direction");
+    static const String LIGHT_COLOR("uLight.Color");
 
     ForwardBlinnPhongRenderer::ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights, gpu::Shader* DefaultShader)
     : Renderer(DefaultShader), maxNumOfDirectionalLights(MaxNumOfDirectionalLights)
     {
-        modelMatrixUniformId = DefaultShader->GetIdForUniform(MODEL_MATRIX);
-        ambientStrengthUniformId = DefaultShader->GetIdForUniform(AMBIENT_STRENGTH);
-        projectionMatrixUniformId = DefaultShader->GetIdForUniform(PROJECTION_MATRIX);
-        viewMatrixUniformId = DefaultShader->GetIdForUniform(VIEW_MATRIX);
-        viewPositionUniformId = DefaultShader->GetIdForUniform(VIEW_POSITION);
     }
 
     void ForwardBlinnPhongRenderer::Render(const RenderScene* SceneToRender, const RenderTarget* Target)
@@ -48,63 +41,50 @@ namespace lucid::scene
         gpu::SetViewport(Target->Viewport);
 
         defaultShader->Use();
+
         SetupRendererWideUniforms(defaultShader, Target);
-        SetupLights(defaultShader, SceneToRender);
+        RenderStaticGeometry(SceneToRender, Target);
+    }
 
+    void ForwardBlinnPhongRenderer::RenderStaticGeometry(const RenderScene* SceneToRender, const RenderTarget* Target)
+    {
         auto usedShader = defaultShader;
-        auto currentNode = &SceneToRender->Renderables.Head;
-
-        // TODO sort by shader in the material to avoid costly program switches
-
-        while (currentNode && currentNode->Element)
+        auto lightNode = &SceneToRender->DirectionalLights.Head;
+        while (lightNode && lightNode->Element)
         {
-            auto renderable = currentNode->Element;
-            // LUCID_LOG(LogLevel::INFO, "Rendering '%s'", (char const*)renderable->Name);
+            auto currentNode = &SceneToRender->StaticGeometry.Head;
 
-            uint32_t modelMatrixUniformId = this->modelMatrixUniformId;
-
-            // Determine if the material uses a custom shader
-            // if yes, then setup the renderer-provided uniforms
-
-            auto customShader = renderable->Material->GetCustomShader();
-            if (customShader)
+            while (currentNode && currentNode->Element)
             {
-                usedShader = customShader;
-                customShader->Use();
-                SetupRendererWideUniforms(customShader, Target);
-                SetupLights(customShader, SceneToRender);
-                modelMatrixUniformId = customShader->GetIdForUniform(MODEL_MATRIX);
+                auto renderable = currentNode->Element;
+                // LUCID_LOG(LogLevel::INFO, "Rendering '%s'", (char const*)renderable->Name);
+
+                // Determine if the material uses a custom shader
+                // if yes, then setup the renderer-provided uniforms
+
+                auto customShader = renderable->Material->GetCustomShader();
+                if (customShader)
+                {
+                    usedShader = customShader;
+                    customShader->Use();
+                    SetupRendererWideUniforms(customShader, Target);
+                }
+
+                SetupDirectionalLight(usedShader, lightNode->Element);
+                Render(usedShader, renderable);
+
+                // if the renderable used a custom material, then restore the default one
+
+                if (usedShader != defaultShader)
+                {
+                    usedShader = defaultShader;
+                    defaultShader->Use();
+                }
+
+                currentNode = currentNode->Next;
             }
 
-            // calculate and set the model matrix
-
-            glm::mat4 modelMatrix{ 1 };
-            modelMatrix = glm::translate(modelMatrix, renderable->Transform.Translation);
-            modelMatrix = glm::rotate(
-              modelMatrix, renderable->Transform.Rotation.w,
-              { renderable->Transform.Rotation.x, renderable->Transform.Rotation.y, renderable->Transform.Rotation.z });
-            modelMatrix = glm::scale(modelMatrix, renderable->Transform.Scale); // cache ?
-
-            usedShader->SetMatrix(modelMatrixUniformId, modelMatrix);
-
-            // setup the shader's uniform using material's properties
-
-            renderable->Material->SetupShader(usedShader);
-
-            // bind the renderable's vertex array and draw it
-
-            renderable->VertexArray->Bind();
-            renderable->VertexArray->Draw();
-
-            // if the renderable used a custom material, then restore the default one
-
-            if (usedShader != defaultShader)
-            {
-                usedShader = defaultShader;
-                defaultShader->Use();
-            }
-
-            currentNode = currentNode->Next;
+            lightNode = lightNode->Next;
         }
     }
 
@@ -122,57 +102,10 @@ namespace lucid::scene
 
     void ForwardBlinnPhongRenderer::SetupRendererWideUniforms(gpu::Shader* Shader, const RenderTarget* Target)
     {
-        if (Shader == defaultShader)
-        {
-            Shader->SetFloat(ambientStrengthUniformId, ambientStrength);
-            Shader->SetMatrix(projectionMatrixUniformId, Target->Camera->GetProjectionMatrix());
-            Shader->SetMatrix(viewMatrixUniformId, Target->Camera->GetViewMatrix());
-            Shader->SetVector(viewPositionUniformId, Target->Camera->Position);
-            return;
-        }
-
-        int32_t ambientStrengthUniformId = Shader->GetIdForUniform(AMBIENT_STRENGTH);
-        int32_t projectionMatrixUniformId = Shader->GetIdForUniform(PROJECTION_MATRIX);
-        int32_t viewMatrixUniformId = Shader->GetIdForUniform(VIEW_MATRIX);
-        int32_t viewPositionUniformId = Shader->GetIdForUniform(VIEW_POSITION);
-
-        Shader->SetFloat(ambientStrengthUniformId, ambientStrength);
-        Shader->SetMatrix(projectionMatrixUniformId, Target->Camera->GetProjectionMatrix());
-        Shader->SetMatrix(viewMatrixUniformId, Target->Camera->GetViewMatrix());
-        Shader->SetVector(viewPositionUniformId, Target->Camera->Position);
-    }
-
-    void ForwardBlinnPhongRenderer::SetupLights(gpu::Shader* Shader, const RenderScene* Scene)
-    {
-        static char uniformNameBuffer[128];
-        auto lightNode = &Scene->DirectionalLights.Head;
-
-        uint32_t directionalLighsCount = 0;
-        for (uint32_t ligthIdx = 0; ligthIdx < maxNumOfDirectionalLights; ++ligthIdx, ++directionalLighsCount)
-        {
-            if (lightNode == nullptr || lightNode->Element == nullptr)
-            {
-                // no more directional lights in the scene
-                break;
-            }
-
-            sprintf(uniformNameBuffer, DIRECTIONAL_LIGHT_DIRECTION, ligthIdx);
-
-            //@TODO all uniform locations can be cached for the default shader
-            uint32_t lightDirectionUniformId = Shader->GetIdForUniform(uniformNameBuffer);
-            Shader->SetVector(lightDirectionUniformId, lightNode->Element->Direction);
-
-            sprintf(uniformNameBuffer, DIRECTIONAL_LIGHT_COLOR, ligthIdx);
-
-            uint32_t lightColorUniformId = Shader->GetIdForUniform(uniformNameBuffer);
-            Shader->SetVector(lightColorUniformId, lightNode->Element->Color);
-
-            lightNode = lightNode->Next;
-        }
-
-        uint32_t numOfDirectionalLightsUniformId = Shader->GetIdForUniform(NUM_OF_DIRECTIONAL_LIGHTS);
-
-        Shader->SetInt(numOfDirectionalLightsUniformId, directionalLighsCount);
+        Shader->SetFloat(Shader->GetIdForUniform(AMBIENT_STRENGTH), ambientStrength);
+        Shader->SetMatrix(Shader->GetIdForUniform(PROJECTION_MATRIX), Target->Camera->GetProjectionMatrix());
+        Shader->SetMatrix(Shader->GetIdForUniform(VIEW_MATRIX), Target->Camera->GetViewMatrix());
+        Shader->SetVector(Shader->GetIdForUniform(VIEW_POSITION), Target->Camera->Position);
     }
 
     Renderable* CreateBlinnPhongRenderable(DString MeshName, resources::MeshResource* Mesh, gpu::Shader* CustomShader)
@@ -220,4 +153,32 @@ namespace lucid::scene
 
         return meshRenderable;
     }
+
+    void ForwardBlinnPhongRenderer::SetupDirectionalLight(gpu::Shader* Shader, const DirectionalLight* Light)
+    {
+        Shader->SetVector(Shader->GetIdForUniform(LIGHT_DIRECTION), Light->Direction);
+        Shader->SetVector(Shader->GetIdForUniform(LIGHT_COLOR), Light->Color);
+    }
+
+    inline glm::mat4 CalculateModelMatrix(const Transform3D& Transform)
+    {
+        glm::mat4 modelMatrix{ 1 };
+        modelMatrix = glm::translate(modelMatrix, Transform.Translation);
+        modelMatrix =
+          glm::rotate(modelMatrix, Transform.Rotation.w, { Transform.Rotation.x, Transform.Rotation.y, Transform.Rotation.z });
+        modelMatrix = glm::scale(modelMatrix, Transform.Scale);
+        return modelMatrix;
+    }
+
+    void ForwardBlinnPhongRenderer::Render(gpu::Shader* Shader, Renderable* const ToRender)
+    {
+        glm::mat4 modelMatrix = CalculateModelMatrix(ToRender->Transform);
+        Shader->SetMatrix(Shader->GetIdForUniform(MODEL_MATRIX), modelMatrix);
+
+        ToRender->Material->SetupShader(Shader);
+
+        ToRender->VertexArray->Bind();
+        ToRender->VertexArray->Draw();
+    }
+
 } // namespace lucid::scene
