@@ -20,30 +20,89 @@ namespace lucid::gpu
 
     /////////////// Depth tests ///////////////
 
+    enum class DepthTestFunction : uint8_t
+    {
+        NEVER,
+        LESS,
+        EQUAL,
+        LEQUAL,
+        GREATER,
+        NOTEQUAL,
+        GEQUAL,
+        ALWAYS
+    };
+
     void EnableDepthTest();
     void DisableDepthTest();
+    void SetDepthTestFunction(const DepthTestFunction& Function);
+
+    /////////////////////////////////////////
+
+    /////////////// Blending ///////////////
+
+    enum class BlendFunction : uint8_t
+    {
+        ZERO,
+        ONE,
+        SOURCE_COLOR,
+        ONE_MINUS_SRC_COLOR,
+        DST_COLOR,
+        ONE_MINUS_DST_COLOR,
+        SRC_ALPHA,
+        ONE_MINUS_SRC_ALPHA,
+        DST_ALPHA,
+        ONE_MINUS_DST_ALPHA,
+        CONSTANT_COLOR,
+        ONE_MINUS_CONSTANT_COLOR,
+        CONSTANT_ALPHA,
+        ONE_MINUS_CONSTANT_ALPHA,
+        SRC_ALPHA_SATURATE,
+        SRC1_COLOR,
+        ONE_MINUS_SRC1_COLOR,
+        SRC1_ALPHA,
+        ONE_MINUS_SRC1_ALPHA
+    };
+
+    void SetBlendColor(const color& Color);
+    void SetBlendFunction(const BlendFunction& SrcFunction, const BlendFunction& DstFunction);
+    void SetBlendFunctionSeparate(const BlendFunction& SrcFunction,
+                                  const BlendFunction& DstFunction,
+                                  const BlendFunction& SrcAlphaFunction,
+                                  const BlendFunction& DstAlphaFunction);
+
+    void EnableBlending();
+    void DisableBlending();
+
+    ///////////////////////////////////////
 
     /////////////// GPU Info ///////////////
 
     // Queries the GPU for it's properties, like the maximum number of samplers
     // supported extension, which shader/framebuffer/texture and etc is currently bound
 
+    class Framebuffer;
+    class Shader;
+    class Texture;
+    class Renderbuffer;
+    class Buffer;
+    class VertexArray;
+
     struct GPUInfo
     {
-        class Framebuffer* CurrentFramebuffer = nullptr;
-        class Framebuffer* CurrentReadFramebuffer = nullptr;
-        class Framebuffer* CurrentWriteFramebuffer = nullptr;
+        Framebuffer* CurrentFramebuffer = nullptr;
+        Framebuffer* CurrentReadFramebuffer = nullptr;
+        Framebuffer* CurrentWriteFramebuffer = nullptr;
 
-        class Shader* CurrentShader = nullptr;
-        class Texture** BoundTextures = nullptr;
-        class Renderbuffer* CurrentRenderbuffer;
+        Shader* CurrentShader = nullptr;
+        Texture** BoundTextures = nullptr;
+        Renderbuffer* CurrentRenderbuffer;
+        VertexArray* CurrentVAO = nullptr;
 
-        class Buffer* CurrentVertexBuffer;
-        class Buffer* CurrentElementBuffer;
-        class Buffer* CurrentReadBuffer;
-        class Buffer* CurrentWriteBuffer;
-        class Buffer* CurrentShaderStorageBuffer;
-
+        Buffer* CurrentVertexBuffer;
+        Buffer* CurrentElementBuffer;
+        Buffer* CurrentReadBuffer;
+        Buffer* CurrentWriteBuffer;
+        Buffer* CurrentShaderStorageBuffer;
 
         uint32_t ActiveTextureUnit = 0;
         uint32_t MaxTextureUnits = 0;

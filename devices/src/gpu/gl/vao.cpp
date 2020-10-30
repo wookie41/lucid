@@ -1,6 +1,7 @@
 #include "devices/gpu/gl/vao.hpp"
 #include "devices/gpu/buffer.hpp"
 #include "devices/gpu/gl/common.hpp"
+#include "devices/gpu/gpu.hpp"
 
 #ifndef NDEBUG
 #include <cassert>
@@ -33,8 +34,8 @@ namespace lucid::gpu
 
         glGenVertexArrays(1, &VAO);
 
-        VertexArray* vertexArray = new GLVertexArray(VAO, DrawMode, VertexCount, ElementCount,
-                                                     VertexBuffer, ElementBuffer, AutoDestroyBuffers);
+        VertexArray* vertexArray =
+          new GLVertexArray(VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
         vertexArray->Bind();
 
         VertexBuffer->Bind(BufferBindPoint::VERTEX);
@@ -72,15 +73,14 @@ namespace lucid::gpu
         return vertexArray;
     }
 
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 
     void GLVertexArray::AddVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType],
-                              GL_FALSE, Attribute.Stride, (void*)Attribute.FirstElementOffset);
+        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType], GL_FALSE,
+                              Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
     }
@@ -88,8 +88,8 @@ namespace lucid::gpu
     void GLVertexArray::AddIntegerVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType],
-                               Attribute.Stride, (void*)Attribute.FirstElementOffset);
+        glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType], Attribute.Stride,
+                               (void*)Attribute.FirstElementOffset);
 
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
     }
@@ -97,8 +97,8 @@ namespace lucid::gpu
     void GLVertexArray::AddLongVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType],
-                               Attribute.Stride, (void*)Attribute.FirstElementOffset);
+        glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType], Attribute.Stride,
+                               (void*)Attribute.FirstElementOffset);
 
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
     }
@@ -112,9 +112,8 @@ namespace lucid::gpu
                                  Buffer* VertexBuffer,
                                  Buffer* ElementBuffer,
                                  const bool& AutoDestroyBuffers)
-    : glVAOHandle(GLVAOHandle), drawMode(DrawMode), vertexBuffer(VertexBuffer),
-      elementBuffer(ElementBuffer), autoDestroyBuffers(AutoDestroyBuffers),
-      vertexCount(VertexCount), elementCount(ElementCount)
+    : glVAOHandle(GLVAOHandle), drawMode(DrawMode), vertexBuffer(VertexBuffer), elementBuffer(ElementBuffer),
+      autoDestroyBuffers(AutoDestroyBuffers), vertexCount(VertexCount), elementCount(ElementCount)
     {
     }
 
@@ -137,7 +136,11 @@ namespace lucid::gpu
         vertexBuffer = nullptr;
     }
 
-    void GLVertexArray::Bind() { glBindVertexArray(glVAOHandle); }
+    void GLVertexArray::Bind()
+    {
+        gpu::Info.CurrentVAO = this;
+        glBindVertexArray(glVAOHandle);
+    }
 
     void GLVertexArray::Unbind() { glBindVertexArray(0); }
 

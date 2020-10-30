@@ -23,7 +23,7 @@ namespace lucid::scene
       public:
         explicit Renderer(gpu::Shader* DefaultShader) : defaultShader(DefaultShader) {}
 
-        virtual void Render(const RenderScene* SceneToRender, const RenderTarget* Target) = 0;
+        virtual void Render(RenderScene* const SceneToRender, RenderTarget* const Target) = 0;
 
         virtual ~Renderer() = default;
 

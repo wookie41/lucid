@@ -23,6 +23,7 @@
 #include <time.h>
 #include "resources/texture.hpp"
 #include "resources/mesh.hpp"
+#include "GL/glew.h"
 
 using namespace lucid;
 
@@ -124,6 +125,7 @@ int main(int argc, char** argv)
     perspectiveCamera.AspectRatio = window->GetAspectRatio();
 
     scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongMapsShader };
+    renderer.SetAmbientStrength(0.05);
 
     scene::RenderTarget renderTarget;
     renderTarget.Camera = &perspectiveCamera;
@@ -149,7 +151,7 @@ int main(int argc, char** argv)
     cubeMaterial.NormalMap = blankTextureMap;
 
     scene::Renderable quad{ "Quad" };
-    quad.Transform.Translation = { -2, 0, -2 };
+    quad.Transform.Translation = { -2, 0, -4 };
     quad.Material = &quadMaterial;
     quad.VertexArray = misc::QuadVertexArray;
     quad.Type = scene::RenderableType::STATIC;
@@ -163,20 +165,39 @@ int main(int argc, char** argv)
     cube.Material = &flatMaterial;
     cube.VertexArray = misc::CubeVertexArray;
     cube.Type = scene::RenderableType::STATIC;
-
     // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
 
-    scene::DirectionalLight redLight;
-    redLight.Direction = { 0, -2, -2 };
+    scene::Renderable cube1{ "Cube1", cube };
+    scene::Renderable cube2{ "Cube2", cube };
+    scene::Renderable cube3{ "Cube3", cube };
+    scene::Renderable cube4{ "Cube4", cube };
+
+    cube1.Transform.Translation = { -1.5, 0, -5 };
+    cube2.Transform.Translation = { 0, 0, -8 };
+    cube3.Transform.Translation = { -2, 0, -11 };
+    cube4.Transform.Translation = { 2, 0, -15 };
+    cube.Transform.Rotation = glm::quat(glm::vec3(0.0, 45.0, 0.0));
+
+    scene::PointLight redLight;
+    redLight.Position = { 0, 0, -2 };
     redLight.Color = { 1, 0, 0 };
+    redLight.Constant = 1;
+    redLight.Linear = 0.09;
+    redLight.Quadratic = 0.032;
 
-    scene::DirectionalLight greenLight;
-    greenLight.Direction = { 1, 0, -1 };
+    scene::PointLight greenLight;
+    greenLight.Position = { 0, 0, -2 };
     greenLight.Color = { 0, 1, 0 };
+    greenLight.Constant = 1;
+    greenLight.Linear = 0.09;
+    greenLight.Quadratic = 0.032;
 
-    scene::DirectionalLight blueLight;
-    blueLight.Direction = { -1, 0, -1 };
+    scene::PointLight blueLight;
+    blueLight.Position = { 0, 0, -2 };
     blueLight.Color = { 0, 0, 1 };
+    blueLight.Constant = 1;
+    blueLight.Linear = 0.09;
+    blueLight.Quadratic = 0.032;
 
     scene::DirectionalLight whiteLight;
     whiteLight.Direction = { -0.5, 0, -0.3 };
@@ -184,12 +205,17 @@ int main(int argc, char** argv)
 
     scene::RenderScene sceneToRender;
     sceneToRender.StaticGeometry.Add(&cube);
+    sceneToRender.StaticGeometry.Add(&cube1);
+    sceneToRender.StaticGeometry.Add(&cube2);
+    sceneToRender.StaticGeometry.Add(&cube3);
+    sceneToRender.StaticGeometry.Add(&cube4);
     sceneToRender.StaticGeometry.Add(&quad);
     // sceneToRender.Renderables.Add(backPackRenderable);
-    sceneToRender.DirectionalLights.Add(&whiteLight);
-    // sceneToRender.DirectionalLights.Add(&redLight);
-    // sceneToRender.DirectionalLights.Add(&greenLight);
-    // sceneToRender.DirectionalLights.Add(&blueLight);
+    sceneToRender.Lights.Add(&redLight);
+    sceneToRender.Lights.Add(&greenLight);
+    // sceneToRender.Lights.Add(&whiteLight);
+    // sceneToRender.Lights.Add(&blueLight);
+    gpu::SetClearColor(BlackColor);
 
     int currentRotation = 0;
     bool isRunning = true;
@@ -239,12 +265,8 @@ int main(int argc, char** argv)
             }
         }
 
-        gpu::EnableDepthTest();
-        gpu::SetClearColor(BlackColor);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
-
         renderer.Render(&sceneToRender, &renderTarget);
-
         window->Swap();
     }
 
