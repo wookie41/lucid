@@ -138,6 +138,13 @@ int main(int argc, char** argv)
     flatMaterial.SpecularColor = glm::vec3(0.4, 0.2, 0.7);
     flatMaterial.SetCustomShader(blinnPhongShader);
 
+    scene::BlinnPhongMaterial lightMaterial;
+    flatMaterial.Shininess = 32;
+    flatMaterial.DiffuseColor = glm::vec3(1.0, 1.0, 1.0);
+    flatMaterial.SpecularColor = glm::vec3(1.0, 1.0, 1.0);
+    flatMaterial.SetCustomShader(blinnPhongShader);
+
+
     scene::BlinnPhongMapsMaterial quadMaterial;
     quadMaterial.Shininess = 32;
     quadMaterial.DiffuseMap = brickWallDiffuseMap;
@@ -179,18 +186,21 @@ int main(int argc, char** argv)
     cube.Transform.Rotation = glm::quat(glm::vec3(0.0, 45.0, 0.0));
 
     scene::PointLight redLight;
-    redLight.Position = { 0, 0, -2 };
+    redLight.Position = { 2, 0, -2 };
     redLight.Color = { 1, 0, 0 };
     redLight.Constant = 1;
     redLight.Linear = 0.09;
     redLight.Quadratic = 0.032;
 
-    scene::PointLight greenLight;
-    greenLight.Position = { 0, 0, -2 };
+    scene::SpotLight greenLight;
+    greenLight.Position = { 0.5, 0, 5 };
     greenLight.Color = { 0, 1, 0 };
     greenLight.Constant = 1;
     greenLight.Linear = 0.09;
     greenLight.Quadratic = 0.032;
+    greenLight.Direction = {0, 0, -1};
+    greenLight.InnerCutOffRad = glm::radians(10.0);
+    greenLight.OuterCutOffRad = glm::radians(15.0);
 
     scene::PointLight blueLight;
     blueLight.Position = { 0, 0, -2 };

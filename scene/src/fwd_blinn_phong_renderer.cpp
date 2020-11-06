@@ -39,6 +39,15 @@ namespace lucid::scene
     static const String POINT_LIGHT_LINEAR("uPointLight.Linear");
     static const String POINT_LIGHT_QUADRATIC("uPointLight.Quadratic");
 
+    static const String SPOT_LIGHT_POSITION("uSpotLight.Position");
+    static const String SPOT_LIGHT_DIRECTION("uSpotLight.Direction");
+    static const String SPOT_LIGHT_COLOR("uSpotLight.Color");
+    static const String SPOT_LIGHT_CONSTANT("uSpotLight.Constant");
+    static const String SPOT_LIGHT_LINEAR("uSpotLight.Linear");
+    static const String SPOT_LIGHT_QUADRATIC("uSpotLight.Quadratic");
+    static const String SPOT_LIGHT_INNER_CUT_OFF("uSpotLight.InnerCutOffCos");
+    static const String SPOT_LIGHT_OUTER_CUT_OFF("uSpotLight.OuterCutOffCos");
+
     // Shader-wide uniforms
     static const String AMBIENT_STRENGTH("uAmbientStrength");
 
@@ -70,10 +79,8 @@ namespace lucid::scene
         gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
 
         gpu::EnableBlending();
-        gpu::SetBlendFunctionSeparate(
-            gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, 
-            gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO
-        );
+        gpu::SetBlendFunctionSeparate(gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, gpu::BlendFunction::ONE,
+                                      gpu::BlendFunction::ZERO);
 
         auto lightNode = &SceneToRender->Lights.Head;
         if (!lightNode->Element)
@@ -87,10 +94,8 @@ namespace lucid::scene
         RenderLightContribution(lightNode->Element, SceneToRender, Target);
 
         // Change the blending mode so we render the lights additively
-        gpu::SetBlendFunctionSeparate(
-            gpu::BlendFunction::ONE, gpu::BlendFunction::ONE, 
-            gpu::BlendFunction::ONE, gpu::BlendFunction::ONE
-        );
+        gpu::SetBlendFunctionSeparate(gpu::BlendFunction::ONE, gpu::BlendFunction::ONE, gpu::BlendFunction::ONE,
+                                      gpu::BlendFunction::ONE);
 
         lightNode = lightNode->Next;
 
@@ -160,7 +165,16 @@ namespace lucid::scene
         break;
         case LightType::SPOT:
         {
-            PointLight* light = (PointLight*)InLight;
+            SpotLight* light = (SpotLight*)InLight;
+            Shader->SetInt(Shader->GetIdForUniform(LIGHT_TO_USE), SPOT_LIGHT);
+            Shader->SetVector(Shader->GetIdForUniform(SPOT_LIGHT_POSITION), light->Position);
+            Shader->SetVector(Shader->GetIdForUniform(SPOT_LIGHT_DIRECTION), light->Direction);
+            Shader->SetVector(Shader->GetIdForUniform(SPOT_LIGHT_COLOR), light->Color);
+            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_CONSTANT), light->Constant);
+            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_LINEAR), light->Linear);
+            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_QUADRATIC), light->Quadratic);
+            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_INNER_CUT_OFF), glm::cos(light->InnerCutOffRad));
+            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_OUTER_CUT_OFF), glm::cos(light->OuterCutOffRad));
         }
         break;
         }
