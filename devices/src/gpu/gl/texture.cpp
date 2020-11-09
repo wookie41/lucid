@@ -58,8 +58,7 @@ namespace lucid::gpu
 
         case TextureType::TWO_DIMENSIONAL:
             glBindTexture(GL_TEXTURE_2D, textureHandle);
-            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, 0, DataFormat, DataType,
-                         TextureData);
+            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, 0, DataFormat, DataType, TextureData);
 
             if (TextureData)
             {
@@ -104,7 +103,7 @@ namespace lucid::gpu
                 internalFormat = GL_SRGB;
                 break;
             case GL_RGBA:
-                internalFormat = GL_SRGB8_ALPHA8;
+                internalFormat = GL_SRGB_ALPHA;
                 break;
             default:
                 break;

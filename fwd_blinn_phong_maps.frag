@@ -59,15 +59,15 @@ uniform SpotLight uSpotLight;
 
 uniform vec3 uViewPos;
 
-vec3 CalculateDirectionalLightContribution(vec3 ToView,
-                                           vec3 FragNormal,
+vec3 CalculateDirectionalLightContribution(in vec3 ToView,
+                                           in vec3 FragNormal,
                                            in vec3 FragDiffuseColor,
                                            in vec3 FragSpecularColor,
-                                           vec3 LightDir,
-                                           vec3 LightColor);
+                                           in vec3 LightDir,
+                                           in vec3 LightColor);
 
-vec3 CalculatePointLightContribution(vec3 ToView,
-                                     vec3 Normal,
+vec3 CalculatePointLightContribution(in vec3 ToView,
+                                     in vec3 Normal,
                                      in vec3 LightPos,
                                      in vec3 LightColor,
                                      in vec3 LightDir,
@@ -77,13 +77,13 @@ vec3 CalculatePointLightContribution(vec3 ToView,
                                      in vec3 FragDiffuseColor,
                                      in vec3 FragSpecularColor);
 
-vec3 CalculateSpotLightContribution(vec3 ToView, vec3 Normal, in vec3 FragDiffuseColor, in vec3 FragSpecularColor);
+vec3 CalculateSpotLightContribution(in vec3 ToView, in vec3 Normal, in vec3 FragDiffuseColor, in vec3 FragSpecularColor);
 
 out vec4 oFragColor;
 
 void main()
 {
-    vec3 toView = normalize(uViewPos - fsIn.FragPos);
+    vec3 toView = uViewPos - fsIn.FragPos;
 
     vec3 normal = fsIn.TBN * normalize((texture(uMaterial.NormalMap, fsIn.TextureCoords).rgb * 2) - 1);
     vec3 diffuseColor = texture(uMaterial.DiffuseMap, fsIn.TextureCoords).rgb;
@@ -111,27 +111,28 @@ void main()
     oFragColor = vec4(fragColor, 1.0);
 }
 
-vec3 CalculateDirectionalLightContribution(vec3 ToView,
-                                           vec3 Normal,
+vec3 CalculateDirectionalLightContribution(in vec3 ToView,
+                                           in vec3 Normal,
                                            in vec3 FragDiffuseColor,
                                            in vec3 FragSpecularColor,
-                                           vec3 LightDir,
-                                           vec3 LightColor)
+                                           in vec3 LightDir,
+                                           in vec3 LightColor)
 {
-    vec3 toLightDir = normalize(-LightDir);
+    vec3 toLightDirN = normalize(-LightDir);
+    vec3 toViewN = normalize(ToView);
 
-    float diffuseStrength = max(dot(Normal, toLightDir), 0.0);
+    float diffuseStrength = max(dot(Normal, toLightDirN), 0.0);
     vec3 diffuse = diffuseStrength * FragDiffuseColor * LightColor;
 
-    vec3 reflectedLightDir = reflect(-toLightDir, Normal);
-    float specularStrength = pow(max(dot(ToView, reflectedLightDir), 0.0), uMaterial.Shininess);
+    vec3 halfWay = normalize(ToView + (-LightDir));
+    float specularStrength = pow(max(dot(Normal, halfWay), 0.0), uMaterial.Shininess);
     vec3 specular = specularStrength * FragSpecularColor * LightColor;
 
     return diffuse + specular;
 }
 
-vec3 CalculatePointLightContribution(vec3 ToView,
-                                     vec3 Normal,
+vec3 CalculatePointLightContribution(in vec3 ToView,
+                                     in vec3 Normal,
                                      in vec3 LightPos,
                                      in vec3 LightColor,
                                      in vec3 LightDir,
@@ -142,11 +143,11 @@ vec3 CalculatePointLightContribution(vec3 ToView,
                                      in vec3 FragSpecularColor)
 {
     float distanceToLight = length(fsIn.FragPos - LightPos);
-    vec3 color = CalculateDirectionalLightContribution(ToView, Normal, FragDiffuseColor, FragDiffuseColor, LightDir, LightColor);
+    vec3 color = CalculateDirectionalLightContribution(ToView, Normal, FragDiffuseColor, FragSpecularColor, LightDir, LightColor);
     return color * (1.0 / (Constant + (Linear * distanceToLight) + (Quadratic * (distanceToLight * distanceToLight))));
 }
 
-vec3 CalculateSpotLightContribution(vec3 ToView, vec3 Normal, in vec3 FragDiffuseColor, in vec3 FragSpecularColor)
+vec3 CalculateSpotLightContribution(in vec3 ToView, in vec3 Normal, in vec3 FragDiffuseColor, in vec3 FragSpecularColor)
 {
     vec3 toLight = normalize(uSpotLight.Position - fsIn.FragPos);
     vec3 lightDir = normalize(uSpotLight.Direction);

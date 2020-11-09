@@ -75,6 +75,11 @@ namespace lucid::gpu
 
     ///////////////////////////////////////
 
+    ///////////// sRGB //////////////////////
+
+    void EnableSRGBFramebuffer();
+    void DisableSRGBFramebuffer();
+
     /////////////// GPU Info ///////////////
 
     // Queries the GPU for it's properties, like the maximum number of samplers

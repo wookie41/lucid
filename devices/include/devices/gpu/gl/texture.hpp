@@ -14,6 +14,8 @@ namespace lucid::gpu
 
         virtual glm::ivec3 GetDimensions() const override;
 
+        virtual glm::ivec2 GetSize() const override { return { dimensions.x, dimensions.y }; }
+
         virtual void Bind() override;
 
         virtual void SetMinFilter(const MinTextureFilter& Filter) override;

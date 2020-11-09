@@ -9,6 +9,7 @@ namespace lucid::platform
         char const* title;
         uint16_t x, y;
         uint16_t width, height;
+        bool sRGBFramebuffer;
     };
 
     class Window

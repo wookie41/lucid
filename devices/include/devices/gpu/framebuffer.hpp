@@ -1,7 +1,8 @@
 #pragma once
 
 #include <cstdint>
-
+#include "misc/math.h"
+#include "glm/glm.hpp"
 namespace lucid::gpu
 {
     // we should query the GPU for it
@@ -18,6 +19,8 @@ namespace lucid::gpu
     {
       public:
         virtual void Bind() = 0;
+
+        virtual glm::ivec2 GetSize() const = 0;
 
         virtual void AttachAsColor(const uint8_t& Index) = 0;
         virtual void AttachAsStencil() = 0;
@@ -47,6 +50,8 @@ namespace lucid::gpu
     class Framebuffer
     {
       public:
+        virtual glm::ivec2 GetColorAttachmentSize(const uint8_t& Idx = 0) const = 0;
+
         virtual void SetupDrawBuffers(const uint8_t& NumOfBuffers) = 0;
         virtual void EnableDrawBuffer(const uint8_t& BufferIndex, const int8_t& AttachmentIndex) = 0;
         virtual void DisableDrawBuffer(const uint8_t& BufferIndex) = 0;
@@ -55,19 +60,24 @@ namespace lucid::gpu
 
         virtual void Bind(const FramebufferBindMode& Mode) = 0;
 
-        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex,
-                                          FramebufferAttachment* AttachmentToUse) = 0;
+        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex, FramebufferAttachment* AttachmentToUse) = 0;
         virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) = 0;
         virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;
         virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;
-
 
         virtual ~Framebuffer() = default;
         //@TODO Attaching cubemap's faces as color attachments
     };
 
     Framebuffer* CreateFramebuffer();
-    Renderbuffer*
-    CreateRenderbuffer(const RenderbufferFormat& Format, const uint32_t& Width, const uint32_t& Height);
+    Renderbuffer* CreateRenderbuffer(const RenderbufferFormat& Format, const glm::ivec2& Size);
+
+    void BlitFramebuffer(Framebuffer* Source,
+                         Framebuffer* Destination,
+                         const bool& Color,
+                         const bool& Depth,
+                         const bool& Stencil,
+                         const misc::IRectangle& SrcRect,
+                         const misc::IRectangle& DestRect);
 
 } // namespace lucid::gpu

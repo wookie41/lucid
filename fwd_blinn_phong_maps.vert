@@ -30,12 +30,11 @@ void main()
     T = normalize(T - (dot(T, N) * N)); // make them orthonormal
     vec3 B = normalize(cross(N, T));
 
-    mat3 TBN = mat3(T, B, N);
     vec4 worldPos = uModel * vec4(aPosition, 1);
 
     vsOut.FragPos = worldPos.xyz;
     vsOut.TextureCoords = aTextureCoords;
-    vsOut.TBN = TBN;
+    vsOut.TBN = mat3(T, B, N);
 
     gl_Position = uProjection * uView * worldPos;
 }

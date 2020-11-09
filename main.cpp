@@ -38,13 +38,13 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    platform::Window* window = platform::CreateWindow({ "Lucid", 900, 420, 800, 600 });
+    platform::Window* window = platform::CreateWindow({ "Lucid", 900, 420, 800, 600, true });
     misc::InitBasicShapes();
     resources::InitTextures();
 
     gpu::Texture* colorAttachment =
       gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(), gpu::TextureFormat::RGBA, 0);
-    gpu::FramebufferAttachment* renderbuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, 800, 600);
+    gpu::FramebufferAttachment* renderbuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, { 800, 600 });
     gpu::Framebuffer* testFramebuffer = gpu::CreateFramebuffer();
 
     renderbuffer->Bind();
@@ -61,16 +61,10 @@ int main(int argc, char** argv)
 
     // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
-    resources::TextureResource* crateDiffuseMapResource = resources::LoadPNG("assets/textures/crate-diffuse-map.png");
-    resources::TextureResource* crateSpecularMapResource = resources::LoadPNG("assets/textures/crate-specular-map.png");
+    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true);
+    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG("assets/textures/brick-normal-map.png", true);
 
-    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg");
-    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG("assets/textures/brick-normal-map.png");
-
-    resources::TextureResource* blankTextureResource = resources::LoadPNG("assets/textures/blank.png");
-
-    crateDiffuseMapResource->FreeMainMemory();
-    crateSpecularMapResource->FreeMainMemory();
+    resources::TextureResource* blankTextureResource = resources::LoadPNG("assets/textures/blank.png", true);
 
     brickWallDiffuseMapResource->FreeMainMemory();
     brickWallNormalMapResource->FreeMainMemory();
@@ -79,23 +73,12 @@ int main(int argc, char** argv)
 
     // backPackMesh->FreeMainMemory();
 
-    auto crateDiffuseMap = crateDiffuseMapResource->TextureHandle;
-    auto crateSpecularMap = crateSpecularMapResource->TextureHandle;
-
     auto brickWallDiffuseMap = brickWallDiffuseMapResource->TextureHandle;
     auto brickWallNormalMap = brickWallNormalMapResource->TextureHandle;
 
     auto blankTextureMap = blankTextureResource->TextureHandle;
 
     // auto backpackVao = backPackMesh->VAO;
-
-    crateDiffuseMap->Bind();
-    crateDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    crateDiffuseMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
-
-    crateSpecularMap->Bind();
-    crateSpecularMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    crateSpecularMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
 
     brickWallDiffuseMap->Bind();
     brickWallDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
@@ -129,13 +112,13 @@ int main(int argc, char** argv)
 
     scene::RenderTarget renderTarget;
     renderTarget.Camera = &perspectiveCamera;
-    renderTarget.Framebuffer = nullptr;
+    renderTarget.Framebuffer = testFramebuffer;
     renderTarget.Viewport = windowViewport;
 
     scene::BlinnPhongMaterial flatMaterial;
     flatMaterial.Shininess = 32;
-    flatMaterial.DiffuseColor = glm::vec3(0.4, 0.2, 0.7);
-    flatMaterial.SpecularColor = glm::vec3(0.4, 0.2, 0.7);
+    flatMaterial.DiffuseColor = glm::vec3(1.0, 0.0, 0.0);
+    flatMaterial.SpecularColor = glm::vec3(1.0, 0.0, 0.0);
     flatMaterial.SetCustomShader(blinnPhongShader);
 
     scene::BlinnPhongMaterial lightMaterial;
@@ -144,18 +127,11 @@ int main(int argc, char** argv)
     flatMaterial.SpecularColor = glm::vec3(1.0, 1.0, 1.0);
     flatMaterial.SetCustomShader(blinnPhongShader);
 
-
     scene::BlinnPhongMapsMaterial quadMaterial;
     quadMaterial.Shininess = 32;
     quadMaterial.DiffuseMap = brickWallDiffuseMap;
     quadMaterial.SpecularMap = blankTextureMap;
     quadMaterial.NormalMap = brickWallNormalMap;
-
-    scene::BlinnPhongMapsMaterial cubeMaterial;
-    cubeMaterial.Shininess = 32;
-    cubeMaterial.DiffuseMap = crateDiffuseMap;
-    cubeMaterial.SpecularMap = crateSpecularMap;
-    cubeMaterial.NormalMap = blankTextureMap;
 
     scene::Renderable quad{ "Quad" };
     quad.Transform.Translation = { -2, 0, -4 };
@@ -186,31 +162,31 @@ int main(int argc, char** argv)
     cube.Transform.Rotation = glm::quat(glm::vec3(0.0, 45.0, 0.0));
 
     scene::PointLight redLight;
-    redLight.Position = { 2, 0, -2 };
+    redLight.Position = { 2, 0, 0 };
     redLight.Color = { 1, 0, 0 };
     redLight.Constant = 1;
     redLight.Linear = 0.09;
     redLight.Quadratic = 0.032;
 
     scene::SpotLight greenLight;
-    greenLight.Position = { 0.5, 0, 5 };
+    greenLight.Position = { 0, 0, 1 };
     greenLight.Color = { 0, 1, 0 };
     greenLight.Constant = 1;
     greenLight.Linear = 0.09;
     greenLight.Quadratic = 0.032;
-    greenLight.Direction = {0, 0, -1};
-    greenLight.InnerCutOffRad = glm::radians(10.0);
-    greenLight.OuterCutOffRad = glm::radians(15.0);
+    greenLight.Direction = { 0, 0, -1 };
+    greenLight.InnerCutOffRad = glm::radians(30.0);
+    greenLight.OuterCutOffRad = glm::radians(35.0);
 
     scene::PointLight blueLight;
-    blueLight.Position = { 0, 0, -2 };
+    blueLight.Position = { -2, 0, 0 };
     blueLight.Color = { 0, 0, 1 };
     blueLight.Constant = 1;
     blueLight.Linear = 0.09;
     blueLight.Quadratic = 0.032;
 
     scene::DirectionalLight whiteLight;
-    whiteLight.Direction = { -0.5, 0, -0.3 };
+    whiteLight.Direction = { 0, 0, -1 };
     whiteLight.Color = { 1, 1, 1 };
 
     scene::RenderScene sceneToRender;
@@ -223,8 +199,8 @@ int main(int argc, char** argv)
     // sceneToRender.Renderables.Add(backPackRenderable);
     sceneToRender.Lights.Add(&redLight);
     sceneToRender.Lights.Add(&greenLight);
+    sceneToRender.Lights.Add(&blueLight);
     // sceneToRender.Lights.Add(&whiteLight);
-    // sceneToRender.Lights.Add(&blueLight);
     gpu::SetClearColor(BlackColor);
 
     int currentRotation = 0;
@@ -275,8 +251,19 @@ int main(int argc, char** argv)
             }
         }
 
+        renderTarget.Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
+        gpu::DisableSRGBFramebuffer();
         renderer.Render(&sceneToRender, &renderTarget);
+
+        gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
+        gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
+        gpu::EnableSRGBFramebuffer();
+        gpu::BlitFramebuffer(
+          renderTarget.Framebuffer, nullptr, true, false, false,
+          { 0, 0, renderTarget.Framebuffer->GetColorAttachmentSize().x, renderTarget.Framebuffer->GetColorAttachmentSize().y },
+          { 0, 0, window->GetWidth(), window->GetHeight() });
+
         window->Swap();
     }
 

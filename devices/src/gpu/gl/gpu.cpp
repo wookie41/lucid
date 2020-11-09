@@ -95,16 +95,18 @@ namespace lucid::gpu
                             TO_GL_BLEND(DstAlphaFunction));
     }
 
+    void EnableBlending() { glEnable(GL_BLEND); }
 
-    void EnableBlending()
-    {
-        glEnable(GL_BLEND);
-    }
-
-    void DisableBlending()
-    {
-        glDisable(GL_BLEND);
-    }
+    void DisableBlending() { glDisable(GL_BLEND); }
 
     //////////////////////////////////////////////////////
+
+    // SRGB
+
+    void EnableSRGBFramebuffer() { glEnable(GL_FRAMEBUFFER_SRGB); }
+
+    void DisableSRGBFramebuffer() { glDisable(GL_FRAMEBUFFER_SRGB); }
+
+    //////////////////////////////////////////////////////
+
 } // namespace lucid::gpu

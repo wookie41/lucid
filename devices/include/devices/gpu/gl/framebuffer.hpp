@@ -9,12 +9,11 @@ namespace lucid::gpu
     class GLRenderbuffer : public Renderbuffer
     {
       public:
-        GLRenderbuffer(const GLuint& GLRBOHandle,
-                       const RenderbufferFormat& Format,
-                       const uint32_t& Width,
-                       const uint32_t& Height);
+        GLRenderbuffer(const GLuint& GLRBOHandle, const RenderbufferFormat& Format, const glm::ivec2& Size);
 
         virtual void Bind() override;
+
+        virtual glm::ivec2 GetSize() const override{ return size; };
 
         virtual void AttachAsColor(const uint8_t& Index) override;
         virtual void AttachAsStencil() override;
@@ -25,7 +24,7 @@ namespace lucid::gpu
 
       private:
         RenderbufferFormat format;
-        uint32_t width, height;
+        glm::ivec2 size;
         GLuint glRBOHandle;
     };
 
@@ -33,6 +32,12 @@ namespace lucid::gpu
     {
       public:
         GLFramebuffer(const GLuint& GLFBOHandle);
+
+        virtual glm::ivec2 GetColorAttachmentSize(const uint8_t& Idx = 0) const override
+        {
+            assert(colorAttachments[Idx]);
+            return colorAttachments[Idx]->GetSize();
+        }
 
         virtual void SetupDrawBuffers(const uint8_t& NumOfBuffers) override;
 
@@ -43,8 +48,7 @@ namespace lucid::gpu
 
         virtual void Bind(const FramebufferBindMode& Mode) override;
 
-        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex,
-                                          FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex, FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
@@ -53,6 +57,7 @@ namespace lucid::gpu
 
       private:
         GLuint glFBOHandle;
+        glm::ivec2 size;
 
         bool isComplete = false;
         bool isDirty = true;
