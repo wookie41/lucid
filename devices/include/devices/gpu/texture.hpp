@@ -5,6 +5,12 @@
 
 namespace lucid::gpu
 {
+    enum class TextureDataType : uint8_t
+    {
+        UNSIGNED_BYTE,
+        FLOAT
+    };
+
     enum class TextureType : uint8_t
     {
         ONE_DIMENSIONAL,
@@ -59,9 +65,11 @@ namespace lucid::gpu
     Texture* Create2DTexture(void* Data,
                              const uint32_t& Width,
                              const uint32_t& Height,
+                             const TextureDataType& DataType,
                              const TextureFormat& Format,
                              const int32_t& MipMapLevel,
                              const bool& PerformGammaCorrection);
 
-    Texture* CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const TextureFormat& Format, const int32_t& MipMapLevel);
+    Texture*
+    CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const TextureDataType& DataType, const TextureFormat& Format, const int32_t& MipMapLevel);
 } // namespace lucid::gpu

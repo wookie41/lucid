@@ -42,8 +42,8 @@ int main(int argc, char** argv)
     misc::InitBasicShapes();
     resources::InitTextures();
 
-    gpu::Texture* colorAttachment =
-      gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(), gpu::TextureFormat::RGBA, 0);
+    gpu::Texture* colorAttachment = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(),
+                                                              gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA,     0);
     gpu::FramebufferAttachment* renderbuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, { 800, 600 });
     gpu::Framebuffer* testFramebuffer = gpu::CreateFramebuffer();
 
@@ -61,10 +61,10 @@ int main(int argc, char** argv)
 
     // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
-    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true);
-    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG("assets/textures/brick-normal-map.png", true);
+    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG("assets/textures/brick-normal-map.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
 
-    resources::TextureResource* blankTextureResource = resources::LoadPNG("assets/textures/blank.png", true);
+    resources::TextureResource* blankTextureResource = resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
 
     brickWallDiffuseMapResource->FreeMainMemory();
     brickWallNormalMapResource->FreeMainMemory();
@@ -95,11 +95,11 @@ int main(int argc, char** argv)
     window->Prepare();
     window->Show();
 
-    gpu::Shader* blinnPhongShader = gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong.vert", true) },
-                                                              { platform::ReadFile("fwd_blinn_phong.frag", true) });
+    gpu::Shader* blinnPhongShader = gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/fwd_blinn_phong.vert", true) },
+                                                              { platform::ReadFile("shaders/glsl/fwd_blinn_phong.frag", true) });
 
-    gpu::Shader* blinnPhongMapsShader = gpu::CompileShaderProgram({ platform::ReadFile("fwd_blinn_phong_maps.vert", true) },
-                                                                  { platform::ReadFile("fwd_blinn_phong_maps.frag", true) });
+    gpu::Shader* blinnPhongMapsShader = gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true) },
+                                                                  { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true) });
 
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
     gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };

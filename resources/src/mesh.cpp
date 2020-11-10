@@ -327,7 +327,7 @@ namespace lucid::resources
             return TexturesHolder.Get((char*)texturePath);
         }
 
-        auto textureMap = IsPNGFormat ? LoadPNG((char*)texturePath, false) : LoadJPEG((char*)texturePath, false);
+        auto textureMap = IsPNGFormat ? LoadPNG((char*)texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE) : LoadJPEG((char*)texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE);
         if (textureMap == nullptr)
         {
             textureMap = TexturesHolder.GetDefaultResource();

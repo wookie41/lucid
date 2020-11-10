@@ -6,7 +6,7 @@
 #define TO_GL_MIN_FILTER(gl_filters) (GL_MIN_FILTERS_MAPPING[(uint8_t)gl_filters])
 #define TO_GL_MAG_FILTER(gl_filters) (GL_MAG_FILTERS_MAPPING[(uint8_t)gl_filters])
 #define TO_GL_WRAP_FILTER(gl_filters) (GL_WRAP_FILTERS_MAPPING[(uint8_t)gl_filters])
-
+#define TO_GL_TEXTURE_DATA_TYPE(type) (GL_TEXTURE_DATA_TYPE_MAPPING[static_cast<uint8_t>(type)])
 namespace lucid::gpu
 {
     static GLenum GL_MIN_FILTERS_MAPPING[] = { GL_NEAREST,
@@ -18,6 +18,7 @@ namespace lucid::gpu
 
     static GLenum GL_MAG_FILTERS_MAPPING[] = { GL_NEAREST, GL_LINEAR };
     static GLenum GL_WRAP_FILTERS_MAPPING[] = { GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, GL_REPEAT };
+    static GLenum GL_TEXTURE_DATA_TYPE_MAPPING[] = { GL_UNSIGNED_BYTE, GL_FLOAT };
 
     static inline GLenum toGLTextureFormat(const TextureFormat& Format)
     {
@@ -58,7 +59,8 @@ namespace lucid::gpu
 
         case TextureType::TWO_DIMENSIONAL:
             glBindTexture(GL_TEXTURE_2D, textureHandle);
-            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, 0, DataFormat, DataType, TextureData);
+            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, 0, DataFormat, DataType,
+                         TextureData);
 
             if (TextureData)
             {
@@ -88,6 +90,7 @@ namespace lucid::gpu
     Texture* Create2DTexture(void* Data,
                              const uint32_t& Width,
                              const uint32_t& Height,
+                             const TextureDataType& DataType,
                              const TextureFormat& Format,
                              const int32_t& MipMapLevel,
                              const bool& PerformGammaCorrection)
@@ -111,17 +114,20 @@ namespace lucid::gpu
         }
 
         GLuint textureHandle = CreateGLTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
-                                               GL_UNSIGNED_BYTE, dataFormat, internalFormat, Data);
+                                               TO_GL_TEXTURE_DATA_TYPE(DataType), dataFormat, internalFormat, Data);
 
         return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 });
     }
 
-    Texture*
-    CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const TextureFormat& Format, const int32_t& MipMapLevel)
+    Texture* CreateEmpty2DTexture(const uint32_t& Width,
+                                  const uint32_t& Height,
+                                  const TextureDataType& DataType,
+                                  const TextureFormat& Format,
+                                  const int32_t& MipMapLevel)
     {
         GLenum dataFormat = toGLTextureFormat(Format);
         GLuint textureHandle = CreateGLTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
-                                               GL_UNSIGNED_BYTE, dataFormat, dataFormat, nullptr);
+                                               TO_GL_TEXTURE_DATA_TYPE(DataType), dataFormat, dataFormat, nullptr);
 
         return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 });
     }

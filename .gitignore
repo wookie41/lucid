@@ -41,3 +41,5 @@ obj
 lucid.vcxproj.user
 lucid.make
 Makefile
+shaders/glsl/*.frag
+shaders/glsl/*.vert

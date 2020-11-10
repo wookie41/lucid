@@ -1,9 +1,5 @@
 #version 330 core
 
-#define DIRECTIONAL_LIGHT 1
-#define POINT_LIGHT 2
-#define SPOT_LIGHT 3
-
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec3 aTangent;
