@@ -91,6 +91,7 @@ namespace lucid::gpu
     class Renderbuffer;
     class Buffer;
     class VertexArray;
+    class Cubemap;
 
     struct GPUInfo
     {
@@ -98,6 +99,7 @@ namespace lucid::gpu
         Framebuffer* CurrentReadFramebuffer = nullptr;
         Framebuffer* CurrentWriteFramebuffer = nullptr;
 
+        Cubemap* CurrentCubemap = nullptr;
         Shader* CurrentShader = nullptr;
         Texture** BoundTextures = nullptr;
         Renderbuffer* CurrentRenderbuffer;

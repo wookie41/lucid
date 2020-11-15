@@ -9,6 +9,7 @@ namespace lucid::gpu
     {
       public:
         GLTexture(const GLuint& TextureID, const TextureType& Type, const glm::ivec3& TextureDimensions);
+        GLTexture(const GLuint& TextureID, const glm::ivec3& Dimensions, const GLenum& TextureTaget);
 
         // Texture methods //
 
@@ -22,6 +23,7 @@ namespace lucid::gpu
         virtual void SetMagFilter(const MagTextureFilter& Filter) override;
         virtual void SetWrapSFilter(const WrapTextureFilter& Filter) override;
         virtual void SetWrapTFilter(const WrapTextureFilter& Filter) override;
+        virtual void SetWrapRFilter(const WrapTextureFilter& Filter) override;
 
         ///////////////////////////
 
@@ -39,7 +41,7 @@ namespace lucid::gpu
 
       private:
         glm::ivec3 dimensions;
-        GLenum textureType;
+        GLenum glTextureTarget;
         GLuint glTextureHandle;
     };
 } // namespace lucid::gpu

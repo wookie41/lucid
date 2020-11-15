@@ -28,8 +28,8 @@ namespace lucid::resources
         const gpu::TextureFormat Format;
     };
 
-    TextureResource* LoadJPEG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType);
-    TextureResource* LoadPNG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType);
+    TextureResource* LoadJPEG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& SendToGPU = true);
+    TextureResource* LoadPNG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& SendToGPU = true);
 
     extern ResourcesHolder<TextureResource> TexturesHolder;
 } // namespace lucid::resources

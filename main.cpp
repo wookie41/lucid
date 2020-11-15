@@ -20,10 +20,11 @@
 #include "scene/renderable.hpp"
 #include "scene/lights.hpp"
 #include "stb_init.hpp"
-#include <time.h>
 #include "resources/texture.hpp"
 #include "resources/mesh.hpp"
 #include "GL/glew.h"
+#include <time.h>
+#include "devices/gpu/cubemap.hpp"
 
 using namespace lucid;
 
@@ -38,12 +39,16 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    // create window
+
     platform::Window* window = platform::CreateWindow({ "Lucid", 900, 420, 800, 600, true });
     misc::InitBasicShapes();
     resources::InitTextures();
 
+    // Create a framebuffer and it's attachments
+
     gpu::Texture* colorAttachment = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(),
-                                                              gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA,     0);
+                                                              gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
     gpu::FramebufferAttachment* renderbuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, { 800, 600 });
     gpu::Framebuffer* testFramebuffer = gpu::CreateFramebuffer();
 
@@ -59,12 +64,17 @@ int main(int argc, char** argv)
 
     gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
 
+    // Load textures uesd in the demo scene
+
     // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
-    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE);
-    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG("assets/textures/brick-normal-map.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    resources::TextureResource* brickWallDiffuseMapResource =
+      resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    resources::TextureResource* brickWallNormalMapResource =
+      resources::LoadJPEG("assets/textures/brick-normal-map.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
 
-    resources::TextureResource* blankTextureResource = resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    resources::TextureResource* blankTextureResource =
+      resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
 
     brickWallDiffuseMapResource->FreeMainMemory();
     brickWallNormalMapResource->FreeMainMemory();
@@ -95,11 +105,16 @@ int main(int argc, char** argv)
     window->Prepare();
     window->Show();
 
+    // Load and compile demo shaders
+
     gpu::Shader* blinnPhongShader = gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/fwd_blinn_phong.vert", true) },
                                                               { platform::ReadFile("shaders/glsl/fwd_blinn_phong.frag", true) });
 
-    gpu::Shader* blinnPhongMapsShader = gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true) },
-                                                                  { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true) });
+    gpu::Shader* blinnPhongMapsShader =
+      gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true) },
+                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true) });
+
+    // Prepare the scene
 
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
     gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
@@ -201,7 +216,22 @@ int main(int argc, char** argv)
     sceneToRender.Lights.Add(&greenLight);
     sceneToRender.Lights.Add(&blueLight);
     // sceneToRender.Lights.Add(&whiteLight);
+
     gpu::SetClearColor(BlackColor);
+
+    // Load the skybox
+
+    char* skyboxFacesPaths[] = { "assets/skybox/right.jpg", "assets/skybox/left.jpg", "assets/skybox/top.jpg", "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
+    const char* skyboxFacesData[6];
+    resources::TextureResource* textureResources[6];
+    for (uint8_t face = 0; face < 6; ++face)
+    {
+        textureResources[face] = resources::LoadJPEG(skyboxFacesPaths[face], true, gpu::TextureDataType::UNSIGNED_BYTE, false);
+        skyboxFacesData[face] = (char*)textureResources[face]->TextureData;
+    }
+
+    gpu::Cubemap* skyboxCubemap = gpu::CreateCubemap({ 2048, 2048 }, gpu::TextureFormat::SRGB, gpu::TextureFormat::RGB,
+                                                     gpu::TextureDataType::UNSIGNED_BYTE, skyboxFacesData);
 
     int currentRotation = 0;
     bool isRunning = true;

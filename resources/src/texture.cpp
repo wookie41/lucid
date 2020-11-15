@@ -12,7 +12,8 @@ namespace lucid::resources
     TextureResource* LoadTextureSTB(const String& TexturePath,
                                     const bool& IsTransparent,
                                     const bool& PerformGammaCorrection,
-                                    const gpu::TextureDataType& DataType)
+                                    const gpu::TextureDataType& DataType,
+                                    const bool& SendToGPU)
     {
         int desiredChannels = IsTransparent ? 4 : 3;
         uint32_t channels;
@@ -21,10 +22,13 @@ namespace lucid::resources
         stbi_uc* textureData = stbi_load(TexturePath, (int*)&Width, (int*)&Height, (int*)&channels, desiredChannels);
         assert(channels == desiredChannels);
 
-        gpu::Texture* textureHandle =
-          gpu::Create2DTexture(textureData, Width, Height, DataType,
-                               IsTransparent ? gpu::TextureFormat::RGBA : gpu::TextureFormat::RGB, 0, PerformGammaCorrection);
-        assert(textureHandle);
+        gpu::Texture* textureHandle = nullptr;
+        if (SendToGPU)
+        {
+            textureHandle = gpu::Create2DTexture(textureData, Width, Height, DataType,
+                                   IsTransparent ? gpu::TextureFormat::RGBA : gpu::TextureFormat::RGB, 0, PerformGammaCorrection);
+            assert(textureHandle);
+        }
 
         return new TextureResource{ (void*)textureData,
                                     textureHandle,
@@ -43,16 +47,19 @@ namespace lucid::resources
 
         texturesInitialized = true;
 
-        TexturesHolder.SetDefaultResource(LoadTextureSTB("assets/textures/awesomeface.png", true, true, gpu::TextureDataType::UNSIGNED_BYTE));
+        TexturesHolder.SetDefaultResource(
+          LoadTextureSTB("assets/textures/awesomeface.png", true, true, gpu::TextureDataType::UNSIGNED_BYTE, true));
     }
 
-    TextureResource* LoadJPEG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType)
+    TextureResource*
+    LoadJPEG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& SendToGPU)
     {
-        return LoadTextureSTB(Path, false, PerformGammaCorrection, DataType);
+        return LoadTextureSTB(Path, false, PerformGammaCorrection, DataType, SendToGPU);
     }
-    TextureResource* LoadPNG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType)
+    TextureResource*
+    LoadPNG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& SendToGPU)
     {
-        return LoadTextureSTB(Path, true, PerformGammaCorrection, DataType);
+        return LoadTextureSTB(Path, true, PerformGammaCorrection, DataType, SendToGPU);
     }
 
     TextureResource::TextureResource(void* Data,

@@ -44,7 +44,10 @@ namespace lucid::gpu
     enum class TextureFormat : uint8_t
     {
         RGB,
-        RGBA
+        RGBA,
+        SRGB,
+        SRGBA,
+        RGB16F
     };
 
     class Texture : public FramebufferAttachment
@@ -57,6 +60,7 @@ namespace lucid::gpu
         virtual void SetMagFilter(const MagTextureFilter& Filter) = 0;
         virtual void SetWrapSFilter(const WrapTextureFilter& Filter) = 0;
         virtual void SetWrapTFilter(const WrapTextureFilter& Filter) = 0;
+        virtual void SetWrapRFilter(const WrapTextureFilter& Filter) = 0;
 
         virtual void Free() = 0;
         virtual ~Texture() = default;
