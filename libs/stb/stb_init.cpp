@@ -7,6 +7,5 @@
 
 void InitSTB() 
 {
-     stbi_set_flip_vertically_on_load(true);
      stbds_rand_seed(rand()); 
 }

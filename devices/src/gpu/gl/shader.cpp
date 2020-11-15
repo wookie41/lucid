@@ -90,7 +90,7 @@ namespace lucid::gpu
             glGetActiveUniform(shaderProgramID, uniformIdx, MAX_UNIFORM_VARIABLE_NAME_LENGTH, &uniformNameLength, &uniformSize,
                                &uniformType, uniformNameBuff);
 
-            if (uniformType == GL_SAMPLER_1D || uniformType == GL_SAMPLER_2D || uniformType == GL_SAMPLER_3D)
+            if (uniformType == GL_SAMPLER_1D || uniformType == GL_SAMPLER_2D || uniformType == GL_SAMPLER_3D || uniformType == GL_SAMPLER_CUBE)
             {
                 textureBindings.Add({ uniformIdx, CopyToString(uniformNameBuff), texturesCount++ });
                 continue;

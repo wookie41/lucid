@@ -13,11 +13,14 @@ namespace lucid::resources
                                     const bool& IsTransparent,
                                     const bool& PerformGammaCorrection,
                                     const gpu::TextureDataType& DataType,
+                                    const bool& FlipY,
                                     const bool& SendToGPU)
     {
         int desiredChannels = IsTransparent ? 4 : 3;
         uint32_t channels;
         uint32_t Width, Height;
+
+        stbi_set_flip_vertically_on_load(FlipY);
 
         stbi_uc* textureData = stbi_load(TexturePath, (int*)&Width, (int*)&Height, (int*)&channels, desiredChannels);
         assert(channels == desiredChannels);
@@ -48,18 +51,18 @@ namespace lucid::resources
         texturesInitialized = true;
 
         TexturesHolder.SetDefaultResource(
-          LoadTextureSTB("assets/textures/awesomeface.png", true, true, gpu::TextureDataType::UNSIGNED_BYTE, true));
+          LoadTextureSTB("assets/textures/awesomeface.png", true, true, gpu::TextureDataType::UNSIGNED_BYTE, true, true));
     }
 
     TextureResource*
-    LoadJPEG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& SendToGPU)
+    LoadJPEG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& FlipY, const bool& SendToGPU)
     {
-        return LoadTextureSTB(Path, false, PerformGammaCorrection, DataType, SendToGPU);
+        return LoadTextureSTB(Path, false, PerformGammaCorrection, DataType, FlipY, SendToGPU);
     }
     TextureResource*
-    LoadPNG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& SendToGPU)
+    LoadPNG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& FlipY,const bool& SendToGPU)
     {
-        return LoadTextureSTB(Path, true, PerformGammaCorrection, DataType, SendToGPU);
+        return LoadTextureSTB(Path, true, PerformGammaCorrection, DataType, FlipY, SendToGPU);
     }
 
     TextureResource::TextureResource(void* Data,

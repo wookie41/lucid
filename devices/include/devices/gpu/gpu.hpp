@@ -17,6 +17,7 @@ namespace lucid::gpu
 
     void ClearBuffers(const ClearableBuffers& BuffersToClear);
     void SetClearColor(const color& Color);
+    void SetClearDepth(const float& DepthValue);
 
     /////////////// Depth tests ///////////////
 

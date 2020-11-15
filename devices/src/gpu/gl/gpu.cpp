@@ -36,6 +36,8 @@ namespace lucid::gpu
 
     void SetClearColor(const color& Color) { glClearColor(Color.r, Color.g, Color.b, Color.a); }
 
+    void SetClearDepth(const float& DepthValue) { glClearDepth(DepthValue); }
+
     /////////////////////////////////////////////////////////
 
     // Depth test functions

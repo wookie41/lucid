@@ -23,16 +23,17 @@ namespace lucid::scene
     {
       public:
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
-        ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights, gpu::Shader* DefaultShader);
+        ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights,
+                                  gpu::Shader* DefaultShader,
+                                  gpu::Shader* SkyboxShader);
 
-        virtual void Render(RenderScene* const  SceneToRender, RenderTarget* const Target) override;
+        virtual void Render(RenderScene* const SceneToRender, RenderTarget* const Target) override;
 
         inline void SetAmbientStrength(const float& AmbientStrength) { ambientStrength = AmbientStrength; }
 
         virtual ~ForwardBlinnPhongRenderer() = default;
 
       private:
-
         void Render(gpu::Shader* Shader, Renderable* const ToRender);
 
         void RenderStaticGeometry(RenderScene* const SceneToRender, RenderTarget* const Target);
@@ -40,13 +41,23 @@ namespace lucid::scene
         void RenderWithoutLights(RenderScene* const SceneToRender, RenderTarget* const Target);
 
         void RenderLightContribution(Light* const InLight, RenderScene* const SceneToRender, RenderTarget* const Target);
-        void SetupLight(gpu::Shader* Shader, Light* const InLight); 
+        void SetupLight(gpu::Shader* Shader, Light* const InLight);
 
         inline void SetupFramebuffer(gpu::Framebuffer* Framebuffer);
         inline void SetupRendererWideUniforms(gpu::Shader* Shader, const RenderTarget* RenderTarget);
 
+        inline void RenderSkybox(const Skybox& SkyboxToRender, const RenderTarget* RenderTarget);
+
         float ambientStrength = 0.2;
         uint32_t maxNumOfDirectionalLights;
+
+        // Skybox shader stuff
+
+        uint32_t skyboxCubemapUnifomId;
+        uint32_t skyboxViewMatrixUniformId;
+        uint32_t skyboxProjectionMatrixUniformId;
+
+        gpu::Shader* skyboxShader;
     };
 
     Renderable* CreateBlinnPhongRenderable(DString MeshName, resources::MeshResource* Mesh, gpu::Shader* CustomShader = nullptr);

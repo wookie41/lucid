@@ -114,6 +114,11 @@ int main(int argc, char** argv)
       gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true) },
                                 { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true) });
 
+    gpu::Shader* skyboxShader =
+      gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/skybox.vert", true) },
+                                { platform::ReadFile("shaders/glsl/skybox.frag", true) });
+
+
     // Prepare the scene
 
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
@@ -122,7 +127,7 @@ int main(int argc, char** argv)
     scene::Camera perspectiveCamera{ scene::CameraMode::PERSPECTIVE, { 0, 0, 2.5 } };
     perspectiveCamera.AspectRatio = window->GetAspectRatio();
 
-    scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongMapsShader };
+    scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongMapsShader, skyboxShader };
     renderer.SetAmbientStrength(0.05);
 
     scene::RenderTarget renderTarget;
@@ -163,6 +168,7 @@ int main(int argc, char** argv)
     cube.Material = &flatMaterial;
     cube.VertexArray = misc::CubeVertexArray;
     cube.Type = scene::RenderableType::STATIC;
+    cube.Transform.Scale = glm::vec3(0.5);
     // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
 
     scene::Renderable cube1{ "Cube1", cube };
@@ -217,21 +223,10 @@ int main(int argc, char** argv)
     sceneToRender.Lights.Add(&blueLight);
     // sceneToRender.Lights.Add(&whiteLight);
 
+    const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg", "assets/skybox/left.jpg", "assets/skybox/top.jpg", "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
+    sceneToRender.SceneSkybox = scene::CreateSkybox(skyboxFacesPaths);
+
     gpu::SetClearColor(BlackColor);
-
-    // Load the skybox
-
-    char* skyboxFacesPaths[] = { "assets/skybox/right.jpg", "assets/skybox/left.jpg", "assets/skybox/top.jpg", "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
-    const char* skyboxFacesData[6];
-    resources::TextureResource* textureResources[6];
-    for (uint8_t face = 0; face < 6; ++face)
-    {
-        textureResources[face] = resources::LoadJPEG(skyboxFacesPaths[face], true, gpu::TextureDataType::UNSIGNED_BYTE, false);
-        skyboxFacesData[face] = (char*)textureResources[face]->TextureData;
-    }
-
-    gpu::Cubemap* skyboxCubemap = gpu::CreateCubemap({ 2048, 2048 }, gpu::TextureFormat::SRGB, gpu::TextureFormat::RGB,
-                                                     gpu::TextureDataType::UNSIGNED_BYTE, skyboxFacesData);
 
     int currentRotation = 0;
     bool isRunning = true;
@@ -281,10 +276,14 @@ int main(int argc, char** argv)
             }
         }
 
+        // Render to off-screen framebuffer
+
         renderTarget.Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
         gpu::DisableSRGBFramebuffer();
         renderer.Render(&sceneToRender, &renderTarget);
+
+        // Blit the off-screen frame buffer to the window framebuffer
 
         gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));

@@ -16,6 +16,9 @@
 #include "common/log.hpp"
 #include "devices/gpu/gpu.hpp"
 
+#include "devices/gpu/cubemap.hpp"
+#include "misc/basic_shapes.hpp"
+
 #include <stdio.h>
 #include "GL/glew.h"
 
@@ -57,9 +60,17 @@ namespace lucid::scene
     static const String VIEW_MATRIX("uView");
     static const String PROJECTION_MATRIX("uProjection");
 
-    ForwardBlinnPhongRenderer::ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights, gpu::Shader* DefaultShader)
-    : Renderer(DefaultShader), maxNumOfDirectionalLights(MaxNumOfDirectionalLights)
+    static const String SKYBOX_CUBEMAP("uSkybox");
+
+    ForwardBlinnPhongRenderer::ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights,
+                                                         gpu::Shader* DefaultShader,
+                                                         gpu::Shader* SkyboxShader)
+    : Renderer(DefaultShader), maxNumOfDirectionalLights(MaxNumOfDirectionalLights), skyboxShader(SkyboxShader)
     {
+        SkyboxShader->Use();
+        skyboxCubemapUnifomId =  skyboxShader->GetTextureId(SKYBOX_CUBEMAP);
+        skyboxViewMatrixUniformId =  skyboxShader->GetIdForUniform(VIEW_MATRIX);
+        skyboxProjectionMatrixUniformId = skyboxShader->GetIdForUniform(PROJECTION_MATRIX);
     }
 
     void ForwardBlinnPhongRenderer::Render(RenderScene* const SceneToRender, RenderTarget* const Target)
@@ -71,6 +82,7 @@ namespace lucid::scene
 
         SetupRendererWideUniforms(defaultShader, Target);
         RenderStaticGeometry(SceneToRender, Target);
+        RenderSkybox(SceneToRender->SceneSkybox, Target);
     }
 
     void ForwardBlinnPhongRenderer::RenderStaticGeometry(RenderScene* const SceneToRender, RenderTarget* const Target)
@@ -87,6 +99,12 @@ namespace lucid::scene
         {
             // no lights in the scene, render the geometry only with ambient contribution
             RenderWithoutLights(SceneToRender, Target);
+            return;
+        }
+
+        if (!lightNode->Next)
+        {
+            // No more lights
             return;
         }
 
@@ -299,6 +317,20 @@ namespace lucid::scene
 
         ToRender->VertexArray->Bind();
         ToRender->VertexArray->Draw();
+    }
+
+    inline void ForwardBlinnPhongRenderer::RenderSkybox(const Skybox& SkyboxToRender, const RenderTarget* RenderTarget)
+    {
+        gpu::DisableBlending();
+
+        skyboxShader->Use();
+
+        skyboxShader->UseTexture(skyboxCubemapUnifomId, SkyboxToRender.SkyboxCubemap);
+        skyboxShader->SetMatrix(skyboxViewMatrixUniformId, RenderTarget->Camera->GetViewMatrix());
+        skyboxShader->SetMatrix(skyboxProjectionMatrixUniformId, RenderTarget->Camera->GetProjectionMatrix());
+
+        misc::CubeVertexArray->Bind();
+        misc::CubeVertexArray->Draw();
     }
 
 } // namespace lucid::scene
