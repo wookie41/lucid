@@ -19,7 +19,6 @@ namespace lucid::scene
         glm::vec3 SpecularColor;
 
       private:
-
         inline void ReteriveShaderUniformsIds(gpu::Shader* Shader);
 
         // Material properties ids
@@ -27,7 +26,6 @@ namespace lucid::scene
         uint32_t diffuseColorUniformId;
         uint32_t specularColorUniformId;
     };
-
 
     /* ------------------------------------------------------------ */
 
@@ -42,12 +40,11 @@ namespace lucid::scene
 
         // Material properties
         uint32_t Shininess;
-        gpu::Texture* DiffuseMap;
-        gpu::Texture* SpecularMap;
-        gpu::Texture* NormalMap;
+        gpu::Texture* DiffuseMap = nullptr;
+        gpu::Texture* SpecularMap = nullptr;
+        gpu::Texture* NormalMap = nullptr;
 
       private:
-
         inline void ReteriveShaderUniformsIds(gpu::Shader* Shader);
 
         // Material properties ids
@@ -55,6 +52,8 @@ namespace lucid::scene
         uint32_t diffuseMapUniformId;
         uint32_t specularMapUniformId;
         uint32_t normalMapUniformId;
-    };
 
+        uint32_t hasSpecularMapUniformId;
+        uint32_t hasNormalMapUniformId;
+    };
 } // namespace lucid::scene

@@ -7,6 +7,7 @@ in VS_OUT
 {
     vec3 FragPos;
     vec2 TextureCoords;
+    vec3 InterpolatedNormal;
     mat3 TBN;
 }
 fsIn;
@@ -29,9 +30,10 @@ void main()
 {
     vec3 toView = uViewPos - fsIn.FragPos;
 
-    vec3 normal = fsIn.TBN * normalize((texture(uMaterial.NormalMap, fsIn.TextureCoords).rgb * 2) - 1);
-    vec3 diffuseColor = texture(uMaterial.DiffuseMap, fsIn.TextureCoords).rgb;
-    vec3 specularColor = texture(uMaterial.SpecularMap, fsIn.TextureCoords).rgb;
+    vec3 normal = uMaterial.HasNormalMap ? fsIn.TBN * normalize((texture(uMaterial.NormalMap, fsIn.TextureCoords).rgb * 2) - 1) : normalize(fsIn.InterpolatedNormal);
+    vec3 diffuseColor =  texture(uMaterial.DiffuseMap, fsIn.TextureCoords).rgb;
+    // @TODO we might want to allow to specify the material-wide specular color here
+    vec3 specularColor = uMaterial.HasSpecularMap ? texture(uMaterial.SpecularMap, fsIn.TextureCoords).rgb : vec3(1, 1, 1); 
 
     vec3 ambient = diffuseColor * uAmbientStrength;
     vec3 fragColor = ambient;

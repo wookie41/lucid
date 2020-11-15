@@ -68,24 +68,23 @@ int main(int argc, char** argv)
 
     // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
-    resources::TextureResource* brickWallDiffuseMapResource =
-      resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE);
-    resources::TextureResource* brickWallNormalMapResource =
-      resources::LoadJPEG("assets/textures/brick-normal-map.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG("assets/textures/brick-normal-map.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    
+    resources::TextureResource* woodDiffuseMapResource = resources::LoadJPEG("assets/textures/wood.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
 
-    resources::TextureResource* blankTextureResource =
-      resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    resources::TextureResource* blankTextureResource = resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
 
     brickWallDiffuseMapResource->FreeMainMemory();
     brickWallNormalMapResource->FreeMainMemory();
-
+    woodDiffuseMapResource->FreeMainMemory();
     blankTextureResource->FreeMainMemory();
 
     // backPackMesh->FreeMainMemory();
 
     auto brickWallDiffuseMap = brickWallDiffuseMapResource->TextureHandle;
     auto brickWallNormalMap = brickWallNormalMapResource->TextureHandle;
-
+    auto woodDiffuseMap = woodDiffuseMapResource->TextureHandle;
     auto blankTextureMap = blankTextureResource->TextureHandle;
 
     // auto backpackVao = backPackMesh->VAO;
@@ -101,6 +100,12 @@ int main(int argc, char** argv)
     blankTextureMap->Bind();
     blankTextureMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
     blankTextureMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+
+    woodDiffuseMap->Bind();
+    woodDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    woodDiffuseMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+    woodDiffuseMap->SetWrapSFilter(gpu::WrapTextureFilter::REPEAT);
+    woodDiffuseMap->SetWrapTFilter(gpu::WrapTextureFilter::REPEAT);
 
     window->Prepare();
     window->Show();
@@ -147,21 +152,30 @@ int main(int argc, char** argv)
     flatMaterial.SpecularColor = glm::vec3(1.0, 1.0, 1.0);
     flatMaterial.SetCustomShader(blinnPhongShader);
 
-    scene::BlinnPhongMapsMaterial quadMaterial;
-    quadMaterial.Shininess = 32;
-    quadMaterial.DiffuseMap = brickWallDiffuseMap;
-    quadMaterial.SpecularMap = blankTextureMap;
-    quadMaterial.NormalMap = brickWallNormalMap;
+    scene::BlinnPhongMapsMaterial brickMaterial;
+    brickMaterial.Shininess = 32;
+    brickMaterial.DiffuseMap = brickWallDiffuseMap;
+    brickMaterial.SpecularMap = blankTextureMap;
+    brickMaterial.NormalMap = brickWallNormalMap;
 
-    scene::Renderable quad{ "Quad" };
-    quad.Transform.Translation = { -2, 0, -4 };
-    quad.Material = &quadMaterial;
-    quad.VertexArray = misc::QuadVertexArray;
-    quad.Type = scene::RenderableType::STATIC;
-    glm::vec3 rotAxis = glm::normalize(glm::vec3(-1.0, 0.0, 0.0));
-    quad.Transform.Rotation.x = rotAxis.x;
-    quad.Transform.Rotation.y = rotAxis.y;
-    quad.Transform.Rotation.z = rotAxis.z;
+    scene::BlinnPhongMapsMaterial woodMaterial;
+    woodMaterial.Shininess = 32;
+    woodMaterial.DiffuseMap = woodDiffuseMap;
+
+    scene::Renderable brickWall { "BrickWall" };
+    brickWall.Transform.Translation = { -2, 0, -4 };
+    brickWall.Material = &brickMaterial;
+    brickWall.VertexArray = misc::QuadVertexArray;
+    brickWall.Type = scene::RenderableType::STATIC;
+
+    scene::Renderable woodenFloor { "woodenFloor ", brickWall };
+    woodenFloor.Transform.Scale =  { 10.0, 10.0, 10.0 };
+    woodenFloor.Transform.Translation =  { 0, -2, -7.5 };
+    woodenFloor.Transform.Rotation.x = 1;
+    woodenFloor.Transform.Rotation.y = 0;
+    woodenFloor.Transform.Rotation.z = 0;
+    woodenFloor.Transform.Rotation.w = glm::radians(-90.f);
+    woodenFloor.Material = &woodMaterial;
 
     scene::Renderable cube{ "Cube" };
     cube.Transform.Translation = { 2, 0, -2 };
@@ -207,7 +221,7 @@ int main(int argc, char** argv)
     blueLight.Quadratic = 0.032;
 
     scene::DirectionalLight whiteLight;
-    whiteLight.Direction = { 0, 0, -1 };
+    whiteLight.Direction = { 0, -1, -1 };
     whiteLight.Color = { 1, 1, 1 };
 
     scene::RenderScene sceneToRender;
@@ -216,12 +230,13 @@ int main(int argc, char** argv)
     sceneToRender.StaticGeometry.Add(&cube2);
     sceneToRender.StaticGeometry.Add(&cube3);
     sceneToRender.StaticGeometry.Add(&cube4);
-    sceneToRender.StaticGeometry.Add(&quad);
+    sceneToRender.StaticGeometry.Add(&brickWall);
+    sceneToRender.StaticGeometry.Add(&woodenFloor);
     // sceneToRender.Renderables.Add(backPackRenderable);
     sceneToRender.Lights.Add(&redLight);
     sceneToRender.Lights.Add(&greenLight);
     sceneToRender.Lights.Add(&blueLight);
-    // sceneToRender.Lights.Add(&whiteLight);
+    sceneToRender.Lights.Add(&whiteLight);
 
     const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg", "assets/skybox/left.jpg", "assets/skybox/top.jpg", "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
     sceneToRender.SceneSkybox = scene::CreateSkybox(skyboxFacesPaths);
@@ -263,7 +278,7 @@ int main(int argc, char** argv)
         if (IsKeyPressed(SDLK_r))
         {
             currentRotation += 1;
-            quad.Transform.Rotation.w = glm::radians((float)(currentRotation % 360));
+            brickWall.Transform.Rotation.w = glm::radians((float)(currentRotation % 360));
         }
 
         if (IsMouseButtonPressed(MouseButton::LEFT))

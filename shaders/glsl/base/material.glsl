@@ -11,4 +11,7 @@ struct BlinnPhongMapsMaterial
     sampler2D DiffuseMap;
     sampler2D SpecularMap;
     sampler2D NormalMap;
+
+    bool HasSpecularMap;
+    bool HasNormalMap;
 };

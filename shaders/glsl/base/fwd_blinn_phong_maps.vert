@@ -13,6 +13,7 @@ out VS_OUT
 {
     vec3 FragPos;
     vec2 TextureCoords;
+    vec3 InterpolatedNormal;
     mat3 TBN;
 }
 vsOut;
@@ -31,6 +32,7 @@ void main()
     vsOut.FragPos = worldPos.xyz;
     vsOut.TextureCoords = aTextureCoords;
     vsOut.TBN = mat3(T, B, N);
+    vsOut.InterpolatedNormal = normalMatrix * aNormal;
 
     gl_Position = uProjection * uView * worldPos;
 }
