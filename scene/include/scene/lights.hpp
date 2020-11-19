@@ -45,7 +45,7 @@ namespace lucid::scene
         inline gpu::Texture* GetCachedShadowMap() { return shadowMap; };
         inline glm::ivec2 GetShadowMapSize() { return shadowMapSize; };
 
-        glm::vec3 Position = {0, 0, 0};
+        glm::vec3 Position = {0, 0, 0};        
 
       protected:
         gpu::Texture* shadowMap = nullptr;
@@ -57,6 +57,8 @@ namespace lucid::scene
       public:
         DirectionalLight(const glm::ivec2& ShadowMapSize = { 0, 0 }, gpu::Texture* ShadowMap = 0);
 
+        void UpdateLightSpaceMatrix();
+
         virtual void GenerateShadowMap(RenderScene* SceneToRender,
                                        gpu::Framebuffer* TargetFramebuffer,
                                        gpu::Shader* ShaderToUse,
@@ -67,6 +69,9 @@ namespace lucid::scene
 
         glm::vec3 Direction = { 0, 0, 0 };
         glm::vec3 Color = { 0, 0, 0 };
+        
+        glm::mat4 LightSpaceMatrix { 1 };
+        glm::vec3 LightUp { 0, 1, 0 };
 
       private:
         static const LightType type = LightType::DIRECTIONAL;

@@ -23,6 +23,12 @@ namespace lucid::scene
 
     void RenderGeometry(gpu::Shader* ShaderToUse, LinkedList<class Renderable>& Geometry, const uint32_t& ModelMatrixId);
 
+    void DirectionalLight::UpdateLightSpaceMatrix()
+    {
+        LightSpaceMatrix = glm::lookAt(Position, Direction, LightUp);
+        LightSpaceMatrix = glm::ortho(LIGHT_SETTINGS.Left, LIGHT_SETTINGS.Right, LIGHT_SETTINGS.Bottom, LIGHT_SETTINGS.Top, LIGHT_SETTINGS.Near, LIGHT_SETTINGS.Far) * LightSpaceMatrix;
+    }
+
     DirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
     {
         gpu::Texture* shadowMap = nullptr;
@@ -56,7 +62,7 @@ namespace lucid::scene
 
         TargetFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
         TargetFramebuffer->SetupDepthAttachment(shadowMap);
-        
+
         if (ClearShadowMap)
         {
             gpu::ClearBuffers(gpu::ClearableBuffers::DEPTH);
@@ -64,20 +70,13 @@ namespace lucid::scene
 
         TargetFramebuffer->DisableReadWriteBuffers();
 
-        gpu::SetViewport({0, 0, (uint32_t)shadowMap->GetSize().x, (uint32_t)shadowMap->GetSize().y});
-
-        glm::mat4 viewMatrix = glm::lookAt(Position, Direction, glm::vec3{ 0.0, 1.0, 0.0 });
-        glm::mat4 projectionMatrix = glm::ortho(LIGHT_SETTINGS.Left, LIGHT_SETTINGS.Right, LIGHT_SETTINGS.Bottom,
-                                                LIGHT_SETTINGS.Top, LIGHT_SETTINGS.Near, LIGHT_SETTINGS.Far);
+        gpu::SetViewport({ 0, 0, (uint32_t)shadowMap->GetSize().x, (uint32_t)shadowMap->GetSize().y });
 
         int32_t modelMatrixId = ShaderToUse->GetIdForUniform("uModel");
-        int32_t viewMatrixId = ShaderToUse->GetIdForUniform("uView");
-        int32_t projectionMatrixId = ShaderToUse->GetIdForUniform("uProjection");
-        
-        ShaderToUse->Use();
+        int32_t LightSpaceMatrixId = ShaderToUse->GetIdForUniform("uLightSpaceMatrix");
 
-        ShaderToUse->SetMatrix(viewMatrixId, viewMatrix);
-        ShaderToUse->SetMatrix(projectionMatrixId, projectionMatrix);
+        ShaderToUse->Use();
+        ShaderToUse->SetMatrix(LightSpaceMatrixId, LightSpaceMatrix);
 
         if (RenderStaticGeometry)
         {
@@ -89,7 +88,7 @@ namespace lucid::scene
 
     void RenderGeometry(gpu::Shader* ShaderToUse, LinkedList<class Renderable>& Geometry, const uint32_t& ModelMatrixId)
     {
-        LinkedListItem<Renderable>* node =  &Geometry.Head;
+        LinkedListItem<Renderable>* node = &Geometry.Head;
         while (node && node->Element)
         {
             ShaderToUse->SetMatrix(ModelMatrixId, node->Element->CalculateModelMatrix());

@@ -286,6 +286,7 @@ int main(int argc, char** argv)
         }
 
         gpu::DisableSRGBFramebuffer();
+        whiteDirLight.UpdateLightSpaceMatrix();
         whiteDirLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
 
         // Render to off-screen framebuffer
