@@ -17,7 +17,7 @@ namespace lucid::gpu
     static GLenum GL_WRAP_FILTERS_MAPPING[] = { GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, GL_REPEAT };
     static GLenum GL_TEXTURE_DATA_TYPE_MAPPING[] = { GL_UNSIGNED_BYTE, GL_FLOAT };
     static GLenum GL_TEXTURE_TARGET_MAPPING[] = { GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D };
-    static GLenum GL_TEXTURE_FORMAT_MAPPING[] = { GL_RGB, GL_RGBA, GL_SRGB, GL_SRGB_ALPHA, GL_RGB16F };
+    static GLenum GL_TEXTURE_FORMAT_MAPPING[] = { GL_RGB, GL_RGBA, GL_SRGB, GL_SRGB_ALPHA, GL_RGB16F, GL_DEPTH_COMPONENT };
 
 #define TO_GL_MIN_FILTER(gl_filters) (GL_MIN_FILTERS_MAPPING[(uint8_t)gl_filters])
 #define TO_GL_MAG_FILTER(gl_filters) (GL_MAG_FILTERS_MAPPING[(uint8_t)gl_filters])
@@ -38,49 +38,40 @@ namespace lucid::gpu
     {
         GLuint textureHandle;
         glGenTextures(1, &textureHandle);
-
+        GLenum textureTarget;
         switch (TextureType)
         {
         case TextureType::ONE_DIMENSIONAL:
+            textureTarget = GL_TEXTURE_1D;
             glBindTexture(GL_TEXTURE_1D, textureHandle);
             glTexImage1D(GL_TEXTURE_1D, MipMapLevel, InternalFormat, TextureSize.x, 0, DataFormat, DataType, TextureData);
-            glGenerateMipmap(GL_TEXTURE_1D);
-
-            if (TextureData)
-            {
-                glGenerateMipmap(GL_TEXTURE_2D);
-            }
-
-            glBindTexture(GL_TEXTURE_1D, 0);
             break;
 
         case TextureType::TWO_DIMENSIONAL:
+            textureTarget = GL_TEXTURE_2D;
             glBindTexture(GL_TEXTURE_2D, textureHandle);
-            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, 0, DataFormat, DataType,
-                         TextureData);
-
-            if (TextureData)
-            {
-                glGenerateMipmap(GL_TEXTURE_2D);
-            }
-
-            glBindTexture(GL_TEXTURE_2D, 0);
+            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, 0, DataFormat, DataType, TextureData);
             break;
 
         case TextureType::THREE_DIMENSIONAL:
+            textureTarget = GL_TEXTURE_3D;
             glBindTexture(GL_TEXTURE_3D, textureHandle);
             glTexImage3D(GL_TEXTURE_3D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, TextureSize.z, 0, DataFormat,
                          DataType, TextureData);
-            glGenerateMipmap(GL_TEXTURE_3D);
-
-            if (TextureData)
-            {
-                glGenerateMipmap(GL_TEXTURE_2D);
-            }
-
-            glBindTexture(GL_TEXTURE_3D, 0);
             break;
         }
+
+        if (TextureData)
+        {
+            glGenerateMipmap(textureTarget);
+        }
+
+        glTexParameteri(textureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(textureTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(textureTarget, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(textureTarget, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glBindTexture(textureTarget, 0);
+
         return textureHandle;
     }
 
@@ -134,9 +125,7 @@ namespace lucid::gpu
     {
     }
 
-    GLTexture::GLTexture(const GLuint& TextureID,
-                         const glm::ivec3& Dimensions,
-                         const GLenum& TextureTaget)
+    GLTexture::GLTexture(const GLuint& TextureID, const glm::ivec3& Dimensions, const GLenum& TextureTaget)
     : glTextureHandle(TextureID), glTextureTarget(TextureTaget), dimensions(Dimensions)
     {
     }
@@ -183,25 +172,21 @@ namespace lucid::gpu
 
     void GLTexture::AttachAsColor(const uint8_t& Index)
     {
-        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Index, glTextureTarget, glTextureHandle, 0);
     }
 
     void GLTexture::AttachAsStencil()
     {
-        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, glTextureTarget, glTextureHandle, 0);
     }
 
     void GLTexture::AttachAsDepth()
     {
-        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, glTextureTarget, glTextureHandle, 0);
     }
 
     void GLTexture::AttachAsStencilDepth()
     {
-        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, glTextureHandle, 0);
     };
 
@@ -249,19 +234,16 @@ namespace lucid::gpu
 
     void GLCubemap::AttachAsStencil()
     {
-        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && gpu::Info.CurrentCubemap == this);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_CUBE_MAP, glCubemapHandle, 0);
     }
 
     void GLCubemap::AttachAsDepth()
     {
-        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && gpu::Info.CurrentCubemap == this);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP, glCubemapHandle, 0);
     }
 
     void GLCubemap::AttachAsStencilDepth()
     {
-        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && gpu::Info.CurrentCubemap == this);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_CUBE_MAP, glCubemapHandle, 0);
     }
 
@@ -278,7 +260,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLCubemap::Free() 
+    void GLCubemap::Free()
     {
         assert(glCubemapHandle);
         glDeleteTextures(1, &glCubemapHandle);

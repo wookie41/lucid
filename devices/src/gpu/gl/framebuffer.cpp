@@ -131,6 +131,14 @@ namespace lucid::gpu
         AttachmentToUse->AttachAsStencilDepth();
     }
 
+    void GLFramebuffer::DisableReadWriteBuffers() 
+    {
+        assert(gpu::Info.CurrentFramebuffer == this);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+    }
+
+
     GLFramebuffer::~GLFramebuffer() { glDeleteFramebuffers(1, &glFBOHandle); }
 
     GLRenderbuffer::GLRenderbuffer(const GLuint& GLRBOHandle, const RenderbufferFormat& Format, const glm::ivec2& Size)

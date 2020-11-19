@@ -1,6 +1,6 @@
 #include "scene/camera.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>
+#include "glm/gtc/matrix_transform.hpp"
 
 namespace lucid::scene
 {
@@ -19,10 +19,14 @@ namespace lucid::scene
         updateCameraVectors();
     }
 
-    glm::mat4 Camera::GetViewMatrix() const { return glm::lookAt(Position, Position + FrontVector, UpVector); }
+    glm::mat4 Camera::GetViewMatrix() const 
+    { 
+        return glm::lookAt(Position, Position + FrontVector, UpVector); 
+    }
 
     glm::mat4 Camera::GetProjectionMatrix() const
     {
+
         if (Mode == CameraMode::ORTHOGRAPHIC)
         {
             return glm::ortho(Left, Right, Bottom, Top, NearPlane, FarPlane);

@@ -47,7 +47,8 @@ namespace lucid::gpu
         RGBA,
         SRGB,
         SRGBA,
-        RGB16F
+        RGB16F,
+        DEPTH_COMPONENT
     };
 
     class Texture : public FramebufferAttachment

@@ -41,6 +41,8 @@ namespace lucid::gpu
 
         virtual void SetupDrawBuffers(const uint8_t& NumOfBuffers) override;
 
+        virtual void DisableReadWriteBuffers() override;
+
         virtual void EnableDrawBuffer(const uint8_t& BufferIndex, const int8_t& AttachmentIndex) override;
         virtual void DisableDrawBuffer(const uint8_t& BufferIndex) override;
 

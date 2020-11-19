@@ -298,19 +298,10 @@ namespace lucid::scene
         return meshRenderable;
     }
 
-    inline glm::mat4 CalculateModelMatrix(const Transform3D& Transform)
-    {
-        glm::mat4 modelMatrix{ 1 };
-        modelMatrix = glm::translate(modelMatrix, Transform.Translation);
-        modelMatrix =
-          glm::rotate(modelMatrix, Transform.Rotation.w, { Transform.Rotation.x, Transform.Rotation.y, Transform.Rotation.z });
-        modelMatrix = glm::scale(modelMatrix, Transform.Scale);
-        return modelMatrix;
-    }
 
     void ForwardBlinnPhongRenderer::Render(gpu::Shader* Shader, Renderable* const ToRender)
     {
-        glm::mat4 modelMatrix = CalculateModelMatrix(ToRender->Transform);
+        glm::mat4 modelMatrix = ToRender->CalculateModelMatrix();
         Shader->SetMatrix(Shader->GetIdForUniform(MODEL_MATRIX), modelMatrix);
 
         ToRender->Material->SetupShader(Shader);

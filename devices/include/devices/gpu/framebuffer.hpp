@@ -52,6 +52,8 @@ namespace lucid::gpu
       public:
         virtual glm::ivec2 GetColorAttachmentSize(const uint8_t& Idx = 0) const = 0;
 
+        virtual void DisableReadWriteBuffers() = 0;
+
         virtual void SetupDrawBuffers(const uint8_t& NumOfBuffers) = 0;
         virtual void EnableDrawBuffer(const uint8_t& BufferIndex, const int8_t& AttachmentIndex) = 0;
         virtual void DisableDrawBuffer(const uint8_t& BufferIndex) = 0;

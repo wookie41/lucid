@@ -33,6 +33,15 @@ namespace lucid::scene
             Material = rhs.Material;
         }
 
+        glm::mat4 CalculateModelMatrix() const
+        {
+            glm::mat4 modelMatrix{ 1 };
+            modelMatrix = glm::translate(modelMatrix, Transform.Translation);
+            modelMatrix = glm::rotate(modelMatrix, Transform.Rotation.w,{ Transform.Rotation.x, Transform.Rotation.y, Transform.Rotation.z });
+            modelMatrix = glm::scale(modelMatrix, Transform.Scale);
+            return modelMatrix;
+        }
+
         DString Name;
         RenderableType Type;
         Transform3D Transform;

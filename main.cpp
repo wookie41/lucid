@@ -51,6 +51,10 @@ int main(int argc, char** argv)
                                                               gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
     gpu::FramebufferAttachment* renderbuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, { 800, 600 });
     gpu::Framebuffer* testFramebuffer = gpu::CreateFramebuffer();
+    gpu::Framebuffer* shadowMapFramebuffer = gpu::CreateFramebuffer();
+    
+    shadowMapFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+    shadowMapFramebuffer->DisableReadWriteBuffers();
 
     renderbuffer->Bind();
     colorAttachment->Bind();
@@ -89,24 +93,6 @@ int main(int argc, char** argv)
 
     // auto backpackVao = backPackMesh->VAO;
 
-    brickWallDiffuseMap->Bind();
-    brickWallDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    brickWallDiffuseMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
-
-    brickWallNormalMap->Bind();
-    brickWallNormalMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    brickWallNormalMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
-
-    blankTextureMap->Bind();
-    blankTextureMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    blankTextureMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
-
-    woodDiffuseMap->Bind();
-    woodDiffuseMap->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    woodDiffuseMap->SetMagFilter(gpu::MagTextureFilter::LINEAR);
-    woodDiffuseMap->SetWrapSFilter(gpu::WrapTextureFilter::REPEAT);
-    woodDiffuseMap->SetWrapTFilter(gpu::WrapTextureFilter::REPEAT);
-
     window->Prepare();
     window->Show();
 
@@ -122,6 +108,10 @@ int main(int argc, char** argv)
     gpu::Shader* skyboxShader =
       gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/skybox.vert", true) },
                                 { platform::ReadFile("shaders/glsl/skybox.frag", true) });
+
+    gpu::Shader* shadowMapShader =
+      gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/shadow_map.vert", true) },
+                                { platform::ReadFile("shaders/glsl/empty.frag", true) });
 
 
     // Prepare the scene
@@ -196,6 +186,10 @@ int main(int argc, char** argv)
     cube4.Transform.Translation = { 2, 0, -15 };
     cube.Transform.Rotation = glm::quat(glm::vec3(0.0, 45.0, 0.0));
 
+    scene::DirectionalLight whiteDirLight = scene::CreateDirectionalLight(true, {1024, 1024});
+    whiteDirLight.Direction = { 0, 0, 0 };
+    whiteDirLight.Position = { -2.0f, 4.0f, -1.0f };
+
     scene::PointLight redLight;
     redLight.Position = { 2, 0, 0 };
     redLight.Color = { 1, 0, 0 };
@@ -236,13 +230,13 @@ int main(int argc, char** argv)
     sceneToRender.Lights.Add(&redLight);
     sceneToRender.Lights.Add(&greenLight);
     sceneToRender.Lights.Add(&blueLight);
-    sceneToRender.Lights.Add(&whiteLight);
+    // sceneToRender.Lights.Add(&whiteLight);
 
     const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg", "assets/skybox/left.jpg", "assets/skybox/top.jpg", "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
     sceneToRender.SceneSkybox = scene::CreateSkybox(skyboxFacesPaths);
 
     gpu::SetClearColor(BlackColor);
-
+    
     int currentRotation = 0;
     bool isRunning = true;
     while (isRunning)
@@ -291,8 +285,12 @@ int main(int argc, char** argv)
             }
         }
 
+        gpu::DisableSRGBFramebuffer();
+        whiteDirLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+
         // Render to off-screen framebuffer
 
+        gpu::SetViewport(renderTarget.Viewport);
         renderTarget.Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
         gpu::DisableSRGBFramebuffer();
