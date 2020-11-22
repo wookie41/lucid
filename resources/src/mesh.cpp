@@ -295,6 +295,7 @@ namespace lucid::resources
 
                 texPtr->x = Mesh->mTextureCoords[0][i].x;
                 texPtr->y = Mesh->mTextureCoords[0][i].y;
+                vertexPtr = (glm::vec3*)(texPtr + 1);
                 MeshData.VertexBuffer.Length += sizeof(glm::vec2);
             }
         }
@@ -327,7 +328,7 @@ namespace lucid::resources
             return TexturesHolder.Get((char*)texturePath);
         }
 
-        auto textureMap = IsPNGFormat ? LoadPNG((char*)texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE) : LoadJPEG((char*)texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE);
+        auto textureMap = IsPNGFormat ? LoadPNG((char*)texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true) : LoadJPEG((char*)texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
         if (textureMap == nullptr)
         {
             textureMap = TexturesHolder.GetDefaultResource();

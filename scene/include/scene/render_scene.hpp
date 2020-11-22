@@ -33,7 +33,7 @@ namespace lucid::scene
         LinkedList<class Renderable> StaticGeometry;
         LinkedList<class Renderable> DynamicGeometry;
         LinkedList<Light> Lights;
-        Skybox SceneSkybox;
+        Skybox* SceneSkybox = nullptr;
     };
 
     ////////////////////////////////////////////////////////////

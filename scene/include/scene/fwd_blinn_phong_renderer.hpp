@@ -46,7 +46,7 @@ namespace lucid::scene
         inline void SetupFramebuffer(gpu::Framebuffer* Framebuffer);
         inline void SetupRendererWideUniforms(gpu::Shader* Shader, const RenderTarget* RenderTarget);
 
-        inline void RenderSkybox(const Skybox& SkyboxToRender, const RenderTarget* RenderTarget);
+        inline void RenderSkybox(Skybox * const SkyboxToRender, const RenderTarget* RenderTarget);
 
         float ambientStrength = 0.2;
         uint32_t maxNumOfDirectionalLights;

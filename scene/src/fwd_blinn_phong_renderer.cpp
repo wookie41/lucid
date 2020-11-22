@@ -82,7 +82,11 @@ namespace lucid::scene
 
         SetupRendererWideUniforms(defaultShader, Target);
         RenderStaticGeometry(SceneToRender, Target);
-        RenderSkybox(SceneToRender->SceneSkybox, Target);
+
+        if (SceneToRender->SceneSkybox)
+        {
+            RenderSkybox(SceneToRender->SceneSkybox, Target);
+        }
     }
 
     void ForwardBlinnPhongRenderer::RenderStaticGeometry(RenderScene* const SceneToRender, RenderTarget* const Target)
@@ -91,8 +95,8 @@ namespace lucid::scene
         gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
 
         gpu::EnableBlending();
-        gpu::SetBlendFunctionSeparate(gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, gpu::BlendFunction::ONE,
-                                      gpu::BlendFunction::ZERO);
+        gpu::SetBlendFunctionSeparate(  gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, 
+                                        gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO );
 
         auto lightNode = &SceneToRender->Lights.Head;
         if (!lightNode->Element)
@@ -102,18 +106,16 @@ namespace lucid::scene
             return;
         }
 
-        if (!lightNode->Next)
+        RenderLightContribution(lightNode->Element, SceneToRender, Target);
+
+        if (!lightNode->Next || lightNode->Next->Element)
         {
             // No more lights
             return;
         }
 
-        // Initial light render
-        RenderLightContribution(lightNode->Element, SceneToRender, Target);
-
-        // Change the blending mode so we render the lights additively
-        gpu::SetBlendFunctionSeparate(gpu::BlendFunction::ONE, gpu::BlendFunction::ONE, gpu::BlendFunction::ONE,
-                                      gpu::BlendFunction::ONE);
+        // Change the blending mode so we render the rest of the lights additively
+        gpu::SetBlendFunction(gpu::BlendFunction::ONE, gpu::BlendFunction::ONE);
 
         lightNode = lightNode->Next;
 
@@ -310,13 +312,13 @@ namespace lucid::scene
         ToRender->VertexArray->Draw();
     }
 
-    inline void ForwardBlinnPhongRenderer::RenderSkybox(const Skybox& SkyboxToRender, const RenderTarget* RenderTarget)
+    inline void ForwardBlinnPhongRenderer::RenderSkybox(Skybox * const SkyboxToRender, const RenderTarget* RenderTarget)
     {
         gpu::DisableBlending();
 
         skyboxShader->Use();
 
-        skyboxShader->UseTexture(skyboxCubemapUnifomId, SkyboxToRender.SkyboxCubemap);
+        skyboxShader->UseTexture(skyboxCubemapUnifomId, SkyboxToRender->SkyboxCubemap);
         skyboxShader->SetMatrix(skyboxViewMatrixUniformId, RenderTarget->Camera->GetViewMatrix());
         skyboxShader->SetMatrix(skyboxProjectionMatrixUniformId, RenderTarget->Camera->GetProjectionMatrix());
 

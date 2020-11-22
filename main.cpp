@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 
     // Load textures uesd in the demo scene
 
-    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
+    resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
     resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE);
     resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG("assets/textures/brick-normal-map.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
@@ -173,7 +173,9 @@ int main(int argc, char** argv)
     cube.VertexArray = misc::CubeVertexArray;
     cube.Type = scene::RenderableType::STATIC;
     cube.Transform.Scale = glm::vec3(0.5);
-    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
+    
+    scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
+    backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
 
     scene::Renderable cube1{ "Cube1", cube };
     scene::Renderable cube2{ "Cube2", cube };
@@ -226,14 +228,17 @@ int main(int argc, char** argv)
     sceneToRender.StaticGeometry.Add(&cube4);
     sceneToRender.StaticGeometry.Add(&brickWall);
     sceneToRender.StaticGeometry.Add(&woodenFloor);
-    // sceneToRender.Renderables.Add(backPackRenderable);
+
+    sceneToRender.StaticGeometry.Add(backPackRenderable);
+
     sceneToRender.Lights.Add(&redLight);
     sceneToRender.Lights.Add(&greenLight);
     sceneToRender.Lights.Add(&blueLight);
     // sceneToRender.Lights.Add(&whiteLight);
 
     const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg", "assets/skybox/left.jpg", "assets/skybox/top.jpg", "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
-    sceneToRender.SceneSkybox = scene::CreateSkybox(skyboxFacesPaths);
+    scene::Skybox skybox = scene::CreateSkybox(skyboxFacesPaths);
+    // sceneToRender.SceneSkybox = skybox;
 
     gpu::SetClearColor(BlackColor);
     
