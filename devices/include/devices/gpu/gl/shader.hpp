@@ -32,26 +32,26 @@ namespace lucid::gpu
 
         virtual void Disable() override;
 
-        virtual int32_t GetIdForUniform(const String& UniformName) const override;
+        virtual void SetInt(const String& Name, const uint32_t& Value) override;
+        virtual void SetFloat(const String& Name, const float& Value) override;
+        virtual void SetBool(const String& Name, const bool& Value) override;
 
-        virtual void SetInt(const int32_t& UniformId, const uint32_t& Value) override;
-        virtual void SetFloat(const int32_t& UniformId, const float& Value) override;
-        virtual void SetBool(const int32_t& UniformId, const bool& Value) override;
+        virtual void SetVector(const String& Name, const glm::vec2& Value) override;
+        virtual void SetVector(const String& Name, const glm::vec3& Value) override;
+        virtual void SetVector(const String& Name, const glm::vec4& Value) override;
 
-        virtual void SetVector(const int32_t& UniformId, const glm::vec2& Value) override;
-        virtual void SetVector(const int32_t& UniformId, const glm::vec3& Value) override;
-        virtual void SetVector(const int32_t& UniformId, const glm::vec4& Value) override;
+        virtual void SetVector(const String& Name, const glm::ivec2& Value) override;
+        virtual void SetVector(const String& Name, const glm::ivec3& Value) override;
+        virtual void SetVector(const String& Name, const glm::ivec4& Value) override;
 
-        virtual void SetVector(const int32_t& UniformId, const glm::ivec2& Value) override;
-        virtual void SetVector(const int32_t& UniformId, const glm::ivec3& Value) override;
-        virtual void SetVector(const int32_t& UniformId, const glm::ivec4& Value) override;
+        virtual void SetMatrix(const String& Name, const glm::mat4& Value) override;
 
-        virtual void SetMatrix(const int32_t& UniformId, const glm::mat4& Value) override;
-
-        virtual int32_t GetTextureId(const String& TextureName) override;
-        virtual void UseTexture(const int32_t& TextureId, Texture* TextureToUse) override;
+        virtual void UseTexture(const String& Name, Texture* TextureToUse) override;
 
         virtual void AddBinding(BufferBinding* Binding) override;
+
+        int32_t GetIdForUniform(const String& Name) const;
+        int32_t GetTextureId(const String& Name) const;
 
         virtual ~GLShader();
 

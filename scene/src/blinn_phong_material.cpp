@@ -11,26 +11,10 @@ namespace lucid::scene
 
     void BlinnPhongMaterial::SetupShader(gpu::Shader* Shader)
     {
-        ReteriveShaderUniformsIds(Shader);
-
-        Shader->SetInt(shininessUniformId, Shininess);
-        Shader->SetVector(diffuseColorUniformId, DiffuseColor);
-        Shader->SetVector(specularColorUniformId, SpecularColor);
+        Shader->SetInt(SHININESS, Shininess);
+        Shader->SetVector(DIFFUSE_COLOR, DiffuseColor);
+        Shader->SetVector(DIFFUSE_COLOR, SpecularColor);
     };
-
-    void BlinnPhongMaterial::ReteriveShaderUniformsIds(gpu::Shader* Shader)
-    {
-        if (Shader == cachedShader)
-        {
-            return;
-        }
-
-        shininessUniformId = Shader->GetIdForUniform(SHININESS);
-        diffuseColorUniformId = Shader->GetIdForUniform(DIFFUSE_COLOR);
-        specularColorUniformId = Shader->GetIdForUniform(SPECULAR_COLOR);
-
-        cachedShader = Shader;
-    }
 
     /* ---------------------------------------------------------------------------*/
 
@@ -44,47 +28,28 @@ namespace lucid::scene
 
     void BlinnPhongMapsMaterial::SetupShader(gpu::Shader* Shader)
     {
-        ReteriveShaderUniformsIds(Shader);
 
-        Shader->SetInt(shininessUniformId, Shininess);
-        Shader->UseTexture(diffuseMapUniformId, DiffuseMap);
+        Shader->SetInt(SHININESS, Shininess);
+        Shader->UseTexture(DIFFUSE_MAP, DiffuseMap);
 
         if (SpecularMap != nullptr)
         {
-            Shader->UseTexture(specularMapUniformId, SpecularMap);
-            Shader->SetBool(hasSpecularMapUniformId, true);
+            Shader->UseTexture(SPECULAR_MAP, SpecularMap);
+            Shader->SetBool(HAS_SPECULAR_MAP, true);
         }
         else
         {
-            Shader->SetBool(hasSpecularMapUniformId, false);
+            Shader->SetBool(HAS_SPECULAR_MAP, false);
         }
 
         if (NormalMap != nullptr)
         {
-            Shader->UseTexture(normalMapUniformId, NormalMap);
-            Shader->SetBool(hasNormalMapUniformId, true);
+            Shader->UseTexture(NORMAL_MAP, NormalMap);
+            Shader->SetBool(HAS_NORMAL_MAP, true);
         }
         else
         {
-            Shader->SetBool(hasNormalMapUniformId, false);
+            Shader->SetBool(HAS_NORMAL_MAP, false);
         }
     };
-
-    void BlinnPhongMapsMaterial::ReteriveShaderUniformsIds(gpu::Shader* Shader)
-    {
-        if (Shader == cachedShader)
-        {
-            return;
-        }
-
-        shininessUniformId = Shader->GetIdForUniform(SHININESS);
-        diffuseMapUniformId = Shader->GetTextureId(DIFFUSE_MAP);
-        specularMapUniformId = Shader->GetTextureId(SPECULAR_MAP);
-        normalMapUniformId = Shader->GetTextureId(NORMAL_MAP);
-        hasSpecularMapUniformId = Shader->GetIdForUniform(HAS_SPECULAR_MAP);
-        hasNormalMapUniformId = Shader->GetIdForUniform(HAS_NORMAL_MAP);
-
-        cachedShader = Shader;
-    }
-
 } // namespace lucid::scene

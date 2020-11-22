@@ -86,11 +86,12 @@ namespace lucid::gpu
         for (GLint uniformIdx = 0; uniformIdx < numberOfUniforms; ++uniformIdx)
         {
             //@TODO exclude gl_ prefixed uniforms
-            //https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glGetActiveUniform.xhtml
+            // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glGetActiveUniform.xhtml
             glGetActiveUniform(shaderProgramID, uniformIdx, MAX_UNIFORM_VARIABLE_NAME_LENGTH, &uniformNameLength, &uniformSize,
                                &uniformType, uniformNameBuff);
 
-            if (uniformType == GL_SAMPLER_1D || uniformType == GL_SAMPLER_2D || uniformType == GL_SAMPLER_3D || uniformType == GL_SAMPLER_CUBE)
+            if (uniformType == GL_SAMPLER_1D || uniformType == GL_SAMPLER_2D || uniformType == GL_SAMPLER_3D ||
+                uniformType == GL_SAMPLER_CUBE)
             {
                 textureBindings.Add({ uniformIdx, CopyToString(uniformNameBuff), texturesCount++ });
                 continue;
@@ -133,6 +134,137 @@ namespace lucid::gpu
         }
     }
 
+    void GLShader::SetInt(const String& Name, const uint32_t& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniform1i(uniformVariables[uniformId]->GLIndex, Value);
+        }
+    }
+
+    void GLShader::SetFloat(const String& Name, const float& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniform1f(uniformVariables[uniformId]->GLIndex, Value);
+        }
+    }
+
+    void GLShader::SetBool(const String& Name, const bool& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniform1i(uniformVariables[uniformId]->GLIndex, Value);
+        }
+    }
+
+    void GLShader::SetVector(const String& Name, const glm::vec2& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniform2fv(uniformVariables[uniformId]->GLIndex, 1, &Value[0]);
+        }
+    }
+
+    void GLShader::SetVector(const String& Name, const glm::vec3& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniform3fv(uniformVariables[uniformId]->GLIndex, 1, &Value[0]);
+        }
+    }
+
+    void GLShader::SetVector(const String& Name, const glm::vec4& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniform4fv(uniformVariables[uniformId]->GLIndex, 1, &Value[0]);
+        }
+    }
+
+    void GLShader::SetVector(const String& Name, const glm::ivec2& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniform2iv(uniformVariables[uniformId]->GLIndex, 1, &Value[0]);
+        }
+    }
+
+    void GLShader::SetVector(const String& Name, const glm::ivec3& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniform3iv(uniformVariables[uniformId]->GLIndex, 1, &Value[0]);
+        }
+    }
+
+    void GLShader::SetVector(const String& Name, const glm::ivec4& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniform4iv(uniformVariables[uniformId]->GLIndex, 1, &Value[0]);
+        }
+    }
+
+    void GLShader::SetMatrix(const String& Name, const glm::mat4& Value)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetIdForUniform(Name);
+
+        if (uniformId > -1 && uniformId < uniformVariables.Length)
+        {
+            glUniformMatrix4fv(uniformVariables[uniformId]->GLIndex, 1, GL_FALSE, &Value[0][0]);
+        }
+    }
+
+    void GLShader::UseTexture(const String& Name, Texture* TextureToUse)
+    {
+        assert(gpu::Info.CurrentShader == this);
+        auto uniformId = GetTextureId(Name);
+
+        if (uniformId < 0 || uniformId >= textureBindings.Length)
+        {
+            return;
+        }
+
+        TextureBinding* binding = textureBindings[uniformId];
+        binding->BoundTexture = TextureToUse;
+
+        gpu::Info.ActiveTextureUnit = binding->TextureIndex;
+        glActiveTexture(GL_TEXTURE0 + binding->TextureIndex);
+        TextureToUse->Bind();
+        glUniform1i(binding->GLIndex, binding->TextureIndex);
+    }
+
+    void GLShader::AddBinding(BufferBinding* Binding) { buffersBindings.Add(Binding); }
+
     void GLShader::SetupBuffersBindings()
     {
         assert(gpu::Info.CurrentShader == this);
@@ -168,143 +300,23 @@ namespace lucid::gpu
         return -1;
     };
 
-    void GLShader::SetInt(const int32_t& UniformId, const uint32_t& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniform1i(uniformVariables[UniformId]->GLIndex, Value);
-        }
-    }
-
-    void GLShader::SetFloat(const int32_t& UniformId, const float& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniform1f(uniformVariables[UniformId]->GLIndex, Value);
-        }
-    }
-
-    void GLShader::SetBool(const int32_t& UniformId, const bool& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniform1i(uniformVariables[UniformId]->GLIndex, Value);
-        }
-    }
-
-    void GLShader::SetVector(const int32_t& UniformId, const glm::vec2& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniform2fv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
-        }
-    }
-
-    void GLShader::SetVector(const int32_t& UniformId, const glm::vec3& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniform3fv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
-        }
-    }
-
-    void GLShader::SetVector(const int32_t& UniformId, const glm::vec4& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniform4fv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
-        }
-    }
-
-    void GLShader::SetVector(const int32_t& UniformId, const glm::ivec2& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniform2iv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
-        }
-    }
-
-    void GLShader::SetVector(const int32_t& UniformId, const glm::ivec3& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniform3iv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
-        }
-    }
-
-    void GLShader::SetVector(const int32_t& UniformId, const glm::ivec4& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniform4iv(uniformVariables[UniformId]->GLIndex, 1, &Value[0]);
-        }
-    }
-
-    void GLShader::SetMatrix(const int32_t& UniformId, const glm::mat4& Value)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (UniformId > -1 && UniformId < uniformVariables.Length)
-        {
-            glUniformMatrix4fv(uniformVariables[UniformId]->GLIndex, 1, GL_FALSE, &Value[0][0]);
-        }
-    }
-
-    int32_t GLShader::GetTextureId(const String& TextureName)
+    int32_t GLShader::GetTextureId(const String& Name) const
     {
         assert(gpu::Info.CurrentShader == this);
 
         for (uint32_t idx = 0; idx < textureBindings.Length; ++idx)
         {
-            if (textureBindings[idx]->Name.Hash == TextureName.Hash)
+            if (textureBindings[idx]->Name == Name)
             {
                 return idx;
             }
         }
 
 #ifndef NDEBUG
-        printf("Sampler with name %s not found in shader %d\n", (char const*)TextureName, glShaderID);
+        printf("Sampler with name %s not found in shader %d\n", (char const*)Name, glShaderID);
 #endif
         return -1;
     }
-
-    void GLShader::UseTexture(const int32_t& TextureId, Texture* TextureToUse)
-    {
-        assert(gpu::Info.CurrentShader == this);
-
-        if (TextureId < 0 || TextureId >= textureBindings.Length)
-        {
-            return;
-        }
-
-        TextureBinding* binding = textureBindings[TextureId];
-        binding->BoundTexture = TextureToUse;
-
-        gpu::Info.ActiveTextureUnit = binding->TextureIndex;
-        glActiveTexture(GL_TEXTURE0 + binding->TextureIndex);
-        TextureToUse->Bind();
-        glUniform1i(binding->GLIndex, binding->TextureIndex);
-    }
-
-    void GLShader::AddBinding(BufferBinding* Binding) { buffersBindings.Add(Binding); }
 
     GLShader::~GLShader() { glDeleteShader(glShaderID); }
 } // namespace lucid::gpu

@@ -68,9 +68,6 @@ namespace lucid::scene
     : Renderer(DefaultShader), maxNumOfDirectionalLights(MaxNumOfDirectionalLights), skyboxShader(SkyboxShader)
     {
         SkyboxShader->Use();
-        skyboxCubemapUnifomId =  skyboxShader->GetTextureId(SKYBOX_CUBEMAP);
-        skyboxViewMatrixUniformId =  skyboxShader->GetIdForUniform(VIEW_MATRIX);
-        skyboxProjectionMatrixUniformId = skyboxShader->GetIdForUniform(PROJECTION_MATRIX);
     }
 
     void ForwardBlinnPhongRenderer::Render(RenderScene* const SceneToRender, RenderTarget* const Target)
@@ -167,34 +164,34 @@ namespace lucid::scene
         case LightType::DIRECTIONAL:
         {
             DirectionalLight* light = (DirectionalLight*)InLight;
-            Shader->SetInt(Shader->GetIdForUniform(LIGHT_TO_USE), DIRECTIONAL_LIGHT);
-            Shader->SetVector(Shader->GetIdForUniform(DIRECTIONAL_LIGHT_DIRECTION), light->Direction);
-            Shader->SetVector(Shader->GetIdForUniform(DIRECTIONAL_LIGHT_COLOR), light->Color);
+            Shader->SetInt(LIGHT_TO_USE, DIRECTIONAL_LIGHT);
+            Shader->SetVector(DIRECTIONAL_LIGHT_DIRECTION, light->Direction);
+            Shader->SetVector(DIRECTIONAL_LIGHT_COLOR, light->Color);
         }
         break;
         case LightType::POINT:
         {
             PointLight* light = (PointLight*)InLight;
-            Shader->SetInt(Shader->GetIdForUniform(LIGHT_TO_USE), POINT_LIGHT);
-            Shader->SetVector(Shader->GetIdForUniform(POINT_LIGHT_POSITION), light->Position);
-            Shader->SetVector(Shader->GetIdForUniform(POINT_LIGHT_COLOR), light->Color);
-            Shader->SetFloat(Shader->GetIdForUniform(POINT_LIGHT_CONSTANT), light->Constant);
-            Shader->SetFloat(Shader->GetIdForUniform(POINT_LIGHT_LINEAR), light->Linear);
-            Shader->SetFloat(Shader->GetIdForUniform(POINT_LIGHT_QUADRATIC), light->Quadratic);
+            Shader->SetInt(LIGHT_TO_USE, POINT_LIGHT);
+            Shader->SetVector(POINT_LIGHT_POSITION, light->Position);
+            Shader->SetVector(POINT_LIGHT_COLOR, light->Color);
+            Shader->SetFloat(POINT_LIGHT_CONSTANT, light->Constant);
+            Shader->SetFloat(POINT_LIGHT_LINEAR, light->Linear);
+            Shader->SetFloat(POINT_LIGHT_QUADRATIC, light->Quadratic);
         }
         break;
         case LightType::SPOT:
         {
             SpotLight* light = (SpotLight*)InLight;
-            Shader->SetInt(Shader->GetIdForUniform(LIGHT_TO_USE), SPOT_LIGHT);
-            Shader->SetVector(Shader->GetIdForUniform(SPOT_LIGHT_POSITION), light->Position);
-            Shader->SetVector(Shader->GetIdForUniform(SPOT_LIGHT_DIRECTION), light->Direction);
-            Shader->SetVector(Shader->GetIdForUniform(SPOT_LIGHT_COLOR), light->Color);
-            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_CONSTANT), light->Constant);
-            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_LINEAR), light->Linear);
-            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_QUADRATIC), light->Quadratic);
-            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_INNER_CUT_OFF), glm::cos(light->InnerCutOffRad));
-            Shader->SetFloat(Shader->GetIdForUniform(SPOT_LIGHT_OUTER_CUT_OFF), glm::cos(light->OuterCutOffRad));
+            Shader->SetInt(LIGHT_TO_USE, SPOT_LIGHT);
+            Shader->SetVector(SPOT_LIGHT_POSITION, light->Position);
+            Shader->SetVector(SPOT_LIGHT_DIRECTION, light->Direction);
+            Shader->SetVector(SPOT_LIGHT_COLOR, light->Color);
+            Shader->SetFloat(SPOT_LIGHT_CONSTANT, light->Constant);
+            Shader->SetFloat(SPOT_LIGHT_LINEAR, light->Linear);
+            Shader->SetFloat(SPOT_LIGHT_QUADRATIC, light->Quadratic);
+            Shader->SetFloat(SPOT_LIGHT_INNER_CUT_OFF, glm::cos(light->InnerCutOffRad));
+            Shader->SetFloat(SPOT_LIGHT_OUTER_CUT_OFF, glm::cos(light->OuterCutOffRad));
         }
         break;
         }
@@ -205,7 +202,7 @@ namespace lucid::scene
         auto usedShader = defaultShader;
         auto currentNode = &SceneToRender->StaticGeometry.Head;
 
-        defaultShader->SetInt(defaultShader->GetIdForUniform(LIGHT_TO_USE), NO_LIGHT);
+        defaultShader->SetInt(LIGHT_TO_USE, NO_LIGHT);
 
         while (currentNode && currentNode->Element)
         {
@@ -218,7 +215,7 @@ namespace lucid::scene
             if (customShader)
             {
                 customShader->Use();
-                customShader->SetInt(defaultShader->GetIdForUniform(LIGHT_TO_USE), NO_LIGHT);
+                customShader->SetInt(LIGHT_TO_USE, NO_LIGHT);
                 SetupRendererWideUniforms(customShader, Target);
                 usedShader = customShader;
             }
@@ -248,10 +245,10 @@ namespace lucid::scene
 
     void ForwardBlinnPhongRenderer::SetupRendererWideUniforms(gpu::Shader* Shader, const RenderTarget* Target)
     {
-        Shader->SetFloat(Shader->GetIdForUniform(AMBIENT_STRENGTH), ambientStrength);
-        Shader->SetMatrix(Shader->GetIdForUniform(PROJECTION_MATRIX), Target->Camera->GetProjectionMatrix());
-        Shader->SetMatrix(Shader->GetIdForUniform(VIEW_MATRIX), Target->Camera->GetViewMatrix());
-        Shader->SetVector(Shader->GetIdForUniform(VIEW_POSITION), Target->Camera->Position);
+        Shader->SetFloat(AMBIENT_STRENGTH, ambientStrength);
+        Shader->SetMatrix(PROJECTION_MATRIX, Target->Camera->GetProjectionMatrix());
+        Shader->SetMatrix(VIEW_MATRIX, Target->Camera->GetViewMatrix());
+        Shader->SetVector(VIEW_POSITION, Target->Camera->Position);
     }
 
     Renderable* CreateBlinnPhongRenderable(DString MeshName, resources::MeshResource* Mesh, gpu::Shader* CustomShader)
@@ -304,7 +301,7 @@ namespace lucid::scene
     void ForwardBlinnPhongRenderer::Render(gpu::Shader* Shader, Renderable* const ToRender)
     {
         glm::mat4 modelMatrix = ToRender->CalculateModelMatrix();
-        Shader->SetMatrix(Shader->GetIdForUniform(MODEL_MATRIX), modelMatrix);
+        Shader->SetMatrix(MODEL_MATRIX, modelMatrix);
 
         ToRender->Material->SetupShader(Shader);
 
@@ -318,9 +315,9 @@ namespace lucid::scene
 
         skyboxShader->Use();
 
-        skyboxShader->UseTexture(skyboxCubemapUnifomId, SkyboxToRender->SkyboxCubemap);
-        skyboxShader->SetMatrix(skyboxViewMatrixUniformId, RenderTarget->Camera->GetViewMatrix());
-        skyboxShader->SetMatrix(skyboxProjectionMatrixUniformId, RenderTarget->Camera->GetProjectionMatrix());
+        skyboxShader->UseTexture(SKYBOX_CUBEMAP, SkyboxToRender->SkyboxCubemap);
+        skyboxShader->SetMatrix(VIEW_MATRIX, RenderTarget->Camera->GetViewMatrix());
+        skyboxShader->SetMatrix(PROJECTION_MATRIX, RenderTarget->Camera->GetProjectionMatrix());
 
         misc::CubeVertexArray->Bind();
         misc::CubeVertexArray->Draw();

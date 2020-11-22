@@ -11,6 +11,9 @@
 
 namespace lucid::scene
 {
+    static const String MODEL {"uModel"};
+    static const String LIGHT_SPACE_MATRIX {"uLightSpaceMatrix"};
+
     // Shoule be tweakable based on game's graphics settings
     struct OrthoMatrixLightSettings
     {
@@ -76,7 +79,7 @@ namespace lucid::scene
         int32_t LightSpaceMatrixId = ShaderToUse->GetIdForUniform("uLightSpaceMatrix");
 
         ShaderToUse->Use();
-        ShaderToUse->SetMatrix(LightSpaceMatrixId, LightSpaceMatrix);
+        ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
 
         if (RenderStaticGeometry)
         {
@@ -91,7 +94,7 @@ namespace lucid::scene
         LinkedListItem<Renderable>* node = &Geometry.Head;
         while (node && node->Element)
         {
-            ShaderToUse->SetMatrix(ModelMatrixId, node->Element->CalculateModelMatrix());
+            ShaderToUse->SetMatrix(MODEL, node->Element->CalculateModelMatrix());
             node->Element->VertexArray->Bind();
             node->Element->VertexArray->Draw();
             node = node->Next;

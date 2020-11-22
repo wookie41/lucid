@@ -53,10 +53,6 @@ namespace lucid::scene
 
         // Skybox shader stuff
 
-        uint32_t skyboxCubemapUnifomId;
-        uint32_t skyboxViewMatrixUniformId;
-        uint32_t skyboxProjectionMatrixUniformId;
-
         gpu::Shader* skyboxShader;
     };
 
