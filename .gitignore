@@ -12,7 +12,7 @@
 *.app
 
 .vscode
-bin
+./bin
 *.vcxproj
 *.filters
 obj
