@@ -54,7 +54,7 @@ project "lucid"
       "misc/src/**.cpp",
       "misc/include/**.hpp",
       "scene/src/**.cpp",
-      "scene/include/*.hpp",
+      "scene/include/**.hpp",
       "resources/src/**.cpp",
       "resources/include/**.hpp"
    }
