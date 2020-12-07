@@ -25,6 +25,7 @@
 #include "GL/glew.h"
 #include <time.h>
 #include "devices/gpu/cubemap.hpp"
+#include "scene/flat_material.hpp"
 
 using namespace lucid;
 
@@ -41,7 +42,7 @@ int main(int argc, char** argv)
 
     // create window
 
-    platform::Window* window = platform::CreateWindow({ "Lucid", 900, 420, 800, 600, true });
+    platform::Window* window = platform::CreateWindow({ "Lucid", 900, 420, 1280, 720, true });
     misc::InitBasicShapes();
     resources::InitTextures();
 
@@ -49,10 +50,11 @@ int main(int argc, char** argv)
 
     gpu::Texture* colorAttachment = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(),
                                                               gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
-    gpu::FramebufferAttachment* renderbuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, { 800, 600 });
+    gpu::FramebufferAttachment* renderbuffer =
+      gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, { window->GetWidth(), window->GetHeight() });
     gpu::Framebuffer* testFramebuffer = gpu::CreateFramebuffer();
     gpu::Framebuffer* shadowMapFramebuffer = gpu::CreateFramebuffer();
-    
+
     shadowMapFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
     shadowMapFramebuffer->DisableReadWriteBuffers();
 
@@ -70,14 +72,18 @@ int main(int argc, char** argv)
 
     // Load textures uesd in the demo scene
 
-    resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
+    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
-    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE);
-    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG("assets/textures/brick-normal-map.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
-    
-    resources::TextureResource* woodDiffuseMapResource = resources::LoadJPEG("assets/textures/wood.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    resources::TextureResource* brickWallDiffuseMapResource =
+      resources::LoadJPEG("assets/textures/brick-diffuse-map.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+    resources::TextureResource* brickWallNormalMapResource =
+      resources::LoadJPEG("assets/textures/brick-normal-map.png", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
-    resources::TextureResource* blankTextureResource = resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE);
+    resources::TextureResource* woodDiffuseMapResource =
+      resources::LoadJPEG("assets/textures/wood.png", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+
+    resources::TextureResource* blankTextureResource =
+      resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
     brickWallDiffuseMapResource->FreeMainMemory();
     brickWallNormalMapResource->FreeMainMemory();
@@ -98,123 +104,136 @@ int main(int argc, char** argv)
 
     // Load and compile demo shaders
 
-    gpu::Shader* blinnPhongShader = gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/fwd_blinn_phong.vert", true) },
-                                                              { platform::ReadFile("shaders/glsl/fwd_blinn_phong.frag", true) });
+    gpu::Shader* blinnPhongShader =
+      gpu::CompileShaderProgram("BlinnPhong", { platform::ReadFile("shaders/glsl/fwd_blinn_phong.vert", true) },
+                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong.frag", true) });
 
     gpu::Shader* blinnPhongMapsShader =
-      gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true) },
-                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true) });
+      gpu::CompileShaderProgram("BlinnPhongMaps", { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true) },
+                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true) }, true);
 
-    gpu::Shader* skyboxShader =
-      gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/skybox.vert", true) },
-                                { platform::ReadFile("shaders/glsl/skybox.frag", true) });
+    gpu::Shader* skyboxShader = gpu::CompileShaderProgram("Skybox", { platform::ReadFile("shaders/glsl/skybox.vert", true) },
+                                                          { platform::ReadFile("shaders/glsl/skybox.frag", true) });
 
     gpu::Shader* shadowMapShader =
-      gpu::CompileShaderProgram({ platform::ReadFile("shaders/glsl/shadow_map.vert", true) },
+      gpu::CompileShaderProgram("ShadowMapper", { platform::ReadFile("shaders/glsl/shadow_map.vert", true) },
                                 { platform::ReadFile("shaders/glsl/empty.frag", true) });
 
+    gpu::Shader* flatShader = gpu::CompileShaderProgram("flatShader", { platform::ReadFile("shaders/glsl/flat.vert", true) },
+                                                        { platform::ReadFile("shaders/glsl/flat.frag", true) });
 
     // Prepare the scene
 
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
     gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
 
-    scene::Camera perspectiveCamera{ scene::CameraMode::PERSPECTIVE, { 0, 0, 2.5 } };
+    scene::Camera perspectiveCamera{ scene::CameraMode::PERSPECTIVE };
     perspectiveCamera.AspectRatio = window->GetAspectRatio();
 
     scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongMapsShader, skyboxShader };
-    renderer.SetAmbientStrength(0.05);
+    renderer.SetAmbientStrength(0.075);
 
     scene::RenderTarget renderTarget;
     renderTarget.Camera = &perspectiveCamera;
     renderTarget.Framebuffer = testFramebuffer;
     renderTarget.Viewport = windowViewport;
 
-    scene::BlinnPhongMaterial flatMaterial;
-    flatMaterial.Shininess = 32;
-    flatMaterial.DiffuseColor = glm::vec3(1.0, 0.0, 0.0);
-    flatMaterial.SpecularColor = glm::vec3(1.0, 0.0, 0.0);
-    flatMaterial.SetCustomShader(blinnPhongShader);
-
-    scene::BlinnPhongMaterial lightMaterial;
-    flatMaterial.Shininess = 32;
-    flatMaterial.DiffuseColor = glm::vec3(1.0, 1.0, 1.0);
-    flatMaterial.SpecularColor = glm::vec3(1.0, 1.0, 1.0);
-    flatMaterial.SetCustomShader(blinnPhongShader);
-
-    scene::BlinnPhongMapsMaterial brickMaterial;
-    brickMaterial.Shininess = 32;
-    brickMaterial.DiffuseMap = brickWallDiffuseMap;
-    brickMaterial.SpecularMap = blankTextureMap;
-    brickMaterial.NormalMap = brickWallNormalMap;
-
     scene::BlinnPhongMapsMaterial woodMaterial;
     woodMaterial.Shininess = 32;
     woodMaterial.DiffuseMap = woodDiffuseMap;
 
-    scene::Renderable brickWall { "BrickWall" };
-    brickWall.Transform.Translation = { -2, 0, -4 };
-    brickWall.Material = &brickMaterial;
-    brickWall.VertexArray = misc::QuadVertexArray;
-    brickWall.Type = scene::RenderableType::STATIC;
+    scene::BlinnPhongMaterial flatBlinnPhongMaterial;
+    flatBlinnPhongMaterial.DiffuseColor = glm::vec3{ 1 };
+    flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
+    flatBlinnPhongMaterial.Shininess = 32;
+    flatBlinnPhongMaterial.SetCustomShader(blinnPhongShader);
 
-    scene::Renderable woodenFloor { "woodenFloor ", brickWall };
-    woodenFloor.Transform.Scale =  { 10.0, 10.0, 10.0 };
-    woodenFloor.Transform.Translation =  { 0, -2, -7.5 };
-    woodenFloor.Transform.Rotation.x = 1;
-    woodenFloor.Transform.Rotation.y = 0;
-    woodenFloor.Transform.Rotation.z = 0;
-    woodenFloor.Transform.Rotation.w = glm::radians(-90.f);
+    scene::Renderable woodenFloor{ "woodenFloor" };
     woodenFloor.Material = &woodMaterial;
+    woodenFloor.VertexArray = misc::QuadVertexArray;
+    woodenFloor.Type = scene::RenderableType::STATIC;
 
     scene::Renderable cube{ "Cube" };
-    cube.Transform.Translation = { 2, 0, -2 };
-    cube.Material = &flatMaterial;
+    cube.Material = &woodMaterial;
     cube.VertexArray = misc::CubeVertexArray;
     cube.Type = scene::RenderableType::STATIC;
-    cube.Transform.Scale = glm::vec3(0.5);
-    
-    scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
-    backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
+    cube.Transform.Translation = { 0.0, 1.5, 0.0 };
+    cube.Transform.Scale = glm::vec3{ 0.5 };
 
     scene::Renderable cube1{ "Cube1", cube };
+    cube1.Transform.Translation = { 2.0, 0.0, 1.0 };
+    cube1.Transform.Scale = glm::vec3{ 0.5 };
+    cube1.Material = &flatBlinnPhongMaterial;
+
     scene::Renderable cube2{ "Cube2", cube };
-    scene::Renderable cube3{ "Cube3", cube };
-    scene::Renderable cube4{ "Cube4", cube };
+    glm::vec3 cubeRotAxis = glm::normalize(glm::vec3{ 1, 0, 1 });
+    cube2.Transform.Translation = { -1.0f, 0.0f, 2.0 };
+    cube2.Transform.Scale = glm::vec3{ 0.25 };
+    cube2.Transform.Rotation.x = cubeRotAxis.x;
+    cube2.Transform.Rotation.y = cubeRotAxis.y;
+    cube2.Transform.Rotation.z = cubeRotAxis.z;
+    cube2.Transform.Rotation.w = glm::radians(60.0);
 
-    cube1.Transform.Translation = { -1.5, 0, -5 };
-    cube2.Transform.Translation = { 0, 0, -8 };
-    cube3.Transform.Translation = { -2, 0, -11 };
-    cube4.Transform.Translation = { 2, 0, -15 };
-    cube.Transform.Rotation = glm::quat(glm::vec3(0.0, 45.0, 0.0));
+    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
+    // backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
 
-    scene::DirectionalLight whiteDirLight = scene::CreateDirectionalLight(true, {1024, 1024});
-    whiteDirLight.Direction = { 0, 0, 0 };
+    scene::FlatMaterial flatWhiteMaterial;
+    flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
+    flatWhiteMaterial.SetCustomShader(flatShader);
+
+    scene::FlatMaterial flatRedMaterial;
+    flatRedMaterial.Color = { 1.0, 0.0, 0.0, 1.0 };
+    flatRedMaterial.SetCustomShader(flatShader);
+
+    scene::FlatMaterial flatGreenMaterial;
+    flatGreenMaterial.Color = { 0.0, 1.0, 0.0, 1.0 };
+    flatGreenMaterial.SetCustomShader(flatShader);
+
+    scene::FlatMaterial flatBlueMaterial;
+    flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
+    flatBlueMaterial.SetCustomShader(flatShader);
+
+    scene::DirectionalLight whiteDirLight = scene::CreateDirectionalLight(true, { 1024, 1024 });
+    whiteDirLight.Direction = glm::normalize(glm::vec3{ 2.0f, -4.0f, 1.0f });
     whiteDirLight.Position = { -2.0f, 4.0f, -1.0f };
+    whiteDirLight.Color = glm::vec3{ 1.0 };
 
-    scene::PointLight redLight;
-    redLight.Position = { 2, 0, 0 };
+    scene::Renderable whiteDirLightCube{ "WhiteDirLightCube", cube };
+    whiteDirLightCube.Material = &flatWhiteMaterial;
+    whiteDirLightCube.Transform.Translation = whiteDirLight.Position;
+
+    scene::SpotLight redLight;
+    redLight.Position = { 2, 4, 0 };
+    redLight.Direction = { -2, -4, 0 };
     redLight.Color = { 1, 0, 0 };
     redLight.Constant = 1;
     redLight.Linear = 0.09;
     redLight.Quadratic = 0.032;
+    redLight.InnerCutOffRad = glm::radians(30.0);
+    redLight.OuterCutOffRad = glm::radians(35.0);
 
-    scene::SpotLight greenLight;
-    greenLight.Position = { 0, 0, 1 };
+    scene::Renderable redLightCube{ "RedLightCube", cube };
+    redLightCube.Transform.Scale = glm::vec3{ 0.25 };
+    redLightCube.Material = &flatRedMaterial;
+    redLightCube.Transform.Translation = redLight.Position;
+
+    scene::SpotLight greenLight = redLight;
+    greenLight.Position = { -2, 4, 0 };
+    greenLight.Direction = { 2, -4, 0 };
     greenLight.Color = { 0, 1, 0 };
-    greenLight.Constant = 1;
-    greenLight.Linear = 0.09;
-    greenLight.Quadratic = 0.032;
-    greenLight.Direction = { 0, 0, -1 };
-    greenLight.InnerCutOffRad = glm::radians(30.0);
-    greenLight.OuterCutOffRad = glm::radians(35.0);
 
-    scene::PointLight blueLight;
-    blueLight.Position = { -2, 0, 0 };
+    scene::Renderable greenLightCube{ "GreenLightCube", redLightCube };
+    greenLightCube.Transform.Translation = greenLight.Position;
+    greenLightCube.Material = &flatGreenMaterial;
+
+    scene::PointLight blueLight = greenLight;
+    greenLight.Position = { 0, 4, 0 };
+    greenLight.Direction = { 0, -4, 0 };
     blueLight.Color = { 0, 0, 1 };
-    blueLight.Constant = 1;
-    blueLight.Linear = 0.09;
-    blueLight.Quadratic = 0.032;
+
+    scene::Renderable blueLightCube{ "BlueLightCube", redLightCube };
+    blueLightCube.Transform.Translation = greenLight.Position;
+    blueLightCube.Material = &flatBlueMaterial;
 
     scene::DirectionalLight whiteLight;
     whiteLight.Direction = { 0, -1, -1 };
@@ -224,25 +243,26 @@ int main(int argc, char** argv)
     sceneToRender.StaticGeometry.Add(&cube);
     sceneToRender.StaticGeometry.Add(&cube1);
     sceneToRender.StaticGeometry.Add(&cube2);
-    sceneToRender.StaticGeometry.Add(&cube3);
-    sceneToRender.StaticGeometry.Add(&cube4);
-    sceneToRender.StaticGeometry.Add(&brickWall);
+
     sceneToRender.StaticGeometry.Add(&woodenFloor);
 
-    sceneToRender.StaticGeometry.Add(backPackRenderable);
+    sceneToRender.Lights.Add(&whiteDirLight);
+    // sceneToRender.Lights.Add(&redLight);
+    // sceneToRender.Lights.Add(&greenLight);
+    // sceneToRender.Lights.Add(&blueLight);
 
-    sceneToRender.Lights.Add(&redLight);
-    sceneToRender.Lights.Add(&greenLight);
-    sceneToRender.Lights.Add(&blueLight);
-    // sceneToRender.Lights.Add(&whiteLight);
+    sceneToRender.StaticGeometry.Add(&whiteDirLightCube);
+    // sceneToRender.StaticGeometry.Add(&redLightCube);
+    // sceneToRender.StaticGeometry.Add(&greenLightCube);
+    // sceneToRender.StaticGeometry.Add(&blueLightCube);
 
-    const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg", "assets/skybox/left.jpg", "assets/skybox/top.jpg", "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
+    const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg",  "assets/skybox/left.jpg",  "assets/skybox/top.jpg",
+                                       "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
     scene::Skybox skybox = scene::CreateSkybox(skyboxFacesPaths);
-    // sceneToRender.SceneSkybox = skybox;
+    sceneToRender.SceneSkybox = &skybox;
 
     gpu::SetClearColor(BlackColor);
-    
-    int currentRotation = 0;
+
     bool isRunning = true;
     while (isRunning)
     {
@@ -273,21 +293,10 @@ int main(int argc, char** argv)
         {
             perspectiveCamera.MoveRight(1.f / 60.f);
         }
-
-        if (IsKeyPressed(SDLK_r))
+        auto mousePos = GetMousePostion();
+        if (mousePos.MouseMoved)
         {
-            currentRotation += 1;
-            brickWall.Transform.Rotation.w = glm::radians((float)(currentRotation % 360));
-        }
-
-        if (IsMouseButtonPressed(MouseButton::LEFT))
-        {
-            auto mousePos = GetMousePostion();
-
-            if (mousePos.MouseMoved)
-            {
-                perspectiveCamera.AddRotation(-mousePos.DeltaX, mousePos.DeltaY);
-            }
+            perspectiveCamera.AddRotation(-mousePos.DeltaX, mousePos.DeltaY);
         }
 
         gpu::DisableSRGBFramebuffer();
@@ -295,15 +304,12 @@ int main(int argc, char** argv)
         whiteDirLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
 
         // Render to off-screen framebuffer
-
-        gpu::SetViewport(renderTarget.Viewport);
         renderTarget.Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
         gpu::DisableSRGBFramebuffer();
         renderer.Render(&sceneToRender, &renderTarget);
 
         // Blit the off-screen frame buffer to the window framebuffer
-
         gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
         gpu::EnableSRGBFramebuffer();
@@ -311,7 +317,6 @@ int main(int argc, char** argv)
           renderTarget.Framebuffer, nullptr, true, false, false,
           { 0, 0, renderTarget.Framebuffer->GetColorAttachmentSize().x, renderTarget.Framebuffer->GetColorAttachmentSize().y },
           { 0, 0, window->GetWidth(), window->GetHeight() });
-
         window->Swap();
     }
 

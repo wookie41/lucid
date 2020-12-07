@@ -31,7 +31,7 @@ namespace lucid::scene
         {
             return glm::ortho(Left, Right, Bottom, Top, NearPlane, FarPlane);
         }
-        return glm::perspective(FOV, AspectRatio, NearPlane, FarPlane);
+        return glm::perspective(glm::radians(FOV), AspectRatio,  0.1f, 100.0f);
     }
 
     void Camera::MoveForward(const float& DeltaTime)

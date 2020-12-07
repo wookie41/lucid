@@ -28,7 +28,6 @@ namespace lucid::scene
 
     void BlinnPhongMapsMaterial::SetupShader(gpu::Shader* Shader)
     {
-
         Shader->SetInt(SHININESS, Shininess);
         Shader->UseTexture(DIFFUSE_MAP, DiffuseMap);
 

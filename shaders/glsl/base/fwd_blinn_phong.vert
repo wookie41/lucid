@@ -12,17 +12,17 @@ uniform mat4 uProjection;
 out VS_OUT
 {
     vec3 Normal;
-    vec3 WorldPos;
+    vec3 FragPos;
 }
 vsOut;
 
 void main()
 {
     mat3 normalMatrix = mat3(transpose(inverse(uModel)));
-    vec4 worldPos = uModel * vec4(aPosition, 1);
+    vec4 FragPos = uModel * vec4(aPosition, 1);
 
-    vsOut.WorldPos = worldPos.xyz;
+    vsOut.FragPos = FragPos.xyz;
     vsOut.Normal = normalMatrix * aNormal;
 
-    gl_Position = uProjection * uView * worldPos;
+    gl_Position = uProjection * uView * FragPos;
 }

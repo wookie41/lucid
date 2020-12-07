@@ -103,6 +103,26 @@ namespace lucid::gpu
 
     //////////////////////////////////////////////////////
 
+    ///////////// Culling //////////////////////
+
+    static const GLenum CULL_MODE_MAPPING[]{ GL_FRONT, GL_BACK, GL_FRONT_AND_BACK };
+    
+    void EnableCullFace()
+    {
+        glEnable(GL_CULL_FACE);
+
+    }
+
+    void DisableCullFace()
+    {
+        glDisable(GL_CULL_FACE);
+    }
+
+    void SetCullMode(CullMode Mode)
+    {
+        glCullFace(CULL_MODE_MAPPING[static_cast<uint8_t>(Mode)]);
+    }
+
     // SRGB
 
     void EnableSRGBFramebuffer() { glEnable(GL_FRAMEBUFFER_SRGB); }

@@ -19,7 +19,7 @@ namespace lucid::scene
                const float& CameraYaw = -90.0,
                const float& CameraPitch = 0.0,
                const float& CameraSpeed = 2.5,
-               const float& CameraSensitivity = 0.1,
+               const float& CameraSensitivity = 0.5,
                const float& CameraZoom = 45.0);
 
         glm::mat4 GetViewMatrix() const;

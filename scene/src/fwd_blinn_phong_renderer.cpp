@@ -31,25 +31,19 @@ namespace lucid::scene
     static const uint32_t POINT_LIGHT = 2;
     static const uint32_t SPOT_LIGHT = 3;
 
-    static const String LIGHT_TO_USE("uLightToUse");
+    static const String LIGHT_TYPE("uLight.Type");
 
-    static const String DIRECTIONAL_LIGHT_DIRECTION("uDirectionalLight.Direction");
-    static const String DIRECTIONAL_LIGHT_COLOR("uDirectionalLight.Color");
-
-    static const String POINT_LIGHT_POSITION("uPointLight.Position");
-    static const String POINT_LIGHT_COLOR("uPointLight.Color");
-    static const String POINT_LIGHT_CONSTANT("uPointLight.Constant");
-    static const String POINT_LIGHT_LINEAR("uPointLight.Linear");
-    static const String POINT_LIGHT_QUADRATIC("uPointLight.Quadratic");
-
-    static const String SPOT_LIGHT_POSITION("uSpotLight.Position");
-    static const String SPOT_LIGHT_DIRECTION("uSpotLight.Direction");
-    static const String SPOT_LIGHT_COLOR("uSpotLight.Color");
-    static const String SPOT_LIGHT_CONSTANT("uSpotLight.Constant");
-    static const String SPOT_LIGHT_LINEAR("uSpotLight.Linear");
-    static const String SPOT_LIGHT_QUADRATIC("uSpotLight.Quadratic");
-    static const String SPOT_LIGHT_INNER_CUT_OFF("uSpotLight.InnerCutOffCos");
-    static const String SPOT_LIGHT_OUTER_CUT_OFF("uSpotLight.OuterCutOffCos");
+    static const String LIGHT_POSITION("uLight.Position");
+    static const String LIGHT_DIRECTION("uLight.Direction");
+    static const String LIGHT_COLOR("uLight.Color");
+    static const String LIGHT_CONSTANT("uLight.Constant");
+    static const String LIGHT_LINEAR("uLight.Linear");
+    static const String LIGHT_QUADRATIC("uLight.Quadratic");
+    static const String LIGHT_INNER_CUT_OFF("uLight.InnerCutOffCos");
+    static const String LIGHT_OUTER_CUT_OFF("uLight.OuterCutOffCos");
+    static const String LIGHT_SHADOW_MAP("uLight.ShadowMap");
+    static const String LIGHT_SPACE_MATRIX("uLight.LightSpaceMatrix");
+    static const String LIGHT_CASTS_SHADOWS("uLight.CastsShadows");
 
     // Shader-wide uniforms
     static const String AMBIENT_STRENGTH("uAmbientStrength");
@@ -95,6 +89,9 @@ namespace lucid::scene
         gpu::SetBlendFunctionSeparate(  gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, 
                                         gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO );
 
+        // gpu::DisableCullFace();
+        // gpu::SetCullMode(gpu::CullMode::BACK);
+
         auto lightNode = &SceneToRender->Lights.Head;
         if (!lightNode->Element)
         {
@@ -105,7 +102,7 @@ namespace lucid::scene
 
         RenderLightContribution(lightNode->Element, SceneToRender, Target);
 
-        if (!lightNode->Next || lightNode->Next->Element)
+        if (!lightNode->Next || !lightNode->Next->Element)
         {
             // No more lights
             return;
@@ -139,12 +136,12 @@ namespace lucid::scene
 
             auto customShader = renderable->Material->GetCustomShader();
             if (customShader)
-            {
+            {   
                 customShader->Use();
                 SetupRendererWideUniforms(customShader, Target);
                 usedShader = customShader;
             }
-            else if (usedShader != defaultShader)
+            else
             {
                 defaultShader->Use();
                 usedShader = defaultShader;
@@ -159,39 +156,48 @@ namespace lucid::scene
 
     void ForwardBlinnPhongRenderer::SetupLight(gpu::Shader* Shader, Light* const InLight)
     {
+        Shader->SetVector(LIGHT_POSITION, InLight->Position);
+        Shader->SetBool(LIGHT_CASTS_SHADOWS, InLight->GetCachedShadowMap() != nullptr);
+
+        if (InLight->GetCachedShadowMap() != nullptr)
+        {
+            Shader->UseTexture(LIGHT_SHADOW_MAP, InLight->GetCachedShadowMap());
+        }
+
         switch (InLight->GetType())
         {
         case LightType::DIRECTIONAL:
         {
             DirectionalLight* light = (DirectionalLight*)InLight;
-            Shader->SetInt(LIGHT_TO_USE, DIRECTIONAL_LIGHT);
-            Shader->SetVector(DIRECTIONAL_LIGHT_DIRECTION, light->Direction);
-            Shader->SetVector(DIRECTIONAL_LIGHT_COLOR, light->Color);
+            Shader->SetInt(LIGHT_TYPE, DIRECTIONAL_LIGHT);
+            Shader->SetVector(LIGHT_DIRECTION, light->Direction);
+            Shader->SetVector(LIGHT_COLOR, light->Color);
+            Shader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
         }
         break;
         case LightType::POINT:
         {
             PointLight* light = (PointLight*)InLight;
-            Shader->SetInt(LIGHT_TO_USE, POINT_LIGHT);
-            Shader->SetVector(POINT_LIGHT_POSITION, light->Position);
-            Shader->SetVector(POINT_LIGHT_COLOR, light->Color);
-            Shader->SetFloat(POINT_LIGHT_CONSTANT, light->Constant);
-            Shader->SetFloat(POINT_LIGHT_LINEAR, light->Linear);
-            Shader->SetFloat(POINT_LIGHT_QUADRATIC, light->Quadratic);
+            Shader->SetInt(LIGHT_TYPE, POINT_LIGHT);
+            Shader->SetVector(LIGHT_POSITION, light->Position);
+            Shader->SetVector(LIGHT_COLOR, light->Color);
+            Shader->SetFloat(LIGHT_CONSTANT, light->Constant);
+            Shader->SetFloat(LIGHT_LINEAR, light->Linear);
+            Shader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
         }
         break;
         case LightType::SPOT:
         {
             SpotLight* light = (SpotLight*)InLight;
-            Shader->SetInt(LIGHT_TO_USE, SPOT_LIGHT);
-            Shader->SetVector(SPOT_LIGHT_POSITION, light->Position);
-            Shader->SetVector(SPOT_LIGHT_DIRECTION, light->Direction);
-            Shader->SetVector(SPOT_LIGHT_COLOR, light->Color);
-            Shader->SetFloat(SPOT_LIGHT_CONSTANT, light->Constant);
-            Shader->SetFloat(SPOT_LIGHT_LINEAR, light->Linear);
-            Shader->SetFloat(SPOT_LIGHT_QUADRATIC, light->Quadratic);
-            Shader->SetFloat(SPOT_LIGHT_INNER_CUT_OFF, glm::cos(light->InnerCutOffRad));
-            Shader->SetFloat(SPOT_LIGHT_OUTER_CUT_OFF, glm::cos(light->OuterCutOffRad));
+            Shader->SetInt(LIGHT_TYPE, SPOT_LIGHT);
+            Shader->SetVector(LIGHT_POSITION, light->Position);
+            Shader->SetVector(LIGHT_DIRECTION, light->Direction);
+            Shader->SetVector(LIGHT_COLOR, light->Color);
+            Shader->SetFloat(LIGHT_CONSTANT, light->Constant);
+            Shader->SetFloat(LIGHT_LINEAR, light->Linear);
+            Shader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
+            Shader->SetFloat(LIGHT_INNER_CUT_OFF, glm::cos(light->InnerCutOffRad));
+            Shader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(light->OuterCutOffRad));
         }
         break;
         }
@@ -202,7 +208,7 @@ namespace lucid::scene
         auto usedShader = defaultShader;
         auto currentNode = &SceneToRender->StaticGeometry.Head;
 
-        defaultShader->SetInt(LIGHT_TO_USE, NO_LIGHT);
+        defaultShader->SetInt(LIGHT_TYPE, NO_LIGHT);
 
         while (currentNode && currentNode->Element)
         {
@@ -215,7 +221,7 @@ namespace lucid::scene
             if (customShader)
             {
                 customShader->Use();
-                customShader->SetInt(LIGHT_TO_USE, NO_LIGHT);
+                customShader->SetInt(LIGHT_TYPE, NO_LIGHT);
                 SetupRendererWideUniforms(customShader, Target);
                 usedShader = customShader;
             }
@@ -296,7 +302,6 @@ namespace lucid::scene
 
         return meshRenderable;
     }
-
 
     void ForwardBlinnPhongRenderer::Render(gpu::Shader* Shader, Renderable* const ToRender)
     {

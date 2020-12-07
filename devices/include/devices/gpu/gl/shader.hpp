@@ -22,9 +22,11 @@ namespace lucid::gpu
     class GLShader : public Shader
     {
       public:
-        GLShader(const GLuint& GLShaderID,
+        GLShader(const String& InName,
+                 const GLuint& GLShaderID,
                  StaticArray<UniformVariable> UniformVariables,
-                 StaticArray<TextureBinding> TextureBindings);
+                 StaticArray<TextureBinding> TextureBindings,
+                 const bool& WarnMissingUniforms);
 
         virtual void Use() override;
 
@@ -63,5 +65,6 @@ namespace lucid::gpu
         StaticArray<UniformVariable> uniformVariables;
         StaticArray<TextureBinding> textureBindings;
         LinkedList<BufferBinding> buffersBindings;
+        bool warnMissingUniforms;
     };
 } // namespace lucid::gpu

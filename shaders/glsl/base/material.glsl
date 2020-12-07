@@ -8,10 +8,17 @@ struct BlinnPhongMaterial
 struct BlinnPhongMapsMaterial
 {
     int Shininess;
+
     sampler2D DiffuseMap;
     sampler2D SpecularMap;
     sampler2D NormalMap;
 
     bool HasSpecularMap;
     bool HasNormalMap;
+};
+
+
+struct FlatMaterial
+{
+    vec4 Color;
 };

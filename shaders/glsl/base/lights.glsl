@@ -2,90 +2,86 @@
 #define POINT_LIGHT 2
 #define SPOT_LIGHT 3
 
-struct DirectionalLight
+struct Light
 {
+    int Type;
     vec3 Direction;
     vec3 Color;
-};
-
-struct PointLight
-{
     vec3 Position;
     float Constant;
     float Linear;
     float Quadratic;
-    vec3 Color;
-};
-
-struct SpotLight
-{
-    vec3 Direction;
-    vec3 Position;
-    float Constant;
-    float Linear;
-    float Quadratic;
-    vec3 Color;
     float InnerCutOffCos;
     float OuterCutOffCos;
+    mat4 LightSpaceMatrix;
+    bool CastsShadows;
+    sampler2D ShadowMap;
 };
 
-vec3 CalculateDirectionalLightContribution(in vec3 ToView,
+uniform Light uLight;
+
+struct LightContribution
+{
+    float Attenuation;
+    vec3 Diffuse;
+    vec3 Specular;
+};
+
+LightContribution _CalculateDirectionalLightContribution(in vec3 ToViewN,
                                            in vec3 Normal,
-                                           in vec3 FragDiffuseColor,
-                                           in vec3 FragSpecularColor,
-                                           in vec3 LightDir,
-                                           in vec3 LightColor,
+                                           in vec3 LightDirN,
                                            in int Shininess)
 {
-    vec3 toLightDirN = normalize(-LightDir);
-    vec3 toViewN = normalize(ToView);
+    float diffuseStrength = max(dot(Normal, -LightDirN), 0.0);
+    vec3 diffuse = diffuseStrength * uLight.Color;
 
-    float diffuseStrength = max(dot(Normal, toLightDirN), 0.0);
-    vec3 diffuse = diffuseStrength * FragDiffuseColor * LightColor;
+    vec3 halfWayN = normalize((-LightDirN) + ToViewN);
+    float specularStrength = pow(max(dot(Normal, halfWayN), 0.0), Shininess);
+    vec3 specular = specularStrength * uLight.Color;
 
-    vec3 halfWay = normalize(ToView + (-LightDir));
-    float specularStrength = pow(max(dot(Normal, halfWay), 0.0), Shininess);
-    vec3 specular = specularStrength * FragSpecularColor * LightColor;
-
-    return diffuse + specular;
+    return LightContribution(1, diffuse, specular);
 }
 
-vec3 CalculatePointLightContribution(in vec3 FragPos,
-                                     in vec3 ToView,
+LightContribution CalculateDirectionalLightContribution(in vec3 ToViewN,
+                                           in vec3 Normal,
+                                           in int Shininess)
+{
+    return _CalculateDirectionalLightContribution(ToViewN, Normal, normalize(uLight.Direction), Shininess);
+}
+
+LightContribution _CalculatePointLightContribution(in vec3 FragPos,
+                                     in vec3 ToViewN,
                                      in vec3 Normal,
-                                     in vec3 LightPos,
-                                     in vec3 LightColor,
-                                     in vec3 LightDir,
-                                     in float Constant,
-                                     in float Linear,
-                                     in float Quadratic,
-                                     in vec3 FragDiffuseColor,
-                                     in vec3 FragSpecularColor,
+                                     in vec3 LightDirN,
                                      in int Shininess)
 {
-    float distanceToLight = length(FragPos - LightPos);
-    vec3 color =
-      CalculateDirectionalLightContribution(ToView, Normal, FragDiffuseColor, FragSpecularColor, LightDir, LightColor, Shininess);
-    return color * (1.0 / (Constant + (Linear * distanceToLight) + (Quadratic * (distanceToLight * distanceToLight))));
+    float distanceToLight = length(FragPos - uLight.Position);
+    LightContribution ctrb = _CalculateDirectionalLightContribution(ToViewN, Normal, LightDirN, Shininess);
+    float attenuation = 1.0 / (uLight.Constant + (uLight.Linear * distanceToLight) + (uLight.Quadratic * (distanceToLight * distanceToLight)));
+    return LightContribution(attenuation, ctrb.Diffuse * attenuation, ctrb.Specular * attenuation);
 }
 
-vec3 CalculateSpotLightContribution(in vec3 FragPos,
-                                    in SpotLight InSpotLight,
-                                    in vec3 ToView,
+
+LightContribution CalculatePointLightContribution(in vec3 FragPos,
+                                     in vec3 ToViewN,
+                                     in vec3 Normal,
+                                     in int Shininess)
+{
+    return _CalculatePointLightContribution(FragPos, ToViewN, Normal, normalize(FragPos - uLight.Position), Shininess);
+}
+
+
+LightContribution CalculateSpotLightContribution(in vec3 FragPos,
+                                    in vec3 ToViewN,
                                     in vec3 Normal,
-                                    in vec3 FragDiffuseColor,
-                                    in vec3 FragSpecularColor,
                                     in int Shininess)
 {
-    vec3 toLight = normalize(InSpotLight.Position - FragPos);
-    vec3 lightDir = normalize(InSpotLight.Direction);
+    vec3 toLightN = normalize(uLight.Position - FragPos);
 
-    float epsilon = InSpotLight.InnerCutOffCos - InSpotLight.OuterCutOffCos;
-    float theta = dot(toLight, -InSpotLight.Direction);
+    float epsilon = uLight.InnerCutOffCos - uLight.OuterCutOffCos;
+    float theta = dot(toLightN, normalize(-uLight.Direction));
+    float intensity = clamp((theta - uLight.OuterCutOffCos) / epsilon, 0.0, 1.0);
 
-    float intensity = clamp((theta - InSpotLight.OuterCutOffCos) / epsilon, 0.0, 1.0);
-
-    return intensity * CalculatePointLightContribution(FragPos, ToView, Normal, InSpotLight.Position, InSpotLight.Color, lightDir,
-                                                       InSpotLight.Constant, InSpotLight.Linear, InSpotLight.Quadratic,
-                                                       FragDiffuseColor, FragSpecularColor, Shininess);
+    LightContribution ctrb = _CalculatePointLightContribution(FragPos, ToViewN, Normal, normalize(FragPos - uLight.Position), Shininess);
+    return LightContribution(ctrb.Attenuation, ctrb.Diffuse * intensity, ctrb.Specular * intensity);
 }

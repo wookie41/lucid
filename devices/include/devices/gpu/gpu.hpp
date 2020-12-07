@@ -76,6 +76,22 @@ namespace lucid::gpu
 
     ///////////////////////////////////////
 
+    ///////////// Culling //////////////////////
+
+    enum class CullMode : uint8_t
+    {
+        FRONT,
+        BACK,
+        FRONT_AND_BACK
+    };
+
+    void EnableCullFace();
+    void DisableCullFace();
+
+    void SetCullMode(CullMode Mode);
+
+    ///////////////////////////////////////
+
     ///////////// sRGB //////////////////////
 
     void EnableSRGBFramebuffer();

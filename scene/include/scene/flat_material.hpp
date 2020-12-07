@@ -1,7 +1,7 @@
 #pragma once
 
 #include "scene/material.hpp"
-#include "glm/glm.hpp"
+#include "common/types.hpp"
 
 namespace lucid::gpu
 {
@@ -17,7 +17,6 @@ namespace lucid::scene
 
         virtual void SetupShader(gpu::Shader* Shader) override;
 
-        // Material properties
-        glm::vec3 Color;
+        color Color;
     };
 }

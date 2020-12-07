@@ -20,6 +20,8 @@ namespace lucid::gpu
     class Shader
     {
       public:
+        explicit Shader(const String& InName);
+
         virtual void Use() = 0;
         virtual void Disable() = 0;
 
@@ -48,7 +50,15 @@ namespace lucid::gpu
 
         virtual ~Shader() = default;
         // TODO Matrices
+
+        inline const String& GetName() const { return Name; }
+
+      protected:
+        String Name;
     };
 
-    Shader* CompileShaderProgram(const String& VertexShaderSource, const String& FragementShaderSource);
+    Shader* CompileShaderProgram(const String& ShaderName,
+                                 const String& VertexShaderSource,
+                                 const String& FragementShaderSource,
+                                 const bool& WarnMissingUniforms = false);
 } // namespace lucid::gpu

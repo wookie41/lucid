@@ -13,11 +13,13 @@ namespace lucid::platform
                                               SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
         SDL_GLContext context = SDL_GL_CreateContext(window);
 
+        SDL_CaptureMouse(SDL_TRUE);
+        SDL_SetRelativeMouseMode(SDL_TRUE);
         return new SDLWindow(window, context, Definition.width, Definition.height);
     }
 
     SDLWindow::SDLWindow(SDL_Window* Window, SDL_GLContext Context, const uint16_t& Width, const uint16_t& Height)
-    : window(Window), context(Context), width(Width), height(Height), aspectRatio(Width / Height)
+    : window(Window), context(Context), width(Width), height(Height), aspectRatio((float)Width / (float)Height)
     {
     }
 

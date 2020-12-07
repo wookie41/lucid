@@ -20,7 +20,7 @@ vsOut;
 
 void main()
 {
-    mat3 normalMatrix = mat3(transpose(inverse(uModel)));
+    mat3 normalMatrix = transpose(inverse(mat3(uModel)));
 
     vec3 T = normalize(normalMatrix * aTangent);
     vec3 N = normalize(normalMatrix * aNormal);

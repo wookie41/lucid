@@ -8,5 +8,5 @@ out vec4 oFragColor;
 
 void main()
 {
-    oFragColor = vec4(uMaterial.Color, 1.0);
+    oFragColor = uMaterial.Color;
 }

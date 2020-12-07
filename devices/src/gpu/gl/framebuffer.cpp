@@ -31,6 +31,7 @@ namespace lucid::gpu
                 gpu::Info.CurrentFramebuffer = gpu::Info.CurrentWriteFramebuffer = gpu::Info.CurrentReadFramebuffer = framebuffer;
                 glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
             }
+            break;
         }
     }
 
@@ -59,8 +60,6 @@ namespace lucid::gpu
 
     void BindDefaultFramebuffer(const FramebufferBindMode& Mode)
     {
-        gpu::Framebuffer** target = nullptr;
-
         GLBindFramebuffer(nullptr, 0, Mode);
     }
 

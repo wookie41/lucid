@@ -24,11 +24,11 @@ namespace lucid::scene
 
     static OrthoMatrixLightSettings LIGHT_SETTINGS = { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f };
 
-    void RenderGeometry(gpu::Shader* ShaderToUse, LinkedList<class Renderable>& Geometry, const uint32_t& ModelMatrixId);
+    void RenderGeometry(gpu::Shader* ShaderToUse, LinkedList<class Renderable>& Geometry);
 
     void DirectionalLight::UpdateLightSpaceMatrix()
     {
-        LightSpaceMatrix = glm::lookAt(Position, Direction, LightUp);
+        LightSpaceMatrix = glm::lookAt(Position, glm::vec3{0}, LightUp);
         LightSpaceMatrix = glm::ortho(LIGHT_SETTINGS.Left, LIGHT_SETTINGS.Right, LIGHT_SETTINGS.Bottom, LIGHT_SETTINGS.Top, LIGHT_SETTINGS.Near, LIGHT_SETTINGS.Far) * LightSpaceMatrix;
     }
 
@@ -39,6 +39,12 @@ namespace lucid::scene
         {
             shadowMap = gpu::CreateEmpty2DTexture(ShadowMapSize.x, ShadowMapSize.y, gpu::TextureDataType::FLOAT,
                                                   gpu::TextureFormat::DEPTH_COMPONENT, 0);
+            shadowMap->Bind();
+            shadowMap->SetWrapSFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
+            shadowMap->SetWrapTFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
+            shadowMap->SetMinFilter(lucid::gpu::MinTextureFilter::NEAREST);
+            shadowMap->SetMagFilter(lucid::gpu::MagTextureFilter::NEAREST);
+
             assert(shadowMap);
         }
 
@@ -60,9 +66,10 @@ namespace lucid::scene
         assert(shadowMap);
 
         gpu::EnableDepthTest();
-        gpu::DisableBlending();
         gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
 
+        gpu::DisableBlending();
+        
         TargetFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
         TargetFramebuffer->SetupDepthAttachment(shadowMap);
 
@@ -75,21 +82,21 @@ namespace lucid::scene
 
         gpu::SetViewport({ 0, 0, (uint32_t)shadowMap->GetSize().x, (uint32_t)shadowMap->GetSize().y });
 
-        int32_t modelMatrixId = ShaderToUse->GetIdForUniform("uModel");
-        int32_t LightSpaceMatrixId = ShaderToUse->GetIdForUniform("uLightSpaceMatrix");
-
         ShaderToUse->Use();
         ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
 
+        // gpu::EnableCullFace();
+        // gpu::SetCullMode(gpu::CullMode::FRONT);
+
         if (RenderStaticGeometry)
         {
-            RenderGeometry(ShaderToUse, SceneToRender->StaticGeometry, modelMatrixId);
+            RenderGeometry(ShaderToUse, SceneToRender->StaticGeometry);
         }
 
-        RenderGeometry(ShaderToUse, SceneToRender->DynamicGeometry, modelMatrixId);
+        RenderGeometry(ShaderToUse, SceneToRender->DynamicGeometry);
     }
 
-    void RenderGeometry(gpu::Shader* ShaderToUse, LinkedList<class Renderable>& Geometry, const uint32_t& ModelMatrixId)
+    void RenderGeometry(gpu::Shader* ShaderToUse, LinkedList<class Renderable>& Geometry)
     {
         LinkedListItem<Renderable>* node = &Geometry.Head;
         while (node && node->Element)

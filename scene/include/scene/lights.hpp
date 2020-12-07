@@ -28,7 +28,7 @@ namespace lucid::scene
     class Light
     {
       public:
-        Light(const glm::ivec2& ShadowMapSize = { 0, 0 }, gpu::Texture* ShadowMap = 0);
+        Light(const glm::ivec2& ShadowMapSize = { 0, 0 }, gpu::Texture* ShadowMap = nullptr);
 
         virtual LightType GetType() = 0;
         virtual ~Light() = default;
@@ -46,7 +46,7 @@ namespace lucid::scene
         inline glm::ivec2 GetShadowMapSize() { return shadowMapSize; };
 
         glm::vec3 Position = {0, 0, 0};        
-
+        
       protected:
         gpu::Texture* shadowMap = nullptr;
         glm::ivec2 shadowMapSize;

@@ -3,6 +3,8 @@
 #include "devices/gpu/buffer.hpp"
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/gpu.hpp"
+#include "common/log.hpp"
+
 #ifndef NDEBUG
 #include <stdio.h>
 #endif
@@ -51,7 +53,12 @@ namespace lucid::gpu
         glAttachShader(shaderProgramID, shaderID);
     }
 
-    Shader* CompileShaderProgram(const String& VertexShaderSource, const String& FragementShaderSource)
+    Shader::Shader(const String& InName) : Name(InName) {}
+
+    Shader* CompileShaderProgram(const String& ShaderName,
+                                 const String& VertexShaderSource,
+                                 const String& FragementShaderSource,
+                                 const bool& WarnMissingUniforms)
     {
         GLuint shaderProgramID = glCreateProgram();
         GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -108,13 +115,16 @@ namespace lucid::gpu
         textureBindings.Free();
         textureBindings = tmpBindings;
 
-        return new GLShader(shaderProgramID, uniformVariables, textureBindings);
+        return new GLShader(ShaderName, shaderProgramID, uniformVariables, textureBindings, WarnMissingUniforms);
     }
 
-    GLShader::GLShader(const GLuint& GLShaderID,
+    GLShader::GLShader(const String& InName,
+                       const GLuint& GLShaderID,
                        StaticArray<UniformVariable> UniformVariables,
-                       StaticArray<TextureBinding> TextureBindings)
-    : glShaderID(GLShaderID), uniformVariables(UniformVariables), textureBindings(TextureBindings)
+                       StaticArray<TextureBinding> TextureBindings,
+                       const bool& WarnMissingUniforms = false)
+    : Shader::Shader(InName), glShaderID(GLShaderID), uniformVariables(UniformVariables), textureBindings(TextureBindings),
+      warnMissingUniforms(WarnMissingUniforms)
 
     {
     }
@@ -295,7 +305,10 @@ namespace lucid::gpu
         }
 
 #ifndef NDEBUG
-        printf("Uniform variable with name %s not found in shader %d\n", (char const*)Name, glShaderID);
+        if (warnMissingUniforms)
+        {
+            LUCID_LOG(LogLevel::WARN, "Uniform variable with name %s not found in shader %s\n", (char const*)Name, (char const*)this->Name);
+        }
 #endif
         return -1;
     };
@@ -306,14 +319,17 @@ namespace lucid::gpu
 
         for (uint32_t idx = 0; idx < textureBindings.Length; ++idx)
         {
-            if (textureBindings[idx]->Name == Name)
+            if (textureBindings[idx]->Name.Hash == Name.Hash)
             {
                 return idx;
             }
         }
 
 #ifndef NDEBUG
-        printf("Sampler with name %s not found in shader %d\n", (char const*)Name, glShaderID);
+        if (warnMissingUniforms)
+        {
+            LUCID_LOG(LogLevel::WARN, "Sampler with name %s not found in shader %s\n", (char const*)Name, (char const*)this->Name);
+        }
 #endif
         return -1;
     }

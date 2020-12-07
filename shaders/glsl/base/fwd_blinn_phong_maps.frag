@@ -1,8 +1,5 @@
 #version 330 core
 
-#include "lights.glsl"
-#include "material.glsl"
-
 in VS_OUT
 {
     vec3 FragPos;
@@ -12,15 +9,13 @@ in VS_OUT
 }
 fsIn;
 
+#include "material.glsl"
+#include "lights.glsl"
+#include "shadow_mapping.glsl"
+
 uniform float uAmbientStrength;
 
 uniform BlinnPhongMapsMaterial uMaterial;
-
-uniform int uLightToUse;
-
-uniform DirectionalLight uDirectionalLight;
-uniform PointLight uPointLight;
-uniform SpotLight uSpotLight;
 
 uniform vec3 uViewPos;
 
@@ -28,31 +23,41 @@ out vec4 oFragColor;
 
 void main()
 {
-    vec3 toView = uViewPos - fsIn.FragPos;
+    vec3 toViewN = normalize(uViewPos - fsIn.FragPos);
 
-    vec3 normal = uMaterial.HasNormalMap ? fsIn.TBN * normalize((texture(uMaterial.NormalMap, fsIn.TextureCoords).rgb * 2) - 1) : normalize(fsIn.InterpolatedNormal);
+    vec3 normal;
+    if (uMaterial.HasNormalMap)
+    {
+        normal = normalize((texture(uMaterial.NormalMap, fsIn.TextureCoords).rgb * 2) - 1);
+    }
+    else
+    {
+        normal = normalize(fsIn.InterpolatedNormal);
+    }
+
     vec3 diffuseColor =  texture(uMaterial.DiffuseMap, fsIn.TextureCoords).rgb;
-    // @TODO we might want to allow to specify the material-wide specular color here
     vec3 specularColor = uMaterial.HasSpecularMap ? texture(uMaterial.SpecularMap, fsIn.TextureCoords).rgb : vec3(1, 1, 1); 
 
     vec3 ambient = diffuseColor * uAmbientStrength;
-    vec3 fragColor = ambient;
+    float shadowFactor = 1.0;
 
-    if (uLightToUse == DIRECTIONAL_LIGHT)
+    LightContribution lightCntrb;
+    if (uLight.Type == DIRECTIONAL_LIGHT)
     {
-        fragColor += CalculateDirectionalLightContribution(toView, normal, diffuseColor, specularColor,
-                                                           uDirectionalLight.Direction, uDirectionalLight.Color, uMaterial.Shininess);
+        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(fsIn.FragPos - uLight.Position));
+        lightCntrb = CalculateDirectionalLightContribution(toViewN, normal, uMaterial.Shininess);
     }
-    else if (uLightToUse == POINT_LIGHT)
+    else if (uLight.Type == POINT_LIGHT)
     {
-        fragColor += CalculatePointLightContribution(fsIn.FragPos, toView, normal, uPointLight.Position, uPointLight.Color,
-                                                     normalize(fsIn.FragPos - uPointLight.Position), uPointLight.Constant,
-                                                     uPointLight.Linear, uPointLight.Quadratic, diffuseColor, specularColor, uMaterial.Shininess);
+        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLight.Direction));
+        lightCntrb = CalculatePointLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
     }
-    else if (uLightToUse == SPOT_LIGHT)
+    else if (uLight.Type == SPOT_LIGHT)
     {
-        fragColor += CalculateSpotLightContribution(fsIn.FragPos, uSpotLight, toView, normal, diffuseColor, specularColor, uMaterial.Shininess);
+        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(fsIn.FragPos - uLight.Position));
+        lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
     }
 
-    oFragColor = vec4(fragColor, 1.0);
+    vec3 fragColor = (diffuseColor *  lightCntrb.Diffuse) + (specularColor * lightCntrb.Specular);
+    oFragColor = vec4((ambient * lightCntrb.Attenuation) + (fragColor * shadowFactor), 0);
 }
