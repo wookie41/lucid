@@ -193,14 +193,14 @@ int main(int argc, char** argv)
     flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
     flatBlueMaterial.SetCustomShader(flatShader);
 
-    scene::DirectionalLight whiteDirLight = scene::CreateDirectionalLight(true, { 1024, 1024 });
-    whiteDirLight.Direction = glm::normalize(glm::vec3{ 2.0f, -4.0f, 1.0f });
-    whiteDirLight.Position = { -2.0f, 4.0f, -1.0f };
-    whiteDirLight.Color = glm::vec3{ 1.0 };
+    scene::DirectionalLight redDirLight = scene::CreateDirectionalLight(true, { 1024, 1024 });
+    redDirLight.Direction = glm::normalize(glm::vec3{ 2.0f, -4.0f, 1.0f });
+    redDirLight.Position = { -2.0f, 4.0f, -1.0f };
+    redDirLight.Color = glm::vec3{ 0.2, 0.0, 0.0 };
 
-    scene::Renderable whiteDirLightCube{ "WhiteDirLightCube", cube };
-    whiteDirLightCube.Material = &flatWhiteMaterial;
-    whiteDirLightCube.Transform.Translation = whiteDirLight.Position;
+    scene::Renderable redDirLightCube{ "redDirLightCube", cube };
+    redDirLightCube.Material = &flatWhiteMaterial;
+    redDirLightCube.Transform.Translation = redDirLight.Position;
 
     scene::SpotLight redLight;
     redLight.Position = { 2, 4, 0 };
@@ -246,15 +246,15 @@ int main(int argc, char** argv)
 
     sceneToRender.StaticGeometry.Add(&woodenFloor);
 
-    sceneToRender.Lights.Add(&whiteDirLight);
-    // sceneToRender.Lights.Add(&redLight);
-    // sceneToRender.Lights.Add(&greenLight);
-    // sceneToRender.Lights.Add(&blueLight);
+    // sceneToRender.Lights.Add(&redDirLight);
+    sceneToRender.Lights.Add(&redLight);
+    sceneToRender.Lights.Add(&greenLight);
+    sceneToRender.Lights.Add(&blueLight);
 
-    sceneToRender.StaticGeometry.Add(&whiteDirLightCube);
-    // sceneToRender.StaticGeometry.Add(&redLightCube);
-    // sceneToRender.StaticGeometry.Add(&greenLightCube);
-    // sceneToRender.StaticGeometry.Add(&blueLightCube);
+    // sceneToRender.StaticGeometry.Add(&redDirLightCube);
+    sceneToRender.StaticGeometry.Add(&redLightCube);
+    sceneToRender.StaticGeometry.Add(&greenLightCube);
+    sceneToRender.StaticGeometry.Add(&blueLightCube);
 
     const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg",  "assets/skybox/left.jpg",  "assets/skybox/top.jpg",
                                        "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
@@ -300,8 +300,8 @@ int main(int argc, char** argv)
         }
 
         gpu::DisableSRGBFramebuffer();
-        whiteDirLight.UpdateLightSpaceMatrix();
-        whiteDirLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+        redDirLight.UpdateLightSpaceMatrix();
+        redDirLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
 
         // Render to off-screen framebuffer
         renderTarget.Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
