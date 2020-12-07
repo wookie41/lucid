@@ -89,9 +89,9 @@ namespace lucid::scene
         gpu::SetBlendFunctionSeparate(  gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, 
                                         gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO );
 
-        // gpu::DisableCullFace();
-        // gpu::SetCullMode(gpu::CullMode::BACK);
 
+        gpu::SetCullMode(gpu::CullMode::BACK);
+    
         auto lightNode = &SceneToRender->Lights.Head;
         if (!lightNode->Element)
         {

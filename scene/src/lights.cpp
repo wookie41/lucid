@@ -85,8 +85,7 @@ namespace lucid::scene
         ShaderToUse->Use();
         ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
 
-        // gpu::EnableCullFace();
-        // gpu::SetCullMode(gpu::CullMode::FRONT);
+        gpu::SetCullMode(gpu::CullMode::FRONT);
 
         if (RenderStaticGeometry)
         {

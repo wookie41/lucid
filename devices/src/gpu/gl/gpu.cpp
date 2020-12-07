@@ -110,7 +110,6 @@ namespace lucid::gpu
     void EnableCullFace()
     {
         glEnable(GL_CULL_FACE);
-
     }
 
     void DisableCullFace()
