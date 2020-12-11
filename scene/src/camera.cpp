@@ -16,7 +16,7 @@ namespace lucid::scene
       Yaw(CameraYaw), Pitch(CameraPitch), Speed(CameraSpeed), Sensitivity(CameraSensitivity),
       FOV(CameraFOV), WorldUpVector(CameraUp)
     {
-        updateCameraVectors();
+        UpdateCameraVectors();
     }
 
     glm::mat4 Camera::GetViewMatrix() const 
@@ -81,10 +81,10 @@ namespace lucid::scene
         }
 
         // update Front, Right and Up Vectors using the updated Euler angles
-        updateCameraVectors();
+        UpdateCameraVectors();
     }
 
-    void Camera::updateCameraVectors()
+    void Camera::UpdateCameraVectors()
     {
         // calculate the new Front vector
         glm::vec3 newFront;

@@ -15,6 +15,8 @@ struct BlinnPhongMapsMaterial
 
     bool HasSpecularMap;
     bool HasNormalMap;
+
+    vec3 SpecularColor;
 };
 
 

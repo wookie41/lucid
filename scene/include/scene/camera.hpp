@@ -14,9 +14,9 @@ namespace lucid::scene
     {
       public:
         Camera(const CameraMode& CameraMode,
-               const glm::vec3& CameraPosition = { 0.0, 0.0, 1.0 },
+               const glm::vec3& CameraPosition = { 0.0, 0.0, 0.0 },
                const glm::vec3& CameraUp = { 0.0, 1.0, 0.0 },
-               const float& CameraYaw = -90.0,
+               const float& CameraYaw = 0,
                const float& CameraPitch = 0.0,
                const float& CameraSpeed = 2.5,
                const float& CameraSensitivity = 0.5,
@@ -30,6 +30,11 @@ namespace lucid::scene
         void MoveLeft(const float& DeltaTime);
         void MoveRight(const float& DeltaTime);
         void Move(const glm::vec3& DirectionVector, const float& DeltaTime);
+
+        // calculates the front vector from the Camera's (updated) Euler Angles
+        // called automatically when you use AddRotation(), but has to be called manually when
+        // any of the camera's properties are updated by hand
+        void UpdateCameraVectors();
 
         void AddRotation(float YawOffset, float PitchOffset, const bool& constrainPitch = true);
 
@@ -54,9 +59,5 @@ namespace lucid::scene
         float Speed;
         float Sensitivity;
         float FOV;
-
-      private:
-        // calculates the front vector from the Camera's (updated) Euler Angles
-        void updateCameraVectors();
     };
 } // namespace lucid::scene

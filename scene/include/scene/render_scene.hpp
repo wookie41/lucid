@@ -14,6 +14,7 @@ namespace lucid::scene
     // use the provided scene information to render the scene in their own specific way
 
     class Light;
+    class Renderable;
 
     // Skybox
 
@@ -30,8 +31,8 @@ namespace lucid::scene
 
     struct RenderScene
     {
-        LinkedList<class Renderable> StaticGeometry;
-        LinkedList<class Renderable> DynamicGeometry;
+        LinkedList<Renderable> StaticGeometry;
+        LinkedList<Renderable> DynamicGeometry;
         LinkedList<Light> Lights;
         Skybox* SceneSkybox = nullptr;
     };

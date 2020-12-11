@@ -29,9 +29,11 @@ namespace lucid::scene
 
         virtual void Render(RenderScene* const SceneToRender, RenderTarget* const Target) override;
 
-        inline void SetAmbientStrength(const float& AmbientStrength) { ambientStrength = AmbientStrength; }
 
         virtual ~ForwardBlinnPhongRenderer() = default;
+
+        float AmbientStrength = 0.1;
+        int NumSamplesPCF = 5;
 
       private:
         void Render(gpu::Shader* Shader, Renderable* const ToRender);
@@ -48,7 +50,6 @@ namespace lucid::scene
 
         inline void RenderSkybox(Skybox * const SkyboxToRender, const RenderTarget* RenderTarget);
 
-        float ambientStrength = 0.2;
         uint32_t maxNumOfDirectionalLights;
 
         // Skybox shader stuff

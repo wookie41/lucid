@@ -21,18 +21,17 @@ vsOut;
 void main()
 {
     mat3 normalMatrix = transpose(inverse(mat3(uModel)));
+    vec4 worldPos = uModel * vec4(aPosition, 1);
 
-    vec3 T = normalize(normalMatrix * aTangent);
     vec3 N = normalize(normalMatrix * aNormal);
+    vec3 T = normalize(normalMatrix * aTangent);
     T = normalize(T - (dot(T, N) * N)); // make them orthonormal
     vec3 B = normalize(cross(N, T));
-
-    vec4 worldPos = uModel * vec4(aPosition, 1);
 
     vsOut.FragPos = worldPos.xyz;
     vsOut.TextureCoords = aTextureCoords;
     vsOut.TBN = mat3(T, B, N);
-    vsOut.InterpolatedNormal = normalMatrix * aNormal;
+    vsOut.InterpolatedNormal = N;
 
     gl_Position = uProjection * uView * worldPos;
 }

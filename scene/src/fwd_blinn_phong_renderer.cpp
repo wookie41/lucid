@@ -47,6 +47,7 @@ namespace lucid::scene
 
     // Shader-wide uniforms
     static const String AMBIENT_STRENGTH("uAmbientStrength");
+    static const String NUM_OF_PCF_SAMPLES("uNumSamplesPCF");
 
     static const String VIEW_POSITION("uViewPos");
 
@@ -169,6 +170,7 @@ namespace lucid::scene
         case LightType::DIRECTIONAL:
         {
             DirectionalLight* light = (DirectionalLight*)InLight;
+            Shader->SetVector(LIGHT_DIRECTION, light->Direction);
             Shader->SetInt(LIGHT_TYPE, DIRECTIONAL_LIGHT);
             Shader->SetVector(LIGHT_DIRECTION, light->Direction);
             Shader->SetVector(LIGHT_COLOR, light->Color);
@@ -251,7 +253,8 @@ namespace lucid::scene
 
     void ForwardBlinnPhongRenderer::SetupRendererWideUniforms(gpu::Shader* Shader, const RenderTarget* Target)
     {
-        Shader->SetFloat(AMBIENT_STRENGTH, ambientStrength);
+        Shader->SetFloat(AMBIENT_STRENGTH, AmbientStrength);
+        Shader->SetInt(NUM_OF_PCF_SAMPLES, NumSamplesPCF);
         Shader->SetMatrix(PROJECTION_MATRIX, Target->Camera->GetProjectionMatrix());
         Shader->SetMatrix(VIEW_MATRIX, Target->Camera->GetViewMatrix());
         Shader->SetVector(VIEW_POSITION, Target->Camera->Position);

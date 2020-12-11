@@ -46,6 +46,7 @@ namespace lucid::scene
         inline glm::ivec2 GetShadowMapSize() { return shadowMapSize; };
 
         glm::vec3 Position = {0, 0, 0};        
+        glm::vec3 Color = { 0, 0, 0 };
         
       protected:
         gpu::Texture* shadowMap = nullptr;
@@ -65,10 +66,9 @@ namespace lucid::scene
                                        bool RenderStaticGeometry,
                                        bool ClearShadowMap) override;
 
-        virtual LightType GetType() { return type; }
+        virtual LightType GetType() override { return type; }
 
         glm::vec3 Direction = { 0, 0, 0 };
-        glm::vec3 Color = { 0, 0, 0 };
         
         glm::mat4 LightSpaceMatrix { 1 };
         glm::vec3 LightUp { 0, 1, 0 };
@@ -80,13 +80,13 @@ namespace lucid::scene
     struct PointLight : public Light
     {
       public:
-        virtual LightType GetType() { return type; }
+        virtual LightType GetType() override { return type; }
 
         virtual void GenerateShadowMap(RenderScene* SceneToRender,
                                        gpu::Framebuffer* TargetFramebuffer,
                                        gpu::Shader* ShaderToUse,
                                        bool RenderStaticGeometry,
-                                       bool ClearShadowMap) override {}
+                                       bool ClearShadowMap) override {};
 
         float Constant = 0;
         float Linear = 0;
@@ -97,11 +97,10 @@ namespace lucid::scene
         static const LightType type = LightType::POINT;
     };
 
-    struct SpotLight : public PointLight
+    struct SpotLight : public Light
     {
       public:
         virtual LightType GetType() { return type; }
-
 
         virtual void GenerateShadowMap(RenderScene* SceneToRender,
                                        gpu::Framebuffer* TargetFramebuffer,
@@ -110,6 +109,10 @@ namespace lucid::scene
                                        bool ClearShadowMap) override {};
 
         glm::vec3 Direction = { 0, 0, 0 };
+
+        float Constant = 0;
+        float Linear = 0;
+        float Quadratic = 0;
         float InnerCutOffRad = 0;
         float OuterCutOffRad = 0;
 

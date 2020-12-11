@@ -82,6 +82,6 @@ LightContribution CalculateSpotLightContribution(in vec3 FragPos,
     float theta = dot(toLightN, normalize(-uLight.Direction));
     float intensity = clamp((theta - uLight.OuterCutOffCos) / epsilon, 0.0, 1.0);
 
-    LightContribution ctrb = _CalculatePointLightContribution(FragPos, ToViewN, Normal, normalize(FragPos - uLight.Position), Shininess);
+    LightContribution ctrb = _CalculatePointLightContribution(FragPos, ToViewN, Normal, normalize(uLight.Direction), Shininess);
     return LightContribution(ctrb.Attenuation, ctrb.Diffuse * intensity, ctrb.Specular * intensity);
 }

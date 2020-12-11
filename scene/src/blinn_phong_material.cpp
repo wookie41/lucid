@@ -39,6 +39,7 @@ namespace lucid::scene
         else
         {
             Shader->SetBool(HAS_SPECULAR_MAP, false);
+            Shader->SetVector(SPECULAR_COLOR, SpecularColor);
         }
 
         if (NormalMap != nullptr)

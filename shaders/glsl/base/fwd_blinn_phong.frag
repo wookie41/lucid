@@ -20,7 +20,7 @@ out vec4 oFragColor;
 
 void main()
 {
-    vec3 normal = normalize(fsIn.Normal); // normalize the interpolated normal
+    vec3 normal = normalize(fsIn.Normal);
     vec3 toViewN = normalize(uViewPos - fsIn.FragPos);
 
     vec3 ambient = uMaterial.DiffuseColor * uAmbientStrength;
@@ -40,7 +40,7 @@ void main()
     }
     else if (uLight.Type == SPOT_LIGHT)
     {
-        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(fsIn.FragPos - uLight.Position));
+        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLight.Direction));
         lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
     }
 
