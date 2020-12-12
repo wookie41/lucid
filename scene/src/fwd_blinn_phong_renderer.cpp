@@ -87,12 +87,11 @@ namespace lucid::scene
         gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
 
         gpu::EnableBlending();
-        gpu::SetBlendFunctionSeparate(  gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, 
-                                        gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO );
-
+        gpu::SetBlendFunctionSeparate(gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, gpu::BlendFunction::ONE,
+                                      gpu::BlendFunction::ZERO);
 
         gpu::SetCullMode(gpu::CullMode::BACK);
-    
+
         auto lightNode = &SceneToRender->Lights.Head;
         if (!lightNode->Element)
         {
@@ -137,7 +136,7 @@ namespace lucid::scene
 
             auto customShader = renderable->Material->GetCustomShader();
             if (customShader)
-            {   
+            {
                 customShader->Use();
                 SetupRendererWideUniforms(customShader, Target);
                 usedShader = customShader;
@@ -157,14 +156,10 @@ namespace lucid::scene
 
     void ForwardBlinnPhongRenderer::SetupLight(gpu::Shader* Shader, Light* const InLight)
     {
+        Shader->SetVector(LIGHT_COLOR, InLight->Color);
         Shader->SetVector(LIGHT_POSITION, InLight->Position);
-        Shader->SetBool(LIGHT_CASTS_SHADOWS, InLight->GetCachedShadowMap() != nullptr);
-
-        if (InLight->GetCachedShadowMap() != nullptr)
-        {
-            Shader->UseTexture(LIGHT_SHADOW_MAP, InLight->GetCachedShadowMap());
-        }
-
+        Shader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->LightSpaceMatrix);
+        
         switch (InLight->GetType())
         {
         case LightType::DIRECTIONAL:
@@ -172,36 +167,50 @@ namespace lucid::scene
             DirectionalLight* light = (DirectionalLight*)InLight;
             Shader->SetVector(LIGHT_DIRECTION, light->Direction);
             Shader->SetInt(LIGHT_TYPE, DIRECTIONAL_LIGHT);
-            Shader->SetVector(LIGHT_DIRECTION, light->Direction);
-            Shader->SetVector(LIGHT_COLOR, light->Color);
-            Shader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
+            
+            if (light->ShadowMap != nullptr)
+            {
+                Shader->SetBool(LIGHT_CASTS_SHADOWS, true);
+                Shader->UseTexture(LIGHT_SHADOW_MAP, light->ShadowMap);
+            }
+            else
+            {
+                Shader->SetBool(LIGHT_CASTS_SHADOWS, false);
+            }
+            break;
         }
-        break;
         case LightType::POINT:
         {
             PointLight* light = (PointLight*)InLight;
-            Shader->SetInt(LIGHT_TYPE, POINT_LIGHT);
-            Shader->SetVector(LIGHT_POSITION, light->Position);
-            Shader->SetVector(LIGHT_COLOR, light->Color);
             Shader->SetFloat(LIGHT_CONSTANT, light->Constant);
             Shader->SetFloat(LIGHT_LINEAR, light->Linear);
             Shader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
+            Shader->SetInt(LIGHT_TYPE, POINT_LIGHT);
+            
+            break;
         }
-        break;
         case LightType::SPOT:
         {
             SpotLight* light = (SpotLight*)InLight;
-            Shader->SetInt(LIGHT_TYPE, SPOT_LIGHT);
-            Shader->SetVector(LIGHT_POSITION, light->Position);
             Shader->SetVector(LIGHT_DIRECTION, light->Direction);
-            Shader->SetVector(LIGHT_COLOR, light->Color);
             Shader->SetFloat(LIGHT_CONSTANT, light->Constant);
             Shader->SetFloat(LIGHT_LINEAR, light->Linear);
             Shader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
             Shader->SetFloat(LIGHT_INNER_CUT_OFF, glm::cos(light->InnerCutOffRad));
             Shader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(light->OuterCutOffRad));
+            Shader->SetInt(LIGHT_TYPE, SPOT_LIGHT);
+
+            if (light->ShadowMap != nullptr)
+            {
+                Shader->SetBool(LIGHT_CASTS_SHADOWS, true);
+                Shader->UseTexture(LIGHT_SHADOW_MAP, light->ShadowMap);
+            }
+            else
+            {
+                Shader->SetBool(LIGHT_CASTS_SHADOWS, false);
+            }
+            break;
         }
-        break;
         }
     }
 
@@ -317,7 +326,7 @@ namespace lucid::scene
         ToRender->VertexArray->Draw();
     }
 
-    inline void ForwardBlinnPhongRenderer::RenderSkybox(Skybox * const SkyboxToRender, const RenderTarget* RenderTarget)
+    inline void ForwardBlinnPhongRenderer::RenderSkybox(Skybox* const SkyboxToRender, const RenderTarget* RenderTarget)
     {
         gpu::DisableBlending();
 

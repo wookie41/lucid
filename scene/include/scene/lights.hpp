@@ -28,10 +28,13 @@ namespace lucid::scene
     class Light
     {
       public:
-        Light(const glm::ivec2& ShadowMapSize = { 0, 0 }, gpu::Texture* ShadowMap = nullptr);
+        Light() = default;
 
         virtual LightType GetType() = 0;
         virtual ~Light() = default;
+
+        virtual void UpdateLightSpaceMatrix() = 0;
+
 
         // Updates the depth map by rendering the `SceneToRender` to the `TargetFramebuffer` using the `ShaderToUse`
         // assumes that `TargetFramebuffer` is bound
@@ -42,23 +45,17 @@ namespace lucid::scene
                                        bool RenderStaticGeometry,
                                        bool ClearShadowMap = false) = 0;
 
-        inline gpu::Texture* GetCachedShadowMap() { return shadowMap; };
-        inline glm::ivec2 GetShadowMapSize() { return shadowMapSize; };
-
         glm::vec3 Position = {0, 0, 0};        
         glm::vec3 Color = { 0, 0, 0 };
-        
-      protected:
-        gpu::Texture* shadowMap = nullptr;
-        glm::ivec2 shadowMapSize;
+        glm::mat4 LightSpaceMatrix { 1 };
     };
 
     class DirectionalLight : public Light
     {
       public:
-        DirectionalLight(const glm::ivec2& ShadowMapSize = { 0, 0 }, gpu::Texture* ShadowMap = 0);
+        DirectionalLight() = default;
 
-        void UpdateLightSpaceMatrix();
+        void UpdateLightSpaceMatrix() override;
 
         virtual void GenerateShadowMap(RenderScene* SceneToRender,
                                        gpu::Framebuffer* TargetFramebuffer,
@@ -70,7 +67,9 @@ namespace lucid::scene
 
         glm::vec3 Direction = { 0, 0, 0 };
         
-        glm::mat4 LightSpaceMatrix { 1 };
+
+        gpu::Texture* ShadowMap = nullptr;
+        glm::ivec2 ShadowMapSize { 0, 0 };
         glm::vec3 LightUp { 0, 1, 0 };
 
       private:
@@ -102,13 +101,19 @@ namespace lucid::scene
       public:
         virtual LightType GetType() { return type; }
 
+        virtual void UpdateLightSpaceMatrix() override;
+
         virtual void GenerateShadowMap(RenderScene* SceneToRender,
                                        gpu::Framebuffer* TargetFramebuffer,
                                        gpu::Shader* ShaderToUse,
                                        bool RenderStaticGeometry,
-                                       bool ClearShadowMap) override {};
+                                       bool ClearShadowMap) override;
 
         glm::vec3 Direction = { 0, 0, 0 };
+
+        gpu::Texture* ShadowMap = nullptr;
+        glm::ivec2 ShadowMapSize { 0, 0 };
+        glm::vec3 LightUp { 0, 1, 0 };
 
         float Constant = 0;
         float Linear = 0;
@@ -123,4 +128,5 @@ namespace lucid::scene
     // If CastsShadow = true, then this function will generate a shadow map for the light
     // if it's false, then the width and height parameters can be anything, but for you should make them 0 for clarity
     DirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
+    SpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
 } // namespace lucid::scene

@@ -141,5 +141,6 @@ namespace lucid
     bool WasMouseButtonReleased(const MouseButton& Button) { return mouseState.ReleasedButtons & Button; }
 
     MousePosition GetMousePostion() { return mouseState.Position; }
+
     float GetMouseWheelDelta() { return mouseState.WheelDelta; }
 } // namespace lucid

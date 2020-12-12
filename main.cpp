@@ -213,7 +213,7 @@ int main(int argc, char** argv)
     shadowCastingLight.Position = { -2.0f, 4.0f, -1.0f };
     shadowCastingLight.Color = glm::vec3{ 1.0, 1.0, 1.0 };
 
-    scene::SpotLight redLight;
+    scene::SpotLight redLight = scene::CreateSpotLight(true, { 1024, 1024 });
     redLight.Position = { 5, 3.4, 0 };
     redLight.Direction = glm::normalize(glm::vec3 { -1, -1, 0 });
     redLight.Color = { 1, 0, 0 };
@@ -228,19 +228,30 @@ int main(int argc, char** argv)
     redLightCube.Material = &flatRedMaterial;
     redLightCube.Transform.Translation = redLight.Position;
 
-    scene::SpotLight greenLight = redLight;
+    scene::SpotLight greenLight = scene::CreateSpotLight(true, { 1024, 1024 });
     greenLight.Position = { -5, 3.5, 0 };
     greenLight.Direction = glm::normalize(glm::vec3 { 1, -1, 0 });
     greenLight.Color = { 0, 1, 0 };
+    greenLight.Constant = 1;
+    greenLight.Linear = 0.09;
+    greenLight.Quadratic = 0.032;
+    greenLight.InnerCutOffRad = glm::radians(30.0);
+    greenLight.OuterCutOffRad = glm::radians(35.0);
 
     scene::Renderable greenLightCube{ "GreenLightCube", redLightCube };
     greenLightCube.Transform.Translation = greenLight.Position;
     greenLightCube.Material = &flatGreenMaterial;
 
-    scene::SpotLight blueLight = greenLight;
+    scene::SpotLight blueLight = scene::CreateSpotLight(true, { 1024, 1024 });
     blueLight.Position = { 0, 5, 0 };
     blueLight.Direction = { 0, -1, 0 };
     blueLight.Color = { 0, 0, 1 };
+    blueLight.Constant = 1;
+    blueLight.Linear = 0.09;
+    blueLight.Quadratic = 0.032;
+    blueLight.InnerCutOffRad = glm::radians(30.0);
+    blueLight.OuterCutOffRad = glm::radians(35.0);
+    blueLight.LightUp = { -1, 0, 0 };
 
     scene::Renderable blueLightCube{ "BlueLightCube", redLightCube };
     blueLightCube.Transform.Translation = blueLight.Position;
@@ -257,15 +268,15 @@ int main(int argc, char** argv)
     // sceneToRender.StaticGeometry.Add(backPackRenderable);
     sceneToRender.StaticGeometry.Add(&woodenFloor);
 
-    // sceneToRender.Lights.Add(&redLight);
-    // sceneToRender.Lights.Add(&greenLight);
-    // sceneToRender.Lights.Add(&blueLight);
-    sceneToRender.Lights.Add(&shadowCastingLight);
+    sceneToRender.Lights.Add(&redLight);
+    sceneToRender.Lights.Add(&greenLight);
+    sceneToRender.Lights.Add(&blueLight);
+    // sceneToRender.Lights.Add(&shadowCastingLight);
 
-    sceneToRender.StaticGeometry.Add(&shadowCastingLightCube);
-    // sceneToRender.StaticGeometry.Add(&redLightCube);
-    // sceneToRender.StaticGeometry.Add(&greenLightCube);
-    // sceneToRender.StaticGeometry.Add(&blueLightCube);
+    // sceneToRender.StaticGeometry.Add(&shadowCastingLightCube);
+    sceneToRender.StaticGeometry.Add(&redLightCube);
+    sceneToRender.StaticGeometry.Add(&greenLightCube);
+    sceneToRender.StaticGeometry.Add(&blueLightCube);
 
     const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg",  "assets/skybox/left.jpg",  "assets/skybox/top.jpg",
                                        "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
@@ -305,6 +316,7 @@ int main(int argc, char** argv)
         {
             perspectiveCamera.MoveRight(1.f / 60.f);
         }
+
         auto mousePos = GetMousePostion();
         if (mousePos.MouseMoved)
         {
@@ -320,6 +332,15 @@ int main(int argc, char** argv)
         gpu::DisableSRGBFramebuffer();
         shadowCastingLight.UpdateLightSpaceMatrix();
         shadowCastingLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+        
+        redLight.UpdateLightSpaceMatrix();
+        redLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+
+        greenLight.UpdateLightSpaceMatrix();
+        greenLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+
+        blueLight.UpdateLightSpaceMatrix();
+        blueLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
 
         // Render to off-screen framebuffer
         renderTarget.Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);

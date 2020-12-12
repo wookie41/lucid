@@ -44,17 +44,17 @@ void main()
     LightContribution lightCntrb;
     if (uLight.Type == DIRECTIONAL_LIGHT)
     {
-        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(fsIn.FragPos - uLight.Position));
+        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLight.Direction));
         lightCntrb = CalculateDirectionalLightContribution(toViewN, normal, uMaterial.Shininess);
     }
     else if (uLight.Type == POINT_LIGHT)
     {   
-        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLight.Direction));
+        shadowFactor = 1.0;
         lightCntrb = CalculatePointLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
     }
     else if (uLight.Type == SPOT_LIGHT)
     {
-        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(fsIn.FragPos - uLight.Position));
+        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLight.Direction));
         lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
     }
 
