@@ -10,6 +10,7 @@ namespace lucid
         StaticArray(const uint32_t& Capacity);
 
         T* operator[](const uint32_t& Index) const;
+        T* operator[](const int32_t& Index) const;
         operator T*() const;
         operator void*() const;
 
@@ -48,6 +49,5 @@ namespace lucid
         LinkedListItem<T>* Tail;
     };
 } // namespace lucid
-
 
 #include "common/collections.tpp"

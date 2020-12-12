@@ -24,6 +24,13 @@ namespace lucid
     }
 
     template <typename T>
+    T* StaticArray<T>::operator[](const int32_t& Index) const
+    {
+        assert(Index < Length);
+        return array + Index;
+    }
+
+    template <typename T>
     void StaticArray<T>::Add(const T& Element)
     {
         assert(Length < Capacity);
