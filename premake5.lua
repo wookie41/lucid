@@ -41,15 +41,22 @@ project "lucid"
 
    files { 
       "libs/stb/stb_init.cpp",
+      "libs/stb/stb_init.hpp",
       "main.cpp", 
-      "devices/src/gpu/**.cpp",
-      "devices/src/gpu/gl/**.cpp",
-      "platform/src/sdl/**.cpp",
+      "devices/src/**.cpp",
+      "devices/include/**.hpp",
+      "devices/include/**.tpp",
       "platform/src/**.cpp",
+      "platform/include/**.hpp",
       "common/src/**.cpp",
+      "common/include/**.hpp",
+      "common/include/**.tpp",
       "misc/src/**.cpp",
+      "misc/include/**.hpp",
       "scene/src/**.cpp",
-      "resources/src/**.cpp"
+      "scene/include/**.hpp",
+      "resources/src/**.cpp",
+      "resources/include/**.hpp"
    }
 
    filter "platforms:Win64"
