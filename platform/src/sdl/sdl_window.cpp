@@ -42,4 +42,10 @@ namespace lucid::platform
         SDL_DestroyWindow(window);
         SDL_GL_DeleteContext(context);
     }
+
+    void SDLWindow::OnFocusGained()
+    {
+        SDL_CaptureMouse(SDL_TRUE);
+    }
+
 } // namespace lucid::platform

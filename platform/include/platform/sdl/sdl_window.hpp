@@ -22,6 +22,8 @@ namespace lucid::platform
         virtual void Show() override;
         virtual void Hide() override;
 
+        virtual void OnFocusGained() override;
+
         virtual void Destroy() override;
 
         virtual ~SDLWindow() = default;

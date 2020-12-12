@@ -278,7 +278,7 @@ int main(int argc, char** argv)
     float rotation = 0;
     while (isRunning)
     {
-        ReadEvents();
+        ReadEvents(window);
 
         if (WasKeyPressed(SDLK_ESCAPE))
         {

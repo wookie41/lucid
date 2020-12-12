@@ -29,6 +29,10 @@ namespace lucid::platform
 
         virtual void Destroy() = 0;
 
+        // Events callbacks
+        
+        virtual void OnFocusGained() = 0;
+
         virtual ~Window() = default;
     };
 

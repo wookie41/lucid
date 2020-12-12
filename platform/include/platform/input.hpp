@@ -5,6 +5,11 @@
 
 namespace lucid
 {
+    namespace platform
+    {
+        class Window;
+    }
+
     enum MouseButton : uint8_t
     {
         LEFT = 1,
@@ -19,7 +24,8 @@ namespace lucid
         float DeltaX = 0, DeltaY = 0;
     };
 
-    void ReadEvents();
+    // ActiveWindow - window which callback functions should be called when window-related events occur 
+    void ReadEvents(platform::Window* ActiveWindow);
 
     bool IsKeyPressed(const SDL_Keycode& KeyCode);
     bool WasKeyPressed(const SDL_Keycode& KeyCode);

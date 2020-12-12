@@ -1,6 +1,7 @@
 #include "platform/input.hpp"
 #include "SDL2/SDL_events.h"
 #include "common/bytes.hpp"
+#include "platform/window.hpp"
 
 namespace lucid
 {
@@ -47,7 +48,7 @@ namespace lucid
     static KeyboardState keyboardState;
     static MouseState mouseState;
 
-    void ReadEvents()
+    void ReadEvents(platform::Window* ActiveWindow)
     {
         for (uint8_t i = 0; i < 4; ++i)
             keyboardState.clickedKeys[i] = 0;
@@ -65,8 +66,25 @@ namespace lucid
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
+            /* Window events */
+
+            if (event.type == SDL_WINDOWEVENT)
+            {
+                switch (event.window.event)
+                {
+                case SDL_WINDOWEVENT_FOCUS_GAINED:
+                    ActiveWindow->OnFocusGained();
+                    break;
+                }
+
+                continue;
+            }
+
             switch (event.type)
             {
+
+                /* Keyboard events */
+
             case SDL_KEYDOWN:
                 setHigh(event.key.keysym.sym, keyboardState.clickedKeys);
                 setHigh(event.key.keysym.sym, keyboardState.pressedKeys);
@@ -77,14 +95,14 @@ namespace lucid
                 setLow(event.key.keysym.sym, keyboardState.pressedKeys);
                 break;
 
+                /* Mouse Events */
+
             case SDL_MOUSEBUTTONDOWN:
-                mouseState.PressedButtons |=
-                (mouseState.ClickedButtons |= (1 << (event.button.button - 1)));
+                mouseState.PressedButtons |= (mouseState.ClickedButtons |= (1 << (event.button.button - 1)));
                 break;
 
             case SDL_MOUSEBUTTONUP:
-                mouseState.PressedButtons &=
-                ~(mouseState.ReleasedButtons |= (1 << (event.button.button - 1)));
+                mouseState.PressedButtons &= ~(mouseState.ReleasedButtons |= (1 << (event.button.button - 1)));
                 break;
 
             case SDL_MOUSEMOTION:
@@ -110,35 +128,17 @@ namespace lucid
         return keyMap[mapIdx] & ((uint64_t)1 << keyBit);
     }
 
-    bool IsKeyPressed(const SDL_Keycode& KeyCode)
-    {
-        return isHigh(KeyCode, keyboardState.pressedKeys);
-    }
+    bool IsKeyPressed(const SDL_Keycode& KeyCode) { return isHigh(KeyCode, keyboardState.pressedKeys); }
 
-    bool WasKeyPressed(const SDL_Keycode& KeyCode)
-    {
-        return isHigh(KeyCode, keyboardState.clickedKeys);
-    }
+    bool WasKeyPressed(const SDL_Keycode& KeyCode) { return isHigh(KeyCode, keyboardState.clickedKeys); }
 
-    bool WasKeyReleased(const SDL_Keycode& KeyCode)
-    {
-        return isHigh(KeyCode, keyboardState.releasedKeys);
-    }
+    bool WasKeyReleased(const SDL_Keycode& KeyCode) { return isHigh(KeyCode, keyboardState.releasedKeys); }
 
-    bool IsMouseButtonPressed(const MouseButton& Button)
-    {
-        return mouseState.PressedButtons & Button;
-    }
+    bool IsMouseButtonPressed(const MouseButton& Button) { return mouseState.PressedButtons & Button; }
 
-    bool WasMouseButtonPressed(const MouseButton& Button)
-    {
-        return mouseState.ClickedButtons & Button;
-    }
+    bool WasMouseButtonPressed(const MouseButton& Button) { return mouseState.ClickedButtons & Button; }
 
-    bool WasMouseButtonReleased(const MouseButton& Button)
-    {
-        return mouseState.ReleasedButtons & Button;
-    }
+    bool WasMouseButtonReleased(const MouseButton& Button) { return mouseState.ReleasedButtons & Button; }
 
     MousePosition GetMousePostion() { return mouseState.Position; }
     float GetMouseWheelDelta() { return mouseState.WheelDelta; }
