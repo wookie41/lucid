@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 
     // Load textures uesd in the demo scene
 
-    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
+    resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
     resources::TextureResource* brickWallDiffuseMapResource =
       resources::LoadJPEG("assets/textures/brickwall.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
@@ -92,14 +92,14 @@ int main(int argc, char** argv)
     woodDiffuseMapResource->FreeMainMemory();
     blankTextureResource->FreeMainMemory();
 
-    // backPackMesh->FreeMainMemory();
+    backPackMesh->FreeMainMemory();
 
     auto brickWallDiffuseMap = brickWallDiffuseMapResource->TextureHandle;
     auto brickWallNormalMap = brickWallNormalMapResource->TextureHandle;
     auto woodDiffuseMap = woodDiffuseMapResource->TextureHandle;
     auto blankTextureMap = blankTextureResource->TextureHandle;
 
-    // auto backpackVao = backPackMesh->VAO;
+    auto backpackVao = backPackMesh->VAO;
 
     window->Prepare();
     window->Show();
@@ -206,9 +206,9 @@ int main(int argc, char** argv)
     gigaCube.Material = &woodMaterial;
     gigaCube.bReverseNormals = true;
 
-    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
-    // backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
-    // backPackRenderable->Transform.Translation = { 0.0, 0.0, 2.0 };
+    scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
+    backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
+    backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
     scene::FlatMaterial flatWhiteMaterial;
     flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
@@ -296,7 +296,7 @@ int main(int argc, char** argv)
     sceneToRender.StaticGeometry.Add(&cube2);
     sceneToRender.StaticGeometry.Add(&cube3);
     sceneToRender.StaticGeometry.Add(&gigaCube);
-    // sceneToRender.StaticGeometry.Add(backPackRenderable);
+    sceneToRender.StaticGeometry.Add(backPackRenderable);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
     sceneToRender.Lights.Add(&redLight);

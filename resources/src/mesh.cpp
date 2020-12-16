@@ -10,6 +10,7 @@
 #include "assimp/postprocess.h"
 #include "resources/texture.hpp"
 #include "devices/gpu/buffer.hpp"
+#include "platform/util.hpp"
 
 namespace lucid::resources
 {
@@ -96,8 +97,12 @@ namespace lucid::resources
         // read mesh file
 
         DString meshFilePath = Concat(DirectoryPath, MeshFileName);
-
+#ifndef NDEBUG
+        auto start = platform::GetCurrentTimeSeconds();
+#endif
         const aiScene* root = assimpImporter.ReadFile(meshFilePath, ASSIMP_DEFAULT_FLAGS);
+
+        LUCID_LOG(LogLevel::INFO, "Reading mesh with assimp %s took %f", (const char*)MeshFileName, platform::GetCurrentTimeSeconds() - start);
 
         if (!root || root->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !root->mRootNode)
         {
@@ -118,11 +123,16 @@ namespace lucid::resources
 
         // load the assimp node //
 
+        start = platform::GetCurrentTimeSeconds();
+
         loadAssimpNode(DirectoryPath, root->mRootNode, root, meshData);
 
         LUCID_LOG(LogLevel::INFO, "Vertex data  %u/%u, element data %u/%u", meshData.VertexBuffer.Length,
                   meshData.VertexBuffer.Capacity, meshData.ElementBuffer.Length, meshData.ElementBuffer.Capacity);
 
+#ifndef NDEBUG
+        LUCID_LOG(LogLevel::INFO, "Loading mesh %s took %f", (const char*)MeshFileName, platform::GetCurrentTimeSeconds() - start);
+#endif
         uint32_t meshFeatures = determineMeshFeatures(root);
 
         // load the material //
@@ -133,6 +143,8 @@ namespace lucid::resources
         TextureResource* diffuseMap = nullptr;
         TextureResource* specularMap = nullptr;
         TextureResource* normalMap = nullptr;
+
+        start = platform::GetCurrentTimeSeconds();
 
         if (material->GetTextureCount(aiTextureType_DIFFUSE))
         {
@@ -148,12 +160,20 @@ namespace lucid::resources
         {
             normalMap = loadMaterialTexture(DirectoryPath, material, aiTextureType_HEIGHT, false);
         }
-
+#ifndef NDEBUG
+        LUCID_LOG(LogLevel::INFO, "Loading textures %s took %f", (const char*)MeshFileName, platform::GetCurrentTimeSeconds() - start);
+#endif
         meshFilePath.Free();
 
         // send the data to the gpu
+        start = platform::GetCurrentTimeSeconds();
 
         MeshGPUData meshGPUData = sendMeshToGPU(meshFeatures, meshData);
+
+#ifndef NDEBUG
+
+        LUCID_LOG(LogLevel::INFO, "Sending mesh %s data to GPU took %f", (const char*)MeshFileName, platform::GetCurrentTimeSeconds() - start);
+#endif
 
         return new MeshResource{ meshFeatures,
                                  diffuseMap,

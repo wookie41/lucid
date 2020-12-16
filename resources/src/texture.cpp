@@ -1,5 +1,7 @@
 #include "resources/texture.hpp"
 #include "stb_image.h"
+#include "common/log.hpp"
+#include "platform/util.hpp"
 
 #include <cassert>
 
@@ -16,6 +18,9 @@ namespace lucid::resources
                                     const bool& FlipY,
                                     const bool& SendToGPU)
     {
+#ifndef NDEBUG
+        real start = platform::GetCurrentTimeSeconds();
+#endif
         int desiredChannels = IsTransparent ? 4 : 3;
         uint32_t channels;
         uint32_t Width, Height;
@@ -28,10 +33,14 @@ namespace lucid::resources
         gpu::Texture* textureHandle = nullptr;
         if (SendToGPU)
         {
-            textureHandle = gpu::Create2DTexture(textureData, Width, Height, DataType,
+            textureHandle =
+              gpu::Create2DTexture(textureData, Width, Height, DataType,
                                    IsTransparent ? gpu::TextureFormat::RGBA : gpu::TextureFormat::RGB, 0, PerformGammaCorrection);
             assert(textureHandle);
         }
+
+        LUCID_LOG(LogLevel::INFO, "Loading texture %s took %f", (const char*)TexturePath,
+                  platform::GetCurrentTimeSeconds() - start);
 
         return new TextureResource{ (void*)textureData,
                                     textureHandle,
@@ -54,13 +63,19 @@ namespace lucid::resources
           LoadTextureSTB("assets/textures/awesomeface.png", true, true, gpu::TextureDataType::UNSIGNED_BYTE, true, true));
     }
 
-    TextureResource*
-    LoadJPEG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& FlipY, const bool& SendToGPU)
+    TextureResource* LoadJPEG(char const* Path,
+                              const bool& PerformGammaCorrection,
+                              const gpu::TextureDataType& DataType,
+                              const bool& FlipY,
+                              const bool& SendToGPU)
     {
         return LoadTextureSTB(Path, false, PerformGammaCorrection, DataType, FlipY, SendToGPU);
     }
-    TextureResource*
-    LoadPNG(char const* Path, const bool& PerformGammaCorrection, const gpu::TextureDataType& DataType, const bool& FlipY,const bool& SendToGPU)
+    TextureResource* LoadPNG(char const* Path,
+                             const bool& PerformGammaCorrection,
+                             const gpu::TextureDataType& DataType,
+                             const bool& FlipY,
+                             const bool& SendToGPU)
     {
         return LoadTextureSTB(Path, true, PerformGammaCorrection, DataType, FlipY, SendToGPU);
     }
