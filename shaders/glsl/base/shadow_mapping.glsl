@@ -35,3 +35,37 @@ float CalculateShadow(in vec3 FragPos, in vec3 NormalN, in vec3 LightDirN)
     }
     return samplesSum / (uNumSamplesPCF * uNumSamplesPCF);
 }
+
+vec3 pcfDirections[20] = vec3[]
+(
+   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+   vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+   vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+   vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+);   
+
+float CalculateShadowCubemap(in vec3 FragPos, in vec3 NormalN, in vec3 LightPos)
+{
+    if (!uLight.CastsShadows)
+    {
+        return 1.0;
+    }
+
+    vec3 toFrag = FragPos - LightPos;
+    float distanceToLight = length(toFrag);
+    float viewDistance = length(uViewPos - FragPos);
+    float diskRadius = (1.0 + (viewDistance / uLight.FarPlane)) / uLight.FarPlane;
+    float bias = max(0.05 * (1.0 - dot(NormalN, normalize(toFrag))), 0.005);
+    float currentDepth = (distanceToLight / uLight.FarPlane) - bias;
+    float shadow = 0;
+    float numOfSamples = min(uNumSamplesPCF, 20);
+    
+    for (int i = 0; i < numOfSamples; i++)
+    {
+        float closestDepth = texture(uShadowCube, toFrag + (pcfDirections[i] * diskRadius)).r;
+        shadow += currentDepth > closestDepth ? 0.0 : 1.0;
+    }
+
+    return shadow / float(numOfSamples);
+}

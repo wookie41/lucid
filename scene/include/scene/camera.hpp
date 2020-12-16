@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glm/glm.hpp"
+#include "platform/util.hpp"
 
 namespace lucid::scene
 {
@@ -16,19 +17,19 @@ namespace lucid::scene
         Camera(const CameraMode& CameraMode,
                const glm::vec3& CameraPosition = { 0.0, 0.0, 0.0 },
                const glm::vec3& CameraUp = { 0.0, 1.0, 0.0 },
-               const float& CameraYaw = 0,
-               const float& CameraPitch = 0.0,
-               const float& CameraSpeed = 2.5,
-               const float& CameraSensitivity = 0.5,
-               const float& CameraZoom = 45.0);
+               const real& CameraYaw = 0,
+               const real& CameraPitch = 0.0,
+               const real& CameraSpeed = 2.5,
+               const real& CameraSensitivity = 0.5,
+               const real& CameraZoom = 45.0);
 
         glm::mat4 GetViewMatrix() const;
         glm::mat4 GetProjectionMatrix() const;
 
-        void MoveForward(const float& DeltaTime);
-        void MoveBackward(const float& DeltaTime);
-        void MoveLeft(const float& DeltaTime);
-        void MoveRight(const float& DeltaTime);
+        void MoveForward(const real& DeltaTime);
+        void MoveBackward(const real& DeltaTime);
+        void MoveLeft(const real& DeltaTime);
+        void MoveRight(const real& DeltaTime);
         void Move(const glm::vec3& DirectionVector, const float& DeltaTime);
 
         // calculates the front vector from the Camera's (updated) Euler Angles
@@ -36,16 +37,16 @@ namespace lucid::scene
         // any of the camera's properties are updated by hand
         void UpdateCameraVectors();
 
-        void AddRotation(float YawOffset, float PitchOffset, const bool& constrainPitch = true);
+        void AddRotation(real YawOffset, real PitchOffset, const bool& constrainPitch = true);
 
-        float NearPlane = 0.1;
-        float FarPlane = 100.0;
+        real NearPlane = 0.1;
+        real FarPlane = 100.0;
 
-        float Left = 0, Right = 0;
-        float Bottom = 0, Top = 0;
+        real Left = 0, Right = 0;
+        real Bottom = 0, Top = 0;
 
         CameraMode Mode;
-        float AspectRatio = 0;
+        real AspectRatio = 0;
 
         glm::vec3 Position;
         glm::vec3 FrontVector;
@@ -53,11 +54,11 @@ namespace lucid::scene
         glm::vec3 RightVector;
         glm::vec3 WorldUpVector;
 
-        float Yaw;
-        float Pitch;
+        real Yaw;
+        real Pitch;
 
-        float Speed;
-        float Sensitivity;
-        float FOV;
+        real Speed;
+        real Sensitivity;
+        real FOV;
     };
 } // namespace lucid::scene

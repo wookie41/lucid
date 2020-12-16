@@ -48,5 +48,7 @@ namespace lucid::scene
         Transform3D Transform;
         gpu::VertexArray* VertexArray;
         scene::Material* Material;
+
+        bool bReverseNormals = false;
     };
 } // namespace lucid::scene

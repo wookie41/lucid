@@ -44,6 +44,8 @@ namespace lucid::scene
     static const String LIGHT_SHADOW_MAP("uLight.ShadowMap");
     static const String LIGHT_SPACE_MATRIX("uLight.LightSpaceMatrix");
     static const String LIGHT_CASTS_SHADOWS("uLight.CastsShadows");
+    static const String LIGHT_FAR_PLANE("uLight.FarPlane");
+    static const String LIGHT_SHADOW_CUBE("uShadowCube");
 
     // Shader-wide uniforms
     static const String AMBIENT_STRENGTH("uAmbientStrength");
@@ -52,6 +54,7 @@ namespace lucid::scene
     static const String VIEW_POSITION("uViewPos");
 
     static const String MODEL_MATRIX("uModel");
+    static const String REVERSE_NORMALS("uReverseNormals");
     static const String VIEW_MATRIX("uView");
     static const String PROJECTION_MATRIX("uProjection");
 
@@ -158,7 +161,6 @@ namespace lucid::scene
     {
         Shader->SetVector(LIGHT_COLOR, InLight->Color);
         Shader->SetVector(LIGHT_POSITION, InLight->Position);
-        Shader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->LightSpaceMatrix);
         
         switch (InLight->GetType())
         {
@@ -167,6 +169,7 @@ namespace lucid::scene
             DirectionalLight* light = (DirectionalLight*)InLight;
             Shader->SetVector(LIGHT_DIRECTION, light->Direction);
             Shader->SetInt(LIGHT_TYPE, DIRECTIONAL_LIGHT);
+            Shader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
             
             if (light->ShadowMap != nullptr)
             {
@@ -185,8 +188,19 @@ namespace lucid::scene
             Shader->SetFloat(LIGHT_CONSTANT, light->Constant);
             Shader->SetFloat(LIGHT_LINEAR, light->Linear);
             Shader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
+            Shader->SetFloat(LIGHT_FAR_PLANE, light->FarPlane);
             Shader->SetInt(LIGHT_TYPE, POINT_LIGHT);
             
+            if (light->ShadowMap != nullptr)
+            {
+                Shader->SetBool(LIGHT_CASTS_SHADOWS, true);
+                Shader->UseTexture(LIGHT_SHADOW_CUBE, light->ShadowMap);
+            }
+            else
+            {
+                Shader->SetBool(LIGHT_CASTS_SHADOWS, false);
+            }
+
             break;
         }
         case LightType::SPOT:
@@ -199,6 +213,7 @@ namespace lucid::scene
             Shader->SetFloat(LIGHT_INNER_CUT_OFF, glm::cos(light->InnerCutOffRad));
             Shader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(light->OuterCutOffRad));
             Shader->SetInt(LIGHT_TYPE, SPOT_LIGHT);
+            Shader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
 
             if (light->ShadowMap != nullptr)
             {
@@ -319,6 +334,7 @@ namespace lucid::scene
     {
         glm::mat4 modelMatrix = ToRender->CalculateModelMatrix();
         Shader->SetMatrix(MODEL_MATRIX, modelMatrix);
+        Shader->SetBool(REVERSE_NORMALS, ToRender->bReverseNormals);
 
         ToRender->Material->SetupShader(Shader);
 

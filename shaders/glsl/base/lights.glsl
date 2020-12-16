@@ -16,7 +16,10 @@ struct Light
     mat4 LightSpaceMatrix;
     bool CastsShadows;
     sampler2D ShadowMap;
+    float FarPlane;
 };
+
+uniform samplerCube uShadowCube;
 
 uniform Light uLight;
 

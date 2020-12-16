@@ -9,7 +9,6 @@ fsIn;
 
 #include "lights.glsl"
 #include "material.glsl"
-#include "shadow_mapping.glsl"
 
 uniform float uAmbientStrength;
 uniform vec3 uViewPos;
@@ -17,6 +16,8 @@ uniform vec3 uViewPos;
 uniform BlinnPhongMaterial uMaterial;
 
 out vec4 oFragColor;
+
+#include "shadow_mapping.glsl"
 
 void main()
 {
@@ -34,8 +35,7 @@ void main()
     }
     else if (uLight.Type == POINT_LIGHT)
     {
-
-        shadowFactor = CalculateShadow(fsIn.FragPos, normal, uLight.Direction);
+        shadowFactor = CalculateShadowCubemap(fsIn.FragPos, normal, uLight.Position);
         lightCntrb = CalculatePointLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
     }
     else if (uLight.Type == SPOT_LIGHT)

@@ -8,6 +8,7 @@ layout(location = 3) in vec2 aTextureCoords;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform bool uReverseNormals;
 
 out VS_OUT
 {
@@ -23,8 +24,8 @@ void main()
     mat3 normalMatrix = transpose(inverse(mat3(uModel)));
     vec4 worldPos = uModel * vec4(aPosition, 1);
 
-    vec3 N = normalize(normalMatrix * aNormal);
-    vec3 T = normalize(normalMatrix * aTangent);
+    vec3 N = normalize(normalMatrix * (uReverseNormals ? -1.0 * aNormal : aNormal));
+    vec3 T = normalize(normalMatrix * (uReverseNormals ? -1.0 * aTangent : aTangent));
     T = normalize(T - (dot(T, N) * N)); // make them orthonormal
     vec3 B = normalize(cross(N, T));
 

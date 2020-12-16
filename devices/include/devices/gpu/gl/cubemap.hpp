@@ -20,6 +20,8 @@ namespace lucid::gpu
         virtual void AttachAsDepth() override;
         virtual void AttachAsStencilDepth() override;
 
+        virtual void AttachAsColor(const uint8_t& Index, Face InFace) override;
+
         ////////////////////////////////////
 
         // Texture interface

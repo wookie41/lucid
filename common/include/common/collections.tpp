@@ -46,6 +46,18 @@ namespace lucid
     }
 
     template <typename T>
+    void StaticArray<T>::Resize(const uint32_t& NewCapacity)
+    {
+        int newArraySize = sizeof(T) * NewCapacity;
+        T* newArray = (T*)malloc(newArraySize);
+        Zero(newArray, newArraySize);
+        memcpy(newArray, array, sizeof(T) * Length);
+        free(array);
+        array = newArray;
+        Capacity = NewCapacity;
+    }
+
+    template <typename T>
     StaticArray<T>::operator T*() const
     {
         return array;
@@ -119,6 +131,6 @@ namespace lucid
             tmp = current->Next;
             delete current;
             current = tmp;
-        }            
+        }
     }
 } // namespace lucid

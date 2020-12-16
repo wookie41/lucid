@@ -7,11 +7,11 @@ namespace lucid::scene
     Camera::Camera(const CameraMode& CameraMode,
                    const glm::vec3& CameraPosition,
                    const glm::vec3& CameraUp,
-                   const float& CameraYaw,
-                   const float& CameraPitch,
-                   const float& CameraSpeed,
-                   const float& CameraSensitivity,
-                   const float& CameraFOV)
+                   const real& CameraYaw,
+                   const real& CameraPitch,
+                   const real& CameraSpeed,
+                   const real& CameraSensitivity,
+                   const real& CameraFOV)
     : Mode(CameraMode), Position(CameraPosition), UpVector(CameraUp),
       Yaw(CameraYaw), Pitch(CameraPitch), Speed(CameraSpeed), Sensitivity(CameraSensitivity),
       FOV(CameraFOV), WorldUpVector(CameraUp)
@@ -34,36 +34,36 @@ namespace lucid::scene
         return glm::perspective(glm::radians(FOV), AspectRatio,  0.1f, 100.0f);
     }
 
-    void Camera::MoveForward(const float& DeltaTime)
+    void Camera::MoveForward(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position += FrontVector * velocity;
     }
 
-    void Camera::MoveBackward(const float& DeltaTime)
+    void Camera::MoveBackward(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position -= FrontVector * velocity;
     }
 
-    void Camera::MoveRight(const float& DeltaTime)
+    void Camera::MoveRight(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position += RightVector * velocity;
     }
 
-    void Camera::MoveLeft(const float& DeltaTime)
+    void Camera::MoveLeft(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position -= RightVector * velocity;
     }
 
-    void Camera::Move(const glm::vec3& DirectionVector, const float& DeltaTime)
+    void Camera::Move(const glm::vec3& DirectionVector, const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position += DirectionVector * velocity;
     }
-    void Camera::AddRotation(float YawOffset, float PitchOffset, const bool& constrainPitch)
+    void Camera::AddRotation(real YawOffset, real PitchOffset, const bool& constrainPitch)
     {
         YawOffset *= Sensitivity;
         PitchOffset *= Sensitivity;

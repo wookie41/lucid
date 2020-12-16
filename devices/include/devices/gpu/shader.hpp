@@ -60,5 +60,6 @@ namespace lucid::gpu
     Shader* CompileShaderProgram(const String& ShaderName,
                                  const String& VertexShaderSource,
                                  const String& FragementShaderSource,
+                                 const String& GeometryShaderSource,
                                  const bool& WarnMissingUniforms = false);
 } // namespace lucid::gpu

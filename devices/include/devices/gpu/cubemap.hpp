@@ -18,6 +18,8 @@ namespace lucid::gpu
             FRONT
         };
 
+        virtual void AttachAsColor(const uint8_t& Index, Face InFace) = 0;
+
         virtual ~Cubemap() = default;
     };
 
@@ -25,5 +27,5 @@ namespace lucid::gpu
                            TextureFormat InternalFormat,
                            TextureFormat DataFormat,
                            TextureDataType DataType,
-                           const char* FacesData[6] = { nullptr });
+                           const char* FacesData[6] = nullptr);
 } // namespace lucid::gpu

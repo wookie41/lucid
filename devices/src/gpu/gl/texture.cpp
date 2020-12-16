@@ -50,7 +50,8 @@ namespace lucid::gpu
         case TextureType::TWO_DIMENSIONAL:
             textureTarget = GL_TEXTURE_2D;
             glBindTexture(GL_TEXTURE_2D, textureHandle);
-            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, 0, DataFormat, DataType, TextureData);
+            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, InternalFormat, TextureSize.x, TextureSize.y, 0, DataFormat, DataType,
+                         TextureData);
             break;
 
         case TextureType::THREE_DIMENSIONAL:
@@ -66,8 +67,7 @@ namespace lucid::gpu
             glGenerateMipmap(textureTarget);
         }
 
-
-        glTexParameteri(textureTarget, GL_TEXTURE_WRAP_S, GL_REPEAT); 
+        glTexParameteri(textureTarget, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(textureTarget, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -195,7 +195,7 @@ namespace lucid::gpu
 
     // Cubemap
 
-    Cubemap* CreateCubemap(const glm::ivec2& Size,
+    Cubemap*    CreateCubemap(const glm::ivec2& Size,
                            TextureFormat InternalFormat,
                            TextureFormat DataFormat,
                            TextureDataType DataType,
@@ -208,7 +208,7 @@ namespace lucid::gpu
         for (int i = 0; i < 6; ++i)
         {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, TO_GL_TEXTURE_FORMAT(InternalFormat), Size.x, Size.y, 0,
-                         TO_GL_TEXTURE_FORMAT(DataFormat), TO_GL_TEXTURE_DATA_TYPE(DataType), FacesData[i]);
+                         TO_GL_TEXTURE_FORMAT(DataFormat), TO_GL_TEXTURE_DATA_TYPE(DataType), FacesData == nullptr ? nullptr : FacesData[i]);
         }
 
         // Default sampling parameters
@@ -227,21 +227,19 @@ namespace lucid::gpu
     void GLCubemap::AttachAsColor(const uint8_t& Index)
     {
         assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && gpu::Info.CurrentCubemap == this);
-        for (uint8_t i = 0; i < 6; ++i)
-        {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, glCubemapHandle, 0);
-        }
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, glCubemapHandle, 0);
     }
 
-    void GLCubemap::AttachAsStencil()
+    void GLCubemap::AttachAsColor(const uint8_t& Index, Face InFace)
     {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_CUBE_MAP, glCubemapHandle, 0);
+        assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && gpu::Info.CurrentCubemap == this);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<uint8_t>(InFace), glCubemapHandle, 0);
     }
 
-    void GLCubemap::AttachAsDepth()
-    {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP, glCubemapHandle, 0);
-    }
+    void GLCubemap::AttachAsStencil() { glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, glCubemapHandle, 0); }
+
+    void GLCubemap::AttachAsDepth() { glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, glCubemapHandle, 0); }
 
     void GLCubemap::AttachAsStencilDepth()
     {
@@ -254,11 +252,8 @@ namespace lucid::gpu
 
     void GLCubemap::Bind()
     {
-        if (gpu::Info.CurrentCubemap != this)
-        {
-            gpu::Info.CurrentCubemap = this;
-            glBindTexture(GL_TEXTURE_CUBE_MAP, glCubemapHandle);
-        }
+        gpu::Info.CurrentCubemap = this;
+        glBindTexture(GL_TEXTURE_CUBE_MAP, glCubemapHandle);
     }
 
     void GLCubemap::Free()

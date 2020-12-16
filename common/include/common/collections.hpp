@@ -17,6 +17,7 @@ namespace lucid
         StaticArray<T> Copy() const;
         void Add(const T& Element);
         void Free();
+        void Resize(const uint32_t& NewCapacity);
 
         uint32_t Length = 0;
         uint32_t Capacity;

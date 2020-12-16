@@ -27,6 +27,7 @@
 #include "devices/gpu/cubemap.hpp"
 #include "scene/flat_material.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include "platform/util.hpp"
 
 using namespace lucid;
 
@@ -107,21 +108,26 @@ int main(int argc, char** argv)
 
     gpu::Shader* blinnPhongShader =
       gpu::CompileShaderProgram("BlinnPhong", { platform::ReadFile("shaders/glsl/fwd_blinn_phong.vert", true) },
-                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong.frag", true) });
+                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong.frag", true) }, "");
 
     gpu::Shader* blinnPhongMapsShader =
       gpu::CompileShaderProgram("BlinnPhongMaps", { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true) },
-                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true) }, true);
+                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true) }, "", true);
 
     gpu::Shader* skyboxShader = gpu::CompileShaderProgram("Skybox", { platform::ReadFile("shaders/glsl/skybox.vert", true) },
-                                                          { platform::ReadFile("shaders/glsl/skybox.frag", true) });
+                                                          { platform::ReadFile("shaders/glsl/skybox.frag", true) }, "");
 
     gpu::Shader* shadowMapShader =
       gpu::CompileShaderProgram("ShadowMapper", { platform::ReadFile("shaders/glsl/shadow_map.vert", true) },
-                                { platform::ReadFile("shaders/glsl/empty.frag", true) });
+                                { platform::ReadFile("shaders/glsl/empty.frag", true) }, "");
+
+    gpu::Shader* shadowCubemapShader =
+      gpu::CompileShaderProgram("ShadowCubeMapper", { platform::ReadFile("shaders/glsl/shadow_cubemap.vert", true) },
+                                { platform::ReadFile("shaders/glsl/shadow_cubemap.frag", true) },
+                                { platform::ReadFile("shaders/glsl/shadow_cubemap.geom", true) });
 
     gpu::Shader* flatShader = gpu::CompileShaderProgram("flatShader", { platform::ReadFile("shaders/glsl/flat.vert", true) },
-                                                        { platform::ReadFile("shaders/glsl/flat.frag", true) });
+                                                        { platform::ReadFile("shaders/glsl/flat.frag", true) }, "");
 
     // Prepare the scene
 
@@ -130,13 +136,13 @@ int main(int argc, char** argv)
 
     scene::Camera perspectiveCamera{ scene::CameraMode::PERSPECTIVE };
     perspectiveCamera.AspectRatio = window->GetAspectRatio();
-    perspectiveCamera.Position = {0, 0, 3};
+    perspectiveCamera.Position = { 0, 0, 3 };
     perspectiveCamera.Yaw = -90.f;
     perspectiveCamera.UpdateCameraVectors();
 
     scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongMapsShader, skyboxShader };
     renderer.AmbientStrength = 0.05;
-    renderer.NumSamplesPCF = 5;
+    renderer.NumSamplesPCF = 20;
 
     scene::RenderTarget renderTarget;
     renderTarget.Camera = &perspectiveCamera;
@@ -146,7 +152,7 @@ int main(int argc, char** argv)
     scene::BlinnPhongMapsMaterial woodMaterial;
     woodMaterial.Shininess = 32;
     woodMaterial.DiffuseMap = woodDiffuseMap;
-    woodMaterial.SpecularColor = glm::vec3 { 0.5 };
+    woodMaterial.SpecularColor = glm::vec3{ 0.5 };
     woodMaterial.NormalMap = nullptr;
     woodMaterial.SpecularMap = nullptr;
 
@@ -155,7 +161,7 @@ int main(int argc, char** argv)
     brickMaterial.DiffuseMap = brickWallDiffuseMap;
     brickMaterial.SpecularMap = nullptr;
     brickMaterial.NormalMap = brickWallNormalMap;
-    brickMaterial.SpecularColor = glm::vec3 { 0.2 };
+    brickMaterial.SpecularColor = glm::vec3{ 0.2 };
 
     scene::BlinnPhongMaterial flatBlinnPhongMaterial;
     flatBlinnPhongMaterial.DiffuseColor = glm::vec3{ 1 };
@@ -167,26 +173,38 @@ int main(int argc, char** argv)
     woodenFloor.Material = &woodMaterial;
     woodenFloor.VertexArray = misc::QuadVertexArray;
     woodenFloor.Type = scene::RenderableType::STATIC;
-    woodenFloor.Transform.Scale = glm::vec3 { 25.0 };
-    woodenFloor.Transform.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3 { 1.0, 0.0, 0.0 });
-    woodenFloor.Transform.Translation = glm::vec3 { 0, -0.5, 0 };
+    woodenFloor.Transform.Scale = glm::vec3{ 25.0 };
+    woodenFloor.Transform.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{ 1.0, 0.0, 0.0 });
+    woodenFloor.Transform.Translation = glm::vec3{ 0, -0.5, 0 };
 
     scene::Renderable cube{ "Cube" };
     cube.Material = &brickMaterial;
     cube.VertexArray = misc::CubeVertexArray;
     cube.Type = scene::RenderableType::STATIC;
-    cube.Transform.Translation = { 0.0f, 1.5f, 0.0 };
+    cube.Transform.Translation = { 4.0, -3.5, 0.0 };
     cube.Transform.Scale = glm::vec3{ 0.5 };
 
     scene::Renderable cube1{ "Cube1", cube };
-    cube1.Transform.Translation = { 2.0, 0.0, 1.0 };
-    cube1.Transform.Scale = glm::vec3{ 0.5 };
+    cube1.Transform.Translation = { 2.0, 3.0, 1.0 };
+    cube1.Transform.Scale = glm::vec3{ 0.75 };
     cube1.Material = &flatBlinnPhongMaterial;
 
     scene::Renderable cube2{ "Cube2", cube };
-    cube2.Transform.Translation = { -1.0f, 0.0f, 2.0 };
-    cube2.Transform.Scale = glm::vec3{ 0.25 };
+    cube2.Transform.Translation = { -1.5, 2.0, -3.0 };
+    cube2.Transform.Scale = glm::vec3{ 0.75 };
     cube2.Transform.Rotation = glm::angleAxis(glm::radians(60.0f), glm::normalize(glm::vec3{ 1.0, 0.0, 1.0 }));
+
+    scene::Renderable cube3{ "Cube3", cube };
+    cube3.Transform.Translation = { -1.5, 1.0, 1.5 };
+    cube3.Transform.Scale = glm::vec3{ 0.5 };
+    cube3.Transform.Rotation = glm::angleAxis(glm::radians(60.0f), glm::normalize(glm::vec3{ 1.0, 0.0, 1.0 }));
+
+    scene::Renderable gigaCube{ "Gigacube", cube };
+    gigaCube.Transform.Translation = glm::vec3{ 0 };
+    gigaCube.Transform.Scale = glm::vec3{ 10 };
+    gigaCube.Transform.Rotation = glm::quat{ 0, 0, 0, 0 };
+    gigaCube.Material = &woodMaterial;
+    gigaCube.bReverseNormals = true;
 
     // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
     // backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
@@ -215,7 +233,7 @@ int main(int argc, char** argv)
 
     scene::SpotLight redLight = scene::CreateSpotLight(true, { 1024, 1024 });
     redLight.Position = { 5, 3.4, 0 };
-    redLight.Direction = glm::normalize(glm::vec3 { -1, -1, 0 });
+    redLight.Direction = glm::normalize(glm::vec3{ -1, -1, 0 });
     redLight.Color = { 1, 0, 0 };
     redLight.Constant = 1;
     redLight.Linear = 0.09;
@@ -230,7 +248,7 @@ int main(int argc, char** argv)
 
     scene::SpotLight greenLight = scene::CreateSpotLight(true, { 1024, 1024 });
     greenLight.Position = { -5, 3.5, 0 };
-    greenLight.Direction = glm::normalize(glm::vec3 { 1, -1, 0 });
+    greenLight.Direction = glm::normalize(glm::vec3{ 1, -1, 0 });
     greenLight.Color = { 0, 1, 0 };
     greenLight.Constant = 1;
     greenLight.Linear = 0.09;
@@ -261,22 +279,37 @@ int main(int argc, char** argv)
     shadowCastingLightCube.Transform.Translation = shadowCastingLight.Position;
     shadowCastingLightCube.Material = &flatWhiteMaterial;
 
+    scene::PointLight redPointLight = scene::CreatePointLight(true, { 1024, 1024 });
+    redPointLight.Position = { 0, 0, 0 };
+    redPointLight.Color = { 1, 0, 0 };
+    redPointLight.Constant = 1;
+    redPointLight.Linear = 0.007;
+    redPointLight.Quadratic = 0.017;
+
+    scene::Renderable redPointLightCube{ "RedPointLightCube", redLightCube };
+    redPointLightCube.Transform.Translation = redPointLight.Position;
+    redPointLightCube.Material = &flatRedMaterial;
+
     scene::RenderScene sceneToRender;
     sceneToRender.StaticGeometry.Add(&cube);
     sceneToRender.StaticGeometry.Add(&cube1);
     sceneToRender.StaticGeometry.Add(&cube2);
+    sceneToRender.StaticGeometry.Add(&cube3);
+    sceneToRender.StaticGeometry.Add(&gigaCube);
     // sceneToRender.StaticGeometry.Add(backPackRenderable);
-    sceneToRender.StaticGeometry.Add(&woodenFloor);
+    // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
     sceneToRender.Lights.Add(&redLight);
     sceneToRender.Lights.Add(&greenLight);
     sceneToRender.Lights.Add(&blueLight);
     // sceneToRender.Lights.Add(&shadowCastingLight);
+    sceneToRender.Lights.Add(&redPointLight);
 
     // sceneToRender.StaticGeometry.Add(&shadowCastingLightCube);
     sceneToRender.StaticGeometry.Add(&redLightCube);
     sceneToRender.StaticGeometry.Add(&greenLightCube);
     sceneToRender.StaticGeometry.Add(&blueLightCube);
+    sceneToRender.StaticGeometry.Add(&redPointLightCube);
 
     const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg",  "assets/skybox/left.jpg",  "assets/skybox/top.jpg",
                                        "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
@@ -287,52 +320,67 @@ int main(int argc, char** argv)
 
     bool isRunning = true;
     float rotation = 0;
+
+    real now = platform::GetCurrentTimeSeconds();
+    real last = 0;
+    real dt = 0;
+
     while (isRunning)
     {
+        last = now;
+        now = platform::GetCurrentTimeSeconds();
+        dt += now - last;
         ReadEvents(window);
 
-        if (WasKeyPressed(SDLK_ESCAPE))
+        while (dt > 0)
         {
-            isRunning = false;
-            break;
-        }
+            dt -= platform::SimulationStep;
+            if (WasKeyPressed(SDLK_ESCAPE))
+            {
+                isRunning = false;
+                break;
+            }
 
-        if (IsKeyPressed(SDLK_w))
-        {
-            perspectiveCamera.MoveForward(1.f / 60.f);
-        }
+            if (IsKeyPressed(SDLK_w))
+            {
+                perspectiveCamera.MoveForward(platform::SimulationStep);
+            }
 
-        if (IsKeyPressed(SDLK_s))
-        {
-            perspectiveCamera.MoveBackward(1.f / 60.f);
-        }
+            if (IsKeyPressed(SDLK_s))
+            {
+                perspectiveCamera.MoveBackward(platform::SimulationStep);
+            }
 
-        if (IsKeyPressed(SDLK_a))
-        {
-            perspectiveCamera.MoveLeft(1.f / 60.f);
-        }
+            if (IsKeyPressed(SDLK_a))
+            {
+                perspectiveCamera.MoveLeft(platform::SimulationStep);
+            }
 
-        if (IsKeyPressed(SDLK_d))
-        {
-            perspectiveCamera.MoveRight(1.f / 60.f);
-        }
+            if (IsKeyPressed(SDLK_d))
+            {
+                perspectiveCamera.MoveRight(platform::SimulationStep);
+            }
 
-        auto mousePos = GetMousePostion();
-        if (mousePos.MouseMoved)
-        {
-            perspectiveCamera.AddRotation(-mousePos.DeltaX, mousePos.DeltaY);
-        }
+            auto mousePos = GetMousePostion();
+            if (mousePos.MouseMoved)
+            {
+                perspectiveCamera.AddRotation(-mousePos.DeltaX, mousePos.DeltaY);
+            }
 
-        if (IsKeyPressed(SDLK_r))
-        {
-          rotation += 0.5f;
-          cube.Transform.Rotation = glm::angleAxis(glm::radians(rotation), glm::normalize(glm::vec3{ 0.0, 1.0, 0.0 }));
+            if (IsKeyPressed(SDLK_r))
+            {
+                rotation += 0.5f;
+                cube.Transform.Rotation = glm::angleAxis(glm::radians(rotation), glm::normalize(glm::vec3{ 0.0, 1.0, 0.0 }));
+            }
+
+            redPointLight.Position.z = sin(now * 0.5) * 3.0;
+            redPointLightCube.Transform.Translation = redPointLight.Position;
         }
 
         gpu::DisableSRGBFramebuffer();
         shadowCastingLight.UpdateLightSpaceMatrix();
         shadowCastingLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
-        
+
         redLight.UpdateLightSpaceMatrix();
         redLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
 
@@ -341,6 +389,9 @@ int main(int argc, char** argv)
 
         blueLight.UpdateLightSpaceMatrix();
         blueLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+
+        redPointLight.UpdateLightSpaceMatrix();
+        redPointLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowCubemapShader, true, true);
 
         // Render to off-screen framebuffer
         renderTarget.Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);

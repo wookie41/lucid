@@ -4,6 +4,7 @@
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/gpu.hpp"
 #include "common/log.hpp"
+#include "stb.h"
 
 #ifndef NDEBUG
 #include <stdio.h>
@@ -14,6 +15,7 @@ namespace lucid::gpu
     const uint8_t _GL_PROGRAM = 0;
     const uint8_t _GL_VERTEX_SHADER = 1;
     const uint8_t _GL_FRAGMENT_SHADER = 2;
+    const uint8_t _GL_GEOMETRY_SHADER = 3;
 
     const uint8_t MAX_UNIFORM_VARIABLE_NAME_LENGTH = 255;
 
@@ -58,13 +60,22 @@ namespace lucid::gpu
     Shader* CompileShaderProgram(const String& ShaderName,
                                  const String& VertexShaderSource,
                                  const String& FragementShaderSource,
+                                 const String& GeometryShaderSource,
                                  const bool& WarnMissingUniforms)
     {
         GLuint shaderProgramID = glCreateProgram();
         GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        GLuint geometryShader = 0;
         GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
         compileShader(shaderProgramID, vertexShader, VertexShaderSource, _GL_VERTEX_SHADER);
+
+        if (GeometryShaderSource.Length > 0)
+        {
+            geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+            compileShader(shaderProgramID, geometryShader, GeometryShaderSource, _GL_GEOMETRY_SHADER);
+        }
+
         compileShader(shaderProgramID, fragmentShader, FragementShaderSource, _GL_FRAGMENT_SHADER);
 
         glLinkProgram(shaderProgramID);
@@ -75,6 +86,7 @@ namespace lucid::gpu
 
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+        glDeleteShader(geometryShader);
 
         GLint numberOfUniforms;
         glGetProgramiv(shaderProgramID, GL_ACTIVE_UNIFORMS, &numberOfUniforms);
@@ -96,15 +108,30 @@ namespace lucid::gpu
             // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glGetActiveUniform.xhtml
             glGetActiveUniform(shaderProgramID, uniformIdx, MAX_UNIFORM_VARIABLE_NAME_LENGTH, &uniformNameLength, &uniformSize,
                                &uniformType, uniformNameBuff);
-
+            GLint uniformLocation = glGetUniformLocation(shaderProgramID, uniformNameBuff);
             if (uniformType == GL_SAMPLER_1D || uniformType == GL_SAMPLER_2D || uniformType == GL_SAMPLER_3D ||
                 uniformType == GL_SAMPLER_CUBE)
             {
-                textureBindings.Add({ uniformIdx, CopyToString(uniformNameBuff), texturesCount++ });
+                textureBindings.Add({ uniformLocation, CopyToString(uniformNameBuff), texturesCount++ });
                 continue;
             }
 
-            uniformVariables.Add({ uniformIdx, CopyToString(uniformNameBuff) });
+            uniformVariables.Add({ uniformLocation, CopyToString(uniformNameBuff) });
+            
+            if (uniformSize > 0)
+            {
+                // the uniform is an array and OpenGL return active uniform only for the 0th index of the array
+                // length of the array is equal to uniformSize and thats how many additional uniforms we have to add
+                uniformVariables.Resize(uniformVariables.Capacity + (uniformSize -1));
+                static char indexBuffer[5];
+                for (int i = 1; i < uniformSize; ++i)
+                {
+                    assert(i < 1000);
+
+                    char* nextArrayEntry = stb_dupreplace(uniformNameBuff, "0", itoa(i, indexBuffer, 10));
+                    uniformVariables.Add({ glGetUniformLocation(shaderProgramID, nextArrayEntry), String{ nextArrayEntry } });
+                }
+            }
         }
 
         StaticArray<UniformVariable> tmpUniforms = uniformVariables.Copy();
@@ -307,7 +334,8 @@ namespace lucid::gpu
 #ifndef NDEBUG
         if (warnMissingUniforms)
         {
-            LUCID_LOG(LogLevel::WARN, "Uniform variable with name %s not found in shader %s\n", (char const*)Name, (char const*)this->Name);
+            LUCID_LOG(LogLevel::WARN, "Uniform variable with name %s not found in shader %s\n", (char const*)Name,
+                      (char const*)this->Name);
         }
 #endif
         return -1;
@@ -328,7 +356,8 @@ namespace lucid::gpu
 #ifndef NDEBUG
         if (warnMissingUniforms)
         {
-            LUCID_LOG(LogLevel::WARN, "Sampler with name %s not found in shader %s\n", (char const*)Name, (char const*)this->Name);
+            LUCID_LOG(LogLevel::WARN, "Sampler with name %s not found in shader %s\n", (char const*)Name,
+                      (char const*)this->Name);
         }
 #endif
         return -1;

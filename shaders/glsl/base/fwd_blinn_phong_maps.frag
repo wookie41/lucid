@@ -1,5 +1,7 @@
 #version 330 core
 
+#include "material.glsl"
+
 in VS_OUT
 {
     vec3 FragPos;
@@ -9,15 +11,12 @@ in VS_OUT
 }
 fsIn;
 
-#include "material.glsl"
-#include "lights.glsl"
-#include "shadow_mapping.glsl"
-
 uniform float uAmbientStrength;
-
+uniform vec3 uViewPos;
 uniform BlinnPhongMapsMaterial uMaterial;
 
-uniform vec3 uViewPos;
+#include "lights.glsl"
+#include "shadow_mapping.glsl"
 
 out vec4 oFragColor;
 
@@ -49,7 +48,7 @@ void main()
     }
     else if (uLight.Type == POINT_LIGHT)
     {   
-        shadowFactor = 1.0;
+        shadowFactor = CalculateShadowCubemap(fsIn.FragPos, normal, uLight.Position);
         lightCntrb = CalculatePointLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
     }
     else if (uLight.Type == SPOT_LIGHT)
