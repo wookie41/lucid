@@ -10,13 +10,16 @@ struct BlinnPhongMapsMaterial
     int Shininess;
 
     sampler2D DiffuseMap;
+    
+    bool HasSpecularMap;
     sampler2D SpecularMap;
+    vec3 SpecularColor;
+
+    bool HasNormalMap;
     sampler2D NormalMap;
 
-    bool HasSpecularMap;
-    bool HasNormalMap;
-
-    vec3 SpecularColor;
+    bool HasDisplacementMap;
+    sampler2D DisplacementMap;
 };
 
 

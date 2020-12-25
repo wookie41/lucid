@@ -122,7 +122,7 @@ namespace lucid
     }
 
     template <typename T>
-    LinkedList<T>::~LinkedList()
+    void LinkedList<T>::Free()
     {
         LinkedListItem<T>* tmp = nullptr;
         LinkedListItem<T>* current = Head.Next;
@@ -133,4 +133,5 @@ namespace lucid
             current = tmp;
         }
     }
+
 } // namespace lucid

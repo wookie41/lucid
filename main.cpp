@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 
     // Load textures uesd in the demo scene
 
-    resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
+    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
     resources::TextureResource* brickWallDiffuseMapResource =
       resources::LoadJPEG("assets/textures/brickwall.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
@@ -87,19 +87,34 @@ int main(int argc, char** argv)
     resources::TextureResource* blankTextureResource =
       resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
+    resources::TextureResource* toyboxNormalMapResource  =
+      resources::LoadJPEG("assets/textures/toy_box_normal.png", false, gpu::TextureDataType::UNSIGNED_BYTE, true);
+
+    resources::TextureResource* toyBoxDisplacementMapResource =
+      resources::LoadPNG("assets/textures/toy_box_disp.png", false, gpu::TextureDataType::UNSIGNED_BYTE, true);
+
+    {
+        auto texture = toyBoxDisplacementMapResource->TextureHandle;
+        texture->Bind();
+        texture->SetWrapSFilter(gpu::WrapTextureFilter::CLAMP_TO_EDGE);
+        texture->SetWrapTFilter(gpu::WrapTextureFilter::CLAMP_TO_EDGE);
+    }
+
     brickWallDiffuseMapResource->FreeMainMemory();
     brickWallNormalMapResource->FreeMainMemory();
     woodDiffuseMapResource->FreeMainMemory();
     blankTextureResource->FreeMainMemory();
+    toyboxNormalMapResource->FreeMainMemory();
+    toyBoxDisplacementMapResource->FreeMainMemory();
 
-    backPackMesh->FreeMainMemory();
+    // backPackMesh->FreeMainMemory();
 
     auto brickWallDiffuseMap = brickWallDiffuseMapResource->TextureHandle;
     auto brickWallNormalMap = brickWallNormalMapResource->TextureHandle;
     auto woodDiffuseMap = woodDiffuseMapResource->TextureHandle;
     auto blankTextureMap = blankTextureResource->TextureHandle;
 
-    auto backpackVao = backPackMesh->VAO;
+    // auto backpackVao = backPackMesh->VAO;
 
     window->Prepare();
     window->Show();
@@ -160,8 +175,17 @@ int main(int argc, char** argv)
     brickMaterial.Shininess = 32;
     brickMaterial.DiffuseMap = brickWallDiffuseMap;
     brickMaterial.SpecularMap = nullptr;
+    brickMaterial.DisplacementMap = nullptr;
     brickMaterial.NormalMap = brickWallNormalMap;
     brickMaterial.SpecularColor = glm::vec3{ 0.2 };
+
+    scene::BlinnPhongMapsMaterial toyboxMaterial;
+    toyboxMaterial.Shininess = 32;
+    toyboxMaterial.DiffuseMap = woodDiffuseMap;
+    toyboxMaterial.SpecularMap = nullptr;
+    toyboxMaterial.NormalMap = toyboxNormalMapResource->TextureHandle;
+    toyboxMaterial.DisplacementMap = toyBoxDisplacementMapResource->TextureHandle;
+    toyboxMaterial.SpecularColor = glm::vec3{ 0.2 };
 
     scene::BlinnPhongMaterial flatBlinnPhongMaterial;
     flatBlinnPhongMaterial.DiffuseColor = glm::vec3{ 1 };
@@ -192,12 +216,13 @@ int main(int argc, char** argv)
     scene::Renderable cube2{ "Cube2", cube };
     cube2.Transform.Translation = { -1.5, 2.0, -3.0 };
     cube2.Transform.Scale = glm::vec3{ 0.75 };
-    cube2.Transform.Rotation = glm::angleAxis(glm::radians(60.0f), glm::normalize(glm::vec3{ 1.0, 0.0, 1.0 }));
+    // cube2.Transform.Rotation = glm::angleAxis(glm::radians(60.0f), glm::normalize(glm::vec3{ 1.0, 0.0, 1.0 }));
 
     scene::Renderable cube3{ "Cube3", cube };
     cube3.Transform.Translation = { -1.5, 1.0, 1.5 };
     cube3.Transform.Scale = glm::vec3{ 0.5 };
-    cube3.Transform.Rotation = glm::angleAxis(glm::radians(60.0f), glm::normalize(glm::vec3{ 1.0, 0.0, 1.0 }));
+    // cube3.Transform.Rotation = glm::angleAxis(glm::radians(60.0f), glm::normalize(glm::vec3{ 1.0, 0.0, 1.0 }));
+    cube3.Material = &toyboxMaterial;
 
     scene::Renderable gigaCube{ "Gigacube", cube };
     gigaCube.Transform.Translation = glm::vec3{ 0 };
@@ -206,9 +231,9 @@ int main(int argc, char** argv)
     gigaCube.Material = &woodMaterial;
     gigaCube.bReverseNormals = true;
 
-    scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
-    backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
-    backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
+    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
+    // backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
+    // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
     scene::FlatMaterial flatWhiteMaterial;
     flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
@@ -232,8 +257,8 @@ int main(int argc, char** argv)
     shadowCastingLight.Color = glm::vec3{ 1.0, 1.0, 1.0 };
 
     scene::SpotLight redLight = scene::CreateSpotLight(true, { 1024, 1024 });
-    redLight.Position = { 5, 3.4, 0 };
-    redLight.Direction = glm::normalize(glm::vec3{ -1, -1, 0 });
+    redLight.Position = cube2.Transform.Translation + glm::vec3 { 0, 2, -1.5 };
+    redLight.Direction = glm::normalize(cube2.Transform.Translation - redLight.Position);
     redLight.Color = { 1, 0, 0 };
     redLight.Constant = 1;
     redLight.Linear = 0.09;
@@ -247,8 +272,8 @@ int main(int argc, char** argv)
     redLightCube.Transform.Translation = redLight.Position;
 
     scene::SpotLight greenLight = scene::CreateSpotLight(true, { 1024, 1024 });
-    greenLight.Position = { -5, 3.5, 0 };
-    greenLight.Direction = glm::normalize(glm::vec3{ 1, -1, 0 });
+    greenLight.Position = cube.Transform.Translation + glm::vec3(0, 2, -2.5);
+    greenLight.Direction = glm::normalize(cube.Transform.Translation - greenLight.Position);
     greenLight.Color = { 0, 1, 0 };
     greenLight.Constant = 1;
     greenLight.Linear = 0.09;
@@ -296,13 +321,12 @@ int main(int argc, char** argv)
     sceneToRender.StaticGeometry.Add(&cube2);
     sceneToRender.StaticGeometry.Add(&cube3);
     sceneToRender.StaticGeometry.Add(&gigaCube);
-    sceneToRender.StaticGeometry.Add(backPackRenderable);
+    // sceneToRender.StaticGeometry.Add(backPackRenderable);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
     sceneToRender.Lights.Add(&redLight);
     sceneToRender.Lights.Add(&greenLight);
     sceneToRender.Lights.Add(&blueLight);
-    // sceneToRender.Lights.Add(&shadowCastingLight);
     sceneToRender.Lights.Add(&redPointLight);
 
     // sceneToRender.StaticGeometry.Add(&shadowCastingLightCube);
@@ -332,7 +356,7 @@ int main(int argc, char** argv)
         dt += now - last;
         ReadEvents(window);
 
-        while (dt > 0)
+        while (dt > platform::SimulationStep)
         {
             dt -= platform::SimulationStep;
             if (WasKeyPressed(SDLK_ESCAPE))
@@ -408,8 +432,6 @@ int main(int argc, char** argv)
           { 0, 0, window->GetWidth(), window->GetHeight() });
         window->Swap();
     }
-
-    delete blinnPhongShader;
 
     window->Destroy();
 

@@ -60,6 +60,8 @@ namespace lucid::scene
 
     static const String SKYBOX_CUBEMAP("uSkybox");
 
+    static const String PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
+
     ForwardBlinnPhongRenderer::ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights,
                                                          gpu::Shader* DefaultShader,
                                                          gpu::Shader* SkyboxShader)
@@ -282,6 +284,7 @@ namespace lucid::scene
         Shader->SetMatrix(PROJECTION_MATRIX, Target->Camera->GetProjectionMatrix());
         Shader->SetMatrix(VIEW_MATRIX, Target->Camera->GetViewMatrix());
         Shader->SetVector(VIEW_POSITION, Target->Camera->Position);
+        Shader->SetFloat(PARALLAX_HEIGHT_SCALE, 0.1f);
     }
 
     Renderable* CreateBlinnPhongRenderable(DString MeshName, resources::MeshResource* Mesh, gpu::Shader* CustomShader)

@@ -43,8 +43,7 @@ namespace lucid
         void Add(T* Element);
         void Remove(T* Element);
         bool Contains(T* Element);
-
-        ~LinkedList();
+        void Free();
 
         LinkedListItem<T> Head;
         LinkedListItem<T>* Tail;

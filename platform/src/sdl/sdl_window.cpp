@@ -41,6 +41,7 @@ namespace lucid::platform
     {
         SDL_DestroyWindow(window);
         SDL_GL_DeleteContext(context);
+        SDL_Quit();
     }
 
     void SDLWindow::OnFocusGained()

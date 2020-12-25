@@ -23,6 +23,8 @@ namespace lucid::scene
     static const String NORMAL_MAP("uMaterial.NormalMap");
     static const String HAS_SPECULAR_MAP("uMaterial.HasSpecularMap");
     static const String HAS_NORMAL_MAP("uMaterial.HasNormalMap");
+    static const String HAS_DISPLACEMENT_MAP("uMaterial.HasDisplacementMap");
+    static const String DISPLACEMENT_MAP("uMaterial.DisplacementMap");
 
     BlinnPhongMapsMaterial::BlinnPhongMapsMaterial(gpu::Shader* CustomShader) : Material(CustomShader) {}
 
@@ -50,6 +52,16 @@ namespace lucid::scene
         else
         {
             Shader->SetBool(HAS_NORMAL_MAP, false);
+        }
+        
+        if (DisplacementMap != nullptr)
+        {
+            Shader->UseTexture(DISPLACEMENT_MAP, DisplacementMap);
+            Shader->SetBool(HAS_DISPLACEMENT_MAP, true);
+        }
+        else
+        {
+            Shader->SetBool(HAS_DISPLACEMENT_MAP, false);
         }
     };
 } // namespace lucid::scene

@@ -35,6 +35,7 @@ namespace lucid::scene
         gpu::Texture* DiffuseMap = nullptr;
         gpu::Texture* SpecularMap = nullptr;
         gpu::Texture* NormalMap = nullptr;
+        gpu::Texture* DisplacementMap = nullptr;
 
         glm::vec3 SpecularColor; //Fallback when specular map is not used
     };

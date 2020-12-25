@@ -20,12 +20,12 @@ namespace lucid::misc
 
     float CUBE_VERTICES[] = {
         // positions          // normals //tangents           // texture coords
-            -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-left
-             1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-right
-             1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right          
-             1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-right
-            -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-left
-            -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top-left
+            -1.0f, -1.0f,  -1.0f,  0.0f,  0.0f,  -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
+             1.0f, -1.0f,  -1.0f,  0.0f,  0.0f,  -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-right
+             1.0f,  1.0f,  -1.0f,  0.0f,  0.0f,  -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top-right
+             1.0f,  1.0f,  -1.0f,  0.0f,  0.0f,  -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top-right
+            -1.0f,  1.0f,  -1.0f,  0.0f,  0.0f,  -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-left
+            -1.0f, -1.0f,  -1.0f,  0.0f,  0.0f,  -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
             // front face
             -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-left
              1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
@@ -34,26 +34,26 @@ namespace lucid::misc
             -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top-left
             -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-left
             // left face
-            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // top-right
-            -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-left
-            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // bottom-left
-            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // bottom-left
-            -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-right
-            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // top-right
+            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-right
+            -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, // top-left
+            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // bottom-left
+            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // bottom-left
+            -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // bottom-right
+            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top-right
             // right face
-             1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, // top-left
-             1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // bottom-right
-             1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // top-right         
-             1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // bottom-right
-             1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, // top-left
-             1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left     
+            1.0f,  1.0f,  1.0f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // top-right
+            1.0f,  1.0f, -1.0f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-left
+            1.0f, -1.0f, -1.0f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // bottom-left
+            1.0f, -1.0f, -1.0f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // bottom-left
+            1.0f, -1.0f,  1.0f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-right
+            1.0f,  1.0f,  1.0f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // top-right
             // bottom face
-            -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top-right
-             1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-left
-             1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
-             1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-left
-            -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-right
-            -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top-right
+            -1.0f,  -1.0f, -1.0f,  0.0f,  -1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // top-left
+             1.0f,  -1.0f , 1.0f,  0.0f,  -1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // bottom-right
+             1.0f,  -1.0f, -1.0f,  0.0f,  -1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right     
+             1.0f,  -1.0f,  1.0f,  0.0f,  -1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // bottom-right
+            -1.0f,  -1.0f, -1.0f,  0.0f,  -1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // top-left
+            -1.0f,  -1.0f,  1.0f,  0.0f,  -1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom-left      
             // top face
             -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top-left
              1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
@@ -87,8 +87,7 @@ namespace lucid::misc
         quadAttributes.Add({ 2, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });
         quadAttributes.Add({ 3, 2, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 9), 0 });
 
-        QuadVertexArray =
-          gpu::CreateVertexArray(&quadAttributes, QuadVertexBuffer, nullptr, gpu::DrawMode::TRIANGLES, 6, 0);
+        QuadVertexArray = gpu::CreateVertexArray(&quadAttributes, QuadVertexBuffer, nullptr, gpu::DrawMode::TRIANGLES, 6, 0);
         quadAttributes.Free();
 
         // we're not going to need the buffers on the CPU anymore, they have to be residient on the GPU tho, so we don't call
