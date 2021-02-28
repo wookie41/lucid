@@ -4,12 +4,13 @@
 
 namespace lucid
 {
+
     struct String
     {
         // Static string - buffers, compile-time strings that don't get freed
-        String(char const* CStr);
+        String(const char* CStr);
 
-        operator char const*() const;
+        const char* operator*() const { return cStr; }
         char operator[](const uint64_t& Index) const;
         inline bool operator==(const String& rhs) const { return Hash == rhs.Hash; };
 
@@ -17,32 +18,24 @@ namespace lucid
         uint32_t Length; // doesn't include the null terminator
 
       private:
-        char const* cStr;
+        const char* cStr;
     };
 
     // Dynamic string - strings allocated at runtime that can be changed/freed
     // We'll need to implement a string area for them later
     struct DString
     {
-        DString(char* CStr);
-
+        DString(char* CStr) : cStr(CStr){};
+        void Append(const String& Str);
         void Free();
-        operator char*() const;
         char operator[](const uint64_t& Index) const;
-        inline bool operator==(const DString& rhs) const { return Hash == rhs.Hash; };
-        inline DString& operator=(const DString& rhs)
-        {
-            this->Hash = rhs.Hash;
-            this->Length = rhs.Length;
-            this->cStr = rhs.cStr;
-            return *this;
-        };
-
-        uint64_t Hash;
-        uint32_t Length; // doesn't include the null terminator
+        inline bool operator==(const String& rhs) const { return Hash == rhs.Hash; };
+        const char* operator*() const { return cStr; }
 
       private:
         char* cStr;
+        uint64_t Hash;
+        uint32_t Length; // doesn't include the null terminator
     };
 
     // StrLen without null terminator

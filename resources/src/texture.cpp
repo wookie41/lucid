@@ -27,7 +27,7 @@ namespace lucid::resources
 
         stbi_set_flip_vertically_on_load(FlipY);
 
-        stbi_uc* textureData = stbi_load(TexturePath, (int*)&Width, (int*)&Height, (int*)&channels, desiredChannels);
+        stbi_uc* textureData = stbi_load(*TexturePath, (int*)&Width, (int*)&Height, (int*)&channels, desiredChannels);
         assert(channels == desiredChannels);
 
         gpu::Texture* textureHandle = nullptr;
@@ -39,7 +39,7 @@ namespace lucid::resources
             assert(textureHandle);
         }
 
-        LUCID_LOG(LogLevel::INFO, "Loading texture %s took %f", (const char*)TexturePath,
+        LUCID_LOG(LogLevel::INFO, "Loading texture %s took %f", *TexturePath,
                   platform::GetCurrentTimeSeconds() - start);
 
         return new TextureResource{ (void*)textureData,

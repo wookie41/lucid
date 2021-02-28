@@ -25,7 +25,6 @@
 namespace lucid::scene
 {
     // Shader light-related uniforms
-
     static const uint32_t NO_LIGHT = 0;
     static const uint32_t DIRECTIONAL_LIGHT = 1;
     static const uint32_t POINT_LIGHT = 2;

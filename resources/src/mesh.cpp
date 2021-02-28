@@ -89,8 +89,7 @@ namespace lucid::resources
 
     MeshGPUData sendMeshToGPU(const uint32_t& Features, const MeshCPUData& MeshData);
 
-    static TextureResource*
-    loadMaterialTexture(char const* DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
+    static TextureResource* loadMaterialTexture(const String& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
 
     MeshResource* AssimpLoadMesh(const String& DirectoryPath, const String& MeshFileName)
     {
@@ -100,9 +99,9 @@ namespace lucid::resources
 #ifndef NDEBUG
         auto start = platform::GetCurrentTimeSeconds();
 #endif
-        const aiScene* root = assimpImporter.ReadFile(meshFilePath, ASSIMP_DEFAULT_FLAGS);
+        const aiScene* root = assimpImporter.ReadFile(*meshFilePath, ASSIMP_DEFAULT_FLAGS);
 
-        LUCID_LOG(LogLevel::INFO, "Reading mesh with assimp %s took %f", (const char*)MeshFileName, platform::GetCurrentTimeSeconds() - start);
+        LUCID_LOG(LogLevel::INFO, "Reading mesh with assimp %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 
         if (!root || root->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !root->mRootNode)
         {
@@ -131,7 +130,7 @@ namespace lucid::resources
                   meshData.VertexBuffer.Capacity, meshData.ElementBuffer.Length, meshData.ElementBuffer.Capacity);
 
 #ifndef NDEBUG
-        LUCID_LOG(LogLevel::INFO, "Loading mesh %s took %f", (const char*)MeshFileName, platform::GetCurrentTimeSeconds() - start);
+        LUCID_LOG(LogLevel::INFO, "Loading mesh %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 #endif
         uint32_t meshFeatures = determineMeshFeatures(root);
 
@@ -161,7 +160,7 @@ namespace lucid::resources
             normalMap = loadMaterialTexture(DirectoryPath, material, aiTextureType_HEIGHT, false);
         }
 #ifndef NDEBUG
-        LUCID_LOG(LogLevel::INFO, "Loading textures %s took %f", (const char*)MeshFileName, platform::GetCurrentTimeSeconds() - start);
+        LUCID_LOG(LogLevel::INFO, "Loading textures %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 #endif
         meshFilePath.Free();
 
@@ -172,7 +171,7 @@ namespace lucid::resources
 
 #ifndef NDEBUG
 
-        LUCID_LOG(LogLevel::INFO, "Sending mesh %s data to GPU took %f", (const char*)MeshFileName, platform::GetCurrentTimeSeconds() - start);
+        LUCID_LOG(LogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 #endif
 
         return new MeshResource{ meshFeatures,
@@ -338,24 +337,24 @@ namespace lucid::resources
     }
 
     static TextureResource*
-    loadMaterialTexture(char const* DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
+    loadMaterialTexture(const String& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
     {
         aiString textureFileName;
         Material->GetTexture(TextureType, 0, &textureFileName);
-        DString texturePath = Concat(DirectoryPath, textureFileName.C_Str());
-        if (TexturesHolder.Contains(texturePath))
+        DString texturePath = Concat(DirectoryPath, String {textureFileName.C_Str()} );
+        if (TexturesHolder.Contains(*texturePath))
         {
-            return TexturesHolder.Get((char*)texturePath);
+            return TexturesHolder.Get(*texturePath);
         }
 
-        auto textureMap = IsPNGFormat ? LoadPNG((char*)texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true) : LoadJPEG((char*)texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+        auto textureMap = IsPNGFormat ? LoadPNG(*texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true) : LoadJPEG(*texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
         if (textureMap == nullptr)
         {
             textureMap = TexturesHolder.GetDefaultResource();
         }
         else
         {
-            TexturesHolder.Add((char*)texturePath, textureMap);
+            TexturesHolder.Add(*texturePath, textureMap);
         }
 
         texturePath.Free();

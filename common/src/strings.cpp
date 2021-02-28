@@ -15,9 +15,7 @@ namespace lucid
         return hash;
     }
 
-    String::String(char const* CStr) : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr) {}
-
-    String::operator char const*() const { return cStr; }
+    String::String(const char* CStr) : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr) {}
 
     char String::operator[](const uint64_t& Index) const
     {
@@ -35,17 +33,6 @@ namespace lucid
     }
 
     // DString //
-
-    DString::DString(char* CStr) : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr) {}
-
-    DString::operator char*() const { return cStr; }
-
-    char DString::operator[](const uint64_t& Index) const
-    {
-        assert(Index < Length);
-        return cStr[Index];
-    }
-
     DString CopyToDString(char const* ToCopy, uint32_t StrLen)
     {
         StrLen = StrLen == 0 ? strlen(ToCopy) : StrLen;
@@ -60,9 +47,20 @@ namespace lucid
     DString Concat(const String& Str1, const String& Str2)
     {
         char* concatBuffer = (char*)malloc(Str1.Length + Str2.Length + 1);
-        memcpy(concatBuffer, (const char*)Str1, Str1.Length);
-        memcpy(concatBuffer + Str1.Length, (const char*)Str2, Str2.Length);
+        memcpy(concatBuffer, *Str1, Str1.Length);
+        memcpy(concatBuffer + Str1.Length, *Str2, Str2.Length);
         concatBuffer[Str1.Length + Str2.Length] = '\0';
         return DString{ concatBuffer };
     }
+
+    void DString::Append(const String& Str)
+    {
+        char* ConcatBuffer = (char*)malloc(Length + Str.Length + 1);
+        memcpy(ConcatBuffer, cStr, Length);
+        memcpy(ConcatBuffer + Length, *Str, Str.Length);
+        ConcatBuffer[Length + Str.Length] = '\0';
+        Free();
+        cStr = ConcatBuffer;        
+    }
+
 } // namespace lucid

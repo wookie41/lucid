@@ -1,6 +1,5 @@
 #include "platform/window.hpp"
 #include "common/collections.hpp"
-#include "devices/gpu/buffer.hpp"
 #include "devices/gpu/shader.hpp"
 #include "devices/gpu/init.hpp"
 #include "misc/basic_shapes.hpp"
@@ -10,7 +9,6 @@
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/gpu.hpp"
 #include "stdio.h"
-#include "devices/gpu/vao.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "scene/camera.hpp"
 #include "devices/gpu/viewport.hpp"
@@ -21,15 +19,18 @@
 #include "scene/lights.hpp"
 #include "stb_init.hpp"
 #include "resources/texture.hpp"
-#include "resources/mesh.hpp"
-#include "GL/glew.h"
 #include <time.h>
-#include "devices/gpu/cubemap.hpp"
+
 #include "scene/flat_material.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "platform/util.hpp"
-
+#include "platform/platform.hpp"
 using namespace lucid;
+
+void ShadersChanged()
+{
+    platform::ExecuteCommand("tools\\preprocess_shaders.sh", { 0 });
+}
 
 int main(int argc, char** argv)
 {
@@ -41,15 +42,12 @@ int main(int argc, char** argv)
         puts("Failed to init GPU");
         return -1;
     }
-
     // create window
-
     platform::Window* window = platform::CreateWindow({ "Lucid", 900, 420, 1280, 720, true });
     misc::InitBasicShapes();
     resources::InitTextures();
 
     // Create a framebuffer and it's attachments
-
     gpu::Texture* colorAttachment = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(),
                                                               gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
     gpu::FramebufferAttachment* renderbuffer =
@@ -349,8 +347,10 @@ int main(int argc, char** argv)
     real last = 0;
     real dt = 0;
 
+    platform::AddDirectoryListener("C:/Projects/lucid/shaders/glsl/base", ShadersChanged);
     while (isRunning)
     {
+        platform::Update();
         last = now;
         now = platform::GetCurrentTimeSeconds();
         dt += now - last;

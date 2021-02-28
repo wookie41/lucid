@@ -68,15 +68,15 @@ namespace lucid::gpu
         GLuint geometryShader = 0;
         GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-        compileShader(shaderProgramID, vertexShader, VertexShaderSource, _GL_VERTEX_SHADER);
+        compileShader(shaderProgramID, vertexShader, *VertexShaderSource, _GL_VERTEX_SHADER);
 
         if (GeometryShaderSource.Length > 0)
         {
             geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
-            compileShader(shaderProgramID, geometryShader, GeometryShaderSource, _GL_GEOMETRY_SHADER);
+            compileShader(shaderProgramID, geometryShader, *GeometryShaderSource, _GL_GEOMETRY_SHADER);
         }
 
-        compileShader(shaderProgramID, fragmentShader, FragementShaderSource, _GL_FRAGMENT_SHADER);
+        compileShader(shaderProgramID, fragmentShader, *FragementShaderSource, _GL_FRAGMENT_SHADER);
 
         glLinkProgram(shaderProgramID);
 
@@ -334,8 +334,8 @@ namespace lucid::gpu
 #ifndef NDEBUG
         if (warnMissingUniforms)
         {
-            LUCID_LOG(LogLevel::WARN, "Uniform variable with name %s not found in shader %s\n", (char const*)Name,
-                      (char const*)this->Name);
+            LUCID_LOG(LogLevel::WARN, "Uniform variable with name %s not found in shader %s\n", *Name,
+                      *this->Name);
         }
 #endif
         return -1;
@@ -356,8 +356,8 @@ namespace lucid::gpu
 #ifndef NDEBUG
         if (warnMissingUniforms)
         {
-            LUCID_LOG(LogLevel::WARN, "Sampler with name %s not found in shader %s\n", (char const*)Name,
-                      (char const*)this->Name);
+            LUCID_LOG(LogLevel::WARN, "Sampler with name %s not found in shader %s\n", *Name,
+                      *this->Name);
         }
 #endif
         return -1;
