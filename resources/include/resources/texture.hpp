@@ -28,12 +28,12 @@ namespace lucid::resources
         const gpu::TextureFormat Format;
     };
 
-    TextureResource* LoadJPEG(char const* Path,
+    TextureResource* LoadJPEG(const String& Path,
                               const bool& PerformGammaCorrection,
                               const gpu::TextureDataType& DataType,
                               const bool& FlipY = false,
                               const bool& SendToGPU = true);
-    TextureResource* LoadPNG(char const* Path,
+    TextureResource* LoadPNG(const String& Path,
                              const bool& PerformGammaCorrection,
                              const gpu::TextureDataType& DataType,
                              const bool& FlipY = false,

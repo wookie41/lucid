@@ -11,12 +11,15 @@ namespace lucid
 
     static const char* LOG_LEVEL_NAMES[] = { INFO_LEVEL_NAME, WARN_LEVEL_NAME, ERROR_LEVEL_NAME };
 
-    // dummy, temporary solution, won't work with multi-threading
+    // dummy, temporary solution
     static char msgBuff[1024];
 
-    void Log(const LogLevel& Level, const char* Format, ...)
+    void Log(const LogLevel& Level, const char* Format, ... )
     {
-        sprintf(msgBuff, Format);
+        va_list args;
+        va_start(args, Format);
+        vsprintf_s(msgBuff, 1024, Format, args);
+        va_end(args);
         std::time_t t = std::time(0);
         std::tm* now = std::localtime(&t);
         printf("[%s] %d:%d:%d %s:%d - %s\n", (LOG_LEVEL_NAMES[static_cast<u8>(Level)]),

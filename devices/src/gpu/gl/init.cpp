@@ -35,27 +35,35 @@ namespace lucid::gpu
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-        SDL_Window* window = SDL_CreateWindow("xxx", 1, 1, 1, 1, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+        SDL_Window* window = SDL_CreateWindow("xxx", 200, 200, 200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
         if (window == nullptr)
         {
-            LUCID_LOG(LogLevel::ERR, "Failed to create dummy window");
+            LUCID_LOG(LogLevel::ERR, "[SDL] Failed to create dummy window: %s", SDL_GetError());
             return -1;
         }
 
         SDL_GLContext context = SDL_GL_CreateContext(window);
+        if (context == nullptr)
+        {
+            LUCID_LOG(LogLevel::ERR, "[SDL] Failed to create dummy context: %s", SDL_GetError());
+            return -1;
+        }
+
+
+        SDL_GL_MakeCurrent(window, context);
 
         GLenum GLEWInitResult = glewInit();
         if (GLEWInitResult != GLEW_OK)
         {
-
             LUCID_LOG(LogLevel::INFO, (char*)glewGetErrorString(GLEWInitResult));
             return -1;
         }
 
         InitGPUInfo();
 
-        SDL_DestroyWindow(window);
+
         SDL_GL_DeleteContext(context);
+        SDL_DestroyWindow(window);
 
         LUCID_LOG(LogLevel::INFO, "GPU initialized");
 
@@ -80,4 +88,10 @@ namespace lucid::gpu
             Info.BoundTextures[i] = nullptr;
         }
     }
+
+    void Shutdown()
+    {
+        SDL_Quit();
+    }
+
 } // namespace lucid::gpu

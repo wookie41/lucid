@@ -12,7 +12,7 @@ namespace lucid
     struct DString
     {
         DString(char* InCString, const u32& InLength, const u64& InHash);
-        explicit DString(char* InCString);
+        DString(char* InCString);
         
         void Append(const String& InStr);
         void Append(const char* InStr, const u32& InLength);
@@ -53,4 +53,7 @@ namespace lucid
     
     // StrLen without null terminator
     String CopyToString(char const* InToCopy, const u32& InStrLen = 0);
+
+    extern String EMPTY_STRING;
 } // namespace lucid
+    

@@ -95,7 +95,7 @@ namespace lucid::resources
     {
         // read mesh file
         DString MeshFilePath = DirectoryPath.ToDString();
-        MeshFilePath.Append(*MeshFileName);
+        MeshFilePath.Append(MeshFileName);
         
 #ifndef NDEBUG
         auto start = platform::GetCurrentTimeSeconds();

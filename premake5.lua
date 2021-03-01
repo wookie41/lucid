@@ -36,6 +36,7 @@ project "lucid"
 
    links { 
       "SDL2",
+      "SDL2main",
       "assimp"
    }
 

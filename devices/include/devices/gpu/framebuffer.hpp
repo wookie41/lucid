@@ -29,6 +29,8 @@ namespace lucid::gpu
         virtual void AttachAsDepth() = 0;
         virtual void AttachAsStencilDepth() = 0;
 
+        virtual void Free() = 0;
+
         virtual ~FramebufferAttachment() = default;
     };
 
@@ -69,6 +71,8 @@ namespace lucid::gpu
         virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;
         virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;
 
+        virtual void Free() = 0;
+        
         virtual ~Framebuffer() = default;
         //@TODO Attaching cubemap's faces as color attachments
     };

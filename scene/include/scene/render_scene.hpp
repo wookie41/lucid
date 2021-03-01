@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/collections.hpp"
+#include "common/strings.hpp"
 
 namespace lucid::gpu
 {
@@ -23,7 +24,7 @@ namespace lucid::scene
         gpu::Cubemap* SkyboxCubemap = nullptr;
     };
 
-    Skybox CreateSkybox(const char* FacesPaths[6]);
+    Skybox CreateSkybox(const StaticArray<String>& InSkyboxFacesPaths);
 
     ////////////////////////////////////////////////////////////
 

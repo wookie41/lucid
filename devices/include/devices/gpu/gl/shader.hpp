@@ -10,7 +10,7 @@ namespace lucid::gpu
     struct UniformVariable
     {
         GLint Location = 0;
-        String Name = { "" };
+        String Name { "" };
         Type VariableType = Type::UNSUPPORTED;
     };
 
@@ -60,10 +60,11 @@ namespace lucid::gpu
         u32 GetIdForUniform(const String& Name) const;
         u32 GetTextureId(const String& Name) const;
 
-        virtual ~GLShader();
+        virtual void Free() override;
+        
+        virtual ~GLShader() = default;
 
       private:
-        GLint getUniformLocation(const String& Name) const;
 
         GLuint glShaderID;
 

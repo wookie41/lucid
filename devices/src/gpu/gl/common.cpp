@@ -2,9 +2,9 @@
 
 namespace lucid
 {
-    Type ToLucidDataType(GLenum GLType)
+    Type ToLucidDataType(GLenum InGLType)
     {
-        switch (GLType)
+        switch (InGLType)
         {
         case GL_INT:
             return Type::INT_32;

@@ -26,9 +26,9 @@
 #include "platform/util.hpp"
 #include "platform/platform.hpp"
 #include "resources/mesh.hpp"
-using namespace lucid;
+#include "devices/gpu/shaders_manager.hpp"
 
-void ShadersChanged() { platform::ExecuteCommand("tools\\preprocess_shaders.sh", { 0 }); }
+using namespace lucid;
 
 int main(int argc, char** argv)
 {
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 
     // Load textures uesd in the demo scene
 
-    resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
+    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh(String {"assets\\models\\backpack\\"}, String {"backpack.obj"});
 
     resources::TextureResource* brickWallDiffuseMapResource =
       resources::LoadJPEG("assets/textures/brickwall.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
@@ -116,57 +116,13 @@ int main(int argc, char** argv)
     window->Show();
 
     // Load and compile demo shaders
-
-    DString vertexShader = platform::ReadFile("shaders/glsl/fwd_blinn_phong.vert", true);
-    DString fragmentShader = platform::ReadFile("shaders/glsl/fwd_blinn_phong.frag", true);
-
-    gpu::Shader* blinnPhongShader = gpu::CompileShaderProgram("BlinnPhong", *vertexShader, *fragmentShader, nullptr);
-
-    vertexShader.Free();
-    fragmentShader.Free();
-
-    vertexShader = platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true);
-    fragmentShader = platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true);
-
-    gpu::Shader* blinnPhongMapsShader = gpu::CompileShaderProgram("BlinnPhongMaps", *vertexShader, *fragmentShader, nullptr);
-
-    vertexShader.Free();
-    fragmentShader.Free();
-
-    vertexShader = platform::ReadFile("shaders/glsl/skybox.vert", true);
-    fragmentShader = platform::ReadFile("shaders/glsl/skybox.frag", true);
-
-    gpu::Shader* skyboxShader = gpu::CompileShaderProgram("Skybox", *vertexShader, *fragmentShader, nullptr);
-
-    vertexShader.Free();
-    fragmentShader.Free();
-
-    vertexShader = platform::ReadFile("shaders/glsl/shadow_map.vert", true);
-    fragmentShader = platform::ReadFile("shaders/glsl/empty.frag", true);
-
-    gpu::Shader* shadowMapShader = gpu::CompileShaderProgram("ShadowMapper", *vertexShader, *fragmentShader, nullptr);
-
-    vertexShader.Free();
-    fragmentShader.Free();
-
-    vertexShader = platform::ReadFile("shaders/glsl/shadow_cubemap.vert", true);
-    fragmentShader = platform::ReadFile("shaders/glsl/shadow_cubemap.frag", true);
-    DString geometryShader = platform::ReadFile("shaders/glsl/shadow_cubemap.geom", true);
-
-    gpu::Shader* shadowCubemapShader =
-      gpu::CompileShaderProgram("ShadowCubeMapper", *vertexShader, *fragmentShader, *geometryShader);
-
-    vertexShader.Free();
-    fragmentShader.Free();
-    geometryShader.Free();
-
-    vertexShader = platform::ReadFile("shaders/glsl/flat.vert", true);
-    fragmentShader = platform::ReadFile("shaders/glsl/flat.frag", true);
-
-    gpu::Shader* flatShader = gpu::CompileShaderProgram("flatShader", *vertexShader, *fragmentShader, nullptr, false);
-
-    vertexShader.Free();
-    fragmentShader.Free();
+    gpu::GShadersManager.EnableHotReload();
+    gpu::Shader* blinnPhongShader = gpu::GShadersManager.CompileShader("BlinnPhong","shaders/glsl/fwd_blinn_phong.vert", "shaders/glsl/fwd_blinn_phong.frag" , EMPTY_STRING);
+    gpu::Shader* blinnPhongMapsShader = gpu::GShadersManager.CompileShader("BlinnPhongMaps","shaders/glsl/fwd_blinn_phong_maps.vert", "shaders/glsl/fwd_blinn_phong_maps.frag", EMPTY_STRING);
+    gpu::Shader* skyboxShader = gpu::GShadersManager.CompileShader("Skybox","shaders/glsl/skybox.vert", "shaders/glsl/skybox.frag", EMPTY_STRING);
+    gpu::Shader* shadowMapShader = gpu::GShadersManager.CompileShader("ShadowMapper" , "shaders/glsl/shadow_map.vert" ,  "shaders/glsl/empty.frag", EMPTY_STRING);
+    gpu::Shader* shadowCubemapShader = gpu::GShadersManager.CompileShader( "ShadowCubeMapper" ,  "shaders/glsl/shadow_cubemap.vert",  "shaders/glsl/shadow_cubemap.frag"  ,  "shaders/glsl/shadow_cubemap.geom" );
+    gpu::Shader* flatShader = gpu::GShadersManager.CompileShader("flatShader"  , "shaders/glsl/flat.vert",  "shaders/glsl/flat.frag" , EMPTY_STRING);
 
     // Prepare the scene
 
@@ -255,9 +211,9 @@ int main(int argc, char** argv)
     gigaCube.Material = &woodMaterial;
     gigaCube.bReverseNormals = true;
 
-    scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable(DString { "MyMesh" }, backPackMesh);
-    backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
-    backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
+    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable(DString { "MyMesh" }, backPackMesh);
+    // backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
+    // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
     scene::FlatMaterial flatWhiteMaterial;
     flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
@@ -345,7 +301,7 @@ int main(int argc, char** argv)
     sceneToRender.StaticGeometry.Add(&cube2);
     sceneToRender.StaticGeometry.Add(&cube3);
     sceneToRender.StaticGeometry.Add(&gigaCube);
-    sceneToRender.StaticGeometry.Add(backPackRenderable);
+    // sceneToRender.StaticGeometry.Add(backPackRenderable);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
     sceneToRender.Lights.Add(&redLight);
@@ -359,9 +315,15 @@ int main(int argc, char** argv)
     sceneToRender.StaticGeometry.Add(&blueLightCube);
     sceneToRender.StaticGeometry.Add(&redPointLightCube);
 
-    const char* skyboxFacesPaths[] = { "assets/skybox/right.jpg",  "assets/skybox/left.jpg",  "assets/skybox/top.jpg",
-                                       "assets/skybox/bottom.jpg", "assets/skybox/front.jpg", "assets/skybox/back.jpg" };
-    scene::Skybox skybox = scene::CreateSkybox(skyboxFacesPaths);
+    StaticArray<String> SkyboxFacesPaths { 6 };
+    SkyboxFacesPaths.Add("assets/skybox/right.jpg");
+    SkyboxFacesPaths.Add("assets/skybox/left.jpg");
+    SkyboxFacesPaths.Add("assets/skybox/top.jpg");
+    SkyboxFacesPaths.Add("assets/skybox/bottom.jpg");
+    SkyboxFacesPaths.Add("assets/skybox/front.jpg");
+    SkyboxFacesPaths.Add("assets/skybox/back.jpg");
+
+    scene::Skybox skybox = scene::CreateSkybox(SkyboxFacesPaths);
     sceneToRender.SceneSkybox = &skybox;
 
     gpu::SetClearColor(BlackColor);
@@ -373,7 +335,6 @@ int main(int argc, char** argv)
     real last = 0;
     real dt = 0;
 
-    platform::AddDirectoryListener("C:/Projects/lucid/shaders/glsl/base", ShadersChanged);
     while (isRunning)
     {
         platform::Update();
@@ -460,6 +421,7 @@ int main(int argc, char** argv)
     }
 
     window->Destroy();
+    gpu::Shutdown();
 
     return 0;
 }

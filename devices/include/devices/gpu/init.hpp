@@ -8,5 +8,6 @@ namespace lucid::gpu
     };
 
     int Init(const GPUSettings& Setings);
+    void Shutdown();
 } // namespace devices::gpu
 

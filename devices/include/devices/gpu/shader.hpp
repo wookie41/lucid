@@ -52,6 +52,8 @@ namespace lucid::gpu
 
         virtual void AddBinding(BufferBinding* Binding) = 0;
 
+        virtual void Free() = 0;
+
         virtual ~Shader() = default;
         
         inline const String& GetName() const { return ShaderName; }

@@ -35,9 +35,10 @@ namespace lucid::gpu
             glGetShaderiv(Shader, GL_COMPILE_STATUS, &success);
             if (!success)
             {
-                glGetShaderInfoLog(Shader, 1024, NULL, _infoLog);
-                LUCID_LOG(LogLevel::WARN, "[OpenGL] Failed to compile %s shader of shader program %s: %s\n", ShaderTypeName,
-                          ShaderName, _infoLog);
+                Zero(_infoLog, 1024);
+                GLsizei len;
+                glGetShaderInfoLog(Shader, 1024, &len, _infoLog);
+                LUCID_LOG(LogLevel::WARN, "[OpenGL] Failed to compile %s shader of shader program %s: %s", ShaderTypeName, *ShaderName, _infoLog);
             }
         }
         else
@@ -46,7 +47,7 @@ namespace lucid::gpu
             if (!success)
             {
                 glGetProgramInfoLog(Shader, 1024, NULL, _infoLog);
-                LUCID_LOG(LogLevel::WARN, "[OpenGL] Failed to link shader program %s: %s\n", ShaderName, _infoLog);
+                LUCID_LOG(LogLevel::WARN, "[OpenGL] Failed to link shader program %s: %s\n", *ShaderName, _infoLog);
             }
         }
     }
@@ -100,7 +101,11 @@ namespace lucid::gpu
 
         glDeleteShader(VertexShader);
         glDeleteShader(FragmentShader);
-        glDeleteShader(GeometryShader);
+
+        if (GeometryShader)
+        {
+            glDeleteShader(GeometryShader);            
+        }
 
         GLint numberOfUniforms;
         glGetProgramiv(ShaderProgramID, GL_ACTIVE_UNIFORMS, &numberOfUniforms);
@@ -354,7 +359,7 @@ namespace lucid::gpu
     {
         // Preserve the current shader
         Shader* CurrentShader = nullptr;
-        GLint OldProgramId = glShaderID;
+        const GLuint OldProgramId = glShaderID;
         if (Info.CurrentShader == this)
         {
             Disable();
@@ -377,12 +382,14 @@ namespace lucid::gpu
         for (int i = 0; i < GLRecompiledShader->uniformVariables.Length; ++i)
         {
             // Check if the old shader has this variable too
-            const GLint OldUniformLocation = glGetUniformLocation(OldProgramId, *GLRecompiledShader->uniformVariables[i]->Name);
-            if (OldUniformLocation == -1)
+            const u32 OldUniformIndex = GetIdForUniform(*GLRecompiledShader->uniformVariables[i]->Name);
+            if (OldUniformIndex == uniformVariables.Length)
             {
                 continue;
             }
-            switch (uniformVariables[i]->VariableType)
+
+            const GLint OldUniformLocation = uniformVariables[OldUniformIndex]->Location;
+            switch (uniformVariables[OldUniformIndex]->VariableType)
             {
             case Type::BOOL:
             case Type::INT_32:
@@ -485,7 +492,7 @@ namespace lucid::gpu
         }
 
         GLRecompiledShader->glShaderID = 0;
-        glDeleteShader(OldProgramId);
+        glDeleteProgram(OldProgramId);
     }
 
     void GLShader::SetupBuffersBindings()
@@ -547,11 +554,11 @@ namespace lucid::gpu
         return textureBindings.Length;
     }
 
-    GLShader::~GLShader()
+    void GLShader::Free()
     {
         if (glShaderID)
         {
-            glDeleteShader(glShaderID);
+            glDeleteProgram(glShaderID);
         }
     }
 } // namespace lucid::gpu

@@ -12,6 +12,7 @@ namespace lucid
         T* operator[](const u32& Index) const;
         operator T*() const;
         operator void*() const;
+        StaticArray<T>& operator=(const StaticArray& Rhs);
 
         StaticArray<T> Copy() const;
         void Add(const T& Element);
@@ -23,7 +24,7 @@ namespace lucid
         u64 SizeInBytes;
 
       private:
-        T* array;
+        T* Array;
     };
 
     template <typename T>

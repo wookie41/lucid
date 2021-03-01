@@ -12,15 +12,15 @@ namespace lucid
     {
         Capacity = ArrayCapacity;
         SizeInBytes = sizeof(T) * ArrayCapacity;
-        array = (T*)malloc(SizeInBytes);
-        Zero(array, SizeInBytes);
+        Array = (T*)malloc(SizeInBytes);
+        Zero(Array, SizeInBytes);
     }
     
     template <typename T>
     T* StaticArray<T>::operator[](const u32& Index) const
     {
         assert(Index < Length);
-        return array + Index;
+        return Array + Index;
     }
 
     
@@ -28,13 +28,13 @@ namespace lucid
     void StaticArray<T>::Add(const T& Element)
     {
         assert(Length < Capacity);
-        array[Length++] = Element;
+        Array[Length++] = Element;
     }
 
     template <typename T>
     void StaticArray<T>::Free()
     {
-        free(array);
+        free(Array);
         Capacity = -1;
         Length = -1;
     }
@@ -45,29 +45,39 @@ namespace lucid
         int newArraySize = sizeof(T) * NewCapacity;
         T* newArray = (T*)malloc(newArraySize);
         Zero(newArray, newArraySize);
-        memcpy(newArray, array, sizeof(T) * Length);
-        free(array);
-        array = newArray;
+        memcpy(newArray, Array, sizeof(T) * Length);
+        free(Array);
+        Array = newArray;
         Capacity = NewCapacity;
     }
 
     template <typename T>
     StaticArray<T>::operator T*() const
     {
-        return array;
+        return Array;
     }
 
     template <typename T>
     StaticArray<T>::operator void*() const
     {
-        return array;
+        return Array;
+    }
+
+    template <typename T>
+    StaticArray<T>& StaticArray<T>::operator=(const StaticArray& Rhs)
+    {
+        Length = Rhs.Length;
+        Capacity = Rhs.Capacity;
+        SizeInBytes = Rhs.SizeInBytes;
+        Array = Rhs.Array;
+        return *this;
     }
 
     template <typename T>
     StaticArray<T> StaticArray<T>::Copy() const
     {
         StaticArray<T> newArray(Length);
-        memcpy(newArray.array, array, newArray.SizeInBytes);
+        memcpy(newArray.Array, Array, newArray.SizeInBytes);
         newArray.Length = Length;
         return newArray;
     }

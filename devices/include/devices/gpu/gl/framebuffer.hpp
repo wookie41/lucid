@@ -19,8 +19,9 @@ namespace lucid::gpu
         virtual void AttachAsStencil() override;
         virtual void AttachAsDepth() override;
         virtual void AttachAsStencilDepth() override;
+        virtual void Free() override;
 
-        virtual ~GLRenderbuffer();
+        virtual ~GLRenderbuffer() = default;
 
       private:
         RenderbufferFormat format;
@@ -54,8 +55,9 @@ namespace lucid::gpu
         virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
+        virtual void Free() override;
 
-        virtual ~GLFramebuffer();
+        virtual ~GLFramebuffer() = default;
 
       private:
         GLuint glFBOHandle;

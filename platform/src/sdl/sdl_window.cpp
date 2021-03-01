@@ -1,4 +1,6 @@
 #include "platform/sdl/sdl_window.hpp"
+
+#include "common/log.hpp"
 #include "SDL2/SDL.h"
 #include "GL/glew.h"
 namespace lucid::platform
@@ -11,8 +13,20 @@ namespace lucid::platform
         }
         SDL_Window* window = SDL_CreateWindow(Definition.title, Definition.x, Definition.y, Definition.width, Definition.height,
                                               SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+        if (window == nullptr)
+        {
+            LUCID_LOG(LogLevel::ERR, "[SDL] Failed to create a new window: %s", SDL_GetError());
+            return nullptr;
+        }
         SDL_GLContext context = SDL_GL_CreateContext(window);
+        if (context == nullptr)
+        {
+            SDL_DestroyWindow(window);
+            LUCID_LOG(LogLevel::ERR, "[SDL] Failed to create a context for the window: %s", SDL_GetError());
+            return nullptr;
+        }
 
+        SDL_GL_MakeCurrent(window, context);
         SDL_CaptureMouse(SDL_TRUE);
         SDL_SetRelativeMouseMode(SDL_TRUE);
         return new SDLWindow(window, context, Definition.width, Definition.height);
@@ -39,9 +53,9 @@ namespace lucid::platform
 
     void SDLWindow::Destroy()
     {
-        SDL_DestroyWindow(window);
+        SDL_GL_MakeCurrent(window, context);
         SDL_GL_DeleteContext(context);
-        SDL_Quit();
+        SDL_DestroyWindow(window);
     }
 
     void SDLWindow::OnFocusGained()

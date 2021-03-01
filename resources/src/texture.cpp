@@ -63,7 +63,7 @@ namespace lucid::resources
           LoadTextureSTB("assets/textures/awesomeface.png", true, true, gpu::TextureDataType::UNSIGNED_BYTE, true, true));
     }
 
-    TextureResource* LoadJPEG(char const* Path,
+    TextureResource* LoadJPEG(const String& Path,
                               const bool& PerformGammaCorrection,
                               const gpu::TextureDataType& DataType,
                               const bool& FlipY,
@@ -71,7 +71,7 @@ namespace lucid::resources
     {
         return LoadTextureSTB(Path, false, PerformGammaCorrection, DataType, FlipY, SendToGPU);
     }
-    TextureResource* LoadPNG(char const* Path,
+    TextureResource* LoadPNG(const String& Path,
                              const bool& PerformGammaCorrection,
                              const gpu::TextureDataType& DataType,
                              const bool& FlipY,

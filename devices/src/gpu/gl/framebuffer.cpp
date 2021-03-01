@@ -137,8 +137,7 @@ namespace lucid::gpu
         glReadBuffer(GL_NONE);
     }
 
-
-    GLFramebuffer::~GLFramebuffer() { glDeleteFramebuffers(1, &glFBOHandle); }
+    void GLFramebuffer::Free() {  }
 
     GLRenderbuffer::GLRenderbuffer(const GLuint& GLRBOHandle, const RenderbufferFormat& Format, const glm::ivec2& Size)
     : glRBOHandle(GLRBOHandle), format(Format), size(Size)
@@ -177,7 +176,7 @@ namespace lucid::gpu
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
     };
 
-    GLRenderbuffer::~GLRenderbuffer() { glDeleteRenderbuffers(1, &glRBOHandle); }
+    void GLRenderbuffer::Free() { glDeleteRenderbuffers(1, &glRBOHandle); }
 
     void BlitFramebuffer(Framebuffer* Source,
                          Framebuffer* Destination,

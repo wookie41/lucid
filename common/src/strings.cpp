@@ -6,7 +6,8 @@
 namespace lucid
 {
     // String //
-
+    String EMPTY_STRING { "" };
+    
     static u64 CalculateHash(char const* InString, const u32 InStringLength)
     {
         u64 Hash = 0;
