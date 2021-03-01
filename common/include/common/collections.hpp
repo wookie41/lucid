@@ -1,27 +1,26 @@
 #pragma once
 
-#include <cstdint>
+#include "common/types.hpp"
 
 namespace lucid
 {
     template <typename T>
     struct StaticArray
     {
-        StaticArray(const uint32_t& Capacity);
+        StaticArray(const u32& Capacity);
 
-        T* operator[](const uint32_t& Index) const;
-        T* operator[](const int32_t& Index) const;
+        T* operator[](const u32& Index) const;
         operator T*() const;
         operator void*() const;
 
         StaticArray<T> Copy() const;
         void Add(const T& Element);
         void Free();
-        void Resize(const uint32_t& NewCapacity);
+        void Resize(const u32& NewCapacity);
 
-        uint32_t Length = 0;
-        uint32_t Capacity;
-        uint64_t SizeInBytes;
+        u32 Length = 0;
+        u32 Capacity;
+        u64 SizeInBytes;
 
       private:
         T* array;

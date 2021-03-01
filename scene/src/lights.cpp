@@ -124,7 +124,7 @@ namespace lucid::scene
 
         TargetFramebuffer->DisableReadWriteBuffers();
 
-        gpu::SetViewport({ 0, 0, (uint32_t)ShadowMap->GetSize().x, (uint32_t)ShadowMap->GetSize().y });
+        gpu::SetViewport({ 0, 0, (u32)ShadowMap->GetSize().x, (u32)ShadowMap->GetSize().y });
 
         // gpu::SetCullMode(gpu::CullMode::FRONT);
         gpu::DisableCullFace();

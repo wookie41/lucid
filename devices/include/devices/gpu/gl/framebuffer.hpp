@@ -15,7 +15,7 @@ namespace lucid::gpu
 
         virtual glm::ivec2 GetSize() const override{ return size; };
 
-        virtual void AttachAsColor(const uint8_t& Index) override;
+        virtual void AttachAsColor(const u8& Index) override;
         virtual void AttachAsStencil() override;
         virtual void AttachAsDepth() override;
         virtual void AttachAsStencilDepth() override;
@@ -33,24 +33,24 @@ namespace lucid::gpu
       public:
         GLFramebuffer(const GLuint& GLFBOHandle);
 
-        virtual glm::ivec2 GetColorAttachmentSize(const uint8_t& Idx = 0) const override
+        virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const override
         {
             assert(colorAttachments[Idx]);
             return colorAttachments[Idx]->GetSize();
         }
 
-        virtual void SetupDrawBuffers(const uint8_t& NumOfBuffers) override;
+        virtual void SetupDrawBuffers(const u8& NumOfBuffers) override;
 
         virtual void DisableReadWriteBuffers() override;
 
-        virtual void EnableDrawBuffer(const uint8_t& BufferIndex, const int8_t& AttachmentIndex) override;
-        virtual void DisableDrawBuffer(const uint8_t& BufferIndex) override;
+        virtual void EnableDrawBuffer(const u8& BufferIndex, const int8_t& AttachmentIndex) override;
+        virtual void DisableDrawBuffer(const u8& BufferIndex) override;
 
         virtual bool IsComplete() override;
 
         virtual void Bind(const FramebufferBindMode& Mode) override;
 
-        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex, FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupColorAttachment(const u32& AttachmentIndex, FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
         virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) override;

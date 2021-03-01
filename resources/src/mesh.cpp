@@ -15,7 +15,7 @@
 namespace lucid::resources
 {
 
-    MeshResource::MeshResource(const uint32_t& MeshFeaturesFlags,
+    MeshResource::MeshResource(const u32& MeshFeaturesFlags,
                                TextureResource* MeshDiffuseMap,
                                TextureResource* MeshSpecularMap,
                                TextureResource* MeshNormalMap,
@@ -54,22 +54,22 @@ namespace lucid::resources
 
     static Assimp::Importer assimpImporter;
 
-    static const constexpr uint32_t ASSIMP_DEFAULT_FLAGS = aiProcess_Triangulate | aiProcess_GenSmoothNormals |
+    static const constexpr u32 ASSIMP_DEFAULT_FLAGS = aiProcess_Triangulate | aiProcess_GenSmoothNormals |
                                                            aiProcess_FlipUVs | aiProcess_CalcTangentSpace |
                                                            aiProcess_OptimizeMeshes;
 
     struct MeshSize
     {
-        uint32_t VertexDataSize = 0;
-        uint32_t ElementDataSize = 0;
+        u32 VertexDataSize = 0;
+        u32 ElementDataSize = 0;
     };
 
     struct MeshCPUData
     {
         MemBuffer VertexBuffer;
         MemBuffer ElementBuffer;
-        uint32_t VertexCount = 0;
-        uint32_t ElementCount = 0;
+        u32 VertexCount = 0;
+        u32 ElementCount = 0;
     };
 
     struct MeshGPUData
@@ -85,28 +85,29 @@ namespace lucid::resources
 
     static void loadAssimpMesh(const String& DirectoryPath, aiMesh* mesh, const aiScene* scene, MeshCPUData& meshData);
 
-    static uint32_t determineMeshFeatures(const aiScene* Root);
+    static u32 determineMeshFeatures(const aiScene* Root);
 
-    MeshGPUData sendMeshToGPU(const uint32_t& Features, const MeshCPUData& MeshData);
+    MeshGPUData sendMeshToGPU(const u32& Features, const MeshCPUData& MeshData);
 
     static TextureResource* loadMaterialTexture(const String& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
 
     MeshResource* AssimpLoadMesh(const String& DirectoryPath, const String& MeshFileName)
     {
         // read mesh file
-
-        DString meshFilePath = Concat(DirectoryPath, MeshFileName);
+        DString MeshFilePath = DirectoryPath.ToDString();
+        MeshFilePath.Append(*MeshFileName);
+        
 #ifndef NDEBUG
         auto start = platform::GetCurrentTimeSeconds();
 #endif
-        const aiScene* root = assimpImporter.ReadFile(*meshFilePath, ASSIMP_DEFAULT_FLAGS);
+        const aiScene* root = assimpImporter.ReadFile(*MeshFilePath, ASSIMP_DEFAULT_FLAGS);
 
         LUCID_LOG(LogLevel::INFO, "Reading mesh with assimp %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 
         if (!root || root->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !root->mRootNode)
         {
             LUCID_LOG(LogLevel::WARN, "Assimp failed to load model %s", assimpImporter.GetErrorString())
-            meshFilePath.Free();
+            MeshFilePath.Free();
             return nullptr;
         }
 
@@ -132,7 +133,7 @@ namespace lucid::resources
 #ifndef NDEBUG
         LUCID_LOG(LogLevel::INFO, "Loading mesh %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 #endif
-        uint32_t meshFeatures = determineMeshFeatures(root);
+        u32 meshFeatures = determineMeshFeatures(root);
 
         // load the material //
 
@@ -162,7 +163,7 @@ namespace lucid::resources
 #ifndef NDEBUG
         LUCID_LOG(LogLevel::INFO, "Loading textures %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 #endif
-        meshFilePath.Free();
+        MeshFilePath.Free();
 
         // send the data to the gpu
         start = platform::GetCurrentTimeSeconds();
@@ -188,10 +189,10 @@ namespace lucid::resources
     static MeshSize calculateMeshDataSize(aiNode* Node, const aiScene* Scene)
     {
         MeshSize meshSize;
-        for (uint32_t idx = 0; idx < Node->mNumMeshes; ++idx)
+        for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
         {
             aiMesh* mesh = Scene->mMeshes[Node->mMeshes[idx]];
-            uint32_t vertexSize = 0;
+            u32 vertexSize = 0;
 
             vertexSize += sizeof(glm::vec3); // position
 
@@ -217,7 +218,7 @@ namespace lucid::resources
             }
 
             meshSize.VertexDataSize += mesh->mNumVertices * vertexSize;
-            meshSize.ElementDataSize += (mesh->mNumFaces * 3 * sizeof(uint32_t));
+            meshSize.ElementDataSize += (mesh->mNumFaces * 3 * sizeof(u32));
         }
 
         // recursively calculate size of the children
@@ -231,23 +232,23 @@ namespace lucid::resources
         return meshSize;
     }
 
-    static uint32_t determineMeshFeatures(const aiScene* Root)
+    static u32 determineMeshFeatures(const aiScene* Root)
     {
-        uint32_t meshFeatures = 0;
+        u32 meshFeatures = 0;
 
         if (Root->mMeshes[0]->HasTextureCoords(0))
         {
-            meshFeatures |= static_cast<uint32_t>(MeshFeatures::UV);
+            meshFeatures |= static_cast<u32>(MeshFeatures::UV);
         }
 
         if (Root->mMeshes[0]->HasNormals())
         {
-            meshFeatures |= static_cast<uint32_t>(MeshFeatures::NORMALS);
+            meshFeatures |= static_cast<u32>(MeshFeatures::NORMALS);
         }
 
         if (Root->mMeshes[0]->HasTangentsAndBitangents())
         {
-            meshFeatures |= static_cast<uint32_t>(MeshFeatures::TANGENTS);
+            meshFeatures |= static_cast<u32>(MeshFeatures::TANGENTS);
         }
 
         return meshFeatures;
@@ -256,7 +257,7 @@ namespace lucid::resources
     static void loadAssimpNode(const String& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData)
     {
         // process each mesh located at the current node
-        for (uint32_t idx = 0; idx < Node->mNumMeshes; ++idx)
+        for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
         {
             // the node object only contains indices to index the actual objects in the scene.
             // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
@@ -264,7 +265,7 @@ namespace lucid::resources
             loadAssimpMesh(DirectoryPath, mesh, Scene, meshData);
         }
         // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
-        for (uint32_t idx = 0; idx < Node->mNumChildren; ++idx)
+        for (u32 idx = 0; idx < Node->mNumChildren; ++idx)
         {
             loadAssimpNode(DirectoryPath, Node->mChildren[idx], Scene, meshData);
         }
@@ -339,25 +340,28 @@ namespace lucid::resources
     static TextureResource*
     loadMaterialTexture(const String& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
     {
-        aiString textureFileName;
-        Material->GetTexture(TextureType, 0, &textureFileName);
-        DString texturePath = Concat(DirectoryPath, String {textureFileName.C_Str()} );
-        if (TexturesHolder.Contains(*texturePath))
+        aiString TextureFileName;
+        Material->GetTexture(TextureType, 0, &TextureFileName);
+
+        DString TexturePath = DirectoryPath.ToDString();
+        TexturePath.Append(TextureFileName.C_Str(), TextureFileName.length);
+        
+        if (TexturesHolder.Contains(*TexturePath))
         {
-            return TexturesHolder.Get(*texturePath);
+            return TexturesHolder.Get(*TexturePath);
         }
 
-        auto textureMap = IsPNGFormat ? LoadPNG(*texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true) : LoadJPEG(*texturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+        auto textureMap = IsPNGFormat ? LoadPNG(*TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true) : LoadJPEG(*TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
         if (textureMap == nullptr)
         {
             textureMap = TexturesHolder.GetDefaultResource();
         }
         else
         {
-            TexturesHolder.Add(*texturePath, textureMap);
+            TexturesHolder.Add(*TexturePath, textureMap);
         }
 
-        texturePath.Free();
+        TexturePath.Free();
 
         return textureMap;
     }
@@ -385,8 +389,8 @@ namespace lucid::resources
         // prepare vertex array attributes
 
         // position is always present
-        uint8_t numOfAttribues = 1;
-        uint8_t stride = sizeof(glm::vec3);
+        u8 numOfAttribues = 1;
+        u8 stride = sizeof(glm::vec3);
 
         uint32_t currentOffset = sizeof(glm::vec3);
         uint32_t normalsOffset = 0;

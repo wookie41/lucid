@@ -29,7 +29,7 @@ namespace lucid::gpu
 
         // Framebuffer attachment methods //
 
-        virtual void AttachAsColor(const uint8_t& Index) override;
+        virtual void AttachAsColor(const u8& Index) override;
         virtual void AttachAsStencil() override;
         virtual void AttachAsDepth() override;
         virtual void AttachAsStencilDepth() override;

@@ -1,15 +1,14 @@
 #pragma once
 
-#include <cstdint>
+#include "common/types.hpp"
 
 namespace lucid
 {
-
-    enum class LogLevel : uint8_t
+    enum class LogLevel : u8
     {
-        INFO = 0,
+        INFO,
         WARN,
-        ERROR
+        ERR
     };
 
     void Log(const LogLevel& Level, const char* Format, ...);

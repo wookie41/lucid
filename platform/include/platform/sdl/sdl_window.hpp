@@ -10,13 +10,13 @@ namespace lucid::platform
     class SDLWindow : public Window
     {
       public:
-        SDLWindow(SDL_Window* Window, SDL_GLContext Context, const uint16_t& Width, const uint16_t& Height);
+        SDLWindow(SDL_Window* Window, SDL_GLContext Context, const u16& Width, const u16& Height);
 
         virtual void Swap() override;
         virtual void Prepare() override;
 
-        virtual uint16_t GetWidth() const override;
-        virtual uint16_t GetHeight() const override;
+        virtual u16 GetWidth() const override;
+        virtual u16 GetHeight() const override;
         virtual float GetAspectRatio() const override;
       
         virtual void Show() override;
@@ -30,7 +30,7 @@ namespace lucid::platform
 
       private:
         float aspectRatio;
-        uint16_t width, height;
+        u16 width, height;
         SDL_Window* window;
         SDL_GLContext context;
     };

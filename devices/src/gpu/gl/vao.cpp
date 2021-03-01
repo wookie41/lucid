@@ -26,8 +26,8 @@ namespace lucid::gpu
                                    Buffer* VertexBuffer,
                                    Buffer* ElementBuffer,
                                    const DrawMode& DrawMode,
-                                   const uint32_t& VertexCount,
-                                   const uint32_t& ElementCount,
+                                   const u32& VertexCount,
+                                   const u32& ElementCount,
                                    const bool& AutoDestroyBuffers)
     {
         GLuint VAO;
@@ -43,7 +43,7 @@ namespace lucid::gpu
         if (ElementBuffer != nullptr)
             ElementBuffer->Bind(BufferBindPoint::ELEMENT);
 
-        for (uint32_t attrIdx = 0; attrIdx < VertexArrayAttributes->Length; ++attrIdx)
+        for (u32 attrIdx = 0; attrIdx < VertexArrayAttributes->Length; ++attrIdx)
         {
             VertexAttribute* vertexAttribute = (*VertexArrayAttributes)[attrIdx];
 
@@ -79,7 +79,7 @@ namespace lucid::gpu
     void GLVertexArray::AddVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType], GL_FALSE,
+        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], GL_FALSE,
                               Attribute.Stride, (void*)Attribute.FirstElementOffset);
 
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
@@ -88,7 +88,7 @@ namespace lucid::gpu
     void GLVertexArray::AddIntegerVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType], Attribute.Stride,
+        glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.Stride,
                                (void*)Attribute.FirstElementOffset);
 
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
@@ -97,7 +97,7 @@ namespace lucid::gpu
     void GLVertexArray::AddLongVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[Attribute.AttributeType], Attribute.Stride,
+        glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.Stride,
                                (void*)Attribute.FirstElementOffset);
 
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
@@ -107,8 +107,8 @@ namespace lucid::gpu
 
     GLVertexArray::GLVertexArray(const GLuint& GLVAOHandle,
                                  const DrawMode& DrawMode,
-                                 const uint32_t& VertexCount,
-                                 const uint32_t& ElementCount,
+                                 const u32& VertexCount,
+                                 const u32& ElementCount,
                                  Buffer* VertexBuffer,
                                  Buffer* ElementBuffer,
                                  const bool& AutoDestroyBuffers)
@@ -144,19 +144,19 @@ namespace lucid::gpu
 
     void GLVertexArray::Unbind() { glBindVertexArray(0); }
 
-    void GLVertexArray::EnableAttribute(const uint32_t& AttributeIndex)
+    void GLVertexArray::EnableAttribute(const u32& AttributeIndex)
     {
         glEnableVertexArrayAttrib(glVAOHandle, AttributeIndex);
     }
 
-    void GLVertexArray::DisableAttribute(const uint32_t& AttributeIndex)
+    void GLVertexArray::DisableAttribute(const u32& AttributeIndex)
     {
         glDisableVertexArrayAttrib(glVAOHandle, AttributeIndex);
     }
 
-    void GLVertexArray::Draw(const uint32_t& First, const uint32_t& Count)
+    void GLVertexArray::Draw(const u32& First, const u32& Count)
     {
-        uint32_t count = Count == 0 ? (elementBuffer == nullptr ? vertexCount : elementCount) : Count;
+        u32 count = Count == 0 ? (elementBuffer == nullptr ? vertexCount : elementCount) : Count;
 
         if (elementBuffer)
         {
@@ -168,7 +168,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLVertexArray::DrawInstanced(const uint32_t& InstancesCount, const uint32_t& First, const uint32_t& Count)
+    void GLVertexArray::DrawInstanced(const u32& InstancesCount, const uint32_t& First, const uint32_t& Count)
     {
         uint32_t count = Count == 0 ? (elementBuffer == nullptr ? vertexCount : elementCount) : Count;
 

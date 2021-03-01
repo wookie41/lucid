@@ -45,7 +45,7 @@ namespace lucid::gpu
 
     Renderbuffer* CreateRenderbuffer(const RenderbufferFormat& Format, const glm::ivec2& Size)
     {
-        GLenum glRenderbufferType = RENDER_BUFFER_TYPE_MAPPING[static_cast<uint8_t>(Format)];
+        GLenum glRenderbufferType = RENDER_BUFFER_TYPE_MAPPING[static_cast<u8>(Format)];
 
         GLuint rbo;
         glGenRenderbuffers(1, &rbo);
@@ -63,12 +63,12 @@ namespace lucid::gpu
         GLBindFramebuffer(nullptr, 0, Mode);
     }
 
-    void GLFramebuffer::SetupDrawBuffers(const uint8_t& NumOfBuffers)
+    void GLFramebuffer::SetupDrawBuffers(const u8& NumOfBuffers)
     {
         assert(NumOfBuffers <= MAX_COLOR_ATTACHMENTS);
         static GLenum drawBuffers[MAX_COLOR_ATTACHMENTS];
 
-        for (uint8_t drawBufferIdx = 0; drawBufferIdx < NumOfBuffers; ++drawBufferIdx)
+        for (u8 drawBufferIdx = 0; drawBufferIdx < NumOfBuffers; ++drawBufferIdx)
         {
             assert(drawBuffersBindings[drawBufferIdx] >= 0);
             drawBuffers[drawBufferIdx] = GL_COLOR_ATTACHMENT0 + drawBuffersBindings[drawBufferIdx];
@@ -77,13 +77,13 @@ namespace lucid::gpu
         glDrawBuffers(NumOfBuffers, drawBuffers);
     }
 
-    void GLFramebuffer::EnableDrawBuffer(const uint8_t& BufferIndex, const int8_t& AttachmentIndex)
+    void GLFramebuffer::EnableDrawBuffer(const u8& BufferIndex, const int8_t& AttachmentIndex)
     {
         assert(BufferIndex < MAX_COLOR_ATTACHMENTS);
         drawBuffersBindings[BufferIndex] = AttachmentIndex;
     }
 
-    void GLFramebuffer::DisableDrawBuffer(const uint8_t& BufferIndex)
+    void GLFramebuffer::DisableDrawBuffer(const u8& BufferIndex)
     {
         assert(BufferIndex < MAX_COLOR_ATTACHMENTS);
         drawBuffersBindings[BufferIndex] = -1;
@@ -102,7 +102,7 @@ namespace lucid::gpu
 
     void GLFramebuffer::Bind(const FramebufferBindMode& Mode) { GLBindFramebuffer(this, glFBOHandle, Mode); }
 
-    void GLFramebuffer::SetupColorAttachment(const uint32_t& AttachmentIndex, FramebufferAttachment* AttachmentToUse)
+    void GLFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, FramebufferAttachment* AttachmentToUse)
     {
         assert(gpu::Info.CurrentFramebuffer == this && AttachmentIndex < gpu::Info.MaxColorAttachments);
         colorAttachments[AttachmentIndex] = AttachmentToUse;
@@ -154,7 +154,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLRenderbuffer::AttachAsColor(const uint8_t& Index)
+    void GLRenderbuffer::AttachAsColor(const u8& Index)
     {
         assert(gpu::Info.CurrentRenderbuffer == this && Index == 0);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, glRBOHandle);

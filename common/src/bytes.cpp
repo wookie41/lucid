@@ -4,7 +4,7 @@
 
 namespace lucid
 {    
-    MemBuffer CreateMemBuffer(const uint32_t& BufferCapacity)
+    MemBuffer CreateMemBuffer(const u32& BufferCapacity)
     {
         char* p = (char*)malloc(BufferCapacity);
         Zero(p, BufferCapacity);

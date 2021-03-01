@@ -10,7 +10,7 @@ namespace lucid::resources
 {
     class TextureResource;
 
-    enum class MeshFeatures : uint32_t
+    enum class MeshFeatures : u32
     {
         UV = 0x1,
         NORMALS = 0x2,
@@ -24,7 +24,7 @@ namespace lucid::resources
     class MeshResource : public Resource
     {
       public:
-        MeshResource(const uint32_t& MeshFeaturesFlags,
+        MeshResource(const u32& MeshFeaturesFlags,
                      TextureResource* MeshDiffuseMap,
                      TextureResource* MeshSpecularMap,
                      TextureResource* MeshNormalMap,
@@ -37,7 +37,7 @@ namespace lucid::resources
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
-        const uint32_t FeaturesFlag;
+        const u32 FeaturesFlag;
 
         TextureResource* const DiffuseMap;
         TextureResource* const SpecularMap;

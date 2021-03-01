@@ -8,7 +8,7 @@ namespace lucid::gpu
     {
 
       public:
-        enum class Face : uint8_t
+        enum class Face : u8
         {
             RIGHT,
             LEFT,
@@ -18,7 +18,7 @@ namespace lucid::gpu
             FRONT
         };
 
-        virtual void AttachAsColor(const uint8_t& Index, Face InFace) = 0;
+        virtual void AttachAsColor(const u8& Index, Face InFace) = 0;
 
         virtual ~Cubemap() = default;
     };

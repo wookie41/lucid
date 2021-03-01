@@ -7,7 +7,7 @@ namespace lucid::gpu
 {
     /////////////// Buffers ///////////////
 
-    enum ClearableBuffers : uint8_t
+    enum ClearableBuffers : u8
     {
         COLOR = 1,
         DEPTH = 2,
@@ -21,7 +21,7 @@ namespace lucid::gpu
 
     /////////////// Depth tests ///////////////
 
-    enum class DepthTestFunction : uint8_t
+    enum class DepthTestFunction : u8
     {
         NEVER,
         LESS,
@@ -41,7 +41,7 @@ namespace lucid::gpu
 
     /////////////// Blending ///////////////
 
-    enum class BlendFunction : uint8_t
+    enum class BlendFunction : u8
     {
         ZERO,
         ONE,
@@ -78,7 +78,7 @@ namespace lucid::gpu
 
     ///////////// Culling //////////////////////
 
-    enum class CullMode : uint8_t
+    enum class CullMode : u8
     {
         FRONT,
         BACK,
@@ -128,9 +128,9 @@ namespace lucid::gpu
         Buffer* CurrentWriteBuffer;
         Buffer* CurrentShaderStorageBuffer;
 
-        uint32_t ActiveTextureUnit = 0;
-        uint32_t MaxTextureUnits = 0;
-        uint32_t MaxColorAttachments = 0;
+        u32 ActiveTextureUnit = 0;
+        u32 MaxTextureUnits = 0;
+        u32 MaxColorAttachments = 0;
     };
 
     extern GPUInfo Info;

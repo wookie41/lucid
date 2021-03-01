@@ -2,5 +2,4 @@
 
 namespace lucid
 {
-    using real = float;
 }

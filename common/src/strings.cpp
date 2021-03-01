@@ -7,60 +7,78 @@ namespace lucid
 {
     // String //
 
-    static inline uint64_t calculateHash(char const* str)
+    static u64 CalculateHash(char const* InString, const u32 InStringLength)
     {
-        uint64_t hash = 0;
-        for (size_t idx = 0; idx < strlen(str); ++idx)
-            hash = 37 * hash + str[idx];
-        return hash;
+        u64 Hash = 0;
+        for (u64 Idx = 0; Idx < InStringLength; ++Idx)
+        {
+            Hash = 37 * Hash + InString[Idx];
+            
+        }
+        return Hash;
     }
 
-    String::String(const char* CStr) : Hash(calculateHash(CStr)), Length(strlen(CStr)), cStr(CStr) {}
-
-    char String::operator[](const uint64_t& Index) const
+    String::String(const char* InCString, const u32& InLength)
+    {
+        CString = InCString;
+        Length = InLength == 0 ? strlen(CString) : InLength;
+        Hash = CalculateHash(CString, Length);
+    }
+    char String::operator[](const u64& Index) const
     {
         assert(Index < Length);
-        return cStr[Index];
+        return CString[Index];
     }
 
-    String CopyToString(char const* ToCopy, uint32_t StrLen)
+    DString String::ToDString() const
     {
-        StrLen = StrLen == 0 ? strlen(ToCopy) : StrLen;
+        char* Copied = (char*)malloc(Length + 1);
+        memcpy(Copied, CString, Length);
+        Copied[Length] = '\0';
+        return { Copied, Length, Hash };
+    }
+
+    String CopyToString(char const* InToCopy, const u32& InStrLen)
+    {
+        const u32 StrLen = InStrLen == 0 ? strlen(InToCopy) : InStrLen;
         char* Copied = (char*)malloc(StrLen + 1);
-        memcpy(Copied, ToCopy, StrLen);
+        memcpy(Copied, InToCopy, StrLen);
         Copied[StrLen] = '\0';
-        return { Copied };
+        return { Copied, StrLen };
     }
 
-    // DString //
-    DString CopyToDString(char const* ToCopy, uint32_t StrLen)
+    void DString::Free() { free(CString); }
+
+    DString::DString(char* InCString, const u32& InLength, const u64& InHash)
     {
-        StrLen = StrLen == 0 ? strlen(ToCopy) : StrLen;
-        char* Copied = (char*)malloc(StrLen + 1);
-        memcpy(Copied, ToCopy, StrLen);
-        Copied[StrLen] = '\0';
-        return { Copied };
+        CString = InCString;
+        Length = InLength;
+        Hash = InHash;
     }
 
-    void DString::Free() { free(cStr); }
-
-    DString Concat(const String& Str1, const String& Str2)
+    DString::DString(char* InCString)
     {
-        char* concatBuffer = (char*)malloc(Str1.Length + Str2.Length + 1);
-        memcpy(concatBuffer, *Str1, Str1.Length);
-        memcpy(concatBuffer + Str1.Length, *Str2, Str2.Length);
-        concatBuffer[Str1.Length + Str2.Length] = '\0';
-        return DString{ concatBuffer };
+        CString = InCString;
+        Length = strlen(InCString);
+        Hash = CalculateHash(CString, Length);
     }
-
-    void DString::Append(const String& Str)
+    
+    void DString::Append(const char* InStr, const u32& InLength)
     {
-        char* ConcatBuffer = (char*)malloc(Length + Str.Length + 1);
-        memcpy(ConcatBuffer, cStr, Length);
-        memcpy(ConcatBuffer + Length, *Str, Str.Length);
-        ConcatBuffer[Length + Str.Length] = '\0';
+        const u32 NewLength = Length +  InLength+ 1;
+        char* ConcatBuffer = (char*)malloc(NewLength);
+        memcpy(ConcatBuffer, CString, Length);
+        memcpy(ConcatBuffer + Length, InStr, InLength);
+        ConcatBuffer[Length + InLength] = '\0';
         Free();
-        cStr = ConcatBuffer;        
+        CString = ConcatBuffer;
+        Length = NewLength;
+        Hash = CalculateHash(CString, Length);
+
+    }
+    void DString::Append(const String& InStr)
+    {
+        Append(*InStr, InStr.GetLength());
     }
 
 } // namespace lucid

@@ -1,16 +1,18 @@
 #pragma once
 
 #include <cstdint>
+
+#include "common/types.hpp"
 #include "misc/math.h"
 #include "glm/glm.hpp"
 namespace lucid::gpu
 {
     // we should query the GPU for it
-    const uint8_t MAX_COLOR_ATTACHMENTS = 16;
+    const u8 MAX_COLOR_ATTACHMENTS = 16;
 
     class Texture;
 
-    enum class RenderbufferFormat : uint8_t
+    enum class RenderbufferFormat : u8
     {
         DEPTH24_STENCIL8 = 0
     };
@@ -22,7 +24,7 @@ namespace lucid::gpu
 
         virtual glm::ivec2 GetSize() const = 0;
 
-        virtual void AttachAsColor(const uint8_t& Index) = 0;
+        virtual void AttachAsColor(const u8& Index) = 0;
         virtual void AttachAsStencil() = 0;
         virtual void AttachAsDepth() = 0;
         virtual void AttachAsStencilDepth() = 0;
@@ -38,7 +40,7 @@ namespace lucid::gpu
         virtual ~Renderbuffer() = default;
     };
 
-    enum class FramebufferBindMode : uint8_t
+    enum class FramebufferBindMode : u8
     {
         READ,
         WRITE,
@@ -50,11 +52,11 @@ namespace lucid::gpu
     class Framebuffer
     {
       public:
-        virtual glm::ivec2 GetColorAttachmentSize(const uint8_t& Idx = 0) const = 0;
+        virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const = 0;
 
         virtual void DisableReadWriteBuffers() = 0;
 
-        virtual void SetupDrawBuffers(const uint8_t& NumOfBuffers) = 0;
+        virtual void SetupDrawBuffers(const u8& NumOfBuffers) = 0;
         virtual void EnableDrawBuffer(const uint8_t& BufferIndex, const int8_t& AttachmentIndex) = 0;
         virtual void DisableDrawBuffer(const uint8_t& BufferIndex) = 0;
 
@@ -62,7 +64,7 @@ namespace lucid::gpu
 
         virtual void Bind(const FramebufferBindMode& Mode) = 0;
 
-        virtual void SetupColorAttachment(const uint32_t& AttachmentIndex, FramebufferAttachment* AttachmentToUse) = 0;
+        virtual void SetupColorAttachment(const u32& AttachmentIndex, FramebufferAttachment* AttachmentToUse) = 0;
         virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) = 0;
         virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;
         virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;

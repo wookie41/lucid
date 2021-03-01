@@ -25,12 +25,10 @@
 #include "glm/gtc/quaternion.hpp"
 #include "platform/util.hpp"
 #include "platform/platform.hpp"
+#include "resources/mesh.hpp"
 using namespace lucid;
 
-void ShadersChanged()
-{
-    platform::ExecuteCommand("tools\\preprocess_shaders.sh", { 0 });
-}
+void ShadersChanged() { platform::ExecuteCommand("tools\\preprocess_shaders.sh", { 0 }); }
 
 int main(int argc, char** argv)
 {
@@ -72,7 +70,7 @@ int main(int argc, char** argv)
 
     // Load textures uesd in the demo scene
 
-    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
+    resources::MeshResource* backPackMesh = resources::AssimpLoadMesh("assets\\models\\backpack\\", "backpack.obj");
 
     resources::TextureResource* brickWallDiffuseMapResource =
       resources::LoadJPEG("assets/textures/brickwall.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
@@ -85,7 +83,7 @@ int main(int argc, char** argv)
     resources::TextureResource* blankTextureResource =
       resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
-    resources::TextureResource* toyboxNormalMapResource  =
+    resources::TextureResource* toyboxNormalMapResource =
       resources::LoadJPEG("assets/textures/toy_box_normal.png", false, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
     resources::TextureResource* toyBoxDisplacementMapResource =
@@ -119,28 +117,56 @@ int main(int argc, char** argv)
 
     // Load and compile demo shaders
 
-    gpu::Shader* blinnPhongShader =
-      gpu::CompileShaderProgram("BlinnPhong", { platform::ReadFile("shaders/glsl/fwd_blinn_phong.vert", true) },
-                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong.frag", true) }, "");
+    DString vertexShader = platform::ReadFile("shaders/glsl/fwd_blinn_phong.vert", true);
+    DString fragmentShader = platform::ReadFile("shaders/glsl/fwd_blinn_phong.frag", true);
 
-    gpu::Shader* blinnPhongMapsShader =
-      gpu::CompileShaderProgram("BlinnPhongMaps", { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true) },
-                                { platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true) }, "", true);
+    gpu::Shader* blinnPhongShader = gpu::CompileShaderProgram("BlinnPhong", *vertexShader, *fragmentShader, nullptr);
 
-    gpu::Shader* skyboxShader = gpu::CompileShaderProgram("Skybox", { platform::ReadFile("shaders/glsl/skybox.vert", true) },
-                                                          { platform::ReadFile("shaders/glsl/skybox.frag", true) }, "");
+    vertexShader.Free();
+    fragmentShader.Free();
 
-    gpu::Shader* shadowMapShader =
-      gpu::CompileShaderProgram("ShadowMapper", { platform::ReadFile("shaders/glsl/shadow_map.vert", true) },
-                                { platform::ReadFile("shaders/glsl/empty.frag", true) }, "");
+    vertexShader = platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.vert", true);
+    fragmentShader = platform::ReadFile("shaders/glsl/fwd_blinn_phong_maps.frag", true);
+
+    gpu::Shader* blinnPhongMapsShader = gpu::CompileShaderProgram("BlinnPhongMaps", *vertexShader, *fragmentShader, nullptr);
+
+    vertexShader.Free();
+    fragmentShader.Free();
+
+    vertexShader = platform::ReadFile("shaders/glsl/skybox.vert", true);
+    fragmentShader = platform::ReadFile("shaders/glsl/skybox.frag", true);
+
+    gpu::Shader* skyboxShader = gpu::CompileShaderProgram("Skybox", *vertexShader, *fragmentShader, nullptr);
+
+    vertexShader.Free();
+    fragmentShader.Free();
+
+    vertexShader = platform::ReadFile("shaders/glsl/shadow_map.vert", true);
+    fragmentShader = platform::ReadFile("shaders/glsl/empty.frag", true);
+
+    gpu::Shader* shadowMapShader = gpu::CompileShaderProgram("ShadowMapper", *vertexShader, *fragmentShader, nullptr);
+
+    vertexShader.Free();
+    fragmentShader.Free();
+
+    vertexShader = platform::ReadFile("shaders/glsl/shadow_cubemap.vert", true);
+    fragmentShader = platform::ReadFile("shaders/glsl/shadow_cubemap.frag", true);
+    DString geometryShader = platform::ReadFile("shaders/glsl/shadow_cubemap.geom", true);
 
     gpu::Shader* shadowCubemapShader =
-      gpu::CompileShaderProgram("ShadowCubeMapper", { platform::ReadFile("shaders/glsl/shadow_cubemap.vert", true) },
-                                { platform::ReadFile("shaders/glsl/shadow_cubemap.frag", true) },
-                                { platform::ReadFile("shaders/glsl/shadow_cubemap.geom", true) });
+      gpu::CompileShaderProgram("ShadowCubeMapper", *vertexShader, *fragmentShader, *geometryShader);
 
-    gpu::Shader* flatShader = gpu::CompileShaderProgram("flatShader", { platform::ReadFile("shaders/glsl/flat.vert", true) },
-                                                        { platform::ReadFile("shaders/glsl/flat.frag", true) }, "");
+    vertexShader.Free();
+    fragmentShader.Free();
+    geometryShader.Free();
+
+    vertexShader = platform::ReadFile("shaders/glsl/flat.vert", true);
+    fragmentShader = platform::ReadFile("shaders/glsl/flat.frag", true);
+
+    gpu::Shader* flatShader = gpu::CompileShaderProgram("flatShader", *vertexShader, *fragmentShader, nullptr, false);
+
+    vertexShader.Free();
+    fragmentShader.Free();
 
     // Prepare the scene
 
@@ -191,7 +217,7 @@ int main(int argc, char** argv)
     flatBlinnPhongMaterial.Shininess = 32;
     flatBlinnPhongMaterial.SetCustomShader(blinnPhongShader);
 
-    scene::Renderable woodenFloor{ "woodenFloor" };
+    scene::Renderable woodenFloor{ DString{ "woodenFloor" } };
     woodenFloor.Material = &woodMaterial;
     woodenFloor.VertexArray = misc::QuadVertexArray;
     woodenFloor.Type = scene::RenderableType::STATIC;
@@ -199,39 +225,39 @@ int main(int argc, char** argv)
     woodenFloor.Transform.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{ 1.0, 0.0, 0.0 });
     woodenFloor.Transform.Translation = glm::vec3{ 0, -0.5, 0 };
 
-    scene::Renderable cube{ "Cube" };
+    scene::Renderable cube{ DString{ "Cube" } };
     cube.Material = &brickMaterial;
     cube.VertexArray = misc::CubeVertexArray;
     cube.Type = scene::RenderableType::STATIC;
     cube.Transform.Translation = { 4.0, -3.5, 0.0 };
     cube.Transform.Scale = glm::vec3{ 0.5 };
 
-    scene::Renderable cube1{ "Cube1", cube };
+    scene::Renderable cube1{ DString{ "Cube1" }, cube };
     cube1.Transform.Translation = { 2.0, 3.0, 1.0 };
     cube1.Transform.Scale = glm::vec3{ 0.75 };
     cube1.Material = &flatBlinnPhongMaterial;
 
-    scene::Renderable cube2{ "Cube2", cube };
+    scene::Renderable cube2{ DString{ "Cube2" }, cube };
     cube2.Transform.Translation = { -1.5, 2.0, -3.0 };
     cube2.Transform.Scale = glm::vec3{ 0.75 };
     // cube2.Transform.Rotation = glm::angleAxis(glm::radians(60.0f), glm::normalize(glm::vec3{ 1.0, 0.0, 1.0 }));
 
-    scene::Renderable cube3{ "Cube3", cube };
+    scene::Renderable cube3{ DString{ "Cube3" }, cube };
     cube3.Transform.Translation = { -1.5, 1.0, 1.5 };
     cube3.Transform.Scale = glm::vec3{ 0.5 };
     // cube3.Transform.Rotation = glm::angleAxis(glm::radians(60.0f), glm::normalize(glm::vec3{ 1.0, 0.0, 1.0 }));
     cube3.Material = &toyboxMaterial;
 
-    scene::Renderable gigaCube{ "Gigacube", cube };
+    scene::Renderable gigaCube{ DString{ "Gigacube" }, cube };
     gigaCube.Transform.Translation = glm::vec3{ 0 };
     gigaCube.Transform.Scale = glm::vec3{ 10 };
     gigaCube.Transform.Rotation = glm::quat{ 0, 0, 0, 0 };
     gigaCube.Material = &woodMaterial;
     gigaCube.bReverseNormals = true;
 
-    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable("MyMesh", backPackMesh);
-    // backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
-    // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
+    scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable(DString { "MyMesh" }, backPackMesh);
+    backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
+    backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
     scene::FlatMaterial flatWhiteMaterial;
     flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
@@ -255,7 +281,7 @@ int main(int argc, char** argv)
     shadowCastingLight.Color = glm::vec3{ 1.0, 1.0, 1.0 };
 
     scene::SpotLight redLight = scene::CreateSpotLight(true, { 1024, 1024 });
-    redLight.Position = cube2.Transform.Translation + glm::vec3 { 0, 2, -1.5 };
+    redLight.Position = cube2.Transform.Translation + glm::vec3{ 0, 2, -1.5 };
     redLight.Direction = glm::normalize(cube2.Transform.Translation - redLight.Position);
     redLight.Color = { 1, 0, 0 };
     redLight.Constant = 1;
@@ -264,7 +290,7 @@ int main(int argc, char** argv)
     redLight.InnerCutOffRad = glm::radians(30.0);
     redLight.OuterCutOffRad = glm::radians(35.0);
 
-    scene::Renderable redLightCube{ "RedLightCube", cube };
+    scene::Renderable redLightCube{ DString{ "RedLightCube" }, cube };
     redLightCube.Transform.Scale = glm::vec3{ 0.2 };
     redLightCube.Material = &flatRedMaterial;
     redLightCube.Transform.Translation = redLight.Position;
@@ -279,7 +305,7 @@ int main(int argc, char** argv)
     greenLight.InnerCutOffRad = glm::radians(30.0);
     greenLight.OuterCutOffRad = glm::radians(35.0);
 
-    scene::Renderable greenLightCube{ "GreenLightCube", redLightCube };
+    scene::Renderable greenLightCube{ DString{ "GreenLightCube" }, redLightCube };
     greenLightCube.Transform.Translation = greenLight.Position;
     greenLightCube.Material = &flatGreenMaterial;
 
@@ -294,11 +320,11 @@ int main(int argc, char** argv)
     blueLight.OuterCutOffRad = glm::radians(35.0);
     blueLight.LightUp = { -1, 0, 0 };
 
-    scene::Renderable blueLightCube{ "BlueLightCube", redLightCube };
+    scene::Renderable blueLightCube{ DString{ "BlueLightCube" }, redLightCube };
     blueLightCube.Transform.Translation = blueLight.Position;
     blueLightCube.Material = &flatBlueMaterial;
 
-    scene::Renderable shadowCastingLightCube{ "ShadowCastingLightCube", redLightCube };
+    scene::Renderable shadowCastingLightCube{ DString{ "ShadowCastingLightCube" }, redLightCube };
     shadowCastingLightCube.Transform.Translation = shadowCastingLight.Position;
     shadowCastingLightCube.Material = &flatWhiteMaterial;
 
@@ -309,7 +335,7 @@ int main(int argc, char** argv)
     redPointLight.Linear = 0.007;
     redPointLight.Quadratic = 0.017;
 
-    scene::Renderable redPointLightCube{ "RedPointLightCube", redLightCube };
+    scene::Renderable redPointLightCube{ DString{ "RedPointLightCube" }, redLightCube };
     redPointLightCube.Transform.Translation = redPointLight.Position;
     redPointLightCube.Material = &flatRedMaterial;
 
@@ -319,7 +345,7 @@ int main(int argc, char** argv)
     sceneToRender.StaticGeometry.Add(&cube2);
     sceneToRender.StaticGeometry.Add(&cube3);
     sceneToRender.StaticGeometry.Add(&gigaCube);
-    // sceneToRender.StaticGeometry.Add(backPackRenderable);
+    sceneToRender.StaticGeometry.Add(backPackRenderable);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
     sceneToRender.Lights.Add(&redLight);

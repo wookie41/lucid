@@ -23,7 +23,7 @@ namespace lucid::scene
     {
       public:
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
-        ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights,
+        ForwardBlinnPhongRenderer(const u32& MaxNumOfDirectionalLights,
                                   gpu::Shader* DefaultShader,
                                   gpu::Shader* SkyboxShader);
 
@@ -50,7 +50,7 @@ namespace lucid::scene
 
         inline void RenderSkybox(Skybox * const SkyboxToRender, const RenderTarget* RenderTarget);
 
-        uint32_t maxNumOfDirectionalLights;
+        u32 maxNumOfDirectionalLights;
 
         // Skybox shader stuff
 

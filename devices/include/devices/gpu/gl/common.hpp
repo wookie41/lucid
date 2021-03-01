@@ -11,6 +11,8 @@ namespace lucid
                                        GL_INT,
                                        0,
 
+                                       GL_BOOL,
+
                                        GL_UNSIGNED_BYTE,
                                        GL_UNSIGNED_SHORT,
                                        GL_UNSIGNED_INT,
@@ -30,10 +32,12 @@ namespace lucid
                                        0,
                                        0 };
 
-    inline GLenum toGLDataType(const Type& type)
+    inline GLenum toGLDataType(const Type& InType)
     {
-        GLenum glType = GL_TYPES[type];
+        GLenum glType = GL_TYPES[static_cast<u8>(InType)];
         assert(glType);
         return glType;
     }
+
+    Type ToLucidDataType(GLenum GLType);
 } // namespace lucid

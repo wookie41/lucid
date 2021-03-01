@@ -8,41 +8,41 @@ namespace lucid
 
     struct KeyboardState
     {
-        uint64_t pressedKeys[4] = { 0 }; // keeps track of which keys are currently held down
-        uint64_t clickedKeys[4] = { 0 }; // cleared per frame, only tells which keys were pressed down this frame
-        uint64_t releasedKeys[4] = { 0 }; // cleared per frame, only tells which keys were released this frame
+        u64 pressedKeys[4] = { 0 }; // keeps track of which keys are currently held down
+        u64 clickedKeys[4] = { 0 }; // cleared per frame, only tells which keys were pressed down this frame
+        u64 releasedKeys[4] = { 0 }; // cleared per frame, only tells which keys were released this frame
     };
 
     struct MouseState
     {
         MousePosition Position;
         float WheelDelta = 0;
-        uint8_t PressedButtons = 0;
-        uint8_t ClickedButtons = 0;
-        uint8_t ReleasedButtons = 0;
+        u8 PressedButtons = 0;
+        u8 ClickedButtons = 0;
+        u8 ReleasedButtons = 0;
     };
 
     const SDL_Keycode MIN_SPECIAL_KEY_KEYCODE = SDLK_CAPSLOCK;
 
-    inline uint8_t calculateKeyBit(const SDL_Keycode& code)
+    inline u8 calculateKeyBit(const SDL_Keycode& code)
     {
         return code < MIN_SPECIAL_KEY_KEYCODE ? code : ((MIN_SPECIAL_KEY_KEYCODE & 0x8) + 128);
     }
 
-    inline void setHigh(const SDL_Keycode& keyCode, uint64_t* keyMap)
+    inline void setHigh(const SDL_Keycode& keyCode, u64* keyMap)
     {
-        uint8_t keyBit = calculateKeyBit(keyCode);
-        uint8_t mapIdx = keyBit / 64;
+        u8 keyBit = calculateKeyBit(keyCode);
+        u8 mapIdx = keyBit / 64;
         keyBit %= 64;
-        keyMap[mapIdx] |= ((uint64_t)1 << keyBit);
+        keyMap[mapIdx] |= ((u64)1 << keyBit);
     }
 
-    inline void setLow(const SDL_Keycode& keyCode, uint64_t* keyMap)
+    inline void setLow(const SDL_Keycode& keyCode, u64* keyMap)
     {
-        uint8_t keyBit = calculateKeyBit(keyCode);
-        uint8_t mapIdx = keyBit / 64;
+        u8 keyBit = calculateKeyBit(keyCode);
+        u8 mapIdx = keyBit / 64;
         keyBit %= 64;
-        keyMap[mapIdx] &= ~((uint64_t)1 << keyBit);
+        keyMap[mapIdx] &= ~((u64)1 << keyBit);
     }
 
     static KeyboardState keyboardState;
@@ -50,10 +50,10 @@ namespace lucid
 
     void ReadEvents(platform::Window* ActiveWindow)
     {
-        for (uint8_t i = 0; i < 4; ++i)
+        for (u8 i = 0; i < 4; ++i)
             keyboardState.clickedKeys[i] = 0;
 
-        for (uint8_t i = 0; i < 4; ++i)
+        for (u8 i = 0; i < 4; ++i)
             keyboardState.releasedKeys[i] = 0;
 
         mouseState.ClickedButtons = 0;
@@ -120,12 +120,12 @@ namespace lucid
         }
     }
 
-    inline bool isHigh(const SDL_Keycode& keyCode, uint64_t* keyMap)
+    inline bool isHigh(const SDL_Keycode& keyCode, u64* keyMap)
     {
         uint8_t keyBit = calculateKeyBit(keyCode);
         uint8_t mapIdx = keyBit / 64;
         keyBit %= 64;
-        return keyMap[mapIdx] & ((uint64_t)1 << keyBit);
+        return keyMap[mapIdx] & ((u64)1 << keyBit);
     }
 
     bool IsKeyPressed(const SDL_Keycode& KeyCode) { return isHigh(KeyCode, keyboardState.pressedKeys); }

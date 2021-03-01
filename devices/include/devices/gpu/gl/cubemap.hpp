@@ -15,12 +15,12 @@ namespace lucid::gpu
 
         virtual glm::ivec2 GetSize() const override;
 
-        virtual void AttachAsColor(const uint8_t& Index) override;
+        virtual void AttachAsColor(const u8& Index) override;
         virtual void AttachAsStencil() override;
         virtual void AttachAsDepth() override;
         virtual void AttachAsStencilDepth() override;
 
-        virtual void AttachAsColor(const uint8_t& Index, Face InFace) override;
+        virtual void AttachAsColor(const u8& Index, Face InFace) override;
 
         ////////////////////////////////////
 

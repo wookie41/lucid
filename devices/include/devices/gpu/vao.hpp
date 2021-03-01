@@ -6,19 +6,19 @@
 
 namespace lucid::gpu
 {
-    void Init(const uint8_t& GLMajorVersion, const uint8_t& GLMinorVersion);
+    void Init(const u8& GLMajorVersion, const u8& GLMinorVersion);
 
     class Buffer;
 
     struct VertexAttribute
     {
-        uint32_t Index = 0;
+        u32 Index = 0;
         int32_t NumComponents = 0;
         Type AttributeType;
         bool Normalized = false;
-        uint32_t Stride = 0;
-        uint32_t FirstElementOffset = 0;
-        uint32_t Divisor = 0;
+        u32 Stride = 0;
+        u32 FirstElementOffset = 0;
+        u32 Divisor = 0;
     };
 
     enum DrawMode
@@ -43,24 +43,24 @@ namespace lucid::gpu
         virtual void Bind() = 0;
         virtual void Unbind() = 0;
 
-        virtual void EnableAttribute(const uint32_t& AttributeIndex) = 0;
-        virtual void DisableAttribute(const uint32_t& AttributeIndex) = 0;
+        virtual void EnableAttribute(const u32& AttributeIndex) = 0;
+        virtual void DisableAttribute(const u32& AttributeIndex) = 0;
 
         virtual void AddVertexAttribute(const VertexAttribute& Attribute) = 0;
         virtual void AddIntegerVertexAttribute(const VertexAttribute& Attribute) = 0;
         virtual void AddLongVertexAttribute(const VertexAttribute& Attribute) = 0;
 
-        virtual void SetVertexCount(const uint32_t& Count) = 0;
-        virtual uint32_t GetVertexCount() const = 0;
+        virtual void SetVertexCount(const u32& Count) = 0;
+        virtual u32 GetVertexCount() const = 0;
 
-        virtual void SetElementCount(const uint32_t& Count) = 0;
-        virtual uint32_t GetElementCount() const = 0;
+        virtual void SetElementCount(const u32& Count) = 0;
+        virtual u32 GetElementCount() const = 0;
 
         // 'First' and 'Count' are 0 by default which basically means 'draw all'
-        virtual void Draw(const uint32_t& First = 0, const uint32_t& Count = 0) = 0;
-        virtual void DrawInstanced(const uint32_t& InstancesCount,
-                                   const uint32_t& First = 0,
-                                   const uint32_t& Count = 0) = 0;
+        virtual void Draw(const u32& First = 0, const u32& Count = 0) = 0;
+        virtual void DrawInstanced(const u32& InstancesCount,
+                                   const u32& First = 0,
+                                   const u32& Count = 0) = 0;
 
         virtual void Free() = 0;
 
@@ -71,7 +71,7 @@ namespace lucid::gpu
                                    Buffer* VertexBuffer,
                                    Buffer* ElementBuffer,
                                    const DrawMode& DrawMode,
-                                   const uint32_t& VertexCount,
-                                   const uint32_t& ElementCount,
+                                   const u32& VertexCount,
+                                   const u32& ElementCount,
                                    const bool& AutoDestroyBuffers = true);
 } // namespace lucid::gpu

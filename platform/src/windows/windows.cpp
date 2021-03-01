@@ -67,6 +67,34 @@ namespace lucid::platform
         return 0;
     }
 
+    void RemoveDirectoryListener(const String& InDirectoryPath, DirectoryChangedListener InListener)
+    {
+        if(shgeti(HandleByDirectoryPath, *InDirectoryPath) == -1)
+        {
+            return;
+        }
+
+        HANDLE Handle = shget(HandleByDirectoryPath, *InDirectoryPath);
+
+        DirectoryChangedListener* Listeners =  hmget(ListenersByHandle, Handle);
+
+        if (arrlen(Listeners) == 1)
+        {
+            hmdel(ListenersByHandle, Handle);
+            shdel(HandleByDirectoryPath, *InDirectoryPath);
+            return;
+        }
+
+        for (int i = 0; i < arrlen(Listeners); ++i)
+        {
+            if (Listeners[i] == InListener)
+            {
+                arrdel(Listeners, i);
+                return;
+            }
+        }
+    }
+
     void _UpdateSystem()
     {
         // Check for changes in directory that are being listened
@@ -101,7 +129,7 @@ namespace lucid::platform
 
     i8 ExecuteCommand(const String& InCommand, const StaticArray<String>& Args)
     {
-        DString CommandToExecute = CopyToDString(*InCommand);
+        DString CommandToExecute = InCommand.ToDString();
 
         for (int i = 0; i < Args.Length; ++i)
         {

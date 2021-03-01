@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/types.hpp"
 #include "glm/glm.hpp"
 
 namespace lucid::gpu
@@ -14,7 +15,7 @@ namespace lucid::scene
 {
     class RenderScene;
 
-    enum class LightType : uint8_t
+    enum class LightType : u8
     {
         DIRECTIONAL,
         POINT,

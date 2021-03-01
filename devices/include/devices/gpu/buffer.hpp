@@ -2,9 +2,11 @@
 
 #include <cstdint>
 
+#include "common/types.hpp"
+
 namespace lucid::gpu
 {
-    enum class BufferBindPoint : uint16_t
+    enum class BufferBindPoint : u16
     {
         UNBOUND,
         VERTEX,
@@ -12,7 +14,7 @@ namespace lucid::gpu
         SHADER_STORAGE
     };
 
-    enum class BufferUsage : uint16_t
+    enum class BufferUsage : u16
     {
         STATIC,
         DYNAMIC,
@@ -20,7 +22,7 @@ namespace lucid::gpu
         COPY_WRITE
     };
 
-    enum ImmutableBufferUsage : uint16_t
+    enum ImmutableBufferUsage : u16
     {
         IMM_BUFFER_DYNAMIC = 1,
         IMM_BUFFER_READ = 2,

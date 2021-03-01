@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+
+#include "common/types.hpp"
 #include "SDL2/SDL_keycode.h"
 
 namespace lucid
@@ -10,7 +12,7 @@ namespace lucid
         class Window;
     }
 
-    enum MouseButton : uint8_t
+    enum MouseButton : u8
     {
         LEFT = 1,
         MIDDLE = 2,

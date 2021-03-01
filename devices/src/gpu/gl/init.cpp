@@ -20,7 +20,7 @@ namespace lucid::gpu
         int SDLInitResult = SDL_Init(SDL_INIT_VIDEO);
         if (SDLInitResult != 0)
         {
-            LUCID_LOG(LogLevel::ERROR, "Failed to initialize SDL_VIDEO");
+            LUCID_LOG(LogLevel::ERR, "Failed to initialize SDL_VIDEO");
             return -1;
         }
 
@@ -38,7 +38,7 @@ namespace lucid::gpu
         SDL_Window* window = SDL_CreateWindow("xxx", 1, 1, 1, 1, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
         if (window == nullptr)
         {
-            LUCID_LOG(LogLevel::ERROR, "Failed to create dummy window");
+            LUCID_LOG(LogLevel::ERR, "Failed to create dummy window");
             return -1;
         }
 

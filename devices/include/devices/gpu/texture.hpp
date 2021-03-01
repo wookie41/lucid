@@ -5,20 +5,20 @@
 
 namespace lucid::gpu
 {
-    enum class TextureDataType : uint8_t
+    enum class TextureDataType : u8
     {
         UNSIGNED_BYTE,
         FLOAT
     };
 
-    enum class TextureType : uint8_t
+    enum class TextureType : u8
     {
         ONE_DIMENSIONAL,
         TWO_DIMENSIONAL,
         THREE_DIMENSIONAL
     };
 
-    enum class MinTextureFilter : uint8_t
+    enum class MinTextureFilter : u8
     {
         NEAREST,
         LINEAR,
@@ -28,20 +28,20 @@ namespace lucid::gpu
         LINEAR_MIPMAP_LINEAR
     };
 
-    enum class MagTextureFilter : uint8_t
+    enum class MagTextureFilter : u8
     {
         NEAREST,
         LINEAR
     };
 
-    enum class WrapTextureFilter : uint8_t
+    enum class WrapTextureFilter : u8
     {
         CLAMP_TO_EDGE,
         MIRRORED_REPEAT,
         REPEAT
     };
 
-    enum class TextureFormat : uint8_t
+    enum class TextureFormat : u8
     {
         RGB,
         RGBA,
@@ -68,13 +68,13 @@ namespace lucid::gpu
     };
 
     Texture* Create2DTexture(void* Data,
-                             const uint32_t& Width,
-                             const uint32_t& Height,
+                             const u32& Width,
+                             const u32& Height,
                              const TextureDataType& DataType,
                              const TextureFormat& Format,
                              const int32_t& MipMapLevel,
                              const bool& PerformGammaCorrection);
 
     Texture*
-    CreateEmpty2DTexture(const uint32_t& Width, const uint32_t& Height, const TextureDataType& DataType, const TextureFormat& Format, const int32_t& MipMapLevel);
+    CreateEmpty2DTexture(const u32& Width, const u32& Height, const TextureDataType& DataType, const TextureFormat& Format, const int32_t& MipMapLevel);
 } // namespace lucid::gpu

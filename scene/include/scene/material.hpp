@@ -13,7 +13,7 @@ namespace lucid::gpu
 namespace lucid::scene
 {
 
-    enum class MaterialType : uint8_t
+    enum class MaterialType : u8
     {
         OPAQUE,
         TRANSLUCENT

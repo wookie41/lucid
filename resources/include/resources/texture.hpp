@@ -13,8 +13,8 @@ namespace lucid::resources
       public:
         TextureResource(void* Data,
                         gpu::Texture* Handle,
-                        const uint32_t& W,
-                        const uint32_t& H,
+                        const u32& W,
+                        const u32& H,
                         const bool& GammeCorrected,
                         const gpu::TextureFormat& Fmt);
 
@@ -23,7 +23,7 @@ namespace lucid::resources
 
         void* const TextureData;
         gpu::Texture* const TextureHandle;
-        const uint32_t Width, Height;
+        const u32 Width, Height;
         const bool IsGammaCorrected;
         const gpu::TextureFormat Format;
     };

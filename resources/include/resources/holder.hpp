@@ -64,7 +64,7 @@ namespace lucid::resources
         // Calls FreeResource() on all loaded resources and empties the holder
         void FreeAll()
         {
-            for (uint32_t idx = 0; idx < shlen(resourcesHashMap); ++idx)
+            for (u32 idx = 0; idx < shlen(resourcesHashMap); ++idx)
             {
                 resourcesHashMap[idx]->FreeMainMemory();
                 resourcesHashMap[idx]->FreeVideoMemory();

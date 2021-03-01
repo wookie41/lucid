@@ -8,28 +8,22 @@
 namespace lucid
 {
     template <typename T>
-    StaticArray<T>::StaticArray(const uint32_t& ArrayCapacity)
+    StaticArray<T>::StaticArray(const u32& ArrayCapacity)
     {
         Capacity = ArrayCapacity;
         SizeInBytes = sizeof(T) * ArrayCapacity;
         array = (T*)malloc(SizeInBytes);
         Zero(array, SizeInBytes);
     }
-
+    
     template <typename T>
-    T* StaticArray<T>::operator[](const uint32_t& Index) const
+    T* StaticArray<T>::operator[](const u32& Index) const
     {
         assert(Index < Length);
         return array + Index;
     }
 
-    template <typename T>
-    T* StaticArray<T>::operator[](const int32_t& Index) const
-    {
-        assert(Index < Length);
-        return array + Index;
-    }
-
+    
     template <typename T>
     void StaticArray<T>::Add(const T& Element)
     {
@@ -46,7 +40,7 @@ namespace lucid
     }
 
     template <typename T>
-    void StaticArray<T>::Resize(const uint32_t& NewCapacity)
+    void StaticArray<T>::Resize(const u32& NewCapacity)
     {
         int newArraySize = sizeof(T) * NewCapacity;
         T* newArray = (T*)malloc(newArraySize);

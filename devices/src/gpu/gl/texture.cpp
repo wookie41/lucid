@@ -19,12 +19,12 @@ namespace lucid::gpu
     static GLenum GL_TEXTURE_TARGET_MAPPING[] = { GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D };
     static GLenum GL_TEXTURE_FORMAT_MAPPING[] = { GL_RGB, GL_RGBA, GL_SRGB, GL_SRGB_ALPHA, GL_RGB16F, GL_DEPTH_COMPONENT };
 
-#define TO_GL_MIN_FILTER(gl_filters) (GL_MIN_FILTERS_MAPPING[(uint8_t)gl_filters])
-#define TO_GL_MAG_FILTER(gl_filters) (GL_MAG_FILTERS_MAPPING[(uint8_t)gl_filters])
-#define TO_GL_WRAP_FILTER(gl_filters) (GL_WRAP_FILTERS_MAPPING[(uint8_t)gl_filters])
-#define TO_GL_TEXTURE_DATA_TYPE(type) (GL_TEXTURE_DATA_TYPE_MAPPING[static_cast<uint8_t>(type)])
-#define TO_GL_TEXTURE_TARGET(type) (GL_TEXTURE_TARGET_MAPPING[static_cast<uint8_t>(type)])
-#define TO_GL_TEXTURE_FORMAT(type) (GL_TEXTURE_FORMAT_MAPPING[static_cast<uint8_t>(type)])
+#define TO_GL_MIN_FILTER(gl_filters) (GL_MIN_FILTERS_MAPPING[(u8)gl_filters])
+#define TO_GL_MAG_FILTER(gl_filters) (GL_MAG_FILTERS_MAPPING[(u8)gl_filters])
+#define TO_GL_WRAP_FILTER(gl_filters) (GL_WRAP_FILTERS_MAPPING[(u8)gl_filters])
+#define TO_GL_TEXTURE_DATA_TYPE(type) (GL_TEXTURE_DATA_TYPE_MAPPING[static_cast<u8>(type)])
+#define TO_GL_TEXTURE_TARGET(type) (GL_TEXTURE_TARGET_MAPPING[static_cast<u8>(type)])
+#define TO_GL_TEXTURE_FORMAT(type) (GL_TEXTURE_FORMAT_MAPPING[static_cast<u8>(type)])
 
     // Texture
 

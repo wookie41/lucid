@@ -15,7 +15,7 @@ namespace lucid::scene
 {
     // intented to help to renderer in making decistion which Renderables'
     // are visible and which should be culled
-    enum class RenderableType : uint8_t
+    enum class RenderableType : u8
     {
         STATIC,
         DYNAMIC

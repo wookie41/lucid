@@ -51,7 +51,7 @@ namespace lucid::gpu
 
     void SetDepthTestFunction(const DepthTestFunction& Function)
     {
-        glDepthFunc(GL_DEPTH_FUNCTIONS[static_cast<uint8_t>(Function)]);
+        glDepthFunc(GL_DEPTH_FUNCTIONS[static_cast<u8>(Function)]);
     }
 
     ////////////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ namespace lucid::gpu
                                              GL_SRC1_ALPHA,
                                              GL_ONE_MINUS_SRC1_ALPHA };
 
-#define TO_GL_BLEND(blendMode) GL_BLEND_ENUMS[static_cast<uint8_t>(blendMode)]
+#define TO_GL_BLEND(blendMode) GL_BLEND_ENUMS[static_cast<u8>(blendMode)]
 
     void SetBlendColor(const color& Color) { glBlendColor(Color.r, Color.g, Color.b, Color.a); }
 
@@ -119,7 +119,7 @@ namespace lucid::gpu
 
     void SetCullMode(CullMode Mode)
     {
-        glCullFace(CULL_MODE_MAPPING[static_cast<uint8_t>(Mode)]);
+        glCullFace(CULL_MODE_MAPPING[static_cast<u8>(Mode)]);
     }
 
     // SRGB

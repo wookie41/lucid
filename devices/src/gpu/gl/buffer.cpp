@@ -4,9 +4,9 @@
 #include <cassert>
 
 #define NO_COHERENT_OR_PERSISTENT_BIT_SET(FLAGS) \
-    (((FLAGS & (uint16_t)BufferAccessPolicy::BUFFER_COHERENT) | (FLAGS & (uint16_t)BufferAccessPolicy::BUFFER_PERSISTENT)) == 0)
+    (((FLAGS & (u16)BufferAccessPolicy::BUFFER_COHERENT) | (FLAGS & (u16)BufferAccessPolicy::BUFFER_PERSISTENT)) == 0)
 
-#define AS_GL_BIND_POINT(bindPoint) (GL_BIND_POINTS[((uint16_t)bindPoint) - 1])
+#define AS_GL_BIND_POINT(bindPoint) (GL_BIND_POINTS[((u16)bindPoint) - 1])
 
 static const GLenum GL_BIND_POINTS[] = { GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER, GL_SHADER_STORAGE_BUFFER };
 
@@ -24,10 +24,10 @@ namespace lucid::gpu
 {
     GLbitfield calculateGLMapAccessBits(const BufferAccessPolicy& MapPolicy)
     {
-        uint8_t accessBit = 1;
+        u8 accessBit = 1;
         GLbitfield glAccessBits = 0;
 
-        for (uint8_t accessBitShift = 0; accessBitShift < sizeof(GL_MAP_ACCESS_BITS) / sizeof(GLenum); ++accessBitShift)
+        for (u8 accessBitShift = 0; accessBitShift < sizeof(GL_MAP_ACCESS_BITS) / sizeof(GLenum); ++accessBitShift)
         {
             if (MapPolicy & (accessBit << accessBitShift))
             {
@@ -40,10 +40,10 @@ namespace lucid::gpu
 
     GLbitfield calculateImmutableAccessBits(const ImmutableBufferUsage& AccessPolicy)
     {
-        uint8_t accessBit = 1;
+        u8 accessBit = 1;
         GLbitfield glAccessBits = 0;
 
-        for (uint8_t accessBitShift = 0;
+        for (u8 accessBitShift = 0;
              accessBitShift < sizeof(GL_IMMUTABLE_ACCESS_BITS) / sizeof(GLenum); ++accessBitShift)
         {
             if (AccessPolicy & (accessBit << accessBitShift))
@@ -193,7 +193,7 @@ namespace lucid::gpu
         glGenBuffers(1, &bufferHandle);
         glBindBuffer(GL_COPY_WRITE_BUFFER, bufferHandle);
         glBufferData(GL_COPY_WRITE_BUFFER, Description.size, Description.data,
-                     GL_MUTABLE_USAGE_HINTS[(uint16_t)Usage]);
+                     GL_MUTABLE_USAGE_HINTS[(u16)Usage]);
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
         return new GLBuffer(bufferHandle, Description, false);

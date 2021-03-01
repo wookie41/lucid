@@ -1,13 +1,13 @@
 #pragma once
 
-#include <cstdint>
+#include "common/types.hpp"
 
 namespace lucid::gpu
 {
     struct Viewport
     {
-        uint32_t X, Y;
-        uint32_t Width, Height;
+        u32 X, Y;
+        u32 Width, Height;
     };
 
     void SetViewport(const Viewport& ViewportToUse);

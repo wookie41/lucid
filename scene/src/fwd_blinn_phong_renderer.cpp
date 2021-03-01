@@ -25,10 +25,10 @@
 namespace lucid::scene
 {
     // Shader light-related uniforms
-    static const uint32_t NO_LIGHT = 0;
-    static const uint32_t DIRECTIONAL_LIGHT = 1;
-    static const uint32_t POINT_LIGHT = 2;
-    static const uint32_t SPOT_LIGHT = 3;
+    static const u32 NO_LIGHT = 0;
+    static const u32 DIRECTIONAL_LIGHT = 1;
+    static const u32 POINT_LIGHT = 2;
+    static const u32 SPOT_LIGHT = 3;
 
     static const String LIGHT_TYPE("uLight.Type");
 
@@ -61,7 +61,7 @@ namespace lucid::scene
 
     static const String PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
 
-    ForwardBlinnPhongRenderer::ForwardBlinnPhongRenderer(const uint32_t& MaxNumOfDirectionalLights,
+    ForwardBlinnPhongRenderer::ForwardBlinnPhongRenderer(const u32& MaxNumOfDirectionalLights,
                                                          gpu::Shader* DefaultShader,
                                                          gpu::Shader* SkyboxShader)
     : Renderer(DefaultShader), maxNumOfDirectionalLights(MaxNumOfDirectionalLights), skyboxShader(SkyboxShader)

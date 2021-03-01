@@ -20,6 +20,9 @@ namespace lucid::gpu
     class Shader
     {
       public:
+
+        friend class ShaderManager;
+
         explicit Shader(const String& InName);
 
         virtual void Use() = 0;
@@ -28,9 +31,9 @@ namespace lucid::gpu
         virtual void SetupBuffersBindings() = 0;
 
         // Return -1 if uniform doesn't exist
-        virtual int32_t GetIdForUniform(const String& Name) const = 0;
+        virtual u32 GetIdForUniform(const String& Name) const = 0;
 
-        virtual void SetInt(const String& Name, const uint32_t& Value) = 0;
+        virtual void SetInt(const String& Name, const u32& Value) = 0;
         virtual void SetFloat(const String& Name, const float& Value) = 0;
         virtual void SetBool(const String& Name, const bool& Value) = 0;
 
@@ -45,21 +48,28 @@ namespace lucid::gpu
         virtual void SetMatrix(const String& Name, const glm::mat4& Value) = 0;
 
         virtual void UseTexture(const String& Name, Texture* TextureToUse) = 0;
+        virtual void RestoreTextureBindings() = 0;
 
         virtual void AddBinding(BufferBinding* Binding) = 0;
 
         virtual ~Shader() = default;
-        // TODO Matrices
+        
+        inline const String& GetName() const { return ShaderName; }
 
-        inline const String& GetName() const { return Name; }
-
-      protected:
-        String Name;
+#ifndef NDEBUG
+        /**
+         * Used when hot-reloading shaders. The RecompiledShader is the shader program with updated shaders that we have to pull
+         * to this shader, so the hot-reloading is transparent to the user and he can still use the same shader.
+         */
+        virtual void ReloadShader(Shader* RecompiledShader) = 0;
+#endif
+    protected:
+        const String ShaderName;
     };
 
     Shader* CompileShaderProgram(const String& ShaderName,
-                                 const String& VertexShaderSource,
-                                 const String& FragementShaderSource,
-                                 const String& GeometryShaderSource,
+                                 const char* VertexShaderSource,
+                                 const char* FragementShaderSource,
+                                 const char* GeometryShaderSource,
                                  const bool& WarnMissingUniforms = false);
 } // namespace lucid::gpu

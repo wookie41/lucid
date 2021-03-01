@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include "string.h"
+#include "types.hpp"
 
 namespace lucid
 {
-    inline void Zero(void* Address, const uint64_t& NumBytes)
+    inline void Zero(void* Address, const u64& NumBytes)
     {
         memset(Address, 0, NumBytes);
     }
@@ -13,9 +14,9 @@ namespace lucid
     struct MemBuffer
     {
         char* Pointer;
-        const uint32_t Capacity;
-        uint32_t Length = 0;
+        const u32 Capacity;
+        u32 Length = 0;
     };
 
-    MemBuffer CreateMemBuffer(const uint32_t& BufferCapacity);
+    MemBuffer CreateMemBuffer(const u32& BufferCapacity);
 } // namespace lucid

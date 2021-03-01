@@ -9,8 +9,9 @@ namespace lucid::gpu
 
     struct UniformVariable
     {
-        GLint GLIndex = 0;
-        String Name;
+        GLint Location = 0;
+        String Name = { "" };
+        Type VariableType = Type::UNSUPPORTED;
     };
 
     struct TextureBinding : UniformVariable
@@ -34,7 +35,7 @@ namespace lucid::gpu
 
         virtual void Disable() override;
 
-        virtual void SetInt(const String& Name, const uint32_t& Value) override;
+        virtual void SetInt(const String& Name, const u32& Value) override;
         virtual void SetFloat(const String& Name, const float& Value) override;
         virtual void SetBool(const String& Name, const bool& Value) override;
 
@@ -49,11 +50,15 @@ namespace lucid::gpu
         virtual void SetMatrix(const String& Name, const glm::mat4& Value) override;
 
         virtual void UseTexture(const String& Name, Texture* TextureToUse) override;
-
+        virtual void RestoreTextureBindings() override;
+        
         virtual void AddBinding(BufferBinding* Binding) override;
 
-        int32_t GetIdForUniform(const String& Name) const;
-        int32_t GetTextureId(const String& Name) const;
+#ifndef NDEBUG
+        void ReloadShader(Shader* RecompiledShader) override;
+#endif
+        u32 GetIdForUniform(const String& Name) const;
+        u32 GetTextureId(const String& Name) const;
 
         virtual ~GLShader();
 

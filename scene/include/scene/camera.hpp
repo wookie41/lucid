@@ -1,11 +1,11 @@
 #pragma once
 
 #include "glm/glm.hpp"
-#include "platform/util.hpp"
+#include "common/types.hpp"
 
 namespace lucid::scene
 {
-    enum class CameraMode : uint8_t
+    enum class CameraMode : u8
     {
         ORTHOGRAPHIC,
         PERSPECTIVE

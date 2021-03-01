@@ -5,7 +5,7 @@
 
 namespace lucid::platform
 {    
-    char* ReadFile(const char* FilePath, const bool& NullTerminate);
+    DString ReadFile(const String& FilePath, const bool& NullTerminate);
     
     /**
      * Adds a listener that is called when files in the directory or the directory itself changes.
@@ -15,4 +15,5 @@ namespace lucid::platform
     typedef void (*DirectoryChangedListener)();
 
     i8 AddDirectoryListener(const String& InDirectoryPath, DirectoryChangedListener InListener);
+    void RemoveDirectoryListener(const String& InDirectoryPath, DirectoryChangedListener InListener);
 } // namespace lucid::platform
