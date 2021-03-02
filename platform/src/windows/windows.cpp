@@ -1,19 +1,16 @@
 ﻿#include "platform/fs.hpp"
 #include "common/log.hpp"
 #include "platform/platform.hpp"
-#include "atlstr.h"
 
 #include "stb_ds.h"
 
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <tchar.h>
 #include <SDL2/SDL.h>
 
 #include "common/bytes.hpp"
 
-static TCHAR lpTMP[1024]; //@TODO Unicode support
 
 namespace lucid::platform
 {

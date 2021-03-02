@@ -12,6 +12,9 @@
 #include <stdio.h>
 #endif
 
+#include <string>
+#include <algorithm>
+
 namespace lucid::gpu
 {
     const u8 _GL_PROGRAM = 0;
@@ -113,7 +116,7 @@ namespace lucid::gpu
         StaticArray<UniformVariable> uniformVariables(numberOfUniforms);
         StaticArray<TextureBinding> textureBindings(numberOfUniforms);
 
-        GLint GLUniformSize;
+        GLint UniformArraySize;
         GLenum GLUniformType;
         GLsizei GLUniformNameLength;
 
@@ -126,7 +129,7 @@ namespace lucid::gpu
             //@TODO exclude gl_ prefixed uniforms
             // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glGetActiveUniform.xhtml
             glGetActiveUniform(ShaderProgramID, UniformIdx, MAX_UNIFORM_VARIABLE_NAME_LENGTH, &GLUniformNameLength,
-                               &GLUniformSize, &GLUniformType, UniformNameBuff);
+                               &UniformArraySize, &GLUniformType, UniformNameBuff);
 
             GLint GLUniformLocation = glGetUniformLocation(ShaderProgramID, UniformNameBuff);
             Type UniformType = ToLucidDataType(GLUniformType);
@@ -151,20 +154,20 @@ namespace lucid::gpu
 
             uniformVariables.Add(NewVariable);
 
-            if (GLUniformSize > 0)
+            if (UniformArraySize > 1)
             {
                 // the uniform is an array and OpenGL return active uniform only for the 0th index of the array
                 // length of the array is equal to uniformSize and thats how many additional uniforms we have to add
-                uniformVariables.Resize(uniformVariables.Capacity + (GLUniformSize - 1));
-                static char indexBuffer[5];
-                for (int i = 1; i < GLUniformSize; ++i)
-                {
-                    assert(i < 1000);
+                uniformVariables.Resize(uniformVariables.Capacity + (UniformArraySize - 1));
 
-                    char* NextArrayEntry = stb_dupreplace(UniformNameBuff, "0", itoa(i, indexBuffer, 10));
+                for (int i = 1; i < UniformArraySize; ++i)
+                {
+                    std::string NextArrayEntry { *NewVariable.Name };
+                    NextArrayEntry.replace(NextArrayEntry.find("0"), 1, std::to_string(i));
+
                     UniformVariable ArrayEntryVariable;
-                    ArrayEntryVariable.Location = glGetUniformLocation(ShaderProgramID, NextArrayEntry);
-                    ArrayEntryVariable.Name = String{ NextArrayEntry };
+                    ArrayEntryVariable.Location = glGetUniformLocation(ShaderProgramID, NextArrayEntry.c_str());
+                    ArrayEntryVariable.Name = String{ CopyToString(NextArrayEntry.c_str()) };
                     ArrayEntryVariable.VariableType = UniformType;
                     uniformVariables.Add(ArrayEntryVariable);
                 }
