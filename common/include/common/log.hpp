@@ -11,10 +11,10 @@ namespace lucid
         ERR
     };
 
-    void Log(const LogLevel& Level, const char* Format, ...);
+    void Log(const LogLevel& InLevel, const char* InFile, const u32& InLine, const char* InFormat, ...);
 
 #ifndef NDEBUG
-#define LUCID_LOG(Level, Format, ...) Log(Level, Format, __VA_ARGS__);
+#define LUCID_LOG(Level, Format, ...) Log(Level, __FILE__, __LINE__, Format, __VA_ARGS__);
 #endif
 
 #ifdef NDEBUG

@@ -14,15 +14,15 @@ namespace lucid
     // dummy, temporary solution
     static char msgBuff[1024];
 
-    void Log(const LogLevel& Level, const char* Format, ... )
+    void Log(const LogLevel& InLevel, const char* InFile, const u32& InLine, const char* InFormat, ...)
     {
         va_list args;
-        va_start(args, Format);
-        vsprintf_s(msgBuff, 1024, Format, args);
+        va_start(args, InFormat);
+        vsprintf_s(msgBuff, 1024, InFormat, args);
         va_end(args);
         std::time_t t = std::time(0);
         std::tm* now = std::localtime(&t);
-        printf("[%s] %d:%d:%d %s:%d - %s\n", (LOG_LEVEL_NAMES[static_cast<u8>(Level)]),
-               now->tm_hour, now->tm_min, now->tm_sec, __FILE__, __LINE__, msgBuff);
+        printf("[%s] %d:%d:%d %s:%d - %s\n", (LOG_LEVEL_NAMES[static_cast<u8>(InLevel)]),
+               now->tm_hour, now->tm_min, now->tm_sec, InFile, InLine, msgBuff);
     }
 } // namespace lucid
