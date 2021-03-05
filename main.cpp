@@ -69,9 +69,7 @@ int main(int argc, char** argv)
     gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
 
     // Load textures uesd in the demo scene
-
-    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh(String {"assets\\models\\backpack\\"}, String
-    // {"backpack.obj"});
+    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh(String {"assets\\models\\backpack\\"}, String { LUCID_TEXT("backpack.obj") });
 
     resources::TextureResource* brickWallDiffuseMapResource =
       resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall.jpg") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
@@ -127,9 +125,7 @@ int main(int argc, char** argv)
     gpu::Shader* flatShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("FlatShadowMap") }, String{ LUCID_TEXT("shaders/glsl/flat.vert") },String{ LUCID_TEXT("shaders/glsl/flat.frag") }, EMPTY_STRING);
 
     // Prepare the scene
-
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
-    gpu::Viewport framebufferViewort{ 0, 0, 400, 300 };
 
     scene::Camera perspectiveCamera{ scene::CameraMode::PERSPECTIVE };
     perspectiveCamera.AspectRatio = window->GetAspectRatio();
@@ -213,7 +209,7 @@ int main(int argc, char** argv)
     gigaCube.Material = &woodMaterial;
     gigaCube.bReverseNormals = true;
 
-    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable(DString { "MyMesh" }, backPackMesh);
+    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable( CopyToString(LUCID_TEXT("MyMesh"), 6), backPackMesh);
     // backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
     // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 

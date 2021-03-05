@@ -66,7 +66,7 @@ namespace lucid::resources
     // Diffuse and specular maps should be stored in JPEG, wheras normal maps
     // should be stored in PNG
 
-    MeshResource* AssimpLoadMesh(const String& DirectoryPath, const String& MeshFileName);
+    MeshResource* AssimpLoadMesh(const ANSIString& DirectoryPath, const ANSIString& MeshFileName);
 
     extern ResourcesHolder<MeshResource> MeshesHolder;
 } // namespace lucid::resources
