@@ -13,7 +13,7 @@ namespace lucid::gpu
 
 namespace lucid::scene
 {
-    class RenderScene;
+    struct RenderScene;
 
     enum class LightType : u8
     {

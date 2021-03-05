@@ -28,7 +28,7 @@ namespace lucid::platform
 
     HANDLE* DirectoryChangedHandles;
     
-    i8 AddDirectoryListener(const String& InDirectoryPath, DirectoryChangedListener InListener)
+    i8 AddDirectoryListener(const ANSIString& InDirectoryPath, DirectoryChangedListener InListener)
     {
         // There is already an entry for this directory, let's just add a listener to it
         if(shgeti(HandleByDirectoryPath, *InDirectoryPath) != -1)
@@ -64,7 +64,7 @@ namespace lucid::platform
         return 0;
     }
 
-    void RemoveDirectoryListener(const String& InDirectoryPath, DirectoryChangedListener InListener)
+    void RemoveDirectoryListener(const ANSIString& InDirectoryPath, DirectoryChangedListener InListener)
     {
         if(shgeti(HandleByDirectoryPath, *InDirectoryPath) == -1)
         {
@@ -124,24 +124,13 @@ namespace lucid::platform
         }
     }
 
-    i8 ExecuteCommand(const String& InCommand, const StaticArray<String>& Args)
+    i8 ExecuteCommand(const ANSIString& InCommand)
     {
-        DString CommandToExecute = InCommand.ToDString();
-
-        for (int i = 0; i < Args.Length; ++i)
+        if(system(*InCommand) != 0)
         {
-            CommandToExecute.Append(" ");
-            CommandToExecute.Append(*Args[i]);
+            LUCID_LOG(LogLevel::WARN, "[platform-windows] system function failed with error code %d", GetLastError());
+            return -1;
         }
-       
-        if(system(*CommandToExecute) == 0)
-        {
-            CommandToExecute.Free();
-            return 0;
-        }
-
-        CommandToExecute.Free();
-        LUCID_LOG(LogLevel::WARN, "[platform-windows] system function failed with error code %d", GetLastError());
         return -1;
     }
     

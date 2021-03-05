@@ -10,8 +10,8 @@ namespace lucid::gpu
     struct UniformVariable
     {
         GLint Location = 0;
-        String Name { "" };
-        Type VariableType = Type::UNSUPPORTED;
+        DString Name { "" };
+        Type Type = Type::UNSUPPORTED;
     };
 
     struct TextureBinding : UniformVariable
@@ -23,10 +23,10 @@ namespace lucid::gpu
     class GLShader : public Shader
     {
       public:
-        GLShader(const String& InName,
+        GLShader(const ANSIString& InName,
                  const GLuint& GLShaderID,
-                 StaticArray<UniformVariable> UniformVariables,
-                 StaticArray<TextureBinding> TextureBindings,
+                 Array<UniformVariable> UniformVariables,
+                 Array<TextureBinding> TextureBindings,
                  const bool& WarnMissingUniforms);
 
         virtual void Use() override;
@@ -35,21 +35,22 @@ namespace lucid::gpu
 
         virtual void Disable() override;
 
-        virtual void SetInt(const String& Name, const u32& Value) override;
-        virtual void SetFloat(const String& Name, const float& Value) override;
-        virtual void SetBool(const String& Name, const bool& Value) override;
+        virtual void SetInt(const ANSIString& InUniformName, const u32& Value) override;
+        virtual void SetFloat(const ANSIString& InUniformName, const float& Value) override;
+        virtual void SetBool(const  ANSIString& InUniformName, const bool& Value) override;
 
-        virtual void SetVector(const String& Name, const glm::vec2& Value) override;
-        virtual void SetVector(const String& Name, const glm::vec3& Value) override;
-        virtual void SetVector(const String& Name, const glm::vec4& Value) override;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::vec2& Value) override;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::vec3& Value) override;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::vec4& Value) override;
 
-        virtual void SetVector(const String& Name, const glm::ivec2& Value) override;
-        virtual void SetVector(const String& Name, const glm::ivec3& Value) override;
-        virtual void SetVector(const String& Name, const glm::ivec4& Value) override;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::ivec2& Value) override;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::ivec3& Value) override;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::ivec4& Value) override;
 
-        virtual void SetMatrix(const String& Name, const glm::mat4& Value) override;
+        virtual void SetMatrix(const ANSIString& InUniformName, const glm::mat4& Value) override;
 
-        virtual void UseTexture(const String& Name, Texture* TextureToUse) override;
+        virtual void UseTexture(const ANSIString& InUniformName, Texture* TextureToUse) override;
+        
         virtual void RestoreTextureBindings() override;
         
         virtual void AddBinding(BufferBinding* Binding) override;
@@ -57,8 +58,8 @@ namespace lucid::gpu
 #ifndef NDEBUG
         void ReloadShader(Shader* RecompiledShader) override;
 #endif
-        u32 GetIdForUniform(const String& Name) const;
-        u32 GetTextureId(const String& Name) const;
+        u32 GetIdForUniform(const ANSIString& InUniformName) const;
+        u32 GetTextureId(const ANSIString& InUniformName) const;
 
         virtual void Free() override;
         
@@ -68,8 +69,8 @@ namespace lucid::gpu
 
         GLuint glShaderID;
 
-        StaticArray<UniformVariable> uniformVariables;
-        StaticArray<TextureBinding> textureBindings;
+        Array<UniformVariable> uniformVariables;
+        Array<TextureBinding> textureBindings;
         LinkedList<BufferBinding> buffersBindings;
         bool warnMissingUniforms;
     };

@@ -22,7 +22,7 @@ GLenum GL_DRAW_MODES[] = { GL_POINTS,
 
 namespace lucid::gpu
 {
-    VertexArray* CreateVertexArray(StaticArray<VertexAttribute>* VertexArrayAttributes,
+    VertexArray* CreateVertexArray(Array<VertexAttribute>* VertexArrayAttributes,
                                    Buffer* VertexBuffer,
                                    Buffer* ElementBuffer,
                                    const DrawMode& DrawMode,
@@ -43,7 +43,7 @@ namespace lucid::gpu
         if (ElementBuffer != nullptr)
             ElementBuffer->Bind(BufferBindPoint::ELEMENT);
 
-        for (u32 attrIdx = 0; attrIdx < VertexArrayAttributes->Length; ++attrIdx)
+        for (u32 attrIdx = 0; attrIdx < VertexArrayAttributes->GetLength(); ++attrIdx)
         {
             VertexAttribute* vertexAttribute = (*VertexArrayAttributes)[attrIdx];
 
@@ -73,9 +73,10 @@ namespace lucid::gpu
         return vertexArray;
     }
 
+#ifdef LINUX
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
-
+#endif
     void GLVertexArray::AddVertexAttribute(const VertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);

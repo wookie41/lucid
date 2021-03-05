@@ -81,30 +81,30 @@ namespace lucid::resources
 
     static MeshSize calculateMeshDataSize(aiNode* Node, const aiScene* Scene);
 
-    static void loadAssimpNode(const String& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData);
+    static void loadAssimpNode(const ANSIString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData);
 
-    static void loadAssimpMesh(const String& DirectoryPath, aiMesh* mesh, const aiScene* scene, MeshCPUData& meshData);
+    static void loadAssimpMesh(const ANSIString& DirectoryPath, aiMesh* mesh, const aiScene* scene, MeshCPUData& meshData);
 
-    static u32 determineMeshFeatures(const aiScene* Root);
+    static u32 DetermineMeshFeatures(const aiScene* Root);
 
     MeshGPUData sendMeshToGPU(const u32& Features, const MeshCPUData& MeshData);
 
-    static TextureResource* loadMaterialTexture(const String& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
+    static TextureResource* loadMaterialTexture(const ANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
 
-    MeshResource* AssimpLoadMesh(const String& DirectoryPath, const String& MeshFileName)
+    MeshResource* AssimpLoadMesh(const ANSIString& DirectoryPath, const ANSIString& MeshFileName)
     {
         // read mesh file
-        DString MeshFilePath = DirectoryPath.ToDString();
+        DString MeshFilePath = CopyToString(*DirectoryPath, DirectoryPath.GetLength());
         MeshFilePath.Append(MeshFileName);
         
 #ifndef NDEBUG
         auto start = platform::GetCurrentTimeSeconds();
 #endif
-        const aiScene* root = assimpImporter.ReadFile(*MeshFilePath, ASSIMP_DEFAULT_FLAGS);
+        const aiScene* Root = assimpImporter.ReadFile(*MeshFilePath, ASSIMP_DEFAULT_FLAGS);
 
         LUCID_LOG(LogLevel::INFO, "Reading mesh with assimp %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 
-        if (!root || root->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !root->mRootNode)
+        if (!Root || Root->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !Root->mRootNode)
         {
             LUCID_LOG(LogLevel::WARN, "Assimp failed to load model %s", assimpImporter.GetErrorString())
             MeshFilePath.Free();
@@ -113,19 +113,18 @@ namespace lucid::resources
 
         // allocate main memory for the mesh
 
-        MeshSize meshDataSize = calculateMeshDataSize(root->mRootNode, root);
+        MeshSize MeshDataSize = calculateMeshDataSize(Root->mRootNode, Root);
 
-        MemBuffer vertexDataBuffer = CreateMemBuffer(meshDataSize.VertexDataSize);
-        MemBuffer elementDataBuffer =
-          meshDataSize.ElementDataSize > 0 ? CreateMemBuffer(meshDataSize.ElementDataSize) : MemBuffer{ nullptr, 0, 0 };
+        MemBuffer VertexDataBuffer = CreateMemBuffer(MeshDataSize.VertexDataSize);
+        MemBuffer ElementDataBuffer = MeshDataSize.ElementDataSize > 0 ? CreateMemBuffer(MeshDataSize.ElementDataSize) : MemBuffer{ nullptr, 0, 0 };
 
-        MeshCPUData meshData{ vertexDataBuffer, elementDataBuffer, 0, 0 };
+        MeshCPUData meshData{ VertexDataBuffer, ElementDataBuffer, 0, 0 };
 
         // load the assimp node //
 
         start = platform::GetCurrentTimeSeconds();
 
-        loadAssimpNode(DirectoryPath, root->mRootNode, root, meshData);
+        loadAssimpNode(DirectoryPath, Root->mRootNode, Root, meshData);
 
         LUCID_LOG(LogLevel::INFO, "Vertex data  %u/%u, element data %u/%u", meshData.VertexBuffer.Length,
                   meshData.VertexBuffer.Capacity, meshData.ElementBuffer.Length, meshData.ElementBuffer.Capacity);
@@ -133,32 +132,30 @@ namespace lucid::resources
 #ifndef NDEBUG
         LUCID_LOG(LogLevel::INFO, "Loading mesh %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 #endif
-        u32 meshFeatures = determineMeshFeatures(root);
+        u32 MeshFeatures = DetermineMeshFeatures(Root);
 
         // load the material //
+        aiMaterial* Material = Root->mMaterials[1]; // we require the texture atlases to be stored in the root node
 
-        aiString textureFilePath;
-        aiMaterial* material = root->mMaterials[1]; // we require the texture atlases to be stored in the root node
-
-        TextureResource* diffuseMap = nullptr;
-        TextureResource* specularMap = nullptr;
-        TextureResource* normalMap = nullptr;
+        TextureResource* DiffuseMap = nullptr;
+        TextureResource* SpecularMap = nullptr;
+        TextureResource* NormalMap = nullptr;
 
         start = platform::GetCurrentTimeSeconds();
 
-        if (material->GetTextureCount(aiTextureType_DIFFUSE))
+        if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            diffuseMap = loadMaterialTexture(DirectoryPath, material, aiTextureType_DIFFUSE, false);
+            DiffuseMap = loadMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE, false);
         }
 
-        if (material->GetTextureCount(aiTextureType_DIFFUSE))
+        if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            specularMap = loadMaterialTexture(DirectoryPath, material, aiTextureType_SPECULAR, false);
+            SpecularMap = loadMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, false);
         }
 
-        if (material->GetTextureCount(aiTextureType_DIFFUSE))
+        if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            normalMap = loadMaterialTexture(DirectoryPath, material, aiTextureType_HEIGHT, false);
+            NormalMap = loadMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, false);
         }
 #ifndef NDEBUG
         LUCID_LOG(LogLevel::INFO, "Loading textures %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
@@ -168,17 +165,17 @@ namespace lucid::resources
         // send the data to the gpu
         start = platform::GetCurrentTimeSeconds();
 
-        MeshGPUData meshGPUData = sendMeshToGPU(meshFeatures, meshData);
+        MeshGPUData meshGPUData = sendMeshToGPU(MeshFeatures, meshData);
 
 #ifndef NDEBUG
 
         LUCID_LOG(LogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 #endif
 
-        return new MeshResource{ meshFeatures,
-                                 diffuseMap,
-                                 specularMap,
-                                 normalMap,
+        return new MeshResource{ MeshFeatures,
+                                 DiffuseMap,
+                                 SpecularMap,
+                                 NormalMap,
                                  meshGPUData.VAO,
                                  meshGPUData.VertexBuffer,
                                  meshGPUData.ElementBuffer,
@@ -232,7 +229,7 @@ namespace lucid::resources
         return meshSize;
     }
 
-    static u32 determineMeshFeatures(const aiScene* Root)
+    static u32 DetermineMeshFeatures(const aiScene* Root)
     {
         u32 meshFeatures = 0;
 
@@ -254,7 +251,7 @@ namespace lucid::resources
         return meshFeatures;
     }
 
-    static void loadAssimpNode(const String& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData)
+    static void loadAssimpNode(const ANSIString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData)
     {
         // process each mesh located at the current node
         for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
@@ -271,7 +268,7 @@ namespace lucid::resources
         }
     }
 
-    void loadAssimpMesh(const String& DirectoryPath, aiMesh* Mesh, const aiScene* Scene, MeshCPUData& MeshData)
+    void loadAssimpMesh(const ANSIString& DirectoryPath, aiMesh* Mesh, const aiScene* Scene, MeshCPUData& MeshData)
     {
         uint32_t currentTotalElementCount = MeshData.VertexCount;
 
@@ -338,12 +335,11 @@ namespace lucid::resources
     }
 
     static TextureResource*
-    loadMaterialTexture(const String& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
+    loadMaterialTexture(const ANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
     {
         aiString TextureFileName;
         Material->GetTexture(TextureType, 0, &TextureFileName);
-
-        DString TexturePath = DirectoryPath.ToDString();
+        DString TexturePath = CopyToString(*DirectoryPath, DirectoryPath.GetLength());
         TexturePath.Append(TextureFileName.C_Str(), TextureFileName.length);
         
         if (TexturesHolder.Contains(*TexturePath))
@@ -351,19 +347,22 @@ namespace lucid::resources
             return TexturesHolder.Get(*TexturePath);
         }
 
-        auto textureMap = IsPNGFormat ? LoadPNG(*TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true) : LoadJPEG(*TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
-        if (textureMap == nullptr)
+        TextureResource* Texture = IsPNGFormat ?
+            LoadPNG(TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true) :
+            LoadJPEG(TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+        
+        if (Texture == nullptr)
         {
-            textureMap = TexturesHolder.GetDefaultResource();
+            Texture = TexturesHolder.GetDefaultResource();
         }
         else
         {
-            TexturesHolder.Add(*TexturePath, textureMap);
+            TexturesHolder.Add(*TexturePath, Texture);
         }
 
         TexturePath.Free();
 
-        return textureMap;
+        return Texture;
     }
 
     MeshGPUData sendMeshToGPU(const uint32_t& Features, const MeshCPUData& MeshData)
@@ -421,7 +420,7 @@ namespace lucid::resources
             currentOffset += sizeof(glm::vec2);
         }
 
-        StaticArray<gpu::VertexAttribute> attributes(numOfAttribues);
+        Array<gpu::VertexAttribute> attributes(numOfAttribues);
         attributes.Add({ 0, 3, Type::FLOAT, false, stride, 0, 0 });
 
         uint32_t attributeIdx = 1;

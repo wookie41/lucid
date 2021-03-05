@@ -14,10 +14,10 @@ namespace lucid::gpu
 
     void ReloadShaders();
 
-    Shader* ShadersManager::CompileShader(const String& ShaderName,
-                                          const String& VertexShaderPath,
-                                          const String& FragmentShaderPath,
-                                          const String& GeometryShaderPath,
+    Shader* ShadersManager::CompileShader(const ANSIString& ShaderName,
+                                          const ANSIString& VertexShaderPath,
+                                          const ANSIString& FragmentShaderPath,
+                                          const ANSIString& GeometryShaderPath,
                                           const bool& ShouldStoreShader)
     {
         DString VertexShaderSource = platform::ReadFile(VertexShaderPath, true);
@@ -53,10 +53,13 @@ namespace lucid::gpu
             return nullptr;
         }
 
-        Shader* CompiledShader = gpu::CompileShaderProgram(ShaderName, *VertexShaderSource, *FragmentShaderSource,
-                                                           GeometryShaderSource.GetLength()
-                                                               ? *GeometryShaderSource
-                                                               : nullptr);
+        Shader* CompiledShader = gpu::CompileShaderProgram(
+            ShaderName,
+            VertexShaderSource,
+            FragmentShaderSource,
+            GeometryShaderSource
+        );
+        
         if (CompiledShader == nullptr)
         {
             VertexShaderSource.Free();
@@ -67,10 +70,13 @@ namespace lucid::gpu
 
         if (ShouldStoreShader)
         {
-            const ShaderInstanceInfo ShaderInstanceInfo{
-                CompiledShader, VertexShaderPath, FragmentShaderPath, GeometryShaderPath
+            const ShaderInstanceInfo ShaderInstanceInfo {
+                CompiledShader,
+                CopyToString(*VertexShaderPath, VertexShaderPath.GetLength()),
+                CopyToString(*FragmentShaderPath, FragmentShaderPath.GetLength()),
+                CopyToString(*GeometryShaderPath, GeometryShaderPath.GetLength())
             };
-            arrput(CompiledShaders, ShaderInstanceInfo);
+            CompiledShaders.Add(ShaderInstanceInfo);
         }
 
         return CompiledShader;
@@ -78,28 +84,28 @@ namespace lucid::gpu
 
     void ShadersManager::EnableHotReload()
     {
-        platform::AddDirectoryListener("shaders/glsl/base", ReloadShaders);
+        platform::AddDirectoryListener(BaseShadersPath, ReloadShaders);
     }
 
     void ShadersManager::DisableHotReload()
     {
-        platform::RemoveDirectoryListener("shaders/glsl/base", ReloadShaders);
+        platform::RemoveDirectoryListener(BaseShadersPath, ReloadShaders);
     }
 
     void ReloadShaders()
     {
-        platform::ExecuteCommand("sh tools\\preprocess_shaders.sh", {0});
+        platform::ExecuteCommand(String { LUCID_TEXT("sh tools\\preprocess_shaders.sh") });
 
-        for (int i = 0; i < arrlen(GShadersManager.CompiledShaders); ++i)
+        for (u32 i = 0; i < GShadersManager.CompiledShaders.GetLength(); ++i)
         {
-            const ShaderInstanceInfo& ShaderInfo = GShadersManager.CompiledShaders[i];
-            Shader* RecompiledShader = GShadersManager.CompileShader(ShaderInfo.Shader->GetName(),
-                                                                     ShaderInfo.VertexShaderPath,
-                                                                     ShaderInfo.FragmentShaderPath,
-                                                                     ShaderInfo.GeometryShaderPath, false);
+            const ShaderInstanceInfo* ShaderInfo = GShadersManager.CompiledShaders[i];
+            Shader* RecompiledShader = GShadersManager.CompileShader(ShaderInfo->Shader->GetName(),
+                                                                     ShaderInfo->VertexShaderPath,
+                                                                     ShaderInfo->FragmentShaderPath,
+                                                                     ShaderInfo->GeometryShaderPath, false);
             if (RecompiledShader)
             {
-                ShaderInfo.Shader->ReloadShader(RecompiledShader);
+                ShaderInfo->Shader->ReloadShader(RecompiledShader);
                 delete RecompiledShader;
             }
         }

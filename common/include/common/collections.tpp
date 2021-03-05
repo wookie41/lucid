@@ -8,78 +8,72 @@
 namespace lucid
 {
     template <typename T>
-    StaticArray<T>::StaticArray(const u32& ArrayCapacity)
+    Array<T>::Array(const u32& InCapacity, const bool& InAutoResize, const u8& InResizeFactor)
     {
-        Capacity = ArrayCapacity;
-        SizeInBytes = sizeof(T) * ArrayCapacity;
-        Array = (T*)malloc(SizeInBytes);
-        Zero(Array, SizeInBytes);
-    }
-    
-    template <typename T>
-    T* StaticArray<T>::operator[](const u32& Index) const
-    {
-        assert(Index < Length);
-        return Array + Index;
-    }
-
-    
-    template <typename T>
-    void StaticArray<T>::Add(const T& Element)
-    {
-        assert(Length < Capacity);
-        Array[Length++] = Element;
+        Capacity = InCapacity;
+        AutoResize = InAutoResize;
+        ResizeFactor = InResizeFactor;
+        ArrayPointer = (T*)malloc(sizeof(T) * Capacity);
     }
 
     template <typename T>
-    void StaticArray<T>::Free()
+    T* Array<T>::operator[](const u32& InIndex) const
     {
-        free(Array);
+        assert(InIndex < Length);
+        return ArrayPointer + InIndex;
+    }
+    
+    template <typename T>
+    void Array<T>::Add(const T& Element)
+    {
+        if (Length == Capacity)
+        {
+            if (AutoResize)
+            {
+                u32 NewCapacity = Capacity * ResizeFactor;
+                T* NewArray = (T*)CopyBytes((const char*)ArrayPointer, GetSizeInBytes(), sizeof(T) * NewCapacity);
+                free(ArrayPointer);
+                ArrayPointer = NewArray;
+                Capacity = NewCapacity;
+            }
+            else    
+            {
+                assert(Length < Capacity);            
+            }            
+        }
+        ArrayPointer[Length++] = Element;
+    }
+
+    template <typename T>
+    void Array<T>::Free()
+    {
+        free(ArrayPointer);
         Capacity = -1;
         Length = -1;
     }
 
     template <typename T>
-    void StaticArray<T>::Resize(const u32& NewCapacity)
+    Array<T>::operator void*() const
     {
-        int newArraySize = sizeof(T) * NewCapacity;
-        T* newArray = (T*)malloc(newArraySize);
-        Zero(newArray, newArraySize);
-        memcpy(newArray, Array, sizeof(T) * Length);
-        free(Array);
-        Array = newArray;
-        Capacity = NewCapacity;
+        return ArrayPointer;
     }
 
     template <typename T>
-    StaticArray<T>::operator T*() const
-    {
-        return Array;
-    }
-
-    template <typename T>
-    StaticArray<T>::operator void*() const
-    {
-        return Array;
-    }
-
-    template <typename T>
-    StaticArray<T>& StaticArray<T>::operator=(const StaticArray& Rhs)
+    Array<T>& Array<T>::operator=(const Array& Rhs)
     {
         Length = Rhs.Length;
         Capacity = Rhs.Capacity;
-        SizeInBytes = Rhs.SizeInBytes;
-        Array = Rhs.Array;
+        ArrayPointer = Rhs.ArrayPointer;
         return *this;
     }
 
     template <typename T>
-    StaticArray<T> StaticArray<T>::Copy() const
+    Array<T> Array<T>::Copy() const
     {
-        StaticArray<T> newArray(Length);
-        memcpy(newArray.Array, Array, newArray.SizeInBytes);
-        newArray.Length = Length;
-        return newArray;
+        Array<T> NewArray  { Length, AutoResize, ResizeFactor };
+        memcpy(NewArray.ArrayPointer, ArrayPointer, GetSizeInBytes());
+        NewArray.Length = Length;
+        return NewArray;
     }
 
     template <typename T>

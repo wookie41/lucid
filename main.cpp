@@ -70,24 +70,25 @@ int main(int argc, char** argv)
 
     // Load textures uesd in the demo scene
 
-    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh(String {"assets\\models\\backpack\\"}, String {"backpack.obj"});
+    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh(String {"assets\\models\\backpack\\"}, String
+    // {"backpack.obj"});
 
     resources::TextureResource* brickWallDiffuseMapResource =
-      resources::LoadJPEG("assets/textures/brickwall.jpg", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
-    resources::TextureResource* brickWallNormalMapResource =
-      resources::LoadJPEG("assets/textures/brickwall_normal.jpg", false, gpu::TextureDataType::UNSIGNED_BYTE, true);
+      resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall.jpg") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG(
+      String{ LUCID_TEXT("assets/textures/brickwall_normal.jpg") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
     resources::TextureResource* woodDiffuseMapResource =
-      resources::LoadJPEG("assets/textures/wood.png", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+      resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/wood.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
     resources::TextureResource* blankTextureResource =
-      resources::LoadPNG("assets/textures/blank.png", true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+      resources::LoadPNG(String{ LUCID_TEXT("assets/textures/blank.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
     resources::TextureResource* toyboxNormalMapResource =
-      resources::LoadJPEG("assets/textures/toy_box_normal.png", false, gpu::TextureDataType::UNSIGNED_BYTE, true);
+      resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/toy_box_normal.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
     resources::TextureResource* toyBoxDisplacementMapResource =
-      resources::LoadPNG("assets/textures/toy_box_disp.png", false, gpu::TextureDataType::UNSIGNED_BYTE, true);
+      resources::LoadPNG(String{ LUCID_TEXT("assets/textures/toy_box_disp.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
     {
         auto texture = toyBoxDisplacementMapResource->TextureHandle;
@@ -117,12 +118,13 @@ int main(int argc, char** argv)
 
     // Load and compile demo shaders
     gpu::GShadersManager.EnableHotReload();
-    gpu::Shader* blinnPhongShader = gpu::GShadersManager.CompileShader("BlinnPhong","shaders/glsl/fwd_blinn_phong.vert", "shaders/glsl/fwd_blinn_phong.frag" , EMPTY_STRING);
-    gpu::Shader* blinnPhongMapsShader = gpu::GShadersManager.CompileShader("BlinnPhongMaps","shaders/glsl/fwd_blinn_phong_maps.vert", "shaders/glsl/fwd_blinn_phong_maps.frag", EMPTY_STRING);
-    gpu::Shader* skyboxShader = gpu::GShadersManager.CompileShader("Skybox","shaders/glsl/skybox.vert", "shaders/glsl/skybox.frag", EMPTY_STRING);
-    gpu::Shader* shadowMapShader = gpu::GShadersManager.CompileShader("ShadowMapper" , "shaders/glsl/shadow_map.vert" ,  "shaders/glsl/empty.frag", EMPTY_STRING);
-    gpu::Shader* shadowCubemapShader = gpu::GShadersManager.CompileShader( "ShadowCubeMapper" ,  "shaders/glsl/shadow_cubemap.vert",  "shaders/glsl/shadow_cubemap.frag"  ,  "shaders/glsl/shadow_cubemap.geom" );
-    gpu::Shader* flatShader = gpu::GShadersManager.CompileShader("flatShader"  , "shaders/glsl/flat.vert",  "shaders/glsl/flat.frag" , EMPTY_STRING);
+
+    gpu::Shader* BlinnPhongShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("BlinnPhong") }, String{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong.vert") },String{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong.frag") }, EMPTY_STRING);
+    gpu::Shader* BlinnPhongMapsShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("BlinnPhongMaps") }, String{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong_maps.vert") },String{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong_maps.frag") }, EMPTY_STRING);
+    gpu::Shader* SkyboxShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("Skybox") }, String{ LUCID_TEXT("shaders/glsl/skybox.vert") },String{ LUCID_TEXT("shaders/glsl/skybox.frag") }, EMPTY_STRING);
+    gpu::Shader* ShadowMapShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("ShadowMap") }, String{ LUCID_TEXT("shaders/glsl/shadow_map.vert") },String{ LUCID_TEXT("shaders/glsl/empty.frag") }, EMPTY_STRING);
+    gpu::Shader* ShadowCubemapShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("CubeShadowMap") }, String{ LUCID_TEXT("shaders/glsl/shadow_cubemap.vert") },String{ LUCID_TEXT("shaders/glsl/shadow_cubemap.frag") }, String{ LUCID_TEXT("shaders/glsl/shadow_cubemap.geom") });
+    gpu::Shader* flatShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("FlatShadowMap") }, String{ LUCID_TEXT("shaders/glsl/flat.vert") },String{ LUCID_TEXT("shaders/glsl/flat.frag") }, EMPTY_STRING);
 
     // Prepare the scene
 
@@ -135,7 +137,7 @@ int main(int argc, char** argv)
     perspectiveCamera.Yaw = -90.f;
     perspectiveCamera.UpdateCameraVectors();
 
-    scene::ForwardBlinnPhongRenderer renderer{ 32, blinnPhongMapsShader, skyboxShader };
+    scene::ForwardBlinnPhongRenderer renderer{ 32, BlinnPhongMapsShader, SkyboxShader };
     renderer.AmbientStrength = 0.05;
     renderer.NumSamplesPCF = 20;
 
@@ -171,7 +173,7 @@ int main(int argc, char** argv)
     flatBlinnPhongMaterial.DiffuseColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.Shininess = 32;
-    flatBlinnPhongMaterial.SetCustomShader(blinnPhongShader);
+    flatBlinnPhongMaterial.SetCustomShader(BlinnPhongShader);
 
     scene::Renderable woodenFloor{ DString{ "woodenFloor" } };
     woodenFloor.Material = &woodMaterial;
@@ -315,13 +317,13 @@ int main(int argc, char** argv)
     sceneToRender.StaticGeometry.Add(&blueLightCube);
     sceneToRender.StaticGeometry.Add(&redPointLightCube);
 
-    StaticArray<String> SkyboxFacesPaths { 6 };
-    SkyboxFacesPaths.Add("assets/skybox/right.jpg");
-    SkyboxFacesPaths.Add("assets/skybox/left.jpg");
-    SkyboxFacesPaths.Add("assets/skybox/top.jpg");
-    SkyboxFacesPaths.Add("assets/skybox/bottom.jpg");
-    SkyboxFacesPaths.Add("assets/skybox/front.jpg");
-    SkyboxFacesPaths.Add("assets/skybox/back.jpg");
+    Array<String> SkyboxFacesPaths{ 6 };
+    SkyboxFacesPaths.Add(String { LUCID_TEXT("assets/skybox/right.jpg") });
+    SkyboxFacesPaths.Add(String { LUCID_TEXT("assets/skybox/left.jpg") });
+    SkyboxFacesPaths.Add(String { LUCID_TEXT("assets/skybox/top.jpg") });
+    SkyboxFacesPaths.Add(String { LUCID_TEXT("assets/skybox/bottom.jpg") });
+    SkyboxFacesPaths.Add(String { LUCID_TEXT("assets/skybox/front.jpg") });
+    SkyboxFacesPaths.Add(String { LUCID_TEXT("assets/skybox/back.jpg") });
 
     scene::Skybox skybox = scene::CreateSkybox(SkyboxFacesPaths);
     sceneToRender.SceneSkybox = &skybox;
@@ -390,19 +392,19 @@ int main(int argc, char** argv)
 
         gpu::DisableSRGBFramebuffer();
         shadowCastingLight.UpdateLightSpaceMatrix();
-        shadowCastingLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+        shadowCastingLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowMapShader, true, true);
 
         redLight.UpdateLightSpaceMatrix();
-        redLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+        redLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowMapShader, true, true);
 
         greenLight.UpdateLightSpaceMatrix();
-        greenLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+        greenLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowMapShader, true, true);
 
         blueLight.UpdateLightSpaceMatrix();
-        blueLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowMapShader, true, true);
+        blueLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowMapShader, true, true);
 
         redPointLight.UpdateLightSpaceMatrix();
-        redPointLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, shadowCubemapShader, true, true);
+        redPointLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowCubemapShader, true, true);
 
         // Render to off-screen framebuffer
         renderTarget.Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);

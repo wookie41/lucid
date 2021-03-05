@@ -25,7 +25,7 @@ namespace lucid::scene
 
     struct Renderable
     {
-        Renderable(const DString& InName) : Name(InName) {}
+        explicit Renderable(const DString& InName) : Name(InName) {}
         Renderable(const DString& InName, const Renderable& rhs) : Name(InName)
         {
             Type = rhs.Type;

@@ -81,7 +81,7 @@ namespace lucid::misc
 
         gpu::Buffer* QuadVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::BufferUsage::STATIC);
 
-        StaticArray<gpu::VertexAttribute> quadAttributes(4);
+        Array<gpu::VertexAttribute> quadAttributes(4);
         quadAttributes.Add({ 0, 3, Type::FLOAT, false, sizeof(float) * 11, 0, 0 });
         quadAttributes.Add({ 1, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 3), 0 });
         quadAttributes.Add({ 2, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });
@@ -105,7 +105,7 @@ namespace lucid::misc
 
         gpu::Buffer* VertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::BufferUsage::STATIC);
 
-        StaticArray<gpu::VertexAttribute> cubeAttributes(4);
+        Array<gpu::VertexAttribute> cubeAttributes(4);
         cubeAttributes.Add({ 0, 3, Type::FLOAT, false, sizeof(float) * 11, 0, 0 });
         cubeAttributes.Add({ 1, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 3), 0 });
         cubeAttributes.Add({ 2, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });

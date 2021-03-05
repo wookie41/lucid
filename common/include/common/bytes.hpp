@@ -18,5 +18,7 @@ namespace lucid
         u32 Length = 0;
     };
 
+    void* CopyBytes(const char* InToCopy, const u64& InCount, const u64& BufferSize = 0); 
+
     MemBuffer CreateMemBuffer(const u32& BufferCapacity);
 } // namespace lucid

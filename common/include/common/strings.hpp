@@ -1,58 +1,62 @@
 #pragma once
 
+#include "bytes.hpp"
 #include "common/types.hpp"
 namespace lucid
 {
-    struct String;
+
+    /** Macro which in future will handle cross-platform UTF-16 */
+    #define LUCID_TEXT(text) text
 
     /**
-     * Dynamic string - strings allocated at runtime that can be changed/freed
-     * We'll need to implement a string area for them later
+     * Base ANSI string providing a common interface for ANSI string usage
      */
-    struct DString
+    struct ANSIString
     {
-        DString(char* InCString, const u32& InLength, const u64& InHash);
-        DString(char* InCString);
-        
-        void Append(const String& InStr);
-        void Append(const char* InStr, const u32& InLength);
+        explicit ANSIString(char* InCString, const u32& InLength = 0);
 
-        char operator[](const u64& Index) const;
-        inline bool operator==(const DString& rhs) const { return Hash == rhs.Hash; };
-        const char* operator*() const { return CString; }
+        char operator[](const u32& InIndex) const;
+        const char* operator*() const { return CString; } 
 
+        inline bool operator==(const ANSIString& InRhs) const { return Hash == InRhs.Hash; };
         inline u32 GetLength() const { return Length; }
         inline u64 GetHash() const { return Hash; }
 
-        void Free();
+        virtual ~ANSIString() = default;
 
+    protected:
         
-      private:
+        void UpdateLengthAndCalculateHash(const u32& InLength = 0);
+
         char* CString;
         u64 Hash;
         u32 Length; // doesn't include the null terminator
     };
-
-    struct String
+    
+    /**
+     * ANSI Null-terminated dynamic string - strings allocated at runtime that can be changed/freed
+     */
+    struct DString : public ANSIString
     {
-        // Static string - buffers, compile-time strings that don't get freed
-        String(const char* InCString, const u32& InLength = 0);
+        explicit DString(char* InCString, const u32& InLength = 0);
+        
+        void Append(const ANSIString& InString);
+        void Append(const char* InString, const u64& InStringLength);
+        
+        void Free();
+    };
 
-        const char* operator*() const { return CString; }
-        char operator[](const u64& Index) const;
-        inline bool operator==(const String& rhs) const { return Hash == rhs.Hash; }
-        inline u64 GetHash() const { return Hash; }
-        inline u32 GetLength() const { return Length; };
-        DString ToDString() const;
+    /**
+     * ANSI Null-terminated static string - buffers, compile-time strings that don't get freed
+     */
+    struct String : public ANSIString
+    {
+        explicit String(char* InCString, const u32& InLength = 0);
 
-      private:
-        const char* CString;
-        u64 Hash;
-        u32 Length; // doesn't include the null terminator
+        DString CopyToDynamicString() const;
     };
     
-    // StrLen without null terminator
-    String CopyToString(char const* InToCopy, const u32& InStrLen = 0);
+    DString CopyToString(char const* InToCopy, const u32& InStringLength);
 
     extern String EMPTY_STRING;
 } // namespace lucid

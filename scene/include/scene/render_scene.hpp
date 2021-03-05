@@ -15,7 +15,7 @@ namespace lucid::scene
     // use the provided scene information to render the scene in their own specific way
 
     class Light;
-    class Renderable;
+    struct Renderable;
 
     // Skybox
 
@@ -24,7 +24,7 @@ namespace lucid::scene
         gpu::Cubemap* SkyboxCubemap = nullptr;
     };
 
-    Skybox CreateSkybox(const StaticArray<String>& InSkyboxFacesPaths);
+    Skybox CreateSkybox(const Array<String>& InSkyboxFacesPaths);
 
     ////////////////////////////////////////////////////////////
 

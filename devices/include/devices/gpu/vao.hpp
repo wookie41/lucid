@@ -67,7 +67,7 @@ namespace lucid::gpu
         virtual ~VertexArray() = default;
     };
 
-    VertexArray* CreateVertexArray(StaticArray<VertexAttribute>* VertexArrayAttributes,
+    VertexArray* CreateVertexArray(Array<VertexAttribute>* VertexArrayAttributes,
                                    Buffer* VertexBuffer,
                                    Buffer* ElementBuffer,
                                    const DrawMode& DrawMode,

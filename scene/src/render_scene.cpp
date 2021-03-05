@@ -4,7 +4,7 @@
 
 namespace lucid::scene
 {
-    Skybox CreateSkybox(const StaticArray<String>& InSkyboxFacesPaths)
+    Skybox CreateSkybox(const Array<String>& InSkyboxFacesPaths)
     {
         const char* skyboxFacesData[6];
         resources::TextureResource* textureResources[6];

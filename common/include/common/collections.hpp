@@ -5,26 +5,31 @@
 namespace lucid
 {
     template <typename T>
-    struct StaticArray
+    struct Array
     {
-        StaticArray(const u32& Capacity);
+        Array(const u32& InCapacity, const bool& InAutoResize = false, const u8& InResizeFactor = 2);
 
-        T* operator[](const u32& Index) const;
-        operator T*() const;
+        T* operator[](const u32& InIndex) const;
+
         operator void*() const;
-        StaticArray<T>& operator=(const StaticArray& Rhs);
+        
+        Array<T>& operator=(const Array& Rhs);
+        Array<T> Copy() const;
 
-        StaticArray<T> Copy() const;
         void Add(const T& Element);
         void Free();
-        void Resize(const u32& NewCapacity);
 
-        u32 Length = 0;
-        u32 Capacity;
-        u64 SizeInBytes;
+        inline u32 GetLength() const { return Length; }
+        inline u32 GetCapacity() const { return Capacity; } 
+        inline u64 GetSizeInBytes() const { return sizeof(T) * Length; } 
 
       private:
-        T* Array;
+        T*      ArrayPointer;
+        bool    AutoResize;
+        u8      ResizeFactor;
+
+        u32     Length = 0;
+        u32     Capacity;
     };
 
     template <typename T>

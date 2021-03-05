@@ -12,9 +12,7 @@ namespace lucid::gpu
     {
         Buffer* BufferToUse = nullptr;
         BufferBindPoint BindPoint = BufferBindPoint::UNBOUND;
-        int32_t Index = -1;
-
-        bool IsValid = false;
+        int32_t Index = -1; // Used only for indexed buffers
     };
 
     class Shader
@@ -23,31 +21,30 @@ namespace lucid::gpu
 
         friend class ShaderManager;
 
-        explicit Shader(const String& InName);
+        explicit Shader(const ANSIString& InName);
 
         virtual void Use() = 0;
         virtual void Disable() = 0;
 
         virtual void SetupBuffersBindings() = 0;
 
-        // Return -1 if uniform doesn't exist
-        virtual u32 GetIdForUniform(const String& Name) const = 0;
+        virtual u32 GetIdForUniform(const ANSIString& InUniformName) const = 0;
 
-        virtual void SetInt(const String& Name, const u32& Value) = 0;
-        virtual void SetFloat(const String& Name, const float& Value) = 0;
-        virtual void SetBool(const String& Name, const bool& Value) = 0;
+        virtual void SetInt(const ANSIString& InUniformName, const u32& Value) = 0;
+        virtual void SetFloat(const ANSIString& InUniformName, const float& Value) = 0;
+        virtual void SetBool(const ANSIString& InUniformName, const bool& Value) = 0;
 
-        virtual void SetVector(const String& Name, const glm::vec2& Value) = 0;
-        virtual void SetVector(const String& Name, const glm::vec3& Value) = 0;
-        virtual void SetVector(const String& Name, const glm::vec4& Value) = 0;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::vec2& Value) = 0;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::vec3& Value) = 0;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::vec4& Value) = 0;
 
-        virtual void SetVector(const String& Name, const glm::ivec2& Value) = 0;
-        virtual void SetVector(const String& Name, const glm::ivec3& Value) = 0;
-        virtual void SetVector(const String& Name, const glm::ivec4& Value) = 0;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::ivec2& Value) = 0;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::ivec3& Value) = 0;
+        virtual void SetVector(const ANSIString& InUniformName, const glm::ivec4& Value) = 0;
 
-        virtual void SetMatrix(const String& Name, const glm::mat4& Value) = 0;
+        virtual void SetMatrix(const ANSIString& InUniformName, const glm::mat4& Value) = 0;
 
-        virtual void UseTexture(const String& Name, Texture* TextureToUse) = 0;
+        virtual void UseTexture(const ANSIString& InUniformName, Texture* TextureToUse) = 0;
         virtual void RestoreTextureBindings() = 0;
 
         virtual void AddBinding(BufferBinding* Binding) = 0;
@@ -56,7 +53,7 @@ namespace lucid::gpu
 
         virtual ~Shader() = default;
         
-        inline const String& GetName() const { return ShaderName; }
+        inline const ANSIString& GetName() const { return ShaderName; }
 
 #ifndef NDEBUG
         /**
@@ -66,12 +63,12 @@ namespace lucid::gpu
         virtual void ReloadShader(Shader* RecompiledShader) = 0;
 #endif
     protected:
-        const String ShaderName;
+        const ANSIString& ShaderName;
     };
 
-    Shader* CompileShaderProgram(const String& ShaderName,
-                                 const char* VertexShaderSource,
-                                 const char* FragementShaderSource,
-                                 const char* GeometryShaderSource,
-                                 const bool& WarnMissingUniforms = false);
+    Shader* CompileShaderProgram(const ANSIString& InShaderName,
+                                 const ANSIString& InVertexShaderSource,
+                                 const ANSIString& InFragementShaderSource,
+                                 const ANSIString& InGeometryShaderSource,
+                                 const bool& InWarnMissingUniforms = false);
 } // namespace lucid::gpu

@@ -5,7 +5,8 @@
 
 namespace lucid::platform
 {
-    DString ReadFile(const String& FilePath, const bool& NullTerminate)
+    // @TODO Unicode path support
+    DString ReadFile(const ANSIString& FilePath, const bool& NullTerminate)
     {
         char* retVal = nullptr;
         FILE* fileToRead = fopen(*FilePath, "rb");
@@ -24,7 +25,7 @@ namespace lucid::platform
         if (fileSize == -1)
         {
 #ifndef NDEBUG
-            printf("Failed to determine size of file '%s'\n", *FilePath);
+            printf("Failed to determine size of file '%s'\n", **FilePath);
 #endif
             goto readFileEnd;
         }
