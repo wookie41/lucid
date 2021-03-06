@@ -23,6 +23,7 @@ namespace lucid::platform
         virtual u16 GetWidth() const = 0;
         virtual u16 GetHeight() const = 0;
         virtual float GetAspectRatio() const = 0;
+        virtual gpu::Framebuffer* GetFramebuffer() const = 0;
         
         virtual void Show() = 0;
         virtual void Hide() = 0;

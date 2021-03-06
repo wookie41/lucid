@@ -29,25 +29,46 @@ namespace lucid::gpu
         GLuint glRBOHandle;
     };
 
+    class GLDefaultFramebuffer : public Framebuffer
+    {
+    public:
+        GLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight);
+
+        virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const override;
+
+        virtual bool IsComplete() override;
+
+        virtual void SetupDrawBuffers() override;
+        virtual void DisableReadWriteBuffers() override;
+
+        virtual void Bind(const FramebufferBindMode& Mode) override;
+
+        virtual void SetupColorAttachment(const u32& AttachmentIndex, FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
+        virtual void Free() override;
+
+        virtual ~GLDefaultFramebuffer() = default;
+    private:
+        u16 WindowWidth;
+        u16 WindowHeight;
+    };
+
     class GLFramebuffer : public Framebuffer
     {
       public:
-        GLFramebuffer(const GLuint& GLFBOHandle);
+        explicit GLFramebuffer(const GLuint& GLFBOHandle);
 
         virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const override
         {
             assert(colorAttachments[Idx]);
             return colorAttachments[Idx]->GetSize();
         }
-
-        virtual void SetupDrawBuffers(const u8& NumOfBuffers) override;
-
-        virtual void DisableReadWriteBuffers() override;
-
-        virtual void EnableDrawBuffer(const u8& BufferIndex, const int8_t& AttachmentIndex) override;
-        virtual void DisableDrawBuffer(const u8& BufferIndex) override;
-
         virtual bool IsComplete() override;
+
+        virtual void SetupDrawBuffers() override;
+        virtual void DisableReadWriteBuffers() override;
 
         virtual void Bind(const FramebufferBindMode& Mode) override;
 
@@ -62,11 +83,6 @@ namespace lucid::gpu
       private:
         GLuint glFBOHandle;
         glm::ivec2 size;
-
-        bool isComplete = false;
-        bool isDirty = true;
-
-        int8_t drawBuffersBindings[MAX_COLOR_ATTACHMENTS] = { -1 }; // -1 means that the draw buffer is not used
 
         FramebufferAttachment* colorAttachments[MAX_COLOR_ATTACHMENTS] = { nullptr };
         FramebufferAttachment* depthAttachment = nullptr;

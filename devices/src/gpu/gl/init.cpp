@@ -3,6 +3,7 @@
 
 #include "SDL2/SDL.h"
 #include "GL/glew.h"
+
 #include <cassert>
 
 #include "common/log.hpp"
@@ -60,8 +61,7 @@ namespace lucid::gpu
         }
 
         InitGPUInfo();
-
-
+        
         SDL_GL_DeleteContext(context);
         SDL_DestroyWindow(window);
 

@@ -1,5 +1,10 @@
 #include "scene/blinn_phong_material.hpp"
 #include "devices/gpu/shader.hpp"
+#include "common/log.hpp"
+#include "devices/gpu/texture.hpp"
+#include "resources/mesh.hpp"
+#include "resources/texture.hpp"
+#include "scene/renderable.hpp"
 
 namespace lucid::scene
 {
@@ -64,4 +69,50 @@ namespace lucid::scene
             Shader->SetBool(HAS_DISPLACEMENT_MAP, false);
         }
     };
+
+
+    Renderable* CreateBlinnPhongRenderable(DString InMeshName, resources::MeshResource* InMesh, gpu::Shader* InShader)
+        {
+            gpu::Texture* FallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
+
+            BlinnPhongMapsMaterial* MeshMaterial = new BlinnPhongMapsMaterial(InShader);
+            MeshMaterial->Shininess = 32;
+    
+            if (InMesh->DiffuseMap == nullptr)
+            {
+                LUCID_LOG(LogLevel::INFO, "Mesh is missing a diffuse map");
+                MeshMaterial->DiffuseMap = FallbackTexture;
+            }
+            else
+            {
+                MeshMaterial->DiffuseMap = InMesh->DiffuseMap->TextureHandle;
+            }
+    
+            if (InMesh->SpecularMap == nullptr)
+            {
+                LUCID_LOG(LogLevel::INFO, "Mesh is missing a specular map");
+                MeshMaterial->SpecularMap = FallbackTexture;
+            }
+            else
+            {
+                MeshMaterial->SpecularMap = InMesh->SpecularMap->TextureHandle;
+            }
+    
+            if (InMesh->NormalMap == nullptr)
+            {
+                LUCID_LOG(LogLevel::INFO, "Mesh is missing a normal map");
+                MeshMaterial->NormalMap = FallbackTexture;
+            }
+            else
+            {
+                MeshMaterial->NormalMap = InMesh->NormalMap->TextureHandle;
+            }
+    
+            Renderable* MeshRenderable = new Renderable{ InMeshName };
+            MeshRenderable->Material = MeshMaterial;
+            MeshRenderable->Type = RenderableType::STATIC;
+            MeshRenderable->VertexArray = InMesh->VAO;
+    
+            return MeshRenderable;
+        }
 } // namespace lucid::scene

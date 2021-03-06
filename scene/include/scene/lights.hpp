@@ -32,7 +32,7 @@ namespace lucid::scene
       public:
         Light() = default;
 
-        virtual LightType GetType() = 0;
+        virtual LightType GetType() const = 0;
         virtual ~Light() = default;
 
         virtual void UpdateLightSpaceMatrix() = 0;
@@ -64,7 +64,7 @@ namespace lucid::scene
                                        bool RenderStaticGeometry,
                                        bool ClearShadowMap) override;
 
-        virtual LightType GetType() override { return type; }
+        virtual LightType GetType() const override { return type; }
 
         glm::vec3 Direction = { 0, 0, 0 };
 
@@ -79,7 +79,7 @@ namespace lucid::scene
     struct PointLight : public Light
     {
       public:
-        virtual LightType GetType() override { return type; }
+        virtual LightType GetType() const override { return type; }
 
         virtual void UpdateLightSpaceMatrix() override;
 
@@ -106,7 +106,7 @@ namespace lucid::scene
     struct SpotLight : public Light
     {
       public:
-        virtual LightType GetType() { return type; }
+        virtual LightType GetType() const { return type; }
 
         virtual void UpdateLightSpaceMatrix() override;
 

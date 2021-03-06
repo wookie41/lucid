@@ -49,6 +49,11 @@ namespace lucid::gpu
 
     void DisableDepthTest() { glDisable(GL_DEPTH_TEST); }
 
+    void SetReadOnlyDepthBuffer(const bool& InReadOnly)
+    {
+        glDepthMask(!InReadOnly);
+    }
+    
     void SetDepthTestFunction(const DepthTestFunction& Function)
     {
         glDepthFunc(GL_DEPTH_FUNCTIONS[static_cast<u8>(Function)]);

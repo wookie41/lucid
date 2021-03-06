@@ -36,6 +36,7 @@ namespace lucid::gpu
     void EnableDepthTest();
     void DisableDepthTest();
     void SetDepthTestFunction(const DepthTestFunction& Function);
+    void SetReadOnlyDepthBuffer(const bool& InReadOnly);
 
     /////////////////////////////////////////
 

@@ -1,4 +1,6 @@
 #include "devices/gpu/gl/framebuffer.hpp"
+
+#include "common/log.hpp"
 #include "devices/gpu/texture.hpp"
 #include "GL/glew.h"
 #include "devices/gpu/gpu.hpp"
@@ -7,29 +9,30 @@ namespace lucid::gpu
 {
     static GLenum RENDER_BUFFER_TYPE_MAPPING[] = { GL_DEPTH24_STENCIL8 };
 
-    static inline void GLBindFramebuffer(Framebuffer* framebuffer, const GLuint& fboHandle, const FramebufferBindMode& Mode)
+    static inline void GLBindFramebuffer(Framebuffer* InFramebuffer, const GLuint& InFBOHandle, const FramebufferBindMode& InMode)
     {
-        switch (Mode)
+        switch (InMode)
         {
         case FramebufferBindMode::READ:
-            if (gpu::Info.CurrentReadFramebuffer != framebuffer)
+            if (gpu::Info.CurrentReadFramebuffer != InFramebuffer)
             {
-                gpu::Info.CurrentReadFramebuffer = framebuffer;
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, fboHandle);
+                gpu::Info.CurrentReadFramebuffer = InFramebuffer;
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, InFBOHandle);
             }
             break;
         case FramebufferBindMode::WRITE:
-            if (gpu::Info.CurrentWriteFramebuffer != framebuffer)
+            if (gpu::Info.CurrentWriteFramebuffer != InFramebuffer)
             {
-                gpu::Info.CurrentWriteFramebuffer = framebuffer;
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboHandle);
+                gpu::Info.CurrentWriteFramebuffer = InFramebuffer;
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, InFBOHandle);
             }
             break;
         case FramebufferBindMode::READ_WRITE:
-            if (gpu::Info.CurrentFramebuffer != framebuffer)
+            if (gpu::Info.CurrentFramebuffer != InFramebuffer)
             {
-                gpu::Info.CurrentFramebuffer = gpu::Info.CurrentWriteFramebuffer = gpu::Info.CurrentReadFramebuffer = framebuffer;
-                glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
+                gpu::Info.CurrentFramebuffer = gpu::Info.CurrentWriteFramebuffer = gpu::Info.CurrentReadFramebuffer =
+                  InFramebuffer;
+                glBindFramebuffer(GL_FRAMEBUFFER, InFBOHandle);
             }
             break;
         }
@@ -56,48 +59,61 @@ namespace lucid::gpu
         return new GLRenderbuffer(rbo, Format, Size);
     }
 
+    /////////////////////////////////////
+    //        OpenGL framebuffer       //
+    /////////////////////////////////////
+
     GLFramebuffer::GLFramebuffer(const GLuint& GLFBOHandle) : glFBOHandle(GLFBOHandle) {}
 
-    void BindDefaultFramebuffer(const FramebufferBindMode& Mode)
+    void GLFramebuffer::SetupDrawBuffers()
     {
-        GLBindFramebuffer(nullptr, 0, Mode);
-    }
-
-    void GLFramebuffer::SetupDrawBuffers(const u8& NumOfBuffers)
-    {
-        assert(NumOfBuffers <= MAX_COLOR_ATTACHMENTS);
-        static GLenum drawBuffers[MAX_COLOR_ATTACHMENTS];
-
-        for (u8 drawBufferIdx = 0; drawBufferIdx < NumOfBuffers; ++drawBufferIdx)
+        static GLenum DrawBuffers[MAX_COLOR_ATTACHMENTS];
+        u32 NumOfBuffers = 0;
+        for (u8 AttachmentIdx = 0; AttachmentIdx < MAX_COLOR_ATTACHMENTS; ++AttachmentIdx)
         {
-            assert(drawBuffersBindings[drawBufferIdx] >= 0);
-            drawBuffers[drawBufferIdx] = GL_COLOR_ATTACHMENT0 + drawBuffersBindings[drawBufferIdx];
+            if (colorAttachments[AttachmentIdx])
+            {
+                DrawBuffers[NumOfBuffers++] = GL_COLOR_ATTACHMENT0 + AttachmentIdx;
+            }
         }
 
-        glDrawBuffers(NumOfBuffers, drawBuffers);
-    }
-
-    void GLFramebuffer::EnableDrawBuffer(const u8& BufferIndex, const int8_t& AttachmentIndex)
-    {
-        assert(BufferIndex < MAX_COLOR_ATTACHMENTS);
-        drawBuffersBindings[BufferIndex] = AttachmentIndex;
-    }
-
-    void GLFramebuffer::DisableDrawBuffer(const u8& BufferIndex)
-    {
-        assert(BufferIndex < MAX_COLOR_ATTACHMENTS);
-        drawBuffersBindings[BufferIndex] = -1;
+        glDrawBuffers(NumOfBuffers, DrawBuffers);
+        //@TODO method for setting the read buffers, as now all ReadPixel operations will use the first attachment
+        glReadBuffer(DrawBuffers[0]);
     }
 
     bool GLFramebuffer::IsComplete()
     {
-        if (isDirty)
+        assert(gpu::Info.CurrentFramebuffer == this);
+        GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        switch (Status)
         {
-            assert(gpu::Info.CurrentFramebuffer == this);
-            isComplete = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
-            isDirty = false;
+        case GL_FRAMEBUFFER_UNDEFINED:
+            LUCID_LOG(LogLevel::WARN, "Framebuffer %d is undefined", glFBOHandle);
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+            LUCID_LOG(LogLevel::WARN, "Framebuffer %d has incomplete aattachment", glFBOHandle);
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+            LUCID_LOG(LogLevel::WARN, "Framebuffer %d is missing attachment", glFBOHandle);
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+            LUCID_LOG(LogLevel::WARN, "Framebuffer %d has incomplete draw buffers", glFBOHandle);
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+            LUCID_LOG(LogLevel::WARN, "Framebuffer %d ha incomplete read buffers", glFBOHandle);
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            LUCID_LOG(LogLevel::WARN, "Framebuffer %d is unsupported", glFBOHandle);
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+            LUCID_LOG(LogLevel::WARN, "Framebuffer %d has incomplete multisample", glFBOHandle);
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+            LUCID_LOG(LogLevel::WARN, "Framebuffer %d has incomplete layer targets", glFBOHandle);
+            break;
         }
-        return isComplete;
+        return Status == GL_FRAMEBUFFER_COMPLETE;
     }
 
     void GLFramebuffer::Bind(const FramebufferBindMode& Mode) { GLBindFramebuffer(this, glFBOHandle, Mode); }
@@ -130,14 +146,14 @@ namespace lucid::gpu
         AttachmentToUse->AttachAsStencilDepth();
     }
 
-    void GLFramebuffer::DisableReadWriteBuffers() 
+    void GLFramebuffer::DisableReadWriteBuffers()
     {
         assert(gpu::Info.CurrentFramebuffer == this);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
     }
 
-    void GLFramebuffer::Free() {  }
+    void GLFramebuffer::Free() {}
 
     GLRenderbuffer::GLRenderbuffer(const GLuint& GLRBOHandle, const RenderbufferFormat& Format, const glm::ivec2& Size)
     : glRBOHandle(GLRBOHandle), format(Format), size(Size)
@@ -178,6 +194,54 @@ namespace lucid::gpu
 
     void GLRenderbuffer::Free() { glDeleteRenderbuffers(1, &glRBOHandle); }
 
+    /////////////////////////////////////
+    //    Default OpenGL framebuffer   //
+    /////////////////////////////////////
+
+    GLDefaultFramebuffer::GLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight)
+    {
+        WindowWidth = InWindowWidth;
+        WindowHeight = InWindowHeight;
+    }
+
+    glm::ivec2 GLDefaultFramebuffer::GetColorAttachmentSize(const u8& Idx) const { return { WindowWidth, WindowHeight }; }
+
+    void GLDefaultFramebuffer::SetupDrawBuffers()
+    {
+        static const GLenum DefaultColorAttachment = GL_COLOR_ATTACHMENT0;
+        glDrawBuffers(1, &DefaultColorAttachment);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    }
+
+    void GLDefaultFramebuffer::DisableReadWriteBuffers()
+    {
+        assert(gpu::Info.CurrentFramebuffer == this);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+    }
+
+    bool GLDefaultFramebuffer::IsComplete() { return true; }
+
+    void GLDefaultFramebuffer::Bind(const FramebufferBindMode& Mode) { GLBindFramebuffer(this, 0, Mode); }
+
+    void GLDefaultFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, FramebufferAttachment* AttachmentToUse)
+    {
+        assert(0);
+    }
+
+    void GLDefaultFramebuffer::SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) { assert(0); }
+
+    void GLDefaultFramebuffer::SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) { assert(0); }
+
+    void GLDefaultFramebuffer::SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) { assert(0); }
+
+    void GLDefaultFramebuffer::Free()
+    {
+        // Noop
+    }
+
     void BlitFramebuffer(Framebuffer* Source,
                          Framebuffer* Destination,
                          const bool& Color,
@@ -188,23 +252,8 @@ namespace lucid::gpu
     {
         assert(Source != Destination);
 
-        if (Source == nullptr)
-        {
-            BindDefaultFramebuffer(FramebufferBindMode::READ);
-        }
-        else
-        {
-            Source->Bind(FramebufferBindMode::READ);
-        }
-
-        if (Destination == nullptr)
-        {
-            BindDefaultFramebuffer(FramebufferBindMode::WRITE);
-        }
-        else
-        {
-            Destination->Bind(FramebufferBindMode::WRITE);
-        }
+        Source->Bind(FramebufferBindMode::READ);
+        Destination->Bind(FramebufferBindMode::WRITE);
 
         GLbitfield bufferToBlit = 0;
         if (Color)

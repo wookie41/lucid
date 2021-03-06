@@ -1,10 +1,8 @@
 #include "platform/window.hpp"
 #include "common/collections.hpp"
-#include "devices/gpu/shader.hpp"
 #include "devices/gpu/init.hpp"
 #include "misc/basic_shapes.hpp"
 #include "devices/gpu/texture.hpp"
-#include "platform/fs.hpp"
 #include "platform/input.hpp"
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/gpu.hpp"
@@ -12,7 +10,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "scene/camera.hpp"
 #include "devices/gpu/viewport.hpp"
-#include "scene/fwd_blinn_phong_renderer.hpp"
+#include "scene/forward_renderer.hpp"
 #include "scene/blinn_phong_material.hpp"
 #include "scene/render_scene.hpp"
 #include "scene/renderable.hpp"
@@ -25,7 +23,6 @@
 #include "glm/gtc/quaternion.hpp"
 #include "platform/util.hpp"
 #include "platform/platform.hpp"
-#include "resources/mesh.hpp"
 #include "devices/gpu/shaders_manager.hpp"
 
 using namespace lucid;
@@ -45,48 +42,40 @@ int main(int argc, char** argv)
     misc::InitBasicShapes();
     resources::InitTextures();
 
-    // Create a framebuffer and it's attachments
-    gpu::Texture* colorAttachment = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(),
-                                                              gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
-    gpu::FramebufferAttachment* renderbuffer =
-      gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, { window->GetWidth(), window->GetHeight() });
-    gpu::Framebuffer* testFramebuffer = gpu::CreateFramebuffer();
-    gpu::Framebuffer* shadowMapFramebuffer = gpu::CreateFramebuffer();
+    // Create shadowmap framebuffer (TODO move to forward_renderer)
+    gpu::Framebuffer* ShadowMapFramebuffer = gpu::CreateFramebuffer();
 
-    shadowMapFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
-    shadowMapFramebuffer->DisableReadWriteBuffers();
+    ShadowMapFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+    ShadowMapFramebuffer->DisableReadWriteBuffers();
 
-    renderbuffer->Bind();
-    colorAttachment->Bind();
-    colorAttachment->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    colorAttachment->SetMagFilter(gpu::MagTextureFilter::LINEAR);
-    testFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+    gpu::Texture* OffScreenColorAttachment = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(),gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
+    // gpu::Texture* OffScreenDepthTexture = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(), gpu::TextureDataType::FLOAT, gpu::TextureFormat::DEPTH_COMPONENT, 0);
+    gpu::FramebufferAttachment* OffscreeDepthStencilAttachment = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, { window->GetWidth(), window->GetHeight() });
+    gpu::Framebuffer* OffScreenFramebuffer = gpu::CreateFramebuffer();
+    
+    OffScreenFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
 
-    testFramebuffer->SetupColorAttachment(0, colorAttachment);
-    testFramebuffer->SetupDepthStencilAttachment(renderbuffer);
-    testFramebuffer->IsComplete();
+    OffScreenColorAttachment->Bind();
+    OffScreenColorAttachment->SetMinFilter(gpu::MinTextureFilter::LINEAR);
+    OffScreenColorAttachment->SetMagFilter(gpu::MagTextureFilter::LINEAR);
+    OffScreenFramebuffer->SetupColorAttachment(0, OffScreenColorAttachment);
 
-    gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
+    // OffScreenDepthTexture->Bind();
+    // OffscreenFramebuffer->SetupDepthAttachment(OffScreenDepthTexture);
+
+    OffscreeDepthStencilAttachment->Bind();
+    OffScreenFramebuffer->SetupDepthStencilAttachment(OffscreeDepthStencilAttachment);
+
+    OffScreenFramebuffer->IsComplete();
 
     // Load textures uesd in the demo scene
     // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh(String {"assets\\models\\backpack\\"}, String { LUCID_TEXT("backpack.obj") });
-
-    resources::TextureResource* brickWallDiffuseMapResource =
-      resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall.jpg") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
-    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG(
-      String{ LUCID_TEXT("assets/textures/brickwall_normal.jpg") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
-
-    resources::TextureResource* woodDiffuseMapResource =
-      resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/wood.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
-
-    resources::TextureResource* blankTextureResource =
-      resources::LoadPNG(String{ LUCID_TEXT("assets/textures/blank.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
-
-    resources::TextureResource* toyboxNormalMapResource =
-      resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/toy_box_normal.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
-
-    resources::TextureResource* toyBoxDisplacementMapResource =
-      resources::LoadPNG(String{ LUCID_TEXT("assets/textures/toy_box_disp.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
+    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall.jpg") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall_normal.jpg") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
+    resources::TextureResource* woodDiffuseMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/wood.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+    resources::TextureResource* blankTextureResource = resources::LoadPNG(String{ LUCID_TEXT("assets/textures/blank.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+    resources::TextureResource* toyboxNormalMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/toy_box_normal.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
+    resources::TextureResource* toyBoxDisplacementMapResource = resources::LoadPNG(String{ LUCID_TEXT("assets/textures/toy_box_disp.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
 
     {
         auto texture = toyBoxDisplacementMapResource->TextureHandle;
@@ -122,7 +111,8 @@ int main(int argc, char** argv)
     gpu::Shader* SkyboxShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("Skybox") }, String{ LUCID_TEXT("shaders/glsl/skybox.vert") },String{ LUCID_TEXT("shaders/glsl/skybox.frag") }, EMPTY_STRING);
     gpu::Shader* ShadowMapShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("ShadowMap") }, String{ LUCID_TEXT("shaders/glsl/shadow_map.vert") },String{ LUCID_TEXT("shaders/glsl/empty.frag") }, EMPTY_STRING);
     gpu::Shader* ShadowCubemapShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("CubeShadowMap") }, String{ LUCID_TEXT("shaders/glsl/shadow_cubemap.vert") },String{ LUCID_TEXT("shaders/glsl/shadow_cubemap.frag") }, String{ LUCID_TEXT("shaders/glsl/shadow_cubemap.geom") });
-    gpu::Shader* flatShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("FlatShadowMap") }, String{ LUCID_TEXT("shaders/glsl/flat.vert") },String{ LUCID_TEXT("shaders/glsl/flat.frag") }, EMPTY_STRING);
+    gpu::Shader* FlatShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("FlatShadowMap") }, String{ LUCID_TEXT("shaders/glsl/flat.vert") },String{ LUCID_TEXT("shaders/glsl/flat.frag") }, EMPTY_STRING);
+    gpu::Shader* DepthPrePassShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("DepthPrePass") }, String{ LUCID_TEXT("shaders/glsl/depth_pre_pass.vert") },String{ LUCID_TEXT("shaders/glsl/empty.frag") }, EMPTY_STRING);
 
     // Prepare the scene
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
@@ -133,14 +123,15 @@ int main(int argc, char** argv)
     perspectiveCamera.Yaw = -90.f;
     perspectiveCamera.UpdateCameraVectors();
 
-    scene::ForwardBlinnPhongRenderer renderer{ 32, BlinnPhongMapsShader, SkyboxShader };
+    scene::RenderTarget OffScreenRenderTarget;
+    OffScreenRenderTarget.Camera = &perspectiveCamera;
+    OffScreenRenderTarget.Framebuffer = OffScreenFramebuffer;
+    OffScreenRenderTarget.Viewport = windowViewport;
+
+    scene::ForwardRenderer renderer{ 32, BlinnPhongMapsShader, DepthPrePassShader, SkyboxShader };
     renderer.AmbientStrength = 0.05;
     renderer.NumSamplesPCF = 20;
-
-    scene::RenderTarget renderTarget;
-    renderTarget.Camera = &perspectiveCamera;
-    renderTarget.Framebuffer = testFramebuffer;
-    renderTarget.Viewport = windowViewport;
+    renderer.Setup(&OffScreenRenderTarget);
 
     scene::BlinnPhongMapsMaterial woodMaterial;
     woodMaterial.Shininess = 32;
@@ -215,19 +206,19 @@ int main(int argc, char** argv)
 
     scene::FlatMaterial flatWhiteMaterial;
     flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
-    flatWhiteMaterial.SetCustomShader(flatShader);
+    flatWhiteMaterial.SetCustomShader(FlatShader);
 
     scene::FlatMaterial flatRedMaterial;
     flatRedMaterial.Color = { 1.0, 0.0, 0.0, 1.0 };
-    flatRedMaterial.SetCustomShader(flatShader);
+    flatRedMaterial.SetCustomShader(FlatShader);
 
     scene::FlatMaterial flatGreenMaterial;
     flatGreenMaterial.Color = { 0.0, 1.0, 0.0, 1.0 };
-    flatGreenMaterial.SetCustomShader(flatShader);
+    flatGreenMaterial.SetCustomShader(FlatShader);
 
     scene::FlatMaterial flatBlueMaterial;
     flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
-    flatBlueMaterial.SetCustomShader(flatShader);
+    flatBlueMaterial.SetCustomShader(FlatShader);
 
     scene::DirectionalLight shadowCastingLight = scene::CreateDirectionalLight(true, { 1024, 1024 });
     shadowCastingLight.Direction = glm::normalize(glm::vec3{ 0.5, -1, 1 });
@@ -323,7 +314,7 @@ int main(int argc, char** argv)
 
     scene::Skybox skybox = scene::CreateSkybox(SkyboxFacesPaths);
     sceneToRender.SceneSkybox = &skybox;
-
+    
     gpu::SetClearColor(BlackColor);
 
     bool isRunning = true;
@@ -386,34 +377,33 @@ int main(int argc, char** argv)
             redPointLightCube.Transform.Translation = redPointLight.Position;
         }
 
+        // Update lightmaps
         gpu::DisableSRGBFramebuffer();
         shadowCastingLight.UpdateLightSpaceMatrix();
-        shadowCastingLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowMapShader, true, true);
+        shadowCastingLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowMapShader, true, true);
 
         redLight.UpdateLightSpaceMatrix();
-        redLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowMapShader, true, true);
+        redLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowMapShader, true, true);
 
         greenLight.UpdateLightSpaceMatrix();
-        greenLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowMapShader, true, true);
+        greenLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowMapShader, true, true);
 
         blueLight.UpdateLightSpaceMatrix();
-        blueLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowMapShader, true, true);
+        blueLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowMapShader, true, true);
 
         redPointLight.UpdateLightSpaceMatrix();
-        redPointLight.GenerateShadowMap(&sceneToRender, shadowMapFramebuffer, ShadowCubemapShader, true, true);
+        redPointLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowCubemapShader, true, true);
 
         // Render to off-screen framebuffer
-        renderTarget.Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
-        gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
-        renderer.Render(&sceneToRender, &renderTarget);
+        renderer.Render(&sceneToRender);
 
         // Blit the off-screen frame buffer to the window framebuffer
-        gpu::BindDefaultFramebuffer(gpu::FramebufferBindMode::READ_WRITE);
+        window->GetFramebuffer()->Bind(gpu::FramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
         gpu::EnableSRGBFramebuffer();
         gpu::BlitFramebuffer(
-          renderTarget.Framebuffer, nullptr, true, false, false,
-          { 0, 0, renderTarget.Framebuffer->GetColorAttachmentSize().x, renderTarget.Framebuffer->GetColorAttachmentSize().y },
+          OffScreenRenderTarget.Framebuffer, window->GetFramebuffer(), true, false, false,
+          { 0, 0, OffScreenRenderTarget.Framebuffer->GetColorAttachmentSize().x, OffScreenRenderTarget.Framebuffer->GetColorAttachmentSize().y },
           { 0, 0, window->GetWidth(), window->GetHeight() });
         window->Swap();
     }

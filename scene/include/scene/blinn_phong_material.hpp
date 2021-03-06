@@ -2,8 +2,15 @@
 
 #include "scene/material.hpp"
 
+namespace lucid::resources
+{
+    class MeshResource;
+}
+
 namespace lucid::scene
 {
+    struct Renderable;
+
     // The most basic material compatible with the BlinnPhongRenderer
     // It'll setup the diffuse and specular colors which will be used over the entire surface
     class BlinnPhongMaterial : public Material
@@ -39,4 +46,6 @@ namespace lucid::scene
 
         glm::vec3 SpecularColor; //Fallback when specular map is not used
     };
+
+    Renderable* CreateBlinnPhongRenderable(DString InMeshName, resources::MeshResource* InMesh, gpu::Shader* InShader);
 } // namespace lucid::scene

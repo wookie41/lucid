@@ -11,7 +11,8 @@ namespace lucid::gpu
     const u8 MAX_COLOR_ATTACHMENTS = 16;
 
     class Texture;
-
+    class Framebuffer;
+    
     enum class RenderbufferFormat : u8
     {
         DEPTH24_STENCIL8 = 0
@@ -49,20 +50,16 @@ namespace lucid::gpu
         READ_WRITE
     };
 
-    void BindDefaultFramebuffer(const FramebufferBindMode& Mode);
-
     class Framebuffer
     {
       public:
-        virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const = 0;
-
-        virtual void DisableReadWriteBuffers() = 0;
-
-        virtual void SetupDrawBuffers(const u8& NumOfBuffers) = 0;
-        virtual void EnableDrawBuffer(const uint8_t& BufferIndex, const int8_t& AttachmentIndex) = 0;
-        virtual void DisableDrawBuffer(const uint8_t& BufferIndex) = 0;
 
         virtual bool IsComplete() = 0;
+
+        virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const = 0;
+        
+        virtual void SetupDrawBuffers() = 0;
+        virtual void DisableReadWriteBuffers() = 0;
 
         virtual void Bind(const FramebufferBindMode& Mode) = 0;
 
@@ -76,7 +73,7 @@ namespace lucid::gpu
         virtual ~Framebuffer() = default;
         //@TODO Attaching cubemap's faces as color attachments
     };
-
+    
     Framebuffer* CreateFramebuffer();
     Renderbuffer* CreateRenderbuffer(const RenderbufferFormat& Format, const glm::ivec2& Size);
 

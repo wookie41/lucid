@@ -1,8 +1,9 @@
 #include "platform/sdl/sdl_window.hpp"
 
 #include "common/log.hpp"
+#include "devices/gpu/gl/framebuffer.hpp"
 #include "SDL2/SDL.h"
-#include "GL/glew.h"
+
 namespace lucid::platform
 {
     Window* CreateWindow(const WindowDefiniton& Definition)
@@ -32,30 +33,37 @@ namespace lucid::platform
         return new SDLWindow(window, context, Definition.width, Definition.height);
     }
 
-    SDLWindow::SDLWindow(SDL_Window* Window, SDL_GLContext Context, const u16& Width, const u16& Height)
-    : window(Window), context(Context), width(Width), height(Height), aspectRatio((float)Width / (float)Height)
+    SDLWindow::SDLWindow(SDL_Window* InWindow, SDL_GLContext InContext, const u16& InWidth, const u16& InHeight)
+    : MySDLWindow(InWindow), MyGLContext(InContext), Width(InWidth), Height(InHeight), AspectRatio((float)InWidth / (float)InHeight)
     {
+        WindowFramebuffer = new gpu::GLDefaultFramebuffer{ InWidth, InHeight };
     }
 
-    void SDLWindow::Swap() { SDL_GL_SwapWindow(window); }
+    void SDLWindow::Swap() { SDL_GL_SwapWindow(MySDLWindow); }
 
-    void SDLWindow::Prepare() { SDL_GL_MakeCurrent(window, context); }
+    void SDLWindow::Prepare() { SDL_GL_MakeCurrent(MySDLWindow, MyGLContext); }
 
-    u16 SDLWindow::GetWidth() const { return width; }
+    u16 SDLWindow::GetWidth() const { return Width; }
 
-    u16 SDLWindow::GetHeight() const { return height; }
+    u16 SDLWindow::GetHeight() const { return Height; }
 
-    float SDLWindow::GetAspectRatio() const { return aspectRatio; }
+    float SDLWindow::GetAspectRatio() const { return AspectRatio; }
 
-    void SDLWindow::Show() { SDL_ShowWindow(window); }
+    gpu::Framebuffer* SDLWindow::GetFramebuffer() const
+    {
+        return WindowFramebuffer;
+    }
 
-    void SDLWindow::Hide() { SDL_HideWindow(window); }
+    void SDLWindow::Show() { SDL_ShowWindow(MySDLWindow); }
+
+    void SDLWindow::Hide() { SDL_HideWindow(MySDLWindow); }
 
     void SDLWindow::Destroy()
     {
-        SDL_GL_MakeCurrent(window, context);
-        SDL_GL_DeleteContext(context);
-        SDL_DestroyWindow(window);
+        delete WindowFramebuffer;
+        SDL_GL_MakeCurrent(MySDLWindow, MyGLContext);
+        SDL_GL_DeleteContext(MyGLContext);
+        SDL_DestroyWindow(MySDLWindow);
     }
 
     void SDLWindow::OnFocusGained()
