@@ -30,8 +30,8 @@ namespace lucid::scene
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
         ForwardRenderer(
             const u32& MaxNumOfDirectionalLights,
-            gpu::Shader* InDefaultShader,
-            gpu::Shader* InDepthPrepassShader,
+            gpu::Shader* InDefaultRenderableShader,
+            gpu::Shader* InPrepassShader,
             gpu::Shader* SkyboxShader);
 
         virtual void Setup() override;
@@ -62,7 +62,7 @@ namespace lucid::scene
         u32 MaxNumOfDirectionalLights;
 
         gpu::Shader* SkyboxShader;
-        gpu::Shader* DepthPrePassShader;
+        gpu::Shader* PrepassShader;
 
         /** Framebuffer used for when doing the depth-only prepass */
         gpu::Framebuffer* PrepassFramebuffer;

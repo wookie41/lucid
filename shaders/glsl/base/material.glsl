@@ -22,7 +22,6 @@ struct BlinnPhongMapsMaterial
     sampler2D DisplacementMap;
 };
 
-
 struct FlatMaterial
 {
     vec4 Color;

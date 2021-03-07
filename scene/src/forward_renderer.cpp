@@ -61,11 +61,11 @@ namespace lucid::scene
     static const String PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
 
     ForwardRenderer::ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
-                                     gpu::Shader* InDefaultShader,
-                                     gpu::Shader* InDepthPrepassShader,
+                                     gpu::Shader* InDefaultRenderableShader,
+                                     gpu::Shader* InPrepassShader,
                                      gpu::Shader* InSkyboxShader)
-    : Renderer(InDefaultShader), MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), SkyboxShader(InSkyboxShader),
-      DepthPrePassShader(InDepthPrepassShader)
+    : Renderer(InDefaultRenderableShader), MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), SkyboxShader(InSkyboxShader),
+      PrepassShader(InPrepassShader)
     {
     }
 
@@ -79,17 +79,17 @@ namespace lucid::scene
         DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize);
 
         // Create render targets in which we'll store some additional information during the depth prepass
-        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB16F, 0);
-        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB16F, 0);
+        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB, 0);
+        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB, 0);
         
         // Setup the prepass framebuffer
         PrepassFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
 
-        // CurrentFrameVSNormalMap->Bind();
-        // PrepassFramebuffer->SetupColorAttachment(0, CurrentFrameVSNormalMap);
+        CurrentFrameVSNormalMap->Bind();
+        PrepassFramebuffer->SetupColorAttachment(0, CurrentFrameVSNormalMap);
 
-        // CurrentFrameVSPositionMap->Bind();
-        // PrepassFramebuffer->SetupColorAttachment(1, CurrentFrameVSPositionMap);
+        CurrentFrameVSPositionMap->Bind();
+        PrepassFramebuffer->SetupColorAttachment(1, CurrentFrameVSPositionMap);
 
         DepthStencilRenderBuffer->Bind();
         PrepassFramebuffer->SetupDepthStencilAttachment(DepthStencilRenderBuffer);
@@ -145,15 +145,16 @@ namespace lucid::scene
         gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
 
         BindAndClearFramebuffer(PrepassFramebuffer);
-
-        DepthPrePassShader->Use();
-        SetupRendererWideUniforms(DepthPrePassShader, InRenderSource);
+        PrepassFramebuffer->SetupDrawBuffers();
+        
+        PrepassShader->Use();
+        SetupRendererWideUniforms(PrepassShader, InRenderSource);
 
         const LinkedListItem<Renderable>* CurrentNode = &InSceneToRender->StaticGeometry.Head;
         while (CurrentNode && CurrentNode->Element)
         {
             Renderable* CurrentRenderable = CurrentNode->Element;
-            Render(DepthPrePassShader, CurrentRenderable);
+            Render(PrepassShader, CurrentRenderable);
             CurrentNode = CurrentNode->Next;
         }
         
@@ -162,9 +163,10 @@ namespace lucid::scene
         gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
 
         BindAndClearFramebuffer(LightingPassFramebuffer);
+        LightingPassFramebuffer->SetupDrawBuffers();
 
-        DefaultShader->Use();
-        SetupRendererWideUniforms(DefaultShader, InRenderSource);
+        DefaultRenderableShader->Use();
+        SetupRendererWideUniforms(DefaultRenderableShader, InRenderSource);
 
         RenderStaticGeometry(InSceneToRender, InRenderSource);
         if (InSceneToRender->SceneSkybox)
@@ -215,7 +217,7 @@ namespace lucid::scene
                                                   const RenderSource* InRenderSource)
     {
         const LinkedListItem<Renderable>* CurrentNode = &InScene->StaticGeometry.Head;
-        gpu::Shader* LastUsedShader = DefaultShader;
+        gpu::Shader* LastUsedShader = DefaultRenderableShader;
         while (CurrentNode && CurrentNode->Element)
         {
             Renderable* CurrentRenderable = CurrentNode->Element;
@@ -231,8 +233,8 @@ namespace lucid::scene
             }
             else
             {
-                DefaultShader->Use();
-                LastUsedShader = DefaultShader;
+                DefaultRenderableShader->Use();
+                LastUsedShader = DefaultRenderableShader;
             }
 
             SetupLight(LastUsedShader, InLight);
@@ -318,7 +320,7 @@ namespace lucid::scene
                                               const RenderSource* InRenderSource)
     {
         const LinkedListItem<Renderable>* CurrentNode = &InScene->StaticGeometry.Head;
-        gpu::Shader* LastUserShader = DefaultShader;
+        gpu::Shader* LastUserShader = DefaultRenderableShader;
         
         LastUserShader->SetInt(LIGHT_TYPE, NO_LIGHT);
 
@@ -336,10 +338,10 @@ namespace lucid::scene
                 SetupRendererWideUniforms(CustomShader, InRenderSource);
                 LastUserShader = CustomShader;
             }
-            else if (LastUserShader != DefaultShader)
+            else if (LastUserShader != DefaultRenderableShader)
             {
-                DefaultShader->Use();
-                LastUserShader = DefaultShader;
+                DefaultRenderableShader->Use();
+                LastUserShader = DefaultRenderableShader;
             }
 
             Render(LastUserShader, CurrentRenderable);

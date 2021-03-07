@@ -22,7 +22,7 @@ namespace lucid::scene
     class Renderer
     {
       public:
-        explicit Renderer(gpu::Shader* InDefaultShader) : DefaultShader(InDefaultShader) {}
+        explicit Renderer(gpu::Shader* InDefaultShader) : DefaultRenderableShader(InDefaultShader) {}
 
         /**
           * Called before the first Render() call so that the renderer can set itself up, like create additional framebuffers and etc.
@@ -50,7 +50,7 @@ namespace lucid::scene
 
       protected:
 
-        gpu::Shader* DefaultShader;
+        gpu::Shader* DefaultRenderableShader;
     };
 
 } // namespace lucid::scene
