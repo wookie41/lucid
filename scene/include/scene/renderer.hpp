@@ -11,10 +11,11 @@ namespace lucid::gpu
 
 namespace lucid::scene
 {
-    struct RenderTarget
+    class Camera;
+    
+    struct RenderSource
     {
-        gpu::Framebuffer* Framebuffer = nullptr;
-        const class Camera* Camera = nullptr;
+        Camera* Camera;
         gpu::Viewport Viewport;
     };
 
@@ -24,30 +25,31 @@ namespace lucid::scene
         explicit Renderer(gpu::Shader* InDefaultShader) : DefaultShader(InDefaultShader) {}
 
         /**
-        * Called before the first Render() call so that the renderer can set itself up, like create additional framebuffers and etc.
-        * Can be called multiple time, e.x. when we want to adjust the renderer to a different RenderTarget, but subsequent Setup() calls
-        * have be preceded by Cleanup() calls
+          * Called before the first Render() call so that the renderer can set itself up, like create additional framebuffers and etc.
+          * Can be called multiple time, subsequent Setup() calls have be preceded by Cleanup() calls
         */
-        virtual void Setup(const RenderTarget* InRenderTarget)
-        {
-            DefaultRenderTarget = InRenderTarget;
-        };
+        virtual void Setup() = 0;
         
         /**
-         * Renders the scene into the specified target if provided or into the target set by Setup().
+         * Renders the scene from the specified source
          */
-        virtual void Render(const RenderScene* InSceneToRender, const RenderTarget* InRenderTarget = nullptr) = 0;
+        virtual void Render(const RenderScene* InSceneToRender, const RenderSource* InRenderSource) = 0;
 
         /**
-        * Called before the first renderer is deleted so it can cleanup whatever it did in Setup() or during Render(s)().
-        */
+         * Called before the first renderer is deleted so it can cleanup whatever it did in Setup() or during Render(s)().
+         */
         virtual void Cleanup() = 0;
 
+        /**
+        * Returns the framebuffer which holds the result of last Render() call.
+        */
+        virtual gpu::Framebuffer* GetFinalFramebuffer() = 0;
+
+        
         virtual ~Renderer() = default;
 
       protected:
 
-        const RenderTarget* DefaultRenderTarget;
         gpu::Shader* DefaultShader;
     };
 

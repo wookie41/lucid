@@ -48,26 +48,6 @@ int main(int argc, char** argv)
     ShadowMapFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
     ShadowMapFramebuffer->DisableReadWriteBuffers();
 
-    gpu::Texture* OffScreenColorAttachment = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(),gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
-    // gpu::Texture* OffScreenDepthTexture = gpu::CreateEmpty2DTexture(window->GetWidth(), window->GetHeight(), gpu::TextureDataType::FLOAT, gpu::TextureFormat::DEPTH_COMPONENT, 0);
-    gpu::FramebufferAttachment* OffscreeDepthStencilAttachment = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, { window->GetWidth(), window->GetHeight() });
-    gpu::Framebuffer* OffScreenFramebuffer = gpu::CreateFramebuffer();
-    
-    OffScreenFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
-
-    OffScreenColorAttachment->Bind();
-    OffScreenColorAttachment->SetMinFilter(gpu::MinTextureFilter::LINEAR);
-    OffScreenColorAttachment->SetMagFilter(gpu::MagTextureFilter::LINEAR);
-    OffScreenFramebuffer->SetupColorAttachment(0, OffScreenColorAttachment);
-
-    // OffScreenDepthTexture->Bind();
-    // OffscreenFramebuffer->SetupDepthAttachment(OffScreenDepthTexture);
-
-    OffscreeDepthStencilAttachment->Bind();
-    OffScreenFramebuffer->SetupDepthStencilAttachment(OffscreeDepthStencilAttachment);
-
-    OffScreenFramebuffer->IsComplete();
-
     // Load textures uesd in the demo scene
     // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh(String {"assets\\models\\backpack\\"}, String { LUCID_TEXT("backpack.obj") });
     resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall.jpg") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
@@ -117,21 +97,17 @@ int main(int argc, char** argv)
     // Prepare the scene
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
 
-    scene::Camera perspectiveCamera{ scene::CameraMode::PERSPECTIVE };
-    perspectiveCamera.AspectRatio = window->GetAspectRatio();
-    perspectiveCamera.Position = { 0, 0, 3 };
-    perspectiveCamera.Yaw = -90.f;
-    perspectiveCamera.UpdateCameraVectors();
+    scene::Camera PerspectiveCamera{ scene::CameraMode::PERSPECTIVE };
+    PerspectiveCamera.AspectRatio = window->GetAspectRatio();
+    PerspectiveCamera.Position = { 0, 0, 3 };
+    PerspectiveCamera.Yaw = -90.f;
+    PerspectiveCamera.UpdateCameraVectors();
 
-    scene::RenderTarget OffScreenRenderTarget;
-    OffScreenRenderTarget.Camera = &perspectiveCamera;
-    OffScreenRenderTarget.Framebuffer = OffScreenFramebuffer;
-    OffScreenRenderTarget.Viewport = windowViewport;
-
-    scene::ForwardRenderer renderer{ 32, BlinnPhongMapsShader, DepthPrePassShader, SkyboxShader };
-    renderer.AmbientStrength = 0.05;
-    renderer.NumSamplesPCF = 20;
-    renderer.Setup(&OffScreenRenderTarget);
+    scene::ForwardRenderer Renderer{ 32, BlinnPhongMapsShader, DepthPrePassShader, SkyboxShader };
+    Renderer.AmbientStrength = 0.05;
+    Renderer.NumSamplesPCF = 20;
+    Renderer.FramebufferSize = { window->GetWidth(), window->GetHeight() };
+    Renderer.Setup();
 
     scene::BlinnPhongMapsMaterial woodMaterial;
     woodMaterial.Shininess = 32;
@@ -284,25 +260,25 @@ int main(int argc, char** argv)
     redPointLightCube.Transform.Translation = redPointLight.Position;
     redPointLightCube.Material = &flatRedMaterial;
 
-    scene::RenderScene sceneToRender;
-    sceneToRender.StaticGeometry.Add(&cube);
-    sceneToRender.StaticGeometry.Add(&cube1);
-    sceneToRender.StaticGeometry.Add(&cube2);
-    sceneToRender.StaticGeometry.Add(&cube3);
-    sceneToRender.StaticGeometry.Add(&gigaCube);
+    scene::RenderScene DemoScene;
+    DemoScene.StaticGeometry.Add(&cube);
+    DemoScene.StaticGeometry.Add(&cube1);
+    DemoScene.StaticGeometry.Add(&cube2);
+    DemoScene.StaticGeometry.Add(&cube3);
+    DemoScene.StaticGeometry.Add(&gigaCube);
     // sceneToRender.StaticGeometry.Add(backPackRenderable);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
-    sceneToRender.Lights.Add(&redLight);
-    sceneToRender.Lights.Add(&greenLight);
-    sceneToRender.Lights.Add(&blueLight);
-    sceneToRender.Lights.Add(&redPointLight);
+    DemoScene.Lights.Add(&redLight);
+    DemoScene.Lights.Add(&greenLight);
+    DemoScene.Lights.Add(&blueLight);
+    DemoScene.Lights.Add(&redPointLight);
 
     // sceneToRender.StaticGeometry.Add(&shadowCastingLightCube);
-    sceneToRender.StaticGeometry.Add(&redLightCube);
-    sceneToRender.StaticGeometry.Add(&greenLightCube);
-    sceneToRender.StaticGeometry.Add(&blueLightCube);
-    sceneToRender.StaticGeometry.Add(&redPointLightCube);
+    DemoScene.StaticGeometry.Add(&redLightCube);
+    DemoScene.StaticGeometry.Add(&greenLightCube);
+    DemoScene.StaticGeometry.Add(&blueLightCube);
+    DemoScene.StaticGeometry.Add(&redPointLightCube);
 
     Array<String> SkyboxFacesPaths{ 6 };
     SkyboxFacesPaths.Add(String { LUCID_TEXT("assets/skybox/right.jpg") });
@@ -313,7 +289,7 @@ int main(int argc, char** argv)
     SkyboxFacesPaths.Add(String { LUCID_TEXT("assets/skybox/back.jpg") });
 
     scene::Skybox skybox = scene::CreateSkybox(SkyboxFacesPaths);
-    sceneToRender.SceneSkybox = &skybox;
+    DemoScene.SceneSkybox = &skybox;
     
     gpu::SetClearColor(BlackColor);
 
@@ -324,6 +300,10 @@ int main(int argc, char** argv)
     real last = 0;
     real dt = 0;
 
+    scene::RenderSource RenderSource;
+    RenderSource.Camera = &PerspectiveCamera;
+    RenderSource.Viewport = windowViewport;
+    
     while (isRunning)
     {
         platform::Update();
@@ -343,28 +323,28 @@ int main(int argc, char** argv)
 
             if (IsKeyPressed(SDLK_w))
             {
-                perspectiveCamera.MoveForward(platform::SimulationStep);
+                PerspectiveCamera.MoveForward(platform::SimulationStep);
             }
 
             if (IsKeyPressed(SDLK_s))
             {
-                perspectiveCamera.MoveBackward(platform::SimulationStep);
+                PerspectiveCamera.MoveBackward(platform::SimulationStep);
             }
 
             if (IsKeyPressed(SDLK_a))
             {
-                perspectiveCamera.MoveLeft(platform::SimulationStep);
+                PerspectiveCamera.MoveLeft(platform::SimulationStep);
             }
 
             if (IsKeyPressed(SDLK_d))
             {
-                perspectiveCamera.MoveRight(platform::SimulationStep);
+                PerspectiveCamera.MoveRight(platform::SimulationStep);
             }
 
             auto mousePos = GetMousePostion();
             if (mousePos.MouseMoved)
             {
-                perspectiveCamera.AddRotation(-mousePos.DeltaX, mousePos.DeltaY);
+                PerspectiveCamera.AddRotation(-mousePos.DeltaX, mousePos.DeltaY);
             }
 
             if (IsKeyPressed(SDLK_r))
@@ -380,30 +360,30 @@ int main(int argc, char** argv)
         // Update lightmaps
         gpu::DisableSRGBFramebuffer();
         shadowCastingLight.UpdateLightSpaceMatrix();
-        shadowCastingLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowMapShader, true, true);
+        shadowCastingLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowMapShader, true, true);
 
         redLight.UpdateLightSpaceMatrix();
-        redLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowMapShader, true, true);
+        redLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowMapShader, true, true);
 
         greenLight.UpdateLightSpaceMatrix();
-        greenLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowMapShader, true, true);
+        greenLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowMapShader, true, true);
 
         blueLight.UpdateLightSpaceMatrix();
-        blueLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowMapShader, true, true);
+        blueLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowMapShader, true, true);
 
         redPointLight.UpdateLightSpaceMatrix();
-        redPointLight.GenerateShadowMap(&sceneToRender, ShadowMapFramebuffer, ShadowCubemapShader, true, true);
+        redPointLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowCubemapShader, true, true);
 
         // Render to off-screen framebuffer
-        renderer.Render(&sceneToRender);
+        Renderer.Render(&DemoScene, &RenderSource);
 
         // Blit the off-screen frame buffer to the window framebuffer
         window->GetFramebuffer()->Bind(gpu::FramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
         gpu::EnableSRGBFramebuffer();
         gpu::BlitFramebuffer(
-          OffScreenRenderTarget.Framebuffer, window->GetFramebuffer(), true, false, false,
-          { 0, 0, OffScreenRenderTarget.Framebuffer->GetColorAttachmentSize().x, OffScreenRenderTarget.Framebuffer->GetColorAttachmentSize().y },
+          Renderer.GetFinalFramebuffer(), window->GetFramebuffer(), true, false, false,
+          { 0, 0, Renderer.FramebufferSize.x, Renderer.FramebufferSize.y },
           { 0, 0, window->GetWidth(), window->GetHeight() });
         window->Swap();
     }

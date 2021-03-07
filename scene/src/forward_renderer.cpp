@@ -1,5 +1,10 @@
 #include "scene/forward_renderer.hpp"
 
+#include <GL/glew.h>
+
+
+
+#include "common/log.hpp"
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/shader.hpp"
 #include "devices/gpu/vao.hpp"
@@ -64,30 +69,85 @@ namespace lucid::scene
     {
     }
 
-    void ForwardRenderer::Setup(const RenderTarget* InRenderTarget)
+    void ForwardRenderer::Setup()
     {
-        Renderer::Setup(InRenderTarget);
+        // Create the framebuffers
+        PrepassFramebuffer = gpu::CreateFramebuffer();
+        LightingPassFramebuffer = gpu::CreateFramebuffer();
+
+        // Create a common depth-stencil attachment for both framebuffers
+        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize);
+
+        // Create render targets in which we'll store some additional information during the depth prepass
+        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB16F, 0);
+        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB16F, 0);
+        
+        // Setup the prepass framebuffer
+        PrepassFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+
+        // CurrentFrameVSNormalMap->Bind();
+        // PrepassFramebuffer->SetupColorAttachment(0, CurrentFrameVSNormalMap);
+
+        // CurrentFrameVSPositionMap->Bind();
+        // PrepassFramebuffer->SetupColorAttachment(1, CurrentFrameVSPositionMap);
+
+        DepthStencilRenderBuffer->Bind();
+        PrepassFramebuffer->SetupDepthStencilAttachment(DepthStencilRenderBuffer);
+
+        if (!PrepassFramebuffer->IsComplete())
+        {
+            LUCID_LOG(LogLevel::ERR, LUCID_TEXT("Failed to setup the prepass framebuffer"));
+            return;
+        }
+
+        // Create color attachment for the lighting pass framebuffer
+        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
+
+        // Setup the lighting pass framebuffer
+        LightingPassFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+
+        LightingPassColorBuffer->Bind();
+        LightingPassFramebuffer->SetupColorAttachment(0, LightingPassColorBuffer);
+
+        DepthStencilRenderBuffer->Bind();
+        LightingPassFramebuffer->SetupDepthStencilAttachment(DepthStencilRenderBuffer);
+
+        if (!LightingPassFramebuffer->IsComplete())
+        {
+            LUCID_LOG(LogLevel::ERR, LUCID_TEXT("Failed to setup the lighting framebuffer"));
+            return;
+        }
     }
 
     void ForwardRenderer::Cleanup()
     {
+        if (CurrentFrameVSNormalMap)
+        {
+            CurrentFrameVSNormalMap->Free();
+            delete CurrentFrameVSNormalMap;
+        }
+
+        if (CurrentFrameVSPositionMap)
+        {
+            CurrentFrameVSPositionMap->Free();
+            delete CurrentFrameVSPositionMap;
+        }
     }
 
-    void ForwardRenderer::Render(const RenderScene* InSceneToRender, const RenderTarget* InRenderTarget)
+    void ForwardRenderer::Render(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
     {
-        const RenderTarget* Target = InRenderTarget ? InRenderTarget : DefaultRenderTarget;
-
         gpu::EnableDepthTest();
-        gpu::SetReadOnlyDepthBuffer(false);
-
-        gpu::SetViewport(Target->Viewport);
-        BindAndClearFramebuffer(Target->Framebuffer);
+        gpu::DisableSRGBFramebuffer();
+        gpu::SetViewport(InRenderSource->Viewport);
         
         // Depth prepass
-        DepthPrePassShader->Use();
-        Target->Framebuffer->DisableReadWriteBuffers();
-        SetupRendererWideUniforms(DepthPrePassShader, Target);
+        gpu::SetReadOnlyDepthBuffer(false);
         gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
+
+        BindAndClearFramebuffer(PrepassFramebuffer);
+
+        DepthPrePassShader->Use();
+        SetupRendererWideUniforms(DepthPrePassShader, InRenderSource);
 
         const LinkedListItem<Renderable>* CurrentNode = &InSceneToRender->StaticGeometry.Head;
         while (CurrentNode && CurrentNode->Element)
@@ -97,23 +157,23 @@ namespace lucid::scene
             CurrentNode = CurrentNode->Next;
         }
         
-        Target->Framebuffer->SetupDrawBuffers();
-        
         // Lighting pass
         gpu::SetReadOnlyDepthBuffer(true);
         gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
 
-        DefaultShader->Use();
-        SetupRendererWideUniforms(DefaultShader, Target);
+        BindAndClearFramebuffer(LightingPassFramebuffer);
 
-        RenderStaticGeometry(InSceneToRender, Target);
+        DefaultShader->Use();
+        SetupRendererWideUniforms(DefaultShader, InRenderSource);
+
+        RenderStaticGeometry(InSceneToRender, InRenderSource);
         if (InSceneToRender->SceneSkybox)
         {
-            RenderSkybox(InSceneToRender->SceneSkybox, Target);
+            RenderSkybox(InSceneToRender->SceneSkybox, InRenderSource);
         }
     }
 
-    void ForwardRenderer::RenderStaticGeometry(const RenderScene* InScene, const RenderTarget* InRenderTarget)
+    void ForwardRenderer::RenderStaticGeometry(const RenderScene* InScene, const RenderSource* InRenderSource)
     {
         gpu::SetCullMode(gpu::CullMode::BACK);
 
@@ -128,11 +188,11 @@ namespace lucid::scene
         if (!LightNode->Element)
         {
             // no lights in the scene, render the geometry only with ambient contribution
-            RenderWithoutLights(InScene, InRenderTarget);
+            RenderWithoutLights(InScene, InRenderSource);
             return;
         }
 
-        RenderLightContribution(LightNode->Element, InScene, InRenderTarget);
+        RenderLightContribution(LightNode->Element, InScene, InRenderSource);
         if (!LightNode->Next || !LightNode->Next->Element)
         {
             // No more lights
@@ -145,14 +205,14 @@ namespace lucid::scene
         LightNode = LightNode->Next;
         while (LightNode && LightNode->Element)
         {
-            RenderLightContribution(LightNode->Element, InScene, InRenderTarget);
+            RenderLightContribution(LightNode->Element, InScene, InRenderSource);
             LightNode = LightNode->Next;
         }
     }
 
     void ForwardRenderer::RenderLightContribution(const Light* InLight,
                                                   const RenderScene* InScene,
-                                                  const RenderTarget* InRenderTarget)
+                                                  const RenderSource* InRenderSource)
     {
         const LinkedListItem<Renderable>* CurrentNode = &InScene->StaticGeometry.Head;
         gpu::Shader* LastUsedShader = DefaultShader;
@@ -166,7 +226,7 @@ namespace lucid::scene
             if (customShader)
             {
                 customShader->Use();
-                SetupRendererWideUniforms(customShader, InRenderTarget);
+                SetupRendererWideUniforms(customShader, InRenderSource);
                 LastUsedShader = customShader;
             }
             else
@@ -182,48 +242,48 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::SetupLight(gpu::Shader* Shader, const Light* InLight)
+    void ForwardRenderer::SetupLight(gpu::Shader* InShader, const Light* InLight)
     {
-        Shader->SetVector(LIGHT_COLOR, InLight->Color);
-        Shader->SetVector(LIGHT_POSITION, InLight->Position);
+        InShader->SetVector(LIGHT_COLOR, InLight->Color);
+        InShader->SetVector(LIGHT_POSITION, InLight->Position);
 
         switch (InLight->GetType())
         {
         case LightType::DIRECTIONAL:
         {
             DirectionalLight* light = (DirectionalLight*)InLight;
-            Shader->SetVector(LIGHT_DIRECTION, light->Direction);
-            Shader->SetInt(LIGHT_TYPE, DIRECTIONAL_LIGHT);
-            Shader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
+            InShader->SetVector(LIGHT_DIRECTION, light->Direction);
+            InShader->SetInt(LIGHT_TYPE, DIRECTIONAL_LIGHT);
+            InShader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
 
             if (light->ShadowMap != nullptr)
             {
-                Shader->SetBool(LIGHT_CASTS_SHADOWS, true);
-                Shader->UseTexture(LIGHT_SHADOW_MAP, light->ShadowMap);
+                InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
+                InShader->UseTexture(LIGHT_SHADOW_MAP, light->ShadowMap);
             }
             else
             {
-                Shader->SetBool(LIGHT_CASTS_SHADOWS, false);
+                InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
             }
             break;
         }
         case LightType::POINT:
         {
             PointLight* light = (PointLight*)InLight;
-            Shader->SetFloat(LIGHT_CONSTANT, light->Constant);
-            Shader->SetFloat(LIGHT_LINEAR, light->Linear);
-            Shader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
-            Shader->SetFloat(LIGHT_FAR_PLANE, light->FarPlane);
-            Shader->SetInt(LIGHT_TYPE, POINT_LIGHT);
+            InShader->SetFloat(LIGHT_CONSTANT, light->Constant);
+            InShader->SetFloat(LIGHT_LINEAR, light->Linear);
+            InShader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
+            InShader->SetFloat(LIGHT_FAR_PLANE, light->FarPlane);
+            InShader->SetInt(LIGHT_TYPE, POINT_LIGHT);
 
             if (light->ShadowMap != nullptr)
             {
-                Shader->SetBool(LIGHT_CASTS_SHADOWS, true);
-                Shader->UseTexture(LIGHT_SHADOW_CUBE, light->ShadowMap);
+                InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
+                InShader->UseTexture(LIGHT_SHADOW_CUBE, light->ShadowMap);
             }
             else
             {
-                Shader->SetBool(LIGHT_CASTS_SHADOWS, false);
+                InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
             }
 
             break;
@@ -231,23 +291,23 @@ namespace lucid::scene
         case LightType::SPOT:
         {
             SpotLight* light = (SpotLight*)InLight;
-            Shader->SetVector(LIGHT_DIRECTION, light->Direction);
-            Shader->SetFloat(LIGHT_CONSTANT, light->Constant);
-            Shader->SetFloat(LIGHT_LINEAR, light->Linear);
-            Shader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
-            Shader->SetFloat(LIGHT_INNER_CUT_OFF, glm::cos(light->InnerCutOffRad));
-            Shader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(light->OuterCutOffRad));
-            Shader->SetInt(LIGHT_TYPE, SPOT_LIGHT);
-            Shader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
+            InShader->SetVector(LIGHT_DIRECTION, light->Direction);
+            InShader->SetFloat(LIGHT_CONSTANT, light->Constant);
+            InShader->SetFloat(LIGHT_LINEAR, light->Linear);
+            InShader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
+            InShader->SetFloat(LIGHT_INNER_CUT_OFF, glm::cos(light->InnerCutOffRad));
+            InShader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(light->OuterCutOffRad));
+            InShader->SetInt(LIGHT_TYPE, SPOT_LIGHT);
+            InShader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
 
             if (light->ShadowMap != nullptr)
             {
-                Shader->SetBool(LIGHT_CASTS_SHADOWS, true);
-                Shader->UseTexture(LIGHT_SHADOW_MAP, light->ShadowMap);
+                InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
+                InShader->UseTexture(LIGHT_SHADOW_MAP, light->ShadowMap);
             }
             else
             {
-                Shader->SetBool(LIGHT_CASTS_SHADOWS, false);
+                InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
             }
             break;
         }
@@ -255,7 +315,7 @@ namespace lucid::scene
     }
 
     void ForwardRenderer::RenderWithoutLights(const RenderScene* InScene,
-                                              const RenderTarget* InRenderTarget)
+                                              const RenderSource* InRenderSource)
     {
         const LinkedListItem<Renderable>* CurrentNode = &InScene->StaticGeometry.Head;
         gpu::Shader* LastUserShader = DefaultShader;
@@ -273,7 +333,7 @@ namespace lucid::scene
             {
                 CustomShader->Use();
                 CustomShader->SetInt(LIGHT_TYPE, NO_LIGHT);
-                SetupRendererWideUniforms(CustomShader, InRenderTarget);
+                SetupRendererWideUniforms(CustomShader, InRenderSource);
                 LastUserShader = CustomShader;
             }
             else if (LastUserShader != DefaultShader)
@@ -287,43 +347,43 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::BindAndClearFramebuffer(gpu::Framebuffer* Framebuffer)
+    void ForwardRenderer::BindAndClearFramebuffer(gpu::Framebuffer* InFramebuffer)
     {
-        Framebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        InFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
     }
 
-    void ForwardRenderer::SetupRendererWideUniforms(gpu::Shader* Shader, const RenderTarget* Target)
+    void ForwardRenderer::SetupRendererWideUniforms(gpu::Shader* InShader, const RenderSource* InRenderSource)
     {
-        Shader->SetFloat(AMBIENT_STRENGTH, AmbientStrength);
-        Shader->SetInt(NUM_OF_PCF_SAMPLES, NumSamplesPCF);
-        Shader->SetMatrix(PROJECTION_MATRIX, Target->Camera->GetProjectionMatrix());
-        Shader->SetMatrix(VIEW_MATRIX, Target->Camera->GetViewMatrix());
-        Shader->SetVector(VIEW_POSITION, Target->Camera->Position);
-        Shader->SetFloat(PARALLAX_HEIGHT_SCALE, 0.1f);
+        InShader->SetFloat(AMBIENT_STRENGTH, AmbientStrength);
+        InShader->SetInt(NUM_OF_PCF_SAMPLES, NumSamplesPCF);
+        InShader->SetMatrix(PROJECTION_MATRIX, InRenderSource->Camera->GetProjectionMatrix());
+        InShader->SetMatrix(VIEW_MATRIX, InRenderSource->Camera->GetViewMatrix());
+        InShader->SetVector(VIEW_POSITION, InRenderSource->Camera->Position);
+        InShader->SetFloat(PARALLAX_HEIGHT_SCALE, 0.1f);
     }
 
-    void ForwardRenderer::Render(gpu::Shader* Shader, Renderable* const ToRender)
+    void ForwardRenderer::Render(gpu::Shader* Shader, const Renderable* InRenderable)
     {
-        glm::mat4 modelMatrix = ToRender->CalculateModelMatrix();
+        glm::mat4 modelMatrix = InRenderable->CalculateModelMatrix();
         Shader->SetMatrix(MODEL_MATRIX, modelMatrix);
-        Shader->SetBool(REVERSE_NORMALS, ToRender->bReverseNormals);
+        Shader->SetBool(REVERSE_NORMALS, InRenderable->bReverseNormals);
 
-        ToRender->Material->SetupShader(Shader);
+        InRenderable->Material->SetupShader(Shader);
 
-        ToRender->VertexArray->Bind();
-        ToRender->VertexArray->Draw();
+        InRenderable->VertexArray->Bind();
+        InRenderable->VertexArray->Draw();
     }
 
-    inline void ForwardRenderer::RenderSkybox(const Skybox* InSkybox, const RenderTarget* InRenderTarget)
+    inline void ForwardRenderer::RenderSkybox(const Skybox* InSkybox, const RenderSource* InRenderSource)
     {
         gpu::DisableBlending();
 
         SkyboxShader->Use();
 
         SkyboxShader->UseTexture(SKYBOX_CUBEMAP, InSkybox->SkyboxCubemap);
-        SkyboxShader->SetMatrix(VIEW_MATRIX, InRenderTarget->Camera->GetViewMatrix());
-        SkyboxShader->SetMatrix(PROJECTION_MATRIX, InRenderTarget->Camera->GetProjectionMatrix());
+        SkyboxShader->SetMatrix(VIEW_MATRIX, InRenderSource->Camera->GetViewMatrix());
+        SkyboxShader->SetMatrix(PROJECTION_MATRIX, InRenderSource->Camera->GetProjectionMatrix());
 
         misc::CubeVertexArray->Bind();
         misc::CubeVertexArray->Draw();
