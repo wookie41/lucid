@@ -29,7 +29,8 @@ namespace lucid::scene
         
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
         ForwardRenderer(
-            const u32& MaxNumOfDirectionalLights,
+            const u32& InMaxNumOfDirectionalLights,
+            const u8 InNumSSAOSamples,
             gpu::Shader* InDefaultRenderableShader,
             gpu::Shader* InPrepassShader,
             gpu::Shader* InSSAOShader,
@@ -63,6 +64,7 @@ namespace lucid::scene
 
         void RenderSkybox(const Skybox* InSkybox, const RenderSource* InRenderSource);
 
+        u8  NumSSAOSamples;
         u32 MaxNumOfDirectionalLights;
 
         gpu::Shader* SkyboxShader;
@@ -79,7 +81,8 @@ namespace lucid::scene
         gpu::Framebuffer* LightingPassFramebuffer;
 
         /** Texture in which the result of SSAO algorithm will be stored */
-        gpu::Texture* SSAOTexture;
+        gpu::Texture* SSAOResult;
+        gpu::Texture* SSAONoise;
         
         gpu::Texture* LightingPassColorBuffer;
         gpu::Renderbuffer* DepthStencilRenderBuffer;

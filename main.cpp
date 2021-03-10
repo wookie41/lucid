@@ -104,7 +104,7 @@ int main(int argc, char** argv)
     PerspectiveCamera.Yaw = -90.f;
     PerspectiveCamera.UpdateCameraVectors();
 
-    scene::ForwardRenderer Renderer{ 32, BlinnPhongMapsShader, ForwardPrepassShader, SSAOShader,  SkyboxShader };
+    scene::ForwardRenderer Renderer{ 32, 64, BlinnPhongMapsShader, ForwardPrepassShader, SSAOShader,  SkyboxShader };
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
     Renderer.FramebufferSize = { window->GetWidth(), window->GetHeight() };

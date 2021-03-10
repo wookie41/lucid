@@ -43,6 +43,7 @@ namespace lucid::gpu
 
     enum class TextureFormat : u8
     {
+        RG,
         RGB,
         RGBA,
         SRGB,

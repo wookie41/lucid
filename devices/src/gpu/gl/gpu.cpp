@@ -1,5 +1,10 @@
 #include "devices/gpu/gpu.hpp"
+
+
+#include "devices/gpu/shader.hpp"
+#include "devices/gpu/vao.hpp"
 #include "GL/glew.h"
+#include "misc/basic_shapes.hpp"
 
 namespace lucid::gpu
 {
@@ -135,4 +140,16 @@ namespace lucid::gpu
 
     //////////////////////////////////////////////////////
 
+    static const String QUAD_POSITION ("uQuadPosition");
+    static const String QUAD_SIZE ("uQuadSize");
+    
+    void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize)
+    {
+        assert(Info.CurrentShader);
+        misc::QuadVertexArray->Bind();
+        Info.CurrentShader->SetVector(QUAD_POSITION, InPosition);
+        Info.CurrentShader->SetVector(QUAD_SIZE, InSize);
+        misc::QuadVertexArray->Draw(0, 6);
+    }
+    
 } // namespace lucid::gpu

@@ -15,18 +15,24 @@
 
 #include "devices/gpu/cubemap.hpp"
 #include "devices/gpu/viewport.hpp"
+
 #include "misc/basic_shapes.hpp"
+#include "misc/math.hpp"
+
+#include "common/collections.hpp"
 
 namespace lucid::scene
 {
-    // Shader light-related uniforms
     static const u32 NO_LIGHT = 0;
     static const u32 DIRECTIONAL_LIGHT = 1;
     static const u32 POINT_LIGHT = 2;
     static const u32 SPOT_LIGHT = 3;
 
-    static const String LIGHT_TYPE("uLight.Type");
+    static const String SSAO_POSITIONS_VS("uPositionsVS");
+    static const String SSAO_NORMALS_VS("uNormalsVS");
+    static const String SSAO_NOISE("uNoise");
 
+    static const String LIGHT_TYPE("uLight.Type");
     static const String LIGHT_POSITION("uLight.Position");
     static const String LIGHT_DIRECTION("uLight.Direction");
     static const String LIGHT_COLOR("uLight.Color");
@@ -56,16 +62,19 @@ namespace lucid::scene
 
     static const String PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
 
-    ForwardRenderer::ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
-                                     gpu::Shader* InDefaultRenderableShader,
-                                     gpu::Shader* InPrepassShader,
-                                     gpu::Shader* InSSAOShader,
-                                     gpu::Shader* InSkyboxShader)
+    ForwardRenderer::ForwardRenderer(
+        const u32& InMaxNumOfDirectionalLights,
+        const u8 InNumSSAOSamples,
+        gpu::Shader* InDefaultRenderableShader,
+        gpu::Shader* InPrepassShader,
+        gpu::Shader* InSSAOShader,
+        gpu::Shader* InSkyboxShader)
     : Renderer(InDefaultRenderableShader),
-    MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
-    PrepassShader(InPrepassShader),
-    SSAOShader(InSSAOShader),
-    SkyboxShader(InSkyboxShader)
+        MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
+        NumSSAOSamples(InNumSSAOSamples),
+        PrepassShader(InPrepassShader),
+        SSAOShader(InSSAOShader),
+        SkyboxShader(InSkyboxShader)
     {
     }
 
@@ -101,12 +110,12 @@ namespace lucid::scene
             return;
         }
 
-        // Create a texture to store the result of SSAO
-        SSAOTexture = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB, 0);
+        // Create texture to store SSO result
+        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB, 0);
 
         // Setup a SSAO framebuffer
         SSAOFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
-        SSAOFramebuffer->SetupColorAttachment(0, SSAOTexture);
+        SSAOFramebuffer->SetupColorAttachment(0, SSAOResult);
 
         if (!SSAOFramebuffer->IsComplete())
         {
@@ -131,6 +140,34 @@ namespace lucid::scene
             LUCID_LOG(LogLevel::ERR, LUCID_TEXT("Failed to setup the lighting framebuffer"));
             return;
         }
+
+        // Setup the SSAO shader
+        SSAOShader->Use();
+        SSAOShader->UseTexture(SSAO_POSITIONS_VS, CurrentFrameVSPositionMap);
+        SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
+        SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
+        
+        // Sample vectors
+        for (int i = 0; i < NumSSAOSamples; ++i)
+        {
+            glm::vec2 Sample = misc::RandomVec2();
+            DString SampleUniformName = SPrintf(LUCID_TEXT("uSamples[%d]"), i);
+            SSAOShader->SetVector(SampleUniformName, Sample);
+            SampleUniformName.Free();
+        }
+
+        // Noise
+        glm::vec2 Noise[16];
+        for (i8 i = 0; i < 16; ++i)
+        {
+            Noise[i] = misc::RandomVec2();
+        }
+
+        SSAONoise = gpu::Create2DTexture(Noise, 4, 4, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RG, 0, false);
+        SSAONoise->Bind();
+        SSAONoise->SetWrapSFilter(gpu::WrapTextureFilter::REPEAT);
+        SSAONoise->SetWrapTFilter(gpu::WrapTextureFilter::REPEAT);
+        SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);   
     }
 
     void ForwardRenderer::Cleanup()
@@ -351,11 +388,16 @@ namespace lucid::scene
             CurrentNode = CurrentNode->Next;
         }
 
-        // Create the SSAO texture
+         // Calculate SSAO
+        gpu::DisableDepthTest();
+        SSAOFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        SSAOShader->Use();
+        gpu::DrawImmediateQuad({ 0, 0 } , SSAOResult->GetSize());
     }
 
     void ForwardRenderer::LightingPass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
     {
+        gpu::EnableDepthTest();
         gpu::SetReadOnlyDepthBuffer(true);
         gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
 

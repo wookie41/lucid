@@ -58,6 +58,8 @@ namespace lucid
     
     DString CopyToString(char const* InToCopy, const u32& InStringLength);
 
+    DString SPrintf(const char* InFormat, ...);
+    
     extern String EMPTY_STRING;
 } // namespace lucid
     

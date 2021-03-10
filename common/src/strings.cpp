@@ -2,7 +2,10 @@
 
 #include "stdlib.h"
 #include <cassert>
+#include <cstdarg>
 #include <string.h>
+
+#include "common/types.hpp"
 
 namespace lucid
 {
@@ -71,4 +74,13 @@ namespace lucid
         return DString { CopiedString, InStringLength };
     }
 
+    DString SPrintf(const char* InFormat, ...)
+    {
+        static char MsgBuffer[5024];
+        va_list Args;
+        va_start(Args, InFormat);
+        const i32 FormatSize = vsprintf_s(MsgBuffer, 5024, InFormat, Args);
+        va_end(Args);
+        return CopyToString(MsgBuffer, FormatSize);
+    }
 } // namespace lucid

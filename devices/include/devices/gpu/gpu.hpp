@@ -1,12 +1,15 @@
 #pragma once
 
 #include <cstdint>
+#include <glm/vec2.hpp>
+
 #include "common/types.hpp"
 
 namespace lucid::gpu
 {
-    /////////////// Buffers ///////////////
-
+    /////////////////////////////////////
+    //           Buffers               //
+    /////////////////////////////////////
     enum ClearableBuffers : u8
     {
         COLOR = 1,
@@ -19,7 +22,9 @@ namespace lucid::gpu
     void SetClearColor(const color& Color);
     void SetClearDepth(const float& DepthValue);
 
-    /////////////// Depth tests ///////////////
+    /////////////////////////////////////
+    //           Depth tests          //
+    /////////////////////////////////////
 
     enum class DepthTestFunction : u8
     {
@@ -38,9 +43,9 @@ namespace lucid::gpu
     void SetDepthTestFunction(const DepthTestFunction& Function);
     void SetReadOnlyDepthBuffer(const bool& InReadOnly);
 
-    /////////////////////////////////////////
-
-    /////////////// Blending ///////////////
+    /////////////////////////////////////
+    //           Blending              //
+    /////////////////////////////////////
 
     enum class BlendFunction : u8
     {
@@ -75,9 +80,9 @@ namespace lucid::gpu
     void EnableBlending();
     void DisableBlending();
 
-    ///////////////////////////////////////
-
-    ///////////// Culling //////////////////////
+    /////////////////////////////////////
+    //            Culling              //
+    /////////////////////////////////////
 
     enum class CullMode : u8
     {
@@ -91,17 +96,21 @@ namespace lucid::gpu
 
     void SetCullMode(CullMode Mode);
 
-    ///////////////////////////////////////
-
-    ///////////// sRGB //////////////////////
+    /////////////////////////////////////
+    //              sRGB               //
+    /////////////////////////////////////
 
     void EnableSRGBFramebuffer();
     void DisableSRGBFramebuffer();
 
-    /////////////// GPU Info ///////////////
+    /////////////////////////////////////
+    //              GPU Info           //
+    /////////////////////////////////////
 
-    // Queries the GPU for it's properties, like the maximum number of samplers
-    // supported extension, which shader/framebuffer/texture and etc is currently bound
+    /*
+     * Queries the GPU for it's properties, like the maximum number of samplers
+     * supported extension, which shader/framebuffer/texture and etc is currently bound
+     */
 
     class Framebuffer;
     class Shader;
@@ -133,6 +142,12 @@ namespace lucid::gpu
         u32 MaxTextureUnits = 0;
         u32 MaxColorAttachments = 0;
     };
+
+    /////////////////////////////////////
+    //     Immediate drawing           //
+    /////////////////////////////////////
+
+    void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize);
 
     extern GPUInfo Info;
 } // namespace lucid::gpu

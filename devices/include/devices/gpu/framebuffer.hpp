@@ -3,8 +3,9 @@
 #include <cstdint>
 
 #include "common/types.hpp"
-#include "misc/math.h"
+#include "misc/math.hpp"
 #include "glm/glm.hpp"
+
 namespace lucid::gpu
 {
     // we should query the GPU for it
