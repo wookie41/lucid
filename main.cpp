@@ -93,6 +93,7 @@ int main(int argc, char** argv)
     gpu::Shader* ShadowCubemapShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("CubeShadowMap") }, String{ LUCID_TEXT("shaders/glsl/shadow_cubemap.vert") },String{ LUCID_TEXT("shaders/glsl/shadow_cubemap.frag") }, String{ LUCID_TEXT("shaders/glsl/shadow_cubemap.geom") });
     gpu::Shader* FlatShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("FlatShadowMap") }, String{ LUCID_TEXT("shaders/glsl/flat.vert") },String{ LUCID_TEXT("shaders/glsl/flat.frag") }, EMPTY_STRING);
     gpu::Shader* ForwardPrepassShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("ForwardPrepass") }, String{ LUCID_TEXT("shaders/glsl/forward_prepass.vert") },String{ LUCID_TEXT("shaders/glsl/forward_prepass.frag") }, EMPTY_STRING);
+    gpu::Shader* SSAOShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("SSAO") }, String{ LUCID_TEXT("shaders/glsl/ssao.vert") },String{ LUCID_TEXT("shaders/glsl/ssao.frag") }, EMPTY_STRING);
 
     // Prepare the scene
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
@@ -103,7 +104,7 @@ int main(int argc, char** argv)
     PerspectiveCamera.Yaw = -90.f;
     PerspectiveCamera.UpdateCameraVectors();
 
-    scene::ForwardRenderer Renderer{ 32, BlinnPhongMapsShader, ForwardPrepassShader, SkyboxShader };
+    scene::ForwardRenderer Renderer{ 32, BlinnPhongMapsShader, ForwardPrepassShader, SSAOShader,  SkyboxShader };
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
     Renderer.FramebufferSize = { window->GetWidth(), window->GetHeight() };

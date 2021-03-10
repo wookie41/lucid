@@ -32,6 +32,7 @@ namespace lucid::scene
             const u32& MaxNumOfDirectionalLights,
             gpu::Shader* InDefaultRenderableShader,
             gpu::Shader* InPrepassShader,
+            gpu::Shader* InSSAOShader,
             gpu::Shader* SkyboxShader);
 
         virtual void Setup() override;
@@ -48,6 +49,9 @@ namespace lucid::scene
 
     private:
 
+        void DepthPrepass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource);
+        void LightingPass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource);
+        
         inline void BindAndClearFramebuffer(gpu::Framebuffer* InFramebuffer);
         inline void SetupRendererWideUniforms(gpu::Shader* InShader, const RenderSource* InRenderSource);
         
@@ -63,13 +67,20 @@ namespace lucid::scene
 
         gpu::Shader* SkyboxShader;
         gpu::Shader* PrepassShader;
+        gpu::Shader* SSAOShader;
 
         /** Framebuffer used for when doing the depth-only prepass */
         gpu::Framebuffer* PrepassFramebuffer;
 
+        /** Framebuffer used when calculating SSAO */
+        gpu::Framebuffer* SSAOFramebuffer;
+        
         /** Framebuffer used for when doing the lighting pass */
         gpu::Framebuffer* LightingPassFramebuffer;
 
+        /** Texture in which the result of SSAO algorithm will be stored */
+        gpu::Texture* SSAOTexture;
+        
         gpu::Texture* LightingPassColorBuffer;
         gpu::Renderbuffer* DepthStencilRenderBuffer;
 

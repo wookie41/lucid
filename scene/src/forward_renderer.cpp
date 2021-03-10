@@ -1,9 +1,5 @@
 #include "scene/forward_renderer.hpp"
 
-#include <GL/glew.h>
-
-
-
 #include "common/log.hpp"
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/shader.hpp"
@@ -63,9 +59,13 @@ namespace lucid::scene
     ForwardRenderer::ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
                                      gpu::Shader* InDefaultRenderableShader,
                                      gpu::Shader* InPrepassShader,
+                                     gpu::Shader* InSSAOShader,
                                      gpu::Shader* InSkyboxShader)
-    : Renderer(InDefaultRenderableShader), MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), SkyboxShader(InSkyboxShader),
-      PrepassShader(InPrepassShader)
+    : Renderer(InDefaultRenderableShader),
+    MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
+    PrepassShader(InPrepassShader),
+    SSAOShader(InSSAOShader),
+    SkyboxShader(InSkyboxShader)
     {
     }
 
@@ -74,7 +74,8 @@ namespace lucid::scene
         // Create the framebuffers
         PrepassFramebuffer = gpu::CreateFramebuffer();
         LightingPassFramebuffer = gpu::CreateFramebuffer();
-
+        SSAOFramebuffer = gpu::CreateFramebuffer();
+        
         // Create a common depth-stencil attachment for both framebuffers
         DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize);
 
@@ -100,6 +101,19 @@ namespace lucid::scene
             return;
         }
 
+        // Create a texture to store the result of SSAO
+        SSAOTexture = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB, 0);
+
+        // Setup a SSAO framebuffer
+        SSAOFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        SSAOFramebuffer->SetupColorAttachment(0, SSAOTexture);
+
+        if (!SSAOFramebuffer->IsComplete())
+        {
+            LUCID_LOG(LogLevel::ERR, LUCID_TEXT("Failed to setup the SSAO framebuffer"));
+            return;
+        }
+        
         // Create color attachment for the lighting pass framebuffer
         LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
 
@@ -139,40 +153,9 @@ namespace lucid::scene
         gpu::EnableDepthTest();
         gpu::DisableSRGBFramebuffer();
         gpu::SetViewport(InRenderSource->Viewport);
-        
-        // Depth prepass
-        gpu::SetReadOnlyDepthBuffer(false);
-        gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
 
-        BindAndClearFramebuffer(PrepassFramebuffer);
-        PrepassFramebuffer->SetupDrawBuffers();
-        
-        PrepassShader->Use();
-        SetupRendererWideUniforms(PrepassShader, InRenderSource);
-
-        const LinkedListItem<Renderable>* CurrentNode = &InSceneToRender->StaticGeometry.Head;
-        while (CurrentNode && CurrentNode->Element)
-        {
-            Renderable* CurrentRenderable = CurrentNode->Element;
-            Render(PrepassShader, CurrentRenderable);
-            CurrentNode = CurrentNode->Next;
-        }
-        
-        // Lighting pass
-        gpu::SetReadOnlyDepthBuffer(true);
-        gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
-
-        BindAndClearFramebuffer(LightingPassFramebuffer);
-        LightingPassFramebuffer->SetupDrawBuffers();
-
-        DefaultRenderableShader->Use();
-        SetupRendererWideUniforms(DefaultRenderableShader, InRenderSource);
-
-        RenderStaticGeometry(InSceneToRender, InRenderSource);
-        if (InSceneToRender->SceneSkybox)
-        {
-            RenderSkybox(InSceneToRender->SceneSkybox, InRenderSource);
-        }
+        DepthPrepass(InSceneToRender, InRenderSource);
+        LightingPass(InSceneToRender, InRenderSource);
     }
 
     void ForwardRenderer::RenderStaticGeometry(const RenderScene* InScene, const RenderSource* InRenderSource)
@@ -328,8 +311,7 @@ namespace lucid::scene
         {
             Renderable* CurrentRenderable = CurrentNode->Element;
 
-            // Determine if the material uses a custom shader
-            // if yes, then setup the renderer-provided uniforms
+            // Determine if the material uses a custom shader if yes, then setup the renderer-provided uniforms
             gpu::Shader* CustomShader = CurrentRenderable->Material->GetCustomShader();
             if (CustomShader)
             {
@@ -346,6 +328,47 @@ namespace lucid::scene
 
             Render(LastUserShader, CurrentRenderable);
             CurrentNode = CurrentNode->Next;
+        }
+    }
+
+    void ForwardRenderer::DepthPrepass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
+    {
+        // Render the scene
+        gpu::SetReadOnlyDepthBuffer(false);
+        gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
+
+        BindAndClearFramebuffer(PrepassFramebuffer);
+        PrepassFramebuffer->SetupDrawBuffers();
+        
+        PrepassShader->Use();
+        SetupRendererWideUniforms(PrepassShader, InRenderSource);
+
+        const LinkedListItem<Renderable>* CurrentNode = &InSceneToRender->StaticGeometry.Head;
+        while (CurrentNode && CurrentNode->Element)
+        {
+            Renderable* CurrentRenderable = CurrentNode->Element;
+            Render(PrepassShader, CurrentRenderable);
+            CurrentNode = CurrentNode->Next;
+        }
+
+        // Create the SSAO texture
+    }
+
+    void ForwardRenderer::LightingPass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
+    {
+        gpu::SetReadOnlyDepthBuffer(true);
+        gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
+
+        BindAndClearFramebuffer(LightingPassFramebuffer);
+        LightingPassFramebuffer->SetupDrawBuffers();
+
+        DefaultRenderableShader->Use();
+        SetupRendererWideUniforms(DefaultRenderableShader, InRenderSource);
+
+        RenderStaticGeometry(InSceneToRender, InRenderSource);
+        if (InSceneToRender->SceneSkybox)
+        {
+            RenderSkybox(InSceneToRender->SceneSkybox, InRenderSource);
         }
     }
 
