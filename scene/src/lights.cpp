@@ -49,7 +49,7 @@ namespace lucid::scene
     static gpu::Texture* CreateShadowMapTexture(const glm::ivec2& ShadowMapSize)
     {
         gpu::Texture* shadowMap = gpu::CreateEmpty2DTexture(ShadowMapSize.x, ShadowMapSize.y, gpu::TextureDataType::FLOAT,
-                                                            gpu::TextureFormat::DEPTH_COMPONENT, 0);
+                                                            gpu::TextureDataFormat::DEPTH_COMPONENT, gpu::TexturePixelFormat::DEPTH_COMPONENT, 0);
         shadowMap->Bind();
         shadowMap->SetWrapSFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
         shadowMap->SetWrapTFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
@@ -92,8 +92,7 @@ namespace lucid::scene
 
         if (CastsShadow)
         {
-            pointLight.ShadowMap = gpu::CreateCubemap(ShadowMapSize, gpu::TextureFormat::DEPTH_COMPONENT,
-                                                      gpu::TextureFormat::DEPTH_COMPONENT, gpu::TextureDataType::FLOAT);
+            pointLight.ShadowMap = gpu::CreateCubemap(ShadowMapSize, gpu::TextureDataFormat::DEPTH_COMPONENT, gpu::TexturePixelFormat::DEPTH_COMPONENT, gpu::TextureDataType::FLOAT);
             pointLight.ShadowMapSize = ShadowMapSize;
         }
 

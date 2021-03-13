@@ -1,7 +1,7 @@
 ﻿#include "misc/math.hpp"
 #include <random>
 
-namespace lucid::misc
+namespace lucid::math
 {
     float RandomFloat()
     {
@@ -18,5 +18,10 @@ namespace lucid::misc
     glm::vec3 RandomVec3()
     {
         return { RandomFloat(), RandomFloat(), RandomFloat() };
+    }
+
+    real Lerp(const real& X, const real& Y, const real& T)
+    {
+        return X + ((Y - X) * T);
     }
 }

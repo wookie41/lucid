@@ -15,8 +15,8 @@ namespace lucid::resources
                         gpu::Texture* Handle,
                         const u32& W,
                         const u32& H,
-                        const bool& GammeCorrected,
-                        const gpu::TextureFormat& Fmt);
+                        gpu::TextureDataFormat InDataFormat,
+                        gpu::TexturePixelFormat InPixelFormat);
 
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
@@ -24,20 +24,21 @@ namespace lucid::resources
         void* const TextureData;
         gpu::Texture* const TextureHandle;
         const u32 Width, Height;
-        const bool IsGammaCorrected;
-        const gpu::TextureFormat Format;
+        gpu::TextureDataFormat DataFormat;
+        gpu::TexturePixelFormat PixelFormat;
     };
 
     TextureResource* LoadJPEG(const ANSIString& InPath,
                               const bool& InPerformGammaCorrection,
                               const gpu::TextureDataType& InDataType,
-                              const bool& InFlipY = false,
-                              const bool& InSendToGPU = true);
+                              const bool& InFlipY,
+                              const bool& InSendToGPU);
+    
     TextureResource* LoadPNG(const ANSIString& InPath,
-                             const bool& InPerformGammaCorrection,
-                             const gpu::TextureDataType& InDataType,
-                             const bool& InFlipY = false,
-                             const bool& InSendToGPU = true);
+                              const bool& InPerformGammaCorrection,
+                              const gpu::TextureDataType& InDataType,
+                              const bool& InFlipY,
+                              const bool& InSendToGPU);
 
     extern ResourcesHolder<TextureResource> TexturesHolder;
 } // namespace lucid::resources

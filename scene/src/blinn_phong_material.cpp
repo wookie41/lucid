@@ -71,7 +71,7 @@ namespace lucid::scene
     };
 
 
-    Renderable* CreateBlinnPhongRenderable(DString InMeshName, resources::MeshResource* InMesh, gpu::Shader* InShader)
+    Renderable* CreateBlinnPhongRenderable(const ANSIString& InMeshName, resources::MeshResource* InMesh, gpu::Shader* InShader)
         {
             gpu::Texture* FallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
 
@@ -108,7 +108,7 @@ namespace lucid::scene
                 MeshMaterial->NormalMap = InMesh->NormalMap->TextureHandle;
             }
     
-            Renderable* MeshRenderable = new Renderable{ InMeshName };
+            Renderable* MeshRenderable = new Renderable{ CopyToString(*InMeshName, InMeshName.GetLength()) };
             MeshRenderable->Material = MeshMaterial;
             MeshRenderable->Type = RenderableType::STATIC;
             MeshRenderable->VertexArray = InMesh->VAO;

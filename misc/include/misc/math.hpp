@@ -3,7 +3,9 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-namespace lucid::misc
+#include "common/types.hpp"
+
+namespace lucid::math
 {
     struct IRectangle
     {
@@ -19,4 +21,6 @@ namespace lucid::misc
 
     // Returns a random vec3 with components in range <0; 1>
     glm::vec3 RandomVec3();
+
+    real Lerp(const real& X, const real& Y, const real& T);
 } // namespace lucid::misc

@@ -47,5 +47,5 @@ namespace lucid::scene
         glm::vec3 SpecularColor; //Fallback when specular map is not used
     };
 
-    Renderable* CreateBlinnPhongRenderable(DString InMeshName, resources::MeshResource* InMesh, gpu::Shader* InShader);
+    Renderable* CreateBlinnPhongRenderable(const ANSIString& InMeshName, resources::MeshResource* InMesh, gpu::Shader* InShader);
 } // namespace lucid::scene

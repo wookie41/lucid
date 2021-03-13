@@ -149,7 +149,7 @@ namespace lucid::gpu
         misc::QuadVertexArray->Bind();
         Info.CurrentShader->SetVector(QUAD_POSITION, InPosition);
         Info.CurrentShader->SetVector(QUAD_SIZE, InSize);
-        misc::QuadVertexArray->Draw(0, 6);
+        misc::QuadVertexArray->Draw();
     }
     
 } // namespace lucid::gpu

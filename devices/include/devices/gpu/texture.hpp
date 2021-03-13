@@ -41,17 +41,36 @@ namespace lucid::gpu
         REPEAT
     };
 
-    enum class TextureFormat : u8
+    enum class TextureDataFormat : u8
     {
+        R,
+        R16F,
+        R32F,
+        RG,
+        RG16F,
+        RG32F,
+        RGB,
+        RGB16F,
+        RGB32F,
+        RGBA,
+        RGBA16F,
+        RGBA32F,
+        SRGB,
+        SRGBA,
+        DEPTH_COMPONENT,
+        DEPTH_STENCIL
+    };
+
+    enum class TexturePixelFormat : u8
+    {
+        R,
         RG,
         RGB,
         RGBA,
-        SRGB,
-        SRGBA,
-        RGB16F,
-        DEPTH_COMPONENT
+        DEPTH_COMPONENT,
+        DEPTH_STENCIL
     };
-
+    
     class Texture : public FramebufferAttachment
     {
       public:
@@ -72,10 +91,9 @@ namespace lucid::gpu
                              const u32& Width,
                              const u32& Height,
                              const TextureDataType& DataType,
-                             const TextureFormat& Format,
-                             const int32_t& MipMapLevel,
-                             const bool& PerformGammaCorrection);
+                             const TextureDataFormat& InDataFormat,
+                             const TexturePixelFormat& InPixelFormat,
+                             const int32_t& MipMapLevel);
 
-    Texture*
-    CreateEmpty2DTexture(const u32& Width, const u32& Height, const TextureDataType& DataType, const TextureFormat& Format, const int32_t& MipMapLevel);
+    Texture* CreateEmpty2DTexture(const u32& Width, const u32& Height, const TextureDataType& DataType, const TextureDataFormat& InDataFormat, const TexturePixelFormat& InPixelFormat, const int32_t& MipMapLevel);
 } // namespace lucid::gpu

@@ -9,13 +9,10 @@ namespace lucid::misc
 
     static const float BASIC_QUAD_VERTEX_DATA[]{
         // pos         //normals //tangents      //tex coords
-        -1.0f, 1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,  0.0f,  25.0f,
+        -1.0f, 1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,  0.0f,  1.0f,
         -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,  0.0f,  0.0f,
-        1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,  25.0f, 0.0f,
-
-         -1.0f, 1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,  0.0f,  25.0f,
-        1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,   25.0f, 0.0f,
-         1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,  25.0f, 25.0f
+        1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+        1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,   1.0f, 0.0f
     };
 
     float CUBE_VERTICES[] = {
@@ -87,7 +84,7 @@ namespace lucid::misc
         quadAttributes.Add({ 2, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });
         quadAttributes.Add({ 3, 2, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 9), 0 });
 
-        QuadVertexArray = gpu::CreateVertexArray(&quadAttributes, QuadVertexBuffer, nullptr, gpu::DrawMode::TRIANGLES, 6, 0);
+        QuadVertexArray = gpu::CreateVertexArray(&quadAttributes, QuadVertexBuffer, nullptr, gpu::DrawMode::TRIANGLE_STRIP, 4, 0);
         quadAttributes.Free();
 
         // we're not going to need the buffers on the CPU anymore, they have to be residient on the GPU tho, so we don't call

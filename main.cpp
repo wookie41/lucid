@@ -24,6 +24,7 @@
 #include "platform/util.hpp"
 #include "platform/platform.hpp"
 #include "devices/gpu/shaders_manager.hpp"
+#include "resources/mesh.hpp"
 
 using namespace lucid;
 
@@ -49,13 +50,13 @@ int main(int argc, char** argv)
     ShadowMapFramebuffer->DisableReadWriteBuffers();
 
     // Load textures uesd in the demo scene
-    // resources::MeshResource* backPackMesh = resources::AssimpLoadMesh(String {"assets\\models\\backpack\\"}, String { LUCID_TEXT("backpack.obj") });
-    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall.jpg") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
-    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall_normal.jpg") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
-    resources::TextureResource* woodDiffuseMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/wood.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
-    resources::TextureResource* blankTextureResource = resources::LoadPNG(String{ LUCID_TEXT("assets/textures/blank.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
-    resources::TextureResource* toyboxNormalMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/toy_box_normal.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
-    resources::TextureResource* toyBoxDisplacementMapResource = resources::LoadPNG(String{ LUCID_TEXT("assets/textures/toy_box_disp.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true);
+    resources::MeshResource* backPackMesh = resources::AssimpLoadMesh(String {LUCID_TEXT("assets\\models\\backpack\\")}, String { LUCID_TEXT("backpack.obj") });
+    resources::TextureResource* brickWallDiffuseMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall.jpg") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true, true);
+    resources::TextureResource* brickWallNormalMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/brickwall_normal.jpg") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true, true);
+    resources::TextureResource* woodDiffuseMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/wood.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true, true);
+    resources::TextureResource* blankTextureResource = resources::LoadPNG(String{ LUCID_TEXT("assets/textures/blank.png") }, true, gpu::TextureDataType::UNSIGNED_BYTE, true, true);
+    resources::TextureResource* toyboxNormalMapResource = resources::LoadJPEG(String{ LUCID_TEXT("assets/textures/toy_box_normal.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true, true);
+    resources::TextureResource* toyBoxDisplacementMapResource = resources::LoadPNG(String{ LUCID_TEXT("assets/textures/toy_box_disp.png") }, false, gpu::TextureDataType::UNSIGNED_BYTE, true, true);
 
     {
         auto texture = toyBoxDisplacementMapResource->TextureHandle;
@@ -71,7 +72,7 @@ int main(int argc, char** argv)
     toyboxNormalMapResource->FreeMainMemory();
     toyBoxDisplacementMapResource->FreeMainMemory();
 
-    // backPackMesh->FreeMainMemory();
+    backPackMesh->FreeMainMemory();
 
     auto brickWallDiffuseMap = brickWallDiffuseMapResource->TextureHandle;
     auto brickWallNormalMap = brickWallNormalMapResource->TextureHandle;
@@ -177,9 +178,9 @@ int main(int argc, char** argv)
     gigaCube.Material = &woodMaterial;
     gigaCube.bReverseNormals = true;
 
-    // scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable( CopyToString(LUCID_TEXT("MyMesh"), 6), backPackMesh);
-    // backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
-    // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
+    scene::Renderable* backPackRenderable = scene::CreateBlinnPhongRenderable( String { LUCID_TEXT("MyMesh") }, backPackMesh, BlinnPhongMapsShader );
+    backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
+    backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
     scene::FlatMaterial flatWhiteMaterial;
     flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
@@ -267,7 +268,7 @@ int main(int argc, char** argv)
     DemoScene.StaticGeometry.Add(&cube2);
     DemoScene.StaticGeometry.Add(&cube3);
     DemoScene.StaticGeometry.Add(&gigaCube);
-    // sceneToRender.StaticGeometry.Add(backPackRenderable);
+    DemoScene.StaticGeometry.Add(backPackRenderable);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
     DemoScene.Lights.Add(&redLight);

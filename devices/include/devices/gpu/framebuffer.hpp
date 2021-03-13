@@ -83,7 +83,7 @@ namespace lucid::gpu
                          const bool& Color,
                          const bool& Depth,
                          const bool& Stencil,
-                         const misc::IRectangle& SrcRect,
-                         const misc::IRectangle& DestRect);
+                         const math::IRectangle& SrcRect,
+                         const math::IRectangle& DestRect);
 
 } // namespace lucid::gpu

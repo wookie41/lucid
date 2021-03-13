@@ -13,8 +13,9 @@ namespace lucid::resources
 
     TextureResource* LoadTextureSTB(const ANSIString& InTexturePath,
                                     const bool& InIsTransparent,
-                                    const bool& InPerformGammaCorrection,
                                     const gpu::TextureDataType& InDataType,
+                                    gpu::TextureDataFormat InDataFormat,
+                                    gpu::TexturePixelFormat InPixelFormat,
                                     const bool& InFlipY,
                                     const bool& InSendToGPU)
     {
@@ -33,21 +34,13 @@ namespace lucid::resources
         gpu::Texture* textureHandle = nullptr;
         if (InSendToGPU)
         {
-            textureHandle =
-              gpu::Create2DTexture(textureData, Width, Height, InDataType,
-                                   InIsTransparent ? gpu::TextureFormat::RGBA : gpu::TextureFormat::RGB, 0, InPerformGammaCorrection);
+            textureHandle = gpu::Create2DTexture(textureData, Width, Height, InDataType, InDataFormat, InPixelFormat, 0);
             assert(textureHandle);
         }
 
-        LUCID_LOG(LogLevel::INFO, "Loading texture %s took %f", *InTexturePath,
-                  platform::GetCurrentTimeSeconds() - start);
+        LUCID_LOG(LogLevel::INFO, "Loading texture %s took %f", *InTexturePath, platform::GetCurrentTimeSeconds() - start);
 
-        return new TextureResource{ (void*)textureData,
-                                    textureHandle,
-                                    Width,
-                                    Height,
-                                    false,
-                                    InIsTransparent ? gpu::TextureFormat::RGBA : gpu::TextureFormat::RGB };
+        return new TextureResource{ (void*)textureData, textureHandle, Width, Height, InDataFormat, InPixelFormat };
     }
 
     void InitTextures()
@@ -59,7 +52,9 @@ namespace lucid::resources
 
         texturesInitialized = true;
 
-        TexturesHolder.SetDefaultResource(LoadTextureSTB(String { LUCID_TEXT("assets/textures/awesomeface.png") }, true, true, gpu::TextureDataType::UNSIGNED_BYTE, true, true));
+        TexturesHolder.SetDefaultResource(LoadTextureSTB(String{ LUCID_TEXT("assets/textures/awesomeface.png") }, true,
+                                                         gpu::TextureDataType::UNSIGNED_BYTE, gpu::TextureDataFormat::SRGBA,
+                                                         gpu::TexturePixelFormat::RGBA, true, true));
     }
 
     TextureResource* LoadJPEG(const ANSIString& InPath,
@@ -68,24 +63,24 @@ namespace lucid::resources
                               const bool& InFlipY,
                               const bool& InSendToGPU)
     {
-        return LoadTextureSTB(InPath, false, InPerformGammaCorrection, InDataType, InFlipY, InSendToGPU);
+        return LoadTextureSTB(InPath, false, InDataType, InPerformGammaCorrection ? gpu::TextureDataFormat::SRGB : gpu::TextureDataFormat::RGB, gpu::TexturePixelFormat::RGB,  InFlipY, InSendToGPU);
     }
     TextureResource* LoadPNG(const ANSIString& InPath,
-                             const bool& InPerformGammaCorrection,
-                             const gpu::TextureDataType& InDataType,
-                             const bool& InFlipY,
-                             const bool& InSendToGPU)
+                              const bool& InPerformGammaCorrection,
+                              const gpu::TextureDataType& InDataType,
+                              const bool& InFlipY,
+                              const bool& InSendToGPU)
     {
-        return LoadTextureSTB(InPath, true, InPerformGammaCorrection, InDataType, InFlipY, InSendToGPU);
+        return LoadTextureSTB(InPath, true, InDataType, InPerformGammaCorrection ? gpu::TextureDataFormat::SRGBA : gpu::TextureDataFormat::RGBA, gpu::TexturePixelFormat::RGBA,  InFlipY, InSendToGPU);
     }
 
     TextureResource::TextureResource(void* Data,
                                      gpu::Texture* Handle,
                                      const uint32_t& W,
                                      const uint32_t& H,
-                                     const bool& GammeCorrected,
-                                     const gpu::TextureFormat& Fmt)
-    : TextureData(Data), TextureHandle(Handle), Width(W), Height(H), IsGammaCorrected(GammeCorrected), Format(Fmt)
+                                     gpu::TextureDataFormat InDataFormat,
+                                     gpu::TexturePixelFormat InPixelFormat)
+    : TextureData(Data), TextureHandle(Handle), Width(W), Height(H), DataFormat(InDataFormat), PixelFormat(InPixelFormat)
     {
     }
 

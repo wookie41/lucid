@@ -1,5 +1,8 @@
 #include "scene/forward_renderer.hpp"
 
+#include <algorithm>
+
+
 #include "common/log.hpp"
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/shader.hpp"
@@ -28,9 +31,14 @@ namespace lucid::scene
     static const u32 POINT_LIGHT = 2;
     static const u32 SPOT_LIGHT = 3;
 
+    static const String VIEWPORT_SIZE("uViewportSize");
+    
     static const String SSAO_POSITIONS_VS("uPositionsVS");
     static const String SSAO_NORMALS_VS("uNormalsVS");
     static const String SSAO_NOISE("uNoise");
+    static const String SSAO_NOISE_SCALE("uNoiseScale");
+        static const String SSAO_RADIUS("uRadius");
+    static const String SSAO_BIAS("uBias");
 
     static const String LIGHT_TYPE("uLight.Type");
     static const String LIGHT_POSITION("uLight.Position");
@@ -89,16 +97,20 @@ namespace lucid::scene
         DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize);
 
         // Create render targets in which we'll store some additional information during the depth prepass
-        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB, 0);
-        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB, 0);
+        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::RGB16F, gpu::TexturePixelFormat::RGB, 0);
+        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::RGB16F, gpu::TexturePixelFormat::RGB, 0);
         
         // Setup the prepass framebuffer
         PrepassFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
 
         CurrentFrameVSNormalMap->Bind();
+        CurrentFrameVSNormalMap->SetMinFilter(gpu::MinTextureFilter::NEAREST);
+        CurrentFrameVSNormalMap->SetMagFilter(gpu::MagTextureFilter::NEAREST);
         PrepassFramebuffer->SetupColorAttachment(0, CurrentFrameVSNormalMap);
 
         CurrentFrameVSPositionMap->Bind();
+        CurrentFrameVSPositionMap->SetMinFilter(gpu::MinTextureFilter::NEAREST);
+        CurrentFrameVSPositionMap->SetMagFilter(gpu::MagTextureFilter::NEAREST);
         PrepassFramebuffer->SetupColorAttachment(1, CurrentFrameVSPositionMap);
 
         DepthStencilRenderBuffer->Bind();
@@ -111,7 +123,10 @@ namespace lucid::scene
         }
 
         // Create texture to store SSO result
-        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGB, 0);
+        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::R, gpu::TexturePixelFormat::R, 0);
+        SSAOResult->Bind();
+        SSAOResult->SetMinFilter(gpu::MinTextureFilter::NEAREST);
+        SSAOResult->SetMagFilter(gpu::MagTextureFilter::NEAREST);
 
         // Setup a SSAO framebuffer
         SSAOFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
@@ -124,7 +139,7 @@ namespace lucid::scene
         }
         
         // Create color attachment for the lighting pass framebuffer
-        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RGBA, 0);
+        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::RGBA, gpu::TexturePixelFormat::RGBA, 0);
 
         // Setup the lighting pass framebuffer
         LightingPassFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
@@ -145,12 +160,24 @@ namespace lucid::scene
         SSAOShader->Use();
         SSAOShader->UseTexture(SSAO_POSITIONS_VS, CurrentFrameVSPositionMap);
         SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
-        SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
         
         // Sample vectors
         for (int i = 0; i < NumSSAOSamples; ++i)
         {
-            glm::vec2 Sample = misc::RandomVec2();
+            glm::vec3 Sample = math::RandomVec3();
+
+            // Transform x and y to [-1, 1], keep z [0, 1] so the we sample around a hemisphere 
+            Sample.x = Sample.x * 2.0 - 1.0;
+            Sample.y = Sample.y * 2.0 - 1.0;
+            Sample = glm::normalize(Sample);
+            Sample *= math::RandomFloat();
+
+            // Use an accelerating interpolation function so there are more samples close to the fragment
+            float Scale = (float)i/(float)NumSSAOSamples;
+            Scale = math::Lerp(0.1, 1.0f, Scale * Scale);
+            Sample *= Scale;
+
+            // Send the sample to the shader
             DString SampleUniformName = SPrintf(LUCID_TEXT("uSamples[%d]"), i);
             SSAOShader->SetVector(SampleUniformName, Sample);
             SampleUniformName.Free();
@@ -160,14 +187,17 @@ namespace lucid::scene
         glm::vec2 Noise[16];
         for (i8 i = 0; i < 16; ++i)
         {
-            Noise[i] = misc::RandomVec2();
+            Noise[i] = math::RandomVec2();
+            Noise[i].x = Noise[i].x * 2.0 - 1.0;
+            Noise[i].y = Noise[i].y * 2.0 - 1.0;
         }
 
-        SSAONoise = gpu::Create2DTexture(Noise, 4, 4, gpu::TextureDataType::FLOAT, gpu::TextureFormat::RG, 0, false);
+        SSAONoise = gpu::Create2DTexture(Noise, 4, 4, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::RG32F, gpu::TexturePixelFormat::RG, 0);
         SSAONoise->Bind();
         SSAONoise->SetWrapSFilter(gpu::WrapTextureFilter::REPEAT);
         SSAONoise->SetWrapTFilter(gpu::WrapTextureFilter::REPEAT);
-        SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);   
+        SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
+        SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
     }
 
     void ForwardRenderer::Cleanup()
@@ -380,6 +410,10 @@ namespace lucid::scene
         PrepassShader->Use();
         SetupRendererWideUniforms(PrepassShader, InRenderSource);
 
+        const glm::vec2 NoiseTextureSize = { SSAONoise->GetSize().x, SSAONoise->GetSize().y };
+        const glm::vec2 ViewportSize = { InRenderSource->Viewport.Width, InRenderSource->Viewport.Height };
+        const glm::vec2 NoiseScale = ViewportSize / NoiseTextureSize;
+
         const LinkedListItem<Renderable>* CurrentNode = &InSceneToRender->StaticGeometry.Head;
         while (CurrentNode && CurrentNode->Element)
         {
@@ -390,8 +424,17 @@ namespace lucid::scene
 
          // Calculate SSAO
         gpu::DisableDepthTest();
-        SSAOFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        BindAndClearFramebuffer(SSAOFramebuffer);
         SSAOShader->Use();
+        SetupRendererWideUniforms(SSAOShader, InRenderSource);
+
+        SSAOShader->UseTexture(SSAO_POSITIONS_VS, CurrentFrameVSPositionMap);
+        SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
+        SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
+        SSAOShader->SetVector(SSAO_NOISE_SCALE, NoiseScale);
+        SSAOShader->SetFloat(SSAO_BIAS, SSAOBias);
+        SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
+
         gpu::DrawImmediateQuad({ 0, 0 } , SSAOResult->GetSize());
     }
 
@@ -428,6 +471,7 @@ namespace lucid::scene
         InShader->SetMatrix(VIEW_MATRIX, InRenderSource->Camera->GetViewMatrix());
         InShader->SetVector(VIEW_POSITION, InRenderSource->Camera->Position);
         InShader->SetFloat(PARALLAX_HEIGHT_SCALE, 0.1f);
+        InShader->SetVector(VIEWPORT_SIZE, glm::vec2 { InRenderSource->Viewport.X, InRenderSource->Viewport.Y });
     }
 
     void ForwardRenderer::Render(gpu::Shader* Shader, const Renderable* InRenderable)

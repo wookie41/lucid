@@ -24,8 +24,8 @@ namespace lucid::gpu
     };
 
     Cubemap* CreateCubemap(const glm::ivec2& Size,
-                           TextureFormat InternalFormat,
-                           TextureFormat DataFormat,
+                           TextureDataFormat InDataFormat,
+                           TexturePixelFormat InPixelFormat,
                            TextureDataType DataType,
                            const char* FacesData[6] = nullptr);
 } // namespace lucid::gpu

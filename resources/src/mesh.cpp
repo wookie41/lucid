@@ -89,7 +89,7 @@ namespace lucid::resources
 
     MeshGPUData sendMeshToGPU(const u32& Features, const MeshCPUData& MeshData);
 
-    static TextureResource* loadMaterialTexture(const ANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
+    static TextureResource* LoadMaterialTexture(const ANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
 
     MeshResource* AssimpLoadMesh(const ANSIString& DirectoryPath, const ANSIString& MeshFileName)
     {
@@ -145,17 +145,17 @@ namespace lucid::resources
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            DiffuseMap = loadMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE, false);
+            DiffuseMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE, false);
         }
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            SpecularMap = loadMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, false);
+            SpecularMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, false);
         }
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            NormalMap = loadMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, false);
+            NormalMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, false);
         }
 #ifndef NDEBUG
         LUCID_LOG(LogLevel::INFO, "Loading textures %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
@@ -334,8 +334,7 @@ namespace lucid::resources
         }
     }
 
-    static TextureResource*
-    loadMaterialTexture(const ANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
+    static TextureResource* LoadMaterialTexture(const ANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
     {
         aiString TextureFileName;
         Material->GetTexture(TextureType, 0, &TextureFileName);
@@ -348,8 +347,8 @@ namespace lucid::resources
         }
 
         TextureResource* Texture = IsPNGFormat ?
-            LoadPNG(TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true) :
-            LoadJPEG(TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true);
+            LoadPNG(TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true, true) :
+            LoadJPEG(TexturePath, true, gpu::TextureDataType::UNSIGNED_BYTE, true, true);
         
         if (Texture == nullptr)
         {

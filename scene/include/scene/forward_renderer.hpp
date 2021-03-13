@@ -67,6 +67,9 @@ namespace lucid::scene
         u8  NumSSAOSamples;
         u32 MaxNumOfDirectionalLights;
 
+        float SSAOBias = 0.025;
+        float SSAORadius = 0.5;
+
         gpu::Shader* SkyboxShader;
         gpu::Shader* PrepassShader;
         gpu::Shader* SSAOShader;
