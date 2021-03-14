@@ -17,12 +17,12 @@ uniform vec3 uViewPos;
 void main() 
 {
     vec2 textureCoords = TexCoords;
-    vec3 toViewN = normalize(-PositionVS);
 
     if (uMaterial.HasNormalMap)
     {
         if (uMaterial.HasDisplacementMap)
         {
+            vec3 toViewN = normalize(-PositionVS);
             textureCoords = ParallaxOcclusionMapping(inverse(TBNMatrix) * toViewN, textureCoords, uMaterial.DisplacementMap);
             if (textureCoords.x > 1 || textureCoords.x < 0 || textureCoords.y > 1 || textureCoords.y < 0)
             {

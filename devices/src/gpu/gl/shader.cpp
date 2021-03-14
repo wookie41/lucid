@@ -465,6 +465,7 @@ namespace lucid::gpu
         uniformVariables = GLRecompiledShader->uniformVariables;
 
         // Preserve texture bindings
+        // @TODO n^2, might not be a problem, as we're not goin to ship it
         for (u32 i = 0; i < GLRecompiledShader->textureBindings.GetLength(); ++i)
         {
             for (u32 j = 0; j < textureBindings.GetLength(); ++j)
@@ -473,16 +474,15 @@ namespace lucid::gpu
                 {
                     GLRecompiledShader->textureBindings[i]->BoundTexture = textureBindings[j]->BoundTexture;
                     GLRecompiledShader->textureBindings[i]->TextureIndex = textureBindings[j]->TextureIndex;
-                    GLRecompiledShader->textureBindings[i]->Location = textureBindings[j]->Location;
                 }
             }
         }
-        RestoreTextureBindings();
 
         // Replace texture binding
         textureBindings.Free();
         textureBindings = GLRecompiledShader->textureBindings;
 
+        RestoreTextureBindings();
         // Restore the currently bound shader's state
         if (CurrentShader)
         {

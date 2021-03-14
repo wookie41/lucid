@@ -37,9 +37,13 @@ namespace lucid::scene
     static const String SSAO_NORMALS_VS("uNormalsVS");
     static const String SSAO_NOISE("uNoise");
     static const String SSAO_NOISE_SCALE("uNoiseScale");
-        static const String SSAO_RADIUS("uRadius");
+    static const String SSAO_RADIUS("uRadius");
     static const String SSAO_BIAS("uBias");
 
+    static const String SIMPLE_BLUR_OFFSET_X("uOffsetX");
+    static const String SIMPLE_BLUR_OFFSET_Y("uOffsetY");
+    static const String SIMPLE_BLUR_TEXTURE("uTextureToBlur");
+    
     static const String LIGHT_TYPE("uLight.Type");
     static const String LIGHT_POSITION("uLight.Position");
     static const String LIGHT_DIRECTION("uLight.Direction");
@@ -58,6 +62,7 @@ namespace lucid::scene
     // Shader-wide uniforms
     static const String AMBIENT_STRENGTH("uAmbientStrength");
     static const String NUM_OF_PCF_SAMPLES("uNumSamplesPCF");
+    static const String AMBIENT_OCCLUSION("uAmbientOcclusion");
 
     static const String VIEW_POSITION("uViewPos");
 
@@ -76,12 +81,14 @@ namespace lucid::scene
         gpu::Shader* InDefaultRenderableShader,
         gpu::Shader* InPrepassShader,
         gpu::Shader* InSSAOShader,
+        gpu::Shader* InSimpleBlurShader,
         gpu::Shader* InSkyboxShader)
     : Renderer(InDefaultRenderableShader),
         MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
         NumSSAOSamples(InNumSSAOSamples),
         PrepassShader(InPrepassShader),
         SSAOShader(InSSAOShader),
+        SimpleBlurShader(InSimpleBlurShader),
         SkyboxShader(InSkyboxShader)
     {
     }
@@ -92,7 +99,8 @@ namespace lucid::scene
         PrepassFramebuffer = gpu::CreateFramebuffer();
         LightingPassFramebuffer = gpu::CreateFramebuffer();
         SSAOFramebuffer = gpu::CreateFramebuffer();
-        
+        BlurFramebuffer = gpu::CreateFramebuffer();
+
         // Create a common depth-stencil attachment for both framebuffers
         DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize);
 
@@ -128,6 +136,12 @@ namespace lucid::scene
         SSAOResult->SetMinFilter(gpu::MinTextureFilter::NEAREST);
         SSAOResult->SetMagFilter(gpu::MagTextureFilter::NEAREST);
 
+        // Create texture for the blurred SSAO result
+        SSAOBlurred = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::R, gpu::TexturePixelFormat::R, 0);
+        SSAOBlurred->Bind();
+        SSAOBlurred->SetMinFilter(gpu::MinTextureFilter::NEAREST);
+        SSAOBlurred->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+            
         // Setup a SSAO framebuffer
         SSAOFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
         SSAOFramebuffer->SetupColorAttachment(0, SSAOResult);
@@ -221,7 +235,7 @@ namespace lucid::scene
         gpu::DisableSRGBFramebuffer();
         gpu::SetViewport(InRenderSource->Viewport);
 
-        DepthPrepass(InSceneToRender, InRenderSource);
+        Prepass(InSceneToRender, InRenderSource);
         LightingPass(InSceneToRender, InRenderSource);
     }
 
@@ -274,19 +288,11 @@ namespace lucid::scene
 
             // Determine if the material uses a custom shader
             // if yes, then setup the renderer-provided uniforms
-            auto customShader = CurrentRenderable->Material->GetCustomShader();
-            if (customShader)
-            {
-                customShader->Use();
-                SetupRendererWideUniforms(customShader, InRenderSource);
-                LastUsedShader = customShader;
-            }
-            else
-            {
-                DefaultRenderableShader->Use();
-                LastUsedShader = DefaultRenderableShader;
-            }
+            auto CustomShader = CurrentRenderable->Material->GetCustomShader();
+            LastUsedShader = CustomShader ? CustomShader : DefaultRenderableShader;
 
+            LastUsedShader->Use();
+            SetupRendererWideUniforms(LastUsedShader, InRenderSource);
             SetupLight(LastUsedShader, InLight);
             Render(LastUsedShader, CurrentRenderable);
 
@@ -398,7 +404,7 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::DepthPrepass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
+    void ForwardRenderer::Prepass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
     {
         // Render the scene
         gpu::SetReadOnlyDepthBuffer(false);
@@ -436,6 +442,18 @@ namespace lucid::scene
         SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
 
         gpu::DrawImmediateQuad({ 0, 0 } , SSAOResult->GetSize());
+
+        // Blur SSAO
+        BlurFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        BlurFramebuffer->SetupColorAttachment(0, SSAOBlurred);
+        gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
+
+        SimpleBlurShader->Use();
+        SimpleBlurShader->UseTexture(SIMPLE_BLUR_TEXTURE, SSAOResult);
+        SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_X, SimpleBlurXOffset);
+        SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_Y, SimpleBlurYOffset);
+
+        gpu::DrawImmediateQuad({ 0, 0 } , SSAOResult->GetSize());        
     }
 
     void ForwardRenderer::LightingPass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
@@ -471,7 +489,8 @@ namespace lucid::scene
         InShader->SetMatrix(VIEW_MATRIX, InRenderSource->Camera->GetViewMatrix());
         InShader->SetVector(VIEW_POSITION, InRenderSource->Camera->Position);
         InShader->SetFloat(PARALLAX_HEIGHT_SCALE, 0.1f);
-        InShader->SetVector(VIEWPORT_SIZE, glm::vec2 { InRenderSource->Viewport.X, InRenderSource->Viewport.Y });
+        InShader->SetVector(VIEWPORT_SIZE, glm::vec2 { InRenderSource->Viewport.Width, InRenderSource->Viewport.Height });
+        InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
     }
 
     void ForwardRenderer::Render(gpu::Shader* Shader, const Renderable* InRenderable)

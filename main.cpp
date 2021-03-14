@@ -95,6 +95,7 @@ int main(int argc, char** argv)
     gpu::Shader* FlatShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("FlatShadowMap") }, String{ LUCID_TEXT("shaders/glsl/flat.vert") },String{ LUCID_TEXT("shaders/glsl/flat.frag") }, EMPTY_STRING);
     gpu::Shader* ForwardPrepassShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("ForwardPrepass") }, String{ LUCID_TEXT("shaders/glsl/forward_prepass.vert") },String{ LUCID_TEXT("shaders/glsl/forward_prepass.frag") }, EMPTY_STRING);
     gpu::Shader* SSAOShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("SSAO") }, String{ LUCID_TEXT("shaders/glsl/ssao.vert") },String{ LUCID_TEXT("shaders/glsl/ssao.frag") }, EMPTY_STRING);
+    gpu::Shader* SimpleBlurShader = gpu::GShadersManager.CompileShader(String{ LUCID_TEXT("Simple blur") }, String{ LUCID_TEXT("shaders/glsl/simple_blur.vert") },String{ LUCID_TEXT("shaders/glsl/simple_blur.frag") }, EMPTY_STRING);
 
     // Prepare the scene
     gpu::Viewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
@@ -105,7 +106,7 @@ int main(int argc, char** argv)
     PerspectiveCamera.Yaw = -90.f;
     PerspectiveCamera.UpdateCameraVectors();
 
-    scene::ForwardRenderer Renderer{ 32, 64, BlinnPhongMapsShader, ForwardPrepassShader, SSAOShader,  SkyboxShader };
+    scene::ForwardRenderer Renderer{ 32, 64, BlinnPhongMapsShader, ForwardPrepassShader, SSAOShader, SimpleBlurShader, SkyboxShader };
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
     Renderer.FramebufferSize = { window->GetWidth(), window->GetHeight() };
@@ -252,7 +253,7 @@ int main(int argc, char** argv)
     shadowCastingLightCube.Material = &flatWhiteMaterial;
 
     scene::PointLight redPointLight = scene::CreatePointLight(true, { 1024, 1024 });
-    redPointLight.Position = { 0, 0, 0 };
+    redPointLight.Position = { 0, 0, 1.5 };
     redPointLight.Color = { 1, 0, 0 };
     redPointLight.Constant = 1;
     redPointLight.Linear = 0.007;
