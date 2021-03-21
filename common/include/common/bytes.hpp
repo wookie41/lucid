@@ -11,7 +11,7 @@ namespace lucid
         memset(Address, 0, NumBytes);
     }
 
-    struct MemBuffer
+    struct FMemBuffer
     {
         char* Pointer;
         const u32 Capacity;
@@ -20,5 +20,5 @@ namespace lucid
 
     void* CopyBytes(const char* InToCopy, const u64& InCount, const u64& BufferSize = 0); 
 
-    MemBuffer CreateMemBuffer(const u32& BufferCapacity);
+    FMemBuffer CreateMemBuffer(const u32& BufferCapacity);
 } // namespace lucid

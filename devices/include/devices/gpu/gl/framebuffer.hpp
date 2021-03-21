@@ -6,10 +6,10 @@
 
 namespace lucid::gpu
 {
-    class GLRenderbuffer : public Renderbuffer
+    class CGLRenderbuffer : public CRenderbuffer
     {
       public:
-        GLRenderbuffer(const GLuint& GLRBOHandle, const RenderbufferFormat& Format, const glm::ivec2& Size);
+        CGLRenderbuffer(const GLuint& GLRBOHandle, const ERenderbufferFormat& InFormat, const glm::ivec2& Size);
 
         virtual void Bind() override;
 
@@ -21,15 +21,15 @@ namespace lucid::gpu
         virtual void AttachAsStencilDepth() override;
         virtual void Free() override;
 
-        virtual ~GLRenderbuffer() = default;
+        virtual ~CGLRenderbuffer() = default;
 
       private:
-        RenderbufferFormat format;
+        ERenderbufferFormat Format;
         glm::ivec2 size;
         GLuint glRBOHandle;
     };
 
-    class GLDefaultFramebuffer : public Framebuffer
+    class GLDefaultFramebuffer : public CFramebuffer
     {
     public:
         GLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight);
@@ -41,12 +41,12 @@ namespace lucid::gpu
         virtual void SetupDrawBuffers() override;
         virtual void DisableReadWriteBuffers() override;
 
-        virtual void Bind(const FramebufferBindMode& Mode) override;
+        virtual void Bind(const EFramebufferBindMode& Mode) override;
 
-        virtual void SetupColorAttachment(const u32& AttachmentIndex, FramebufferAttachment* AttachmentToUse) override;
-        virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) override;
-        virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
-        virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupColorAttachment(const u32& AttachmentIndex, CFramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupDepthAttachment(CFramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupStencilAttachment(CFramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupDepthStencilAttachment(CFramebufferAttachment* AttachmentToUse) override;
         virtual void Free() override;
 
         virtual ~GLDefaultFramebuffer() = default;
@@ -55,10 +55,10 @@ namespace lucid::gpu
         u16 WindowHeight;
     };
 
-    class GLFramebuffer : public Framebuffer
+    class CGLFramebuffer : public CFramebuffer
     {
       public:
-        explicit GLFramebuffer(const GLuint& GLFBOHandle);
+        explicit CGLFramebuffer(const GLuint& GLFBOHandle);
 
         virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const override
         {
@@ -70,23 +70,23 @@ namespace lucid::gpu
         virtual void SetupDrawBuffers() override;
         virtual void DisableReadWriteBuffers() override;
 
-        virtual void Bind(const FramebufferBindMode& Mode) override;
+        virtual void Bind(const EFramebufferBindMode& Mode) override;
 
-        virtual void SetupColorAttachment(const u32& AttachmentIndex, FramebufferAttachment* AttachmentToUse) override;
-        virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) override;
-        virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
-        virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupColorAttachment(const u32& AttachmentIndex, CFramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupDepthAttachment(CFramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupStencilAttachment(CFramebufferAttachment* AttachmentToUse) override;
+        virtual void SetupDepthStencilAttachment(CFramebufferAttachment* AttachmentToUse) override;
         virtual void Free() override;
 
-        virtual ~GLFramebuffer() = default;
+        virtual ~CGLFramebuffer() = default;
 
       private:
         GLuint glFBOHandle;
         glm::ivec2 size;
 
-        FramebufferAttachment* colorAttachments[MAX_COLOR_ATTACHMENTS] = { nullptr };
-        FramebufferAttachment* depthAttachment = nullptr;
-        FramebufferAttachment* stencilAttachment = nullptr;
-        FramebufferAttachment* depthStencilAttachment = nullptr;
+        CFramebufferAttachment* colorAttachments[MAX_COLOR_ATTACHMENTS] = { nullptr };
+        CFramebufferAttachment* depthAttachment = nullptr;
+        CFramebufferAttachment* stencilAttachment = nullptr;
+        CFramebufferAttachment* depthStencilAttachment = nullptr;
     };
 } // namespace lucid::gpu

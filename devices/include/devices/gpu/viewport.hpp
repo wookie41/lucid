@@ -4,11 +4,11 @@
 
 namespace lucid::gpu
 {
-    struct Viewport
+    struct FViewport
     {
         u32 X, Y;
         u32 Width, Height;
     };
 
-    void SetViewport(const Viewport& ViewportToUse);
+    void SetViewport(const FViewport& ViewportToUse);
 } // namespace lucid::gpu

@@ -5,7 +5,7 @@
 
 namespace lucid::gpu
 {
-    enum class TextureDataType : u8
+    enum class ETextureDataType : u8
     {
         UNSIGNED_BYTE,
         FLOAT
@@ -41,7 +41,7 @@ namespace lucid::gpu
         REPEAT
     };
 
-    enum class TextureDataFormat : u8
+    enum class ETextureDataFormat : u8
     {
         R,
         R16F,
@@ -61,7 +61,7 @@ namespace lucid::gpu
         DEPTH_STENCIL
     };
 
-    enum class TexturePixelFormat : u8
+    enum class ETexturePixelFormat : u8
     {
         R,
         RG,
@@ -71,7 +71,7 @@ namespace lucid::gpu
         DEPTH_STENCIL
     };
     
-    class Texture : public FramebufferAttachment
+    class CTexture : public CFramebufferAttachment
     {
       public:
         virtual void Bind() = 0;
@@ -84,16 +84,16 @@ namespace lucid::gpu
         virtual void SetWrapRFilter(const WrapTextureFilter& Filter) = 0;
 
         virtual void Free() = 0;
-        virtual ~Texture() = default;
+        virtual ~CTexture() = default;
     };
 
-    Texture* Create2DTexture(void* Data,
+    CTexture* Create2DTexture(void* Data,
                              const u32& Width,
                              const u32& Height,
-                             const TextureDataType& DataType,
-                             const TextureDataFormat& InDataFormat,
-                             const TexturePixelFormat& InPixelFormat,
+                             const ETextureDataType& DataType,
+                             const ETextureDataFormat& InDataFormat,
+                             const ETexturePixelFormat& InPixelFormat,
                              const int32_t& MipMapLevel);
 
-    Texture* CreateEmpty2DTexture(const u32& Width, const u32& Height, const TextureDataType& DataType, const TextureDataFormat& InDataFormat, const TexturePixelFormat& InPixelFormat, const int32_t& MipMapLevel);
+    CTexture* CreateEmpty2DTexture(const u32& Width, const u32& Height, const ETextureDataType& DataType, const ETextureDataFormat& InDataFormat, const ETexturePixelFormat& InPixelFormat, const int32_t& MipMapLevel);
 } // namespace lucid::gpu

@@ -4,8 +4,8 @@
 
 namespace lucid::misc
 {
-    gpu::VertexArray* QuadVertexArray;
-    gpu::VertexArray* CubeVertexArray;
+    gpu::CVertexArray* QuadVertexArray;
+    gpu::CVertexArray* CubeVertexArray;
 
     static const float BASIC_QUAD_VERTEX_DATA[]{
         // pos         //normals //tangents      //tex coords
@@ -70,21 +70,21 @@ namespace lucid::misc
 
     void InitQuad()
     {
-        gpu::BufferDescription bufferDescription;
+        gpu::FBufferDescription bufferDescription;
 
         // sending vertex data
         bufferDescription.data = (void*)(BASIC_QUAD_VERTEX_DATA);
         bufferDescription.size = sizeof(BASIC_QUAD_VERTEX_DATA);
 
-        gpu::Buffer* QuadVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::BufferUsage::STATIC);
+        gpu::CBuffer* QuadVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC);
 
-        Array<gpu::VertexAttribute> quadAttributes(4);
-        quadAttributes.Add({ 0, 3, Type::FLOAT, false, sizeof(float) * 11, 0, 0 });
-        quadAttributes.Add({ 1, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 3), 0 });
-        quadAttributes.Add({ 2, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });
-        quadAttributes.Add({ 3, 2, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 9), 0 });
+        FArray<gpu::FVertexAttribute> quadAttributes(4);
+        quadAttributes.Add({ 0, 3, EType::FLOAT, false, sizeof(float) * 11, 0, 0 });
+        quadAttributes.Add({ 1, 3, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 3), 0 });
+        quadAttributes.Add({ 2, 3, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });
+        quadAttributes.Add({ 3, 2, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 9), 0 });
 
-        QuadVertexArray = gpu::CreateVertexArray(&quadAttributes, QuadVertexBuffer, nullptr, gpu::DrawMode::TRIANGLE_STRIP, 4, 0);
+        QuadVertexArray = gpu::CreateVertexArray(&quadAttributes, QuadVertexBuffer, nullptr, gpu::EDrawMode::TRIANGLE_STRIP, 4, 0);
         quadAttributes.Free();
 
         // we're not going to need the buffers on the CPU anymore, they have to be residient on the GPU tho, so we don't call
@@ -94,21 +94,21 @@ namespace lucid::misc
 
     void InitCube()
     {
-        gpu::BufferDescription bufferDescription;
+        gpu::FBufferDescription bufferDescription;
 
         // sending vertex data
         bufferDescription.data = (void*)(CUBE_VERTICES);
         bufferDescription.size = sizeof(CUBE_VERTICES);
 
-        gpu::Buffer* VertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::BufferUsage::STATIC);
+        gpu::CBuffer* VertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC);
 
-        Array<gpu::VertexAttribute> cubeAttributes(4);
-        cubeAttributes.Add({ 0, 3, Type::FLOAT, false, sizeof(float) * 11, 0, 0 });
-        cubeAttributes.Add({ 1, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 3), 0 });
-        cubeAttributes.Add({ 2, 3, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });
-        cubeAttributes.Add({ 3, 2, Type::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 9), 0 });
+        FArray<gpu::FVertexAttribute> cubeAttributes(4);
+        cubeAttributes.Add({ 0, 3, EType::FLOAT, false, sizeof(float) * 11, 0, 0 });
+        cubeAttributes.Add({ 1, 3, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 3), 0 });
+        cubeAttributes.Add({ 2, 3, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });
+        cubeAttributes.Add({ 3, 2, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 9), 0 });
 
-        CubeVertexArray = gpu::CreateVertexArray(&cubeAttributes, VertexBuffer, nullptr, gpu::DrawMode::TRIANGLES,
+        CubeVertexArray = gpu::CreateVertexArray(&cubeAttributes, VertexBuffer, nullptr, gpu::EDrawMode::TRIANGLES,
                                                  sizeof(CUBE_VERTICES) / (sizeof(float) * 11), 0);
         cubeAttributes.Free();
 

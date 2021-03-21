@@ -2,31 +2,31 @@
 
 namespace lucid
 {
-    Type ToLucidDataType(GLenum InGLType)
+    EType ToLucidDataType(GLenum InGLType)
     {
         switch (InGLType)
         {
         case GL_INT:
-            return Type::INT_32;
+            return EType::INT_32;
         case GL_FLOAT:
-            return Type::FLOAT;
+            return EType::FLOAT;
         case GL_BOOL:
-            return Type::BOOL;
+            return EType::BOOL;
         case GL_FLOAT_VEC2:
-            return Type::VEC2;
+            return EType::VEC2;
         case GL_FLOAT_VEC3:
-            return Type::VEC3;
+            return EType::VEC3;
         case GL_FLOAT_VEC4:
-            return Type::VEC4;
+            return EType::VEC4;
         case GL_INT_VEC2:
-            return Type::IVEC2;
+            return EType::IVEC2;
         case GL_INT_VEC3:
-            return Type::IVEC3;
+            return EType::IVEC3;
         case GL_INT_VEC4:
-            return Type::IVEC4;
+            return EType::IVEC4;
         case GL_FLOAT_MAT4:
-            return Type::MAT4;
+            return EType::MAT4;
         }
-        return Type::UNSUPPORTED;
+        return EType::UNSUPPORTED;
     }
 }

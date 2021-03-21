@@ -6,7 +6,7 @@
 
 namespace lucid::gpu
 {
-    enum class BufferBindPoint : u16
+    enum class EBufferBindPoint : u16
     {
         UNBOUND,
         VERTEX,
@@ -14,7 +14,7 @@ namespace lucid::gpu
         SHADER_STORAGE
     };
 
-    enum class BufferUsage : u16
+    enum class EBufferUsage : u16
     {
         STATIC,
         DYNAMIC,
@@ -22,7 +22,7 @@ namespace lucid::gpu
         COPY_WRITE
     };
 
-    enum ImmutableBufferUsage : u16
+    enum EImmutableBufferUsage : u16
     {
         IMM_BUFFER_DYNAMIC = 1,
         IMM_BUFFER_READ = 2,
@@ -32,7 +32,7 @@ namespace lucid::gpu
         IMM_BUFFER_CLIENT_STORAGE = 32
     };
 
-    enum BufferAccessPolicy : uint16_t
+    enum EBufferAccessPolicy : uint16_t
     {
         BUFFER_READ = 1,
         BUFFER_WRITE = 2,
@@ -40,26 +40,26 @@ namespace lucid::gpu
         BUFFER_COHERENT = 8
     };
 
-    struct BufferDescription
+    struct FBufferDescription
     {
         uint32_t size = 0;
         uint32_t offset = 0;
         void* data = nullptr;
     };
 
-    class Buffer
+    class CBuffer
     {
       public:
         virtual uint32_t GetSize() const = 0;
 
-        virtual void Bind(const BufferBindPoint& BindPoint) = 0;
-        virtual void BindIndexed(const uint32_t& index, const BufferBindPoint& BindPoint) = 0;
+        virtual void Bind(const EBufferBindPoint& BindPoint) = 0;
+        virtual void BindIndexed(const uint32_t& index, const EBufferBindPoint& BindPoint) = 0;
 
-        virtual void Upload(BufferDescription const* Description) = 0;
+        virtual void Upload(FBufferDescription const* Description) = 0;
         virtual void Download(void* Destination, uint32_t Size = 0, const uint32_t& Offset = 0) = 0;
 
-        virtual void* MemoryMap(const BufferBindPoint& BindPoint,
-                                const BufferAccessPolicy& AccessPolicy,
+        virtual void* MemoryMap(const EBufferBindPoint& BindPoint,
+                                const EBufferAccessPolicy& AccessPolicy,
                                 uint32_t Size = 0,
                                 const uint32_t& Offset = 0) = 0;
 
@@ -67,10 +67,10 @@ namespace lucid::gpu
 
         virtual void Free() = 0;
 
-        virtual ~Buffer() = default;
+        virtual ~CBuffer() = default;
     };
 
-    Buffer* CreateBuffer(const BufferDescription& Description, const BufferUsage& Usage);
-    Buffer* CreateImmutableBuffer(const BufferDescription& Description,
-                                  const ImmutableBufferUsage& ImmutableBufferUsage);
+    CBuffer* CreateBuffer(const FBufferDescription& Description, const EBufferUsage& Usage);
+    CBuffer* CreateImmutableBuffer(const FBufferDescription& Description,
+                                  const EImmutableBufferUsage& ImmutableBufferUsage);
 } // namespace lucid::gpu

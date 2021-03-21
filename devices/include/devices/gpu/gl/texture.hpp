@@ -5,7 +5,7 @@
 
 namespace lucid::gpu
 {
-    class GLTexture : public Texture
+    class GLTexture : public CTexture
     {
       public:
         GLTexture(const GLuint& TextureID, const TextureType& Type, const glm::ivec3& TextureDimensions);

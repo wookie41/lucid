@@ -5,16 +5,16 @@
 
 namespace lucid::scene
 {
-    enum class CameraMode : u8
+    enum class ECameraMode : u8
     {
         ORTHOGRAPHIC,
         PERSPECTIVE
     };
 
-    class Camera
+    class CCamera
     {
       public:
-        Camera(const CameraMode& CameraMode,
+        CCamera(const ECameraMode& CameraMode,
                const glm::vec3& CameraPosition = { 0.0, 0.0, 0.0 },
                const glm::vec3& CameraUp = { 0.0, 1.0, 0.0 },
                const real& CameraYaw = 0,
@@ -45,7 +45,7 @@ namespace lucid::scene
         real Left = 0, Right = 0;
         real Bottom = 0, Top = 0;
 
-        CameraMode Mode;
+        ECameraMode Mode;
         real AspectRatio = 0;
 
         glm::vec3 Position;

@@ -9,19 +9,19 @@
 
 namespace lucid
 {
-    String EMPTY_STRING { "" };
+    FString EMPTY_STRING { "" };
 
     /**************************************
     *           Base ANSI String          *
     **************************************/
     
-    ANSIString::ANSIString(char* InCString, const u32& InLength)
+    FANSIString::FANSIString(char* InCString, const u32& InLength)
     {
         CString = InCString;
         UpdateLengthAndCalculateHash(InLength);
     }
 
-    void ANSIString::UpdateLengthAndCalculateHash(const u32& InLength)
+    void FANSIString::UpdateLengthAndCalculateHash(const u32& InLength)
     {
         Length = InLength == 0 ?  strlen(CString) : InLength;
         Hash = 0;
@@ -36,15 +36,15 @@ namespace lucid
     *          Dynamic ANSI String        *
     **************************************/
 
-    DString::DString(char* InCString, const u32& InLength) : ANSIString(InCString, InLength) {}
+    FDString::FDString(char* InCString, const u32& InLength) : FANSIString(InCString, InLength) {}
 
     
-    void DString::Append(const ANSIString& InANSIString)
+    void FDString::Append(const FANSIString& InANSIString)
     {
         Append(*InANSIString, InANSIString.GetLength());
     }
 
-    void DString::Append(const char* InString, const u64& InStringLength)
+    void FDString::Append(const char* InString, const u64& InStringLength)
     {
         const u32 NewLength = Length + InStringLength;
         char* ConcatBuffer = (char*)malloc(NewLength + 1);
@@ -59,22 +59,22 @@ namespace lucid
     }
 
 
-    void DString::Free() { free(CString); }
+    void FDString::Free() { free(CString); }
 
     /**************************************
     *          Static String            *
     **************************************/
 
-    String::String(char* InCString, const u32& InLength) : ANSIString(InCString, InLength) {}
+    FString::FString(char* InCString, const u32& InLength) : FANSIString(InCString, InLength) {}
 
-    DString CopyToString(char const* InToCopy, const u32& InStringLength)
+    FDString CopyToString(char const* InToCopy, const u32& InStringLength)
     {
         char* CopiedString = (char*)CopyBytes(InToCopy, InStringLength, InStringLength + 1);
         CopiedString[InStringLength] = '\0';
-        return DString { CopiedString, InStringLength };
+        return FDString { CopiedString, InStringLength };
     }
 
-    DString SPrintf(const char* InFormat, ...)
+    FDString SPrintf(const char* InFormat, ...)
     {
         static char MsgBuffer[5024];
         va_list Args;

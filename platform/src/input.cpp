@@ -6,16 +6,16 @@
 namespace lucid
 {
 
-    struct KeyboardState
+    struct FKeyboardState
     {
         u64 pressedKeys[4] = { 0 }; // keeps track of which keys are currently held down
         u64 clickedKeys[4] = { 0 }; // cleared per frame, only tells which keys were pressed down this frame
         u64 releasedKeys[4] = { 0 }; // cleared per frame, only tells which keys were released this frame
     };
 
-    struct MouseState
+    struct FMouseState
     {
-        MousePosition Position;
+        FMousePosition Position;
         float WheelDelta = 0;
         u8 PressedButtons = 0;
         u8 ClickedButtons = 0;
@@ -45,10 +45,10 @@ namespace lucid
         keyMap[mapIdx] &= ~((u64)1 << keyBit);
     }
 
-    static KeyboardState keyboardState;
-    static MouseState mouseState;
+    static FKeyboardState keyboardState;
+    static FMouseState mouseState;
 
-    void ReadEvents(platform::Window* ActiveWindow)
+    void ReadEvents(platform::CWindow* ActiveWindow)
     {
         for (u8 i = 0; i < 4; ++i)
             keyboardState.clickedKeys[i] = 0;
@@ -134,13 +134,13 @@ namespace lucid
 
     bool WasKeyReleased(const SDL_Keycode& KeyCode) { return isHigh(KeyCode, keyboardState.releasedKeys); }
 
-    bool IsMouseButtonPressed(const MouseButton& Button) { return mouseState.PressedButtons & Button; }
+    bool IsMouseButtonPressed(const EMouseButton& Button) { return mouseState.PressedButtons & Button; }
 
-    bool WasMouseButtonPressed(const MouseButton& Button) { return mouseState.ClickedButtons & Button; }
+    bool WasMouseButtonPressed(const EMouseButton& Button) { return mouseState.ClickedButtons & Button; }
 
-    bool WasMouseButtonReleased(const MouseButton& Button) { return mouseState.ReleasedButtons & Button; }
+    bool WasMouseButtonReleased(const EMouseButton& Button) { return mouseState.ReleasedButtons & Button; }
 
-    MousePosition GetMousePostion() { return mouseState.Position; }
+    FMousePosition GetMousePostion() { return mouseState.Position; }
 
     float GetMouseWheelDelta() { return mouseState.WheelDelta; }
 } // namespace lucid

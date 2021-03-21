@@ -14,18 +14,18 @@ namespace lucid::gpu
 
     void InitGPUInfo();
 
-    int Init(const GPUSettings& Setings)
+    int Init(const FGPUSettings& Setings)
     {
-        LUCID_LOG(LogLevel::INFO, "Initializing GPU...");
+        LUCID_LOG(ELogLevel::INFO, "Initializing GPU...");
 
         int SDLInitResult = SDL_Init(SDL_INIT_VIDEO);
         if (SDLInitResult != 0)
         {
-            LUCID_LOG(LogLevel::ERR, "Failed to initialize SDL_VIDEO");
+            LUCID_LOG(ELogLevel::ERR, "Failed to initialize SDL_VIDEO");
             return -1;
         }
 
-        LUCID_LOG(LogLevel::INFO, "Initialized SDL_VIDEO");
+        LUCID_LOG(ELogLevel::INFO, "Initialized SDL_VIDEO");
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
@@ -39,14 +39,14 @@ namespace lucid::gpu
         SDL_Window* window = SDL_CreateWindow("xxx", 200, 200, 200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
         if (window == nullptr)
         {
-            LUCID_LOG(LogLevel::ERR, "[SDL] Failed to create dummy window: %s", SDL_GetError());
+            LUCID_LOG(ELogLevel::ERR, "[SDL] Failed to create dummy window: %s", SDL_GetError());
             return -1;
         }
 
         SDL_GLContext context = SDL_GL_CreateContext(window);
         if (context == nullptr)
         {
-            LUCID_LOG(LogLevel::ERR, "[SDL] Failed to create dummy context: %s", SDL_GetError());
+            LUCID_LOG(ELogLevel::ERR, "[SDL] Failed to create dummy context: %s", SDL_GetError());
             return -1;
         }
 
@@ -56,7 +56,7 @@ namespace lucid::gpu
         GLenum GLEWInitResult = glewInit();
         if (GLEWInitResult != GLEW_OK)
         {
-            LUCID_LOG(LogLevel::INFO, (char*)glewGetErrorString(GLEWInitResult));
+            LUCID_LOG(ELogLevel::INFO, (char*)glewGetErrorString(GLEWInitResult));
             return -1;
         }
 
@@ -65,7 +65,7 @@ namespace lucid::gpu
         SDL_GL_DeleteContext(context);
         SDL_DestroyWindow(window);
 
-        LUCID_LOG(LogLevel::INFO, "GPU initialized");
+        LUCID_LOG(ELogLevel::INFO, "GPU initialized");
 
         return 0;
     }
@@ -75,12 +75,12 @@ namespace lucid::gpu
         GLint property;
 
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &property);
-        LUCID_LOG(LogLevel::INFO, "Available texture units = %d", property);
-        Info.BoundTextures = new Texture*[property];
+        LUCID_LOG(ELogLevel::INFO, "Available texture units = %d", property);
+        Info.BoundTextures = new CTexture*[property];
         Info.MaxColorAttachments = property;
 
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &property);
-        LUCID_LOG(LogLevel::INFO, "Available draw buffers units = %d", property);
+        LUCID_LOG(ELogLevel::INFO, "Available draw buffers units = %d", property);
         Info.MaxColorAttachments = property;
 
         for (int i = 0; i < property; ++i)

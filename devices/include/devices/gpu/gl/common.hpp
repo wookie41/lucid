@@ -32,12 +32,12 @@ namespace lucid
                                        0,
                                        0 };
 
-    inline GLenum ToGLDataType(const Type& InType)
+    inline GLenum ToGLDataType(const EType& InType)
     {
         GLenum glType = GL_TYPES[static_cast<u8>(InType)];
         assert(glType);
         return glType;
     }
 
-    Type ToLucidDataType(GLenum InGLType);
+    EType ToLucidDataType(GLenum InGLType);
 } // namespace lucid

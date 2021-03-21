@@ -6,14 +6,14 @@
 namespace lucid::platform
 {
     // @TODO Unicode path support
-    DString ReadFile(const ANSIString& FilePath, const bool& NullTerminate)
+    FDString ReadFile(const FANSIString& FilePath, const bool& NullTerminate)
     {
         char* retVal = nullptr;
         FILE* fileToRead = fopen(*FilePath, "rb");
 
         if (fileToRead == nullptr)
         {
-            return DString { "" };
+            return FDString { "" };
         }
 
         fseek(fileToRead, 0, SEEK_END);
@@ -50,7 +50,7 @@ namespace lucid::platform
 
     readFileEnd:
         fclose(fileToRead);
-        return DString { retVal } ;
+        return FDString { retVal } ;
     }
 
 } // namespace lucid::platform

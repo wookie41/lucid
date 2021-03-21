@@ -8,7 +8,7 @@ typedef void* SDL_GLContext;
 
 namespace lucid::platform
 {
-    class SDLWindow : public Window
+    class SDLWindow : public CWindow
     {
       public:
         SDLWindow(SDL_Window* InSDLWindow, SDL_GLContext InContext, const u16& InWidth, const u16& InHeight);
@@ -19,7 +19,7 @@ namespace lucid::platform
         virtual u16 GetWidth() const override;
         virtual u16 GetHeight() const override;
         virtual float GetAspectRatio() const override;
-        virtual gpu::Framebuffer* GetFramebuffer() const override;
+        virtual gpu::CFramebuffer* GetFramebuffer() const override;
 
         virtual void Show() override;
         virtual void Hide() override;
@@ -36,6 +36,6 @@ namespace lucid::platform
         u16 Width, Height;
         SDL_Window* MySDLWindow;
         SDL_GLContext MyGLContext;
-        gpu::Framebuffer* WindowFramebuffer;
+        gpu::CFramebuffer* WindowFramebuffer;
     };
 }; // namespace lucid::platform

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "devices/gpu/shader.hpp"
 
 #include "GL/glew.h"
@@ -5,28 +7,28 @@
 
 namespace lucid::gpu
 {
-    class Buffer;
+    class CBuffer;
 
-    struct UniformVariable
+    struct FUniformVariable
     {
         GLint Location = 0;
-        DString Name { "" };
-        Type Type = Type::UNSUPPORTED;
+        FDString Name { "" };
+        EType Type = EType::UNSUPPORTED;
     };
 
-    struct TextureBinding : UniformVariable
+    struct FTextureBinding : FUniformVariable
     {
         GLint TextureIndex = 0;
-        Texture* BoundTexture = nullptr;
+        CTexture* BoundTexture = nullptr;
     };
 
-    class GLShader : public Shader
+    class CGLShader : public CShader
     {
       public:
-        GLShader(const ANSIString& InName,
+        CGLShader(const FANSIString& InName,
                  const GLuint& GLShaderID,
-                 Array<UniformVariable> UniformVariables,
-                 Array<TextureBinding> TextureBindings,
+                 FArray<FUniformVariable> UniformVariables,
+                 FArray<FTextureBinding> TextureBindings,
                  const bool& WarnMissingUniforms);
 
         virtual void Use() override;
@@ -35,43 +37,43 @@ namespace lucid::gpu
 
         virtual void Disable() override;
 
-        virtual void SetInt(const ANSIString& InUniformName, const u32& Value) override;
-        virtual void SetFloat(const ANSIString& InUniformName, const float& Value) override;
-        virtual void SetBool(const  ANSIString& InUniformName, const bool& Value) override;
+        virtual void SetInt(const FANSIString& InUniformName, const u32& Value) override;
+        virtual void SetFloat(const FANSIString& InUniformName, const float& Value) override;
+        virtual void SetBool(const  FANSIString& InUniformName, const bool& Value) override;
 
-        virtual void SetVector(const ANSIString& InUniformName, const glm::vec2& Value) override;
-        virtual void SetVector(const ANSIString& InUniformName, const glm::vec3& Value) override;
-        virtual void SetVector(const ANSIString& InUniformName, const glm::vec4& Value) override;
+        virtual void SetVector(const FANSIString& InUniformName, const glm::vec2& Value) override;
+        virtual void SetVector(const FANSIString& InUniformName, const glm::vec3& Value) override;
+        virtual void SetVector(const FANSIString& InUniformName, const glm::vec4& Value) override;
 
-        virtual void SetVector(const ANSIString& InUniformName, const glm::ivec2& Value) override;
-        virtual void SetVector(const ANSIString& InUniformName, const glm::ivec3& Value) override;
-        virtual void SetVector(const ANSIString& InUniformName, const glm::ivec4& Value) override;
+        virtual void SetVector(const FANSIString& InUniformName, const glm::ivec2& Value) override;
+        virtual void SetVector(const FANSIString& InUniformName, const glm::ivec3& Value) override;
+        virtual void SetVector(const FANSIString& InUniformName, const glm::ivec4& Value) override;
 
-        virtual void SetMatrix(const ANSIString& InUniformName, const glm::mat4& Value) override;
+        virtual void SetMatrix(const FANSIString& InUniformName, const glm::mat4& Value) override;
 
-        virtual void UseTexture(const ANSIString& InUniformName, Texture* TextureToUse) override;
+        virtual void UseTexture(const FANSIString& InUniformName, CTexture* TextureToUse) override;
         
         virtual void RestoreTextureBindings() override;
         
         virtual void AddBinding(BufferBinding* Binding) override;
 
 #ifndef NDEBUG
-        void ReloadShader(Shader* RecompiledShader) override;
+        void ReloadShader(CShader* RecompiledShader) override;
 #endif
-        u32 GetIdForUniform(const ANSIString& InUniformName) const;
-        u32 GetTextureId(const ANSIString& InUniformName) const;
+        u32 GetIdForUniform(const FANSIString& InUniformName) const;
+        u32 GetTextureId(const FANSIString& InUniformName) const;
 
         virtual void Free() override;
         
-        virtual ~GLShader() = default;
+        virtual ~CGLShader() = default;
 
       private:
 
         GLuint glShaderID;
 
-        Array<UniformVariable> uniformVariables;
-        Array<TextureBinding> textureBindings;
-        LinkedList<BufferBinding> buffersBindings;
+        FArray<FUniformVariable> uniformVariables;
+        FArray<FTextureBinding> textureBindings;
+        FLinkedList<BufferBinding> buffersBindings;
         bool warnMissingUniforms;
     };
 } // namespace lucid::gpu

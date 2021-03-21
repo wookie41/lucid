@@ -30,7 +30,7 @@ namespace lucid::gpu
 
 #ifndef NDEBUG
     static char _infoLog[1024];
-    void CheckCompileErrors(const ANSIString& ShaderName, const u32& Shader, const u8& Type, const char* ShaderTypeName)
+    void CheckCompileErrors(const FANSIString& ShaderName, const u32& Shader, const u8& Type, const char* ShaderTypeName)
     {
         int success;
         if (Type != _GL_PROGRAM)
@@ -41,7 +41,7 @@ namespace lucid::gpu
                 Zero(_infoLog, 1024);
                 GLsizei len;
                 glGetShaderInfoLog(Shader, 1024, &len, _infoLog);
-                LUCID_LOG(LogLevel::WARN, "[OpenGL] Failed to compile %s shader of shader program %s: %s", ShaderTypeName, *ShaderName, _infoLog);
+                LUCID_LOG(ELogLevel::WARN, "[OpenGL] Failed to compile %s shader of shader program %s: %s", ShaderTypeName, *ShaderName, _infoLog);
             }
         }
         else
@@ -50,13 +50,13 @@ namespace lucid::gpu
             if (!success)
             {
                 glGetProgramInfoLog(Shader, 1024, NULL, _infoLog);
-                LUCID_LOG(LogLevel::WARN, "[OpenGL] Failed to link shader program %s: %s\n", *ShaderName, _infoLog);
+                LUCID_LOG(ELogLevel::WARN, "[OpenGL] Failed to link shader program %s: %s\n", *ShaderName, _infoLog);
             }
         }
     }
 #endif
 
-    void CompileShader(const ANSIString& ShaderName,
+    void CompileShader(const FANSIString& ShaderName,
                        GLuint ShaderProgramID,
                        GLuint ShaderID,
                        const char* ShaderSource,
@@ -71,13 +71,13 @@ namespace lucid::gpu
         glAttachShader(ShaderProgramID, ShaderID);
     }
 
-    Shader::Shader(const ANSIString& InName) : ShaderName(InName) {}
+    CShader::CShader(const FANSIString& InName) : ShaderName(InName) {}
 
-    Shader* CompileShaderProgram(
-        const ANSIString& InShaderName,
-        const ANSIString& InVertexShaderSource,
-        const ANSIString& InFragementShaderSource,
-        const ANSIString& InGeometryShaderSource,
+    CShader* CompileShaderProgram(
+        const FANSIString& InShaderName,
+        const FANSIString& InVertexShaderSource,
+        const FANSIString& InFragementShaderSource,
+        const FANSIString& InGeometryShaderSource,
         const bool& InWarnMissingUniforms)
     {
         GLuint ShaderProgramID = glCreateProgram();
@@ -112,8 +112,8 @@ namespace lucid::gpu
         GLint numberOfUniforms;
         glGetProgramiv(ShaderProgramID, GL_ACTIVE_UNIFORMS, &numberOfUniforms);
 
-        Array<UniformVariable> uniformVariables(numberOfUniforms, true);
-        Array<TextureBinding> textureBindings(numberOfUniforms, true);
+        FArray<FUniformVariable> uniformVariables(numberOfUniforms, true);
+        FArray<FTextureBinding> textureBindings(numberOfUniforms, true);
 
         GLint UniformArraySize;
         GLenum GLUniformType;
@@ -131,22 +131,22 @@ namespace lucid::gpu
                                &UniformArraySize, &GLUniformType, UniformNameBuff);
 
             GLint GLUniformLocation = glGetUniformLocation(ShaderProgramID, UniformNameBuff);
-            Type UniformType = ToLucidDataType(GLUniformType);
+            EType UniformType = ToLucidDataType(GLUniformType);
 
             if (GLUniformType == GL_SAMPLER_1D || GLUniformType == GL_SAMPLER_2D || GLUniformType == GL_SAMPLER_3D ||
                 GLUniformType == GL_SAMPLER_CUBE)
             {
-                TextureBinding NewTextureVariable;
+                FTextureBinding NewTextureVariable;
                 NewTextureVariable.Location = GLUniformLocation;
                 NewTextureVariable.Name = CopyToString(UniformNameBuff, GLUniformNameLength);
-                NewTextureVariable.Type = Type::SAMPLER;
+                NewTextureVariable.Type = EType::SAMPLER;
                 NewTextureVariable.TextureIndex = texturesCount++;
                 NewTextureVariable.BoundTexture = nullptr;
                 textureBindings.Add(NewTextureVariable);
                 continue;
             }
 
-            UniformVariable NewVariable;
+            FUniformVariable NewVariable;
             NewVariable.Location = GLUniformLocation;
             NewVariable.Name = CopyToString(UniformNameBuff, GLUniformNameLength);
             NewVariable.Type = UniformType;
@@ -162,7 +162,7 @@ namespace lucid::gpu
                     std::string NextArrayEntry { *NewVariable.Name };
                     NextArrayEntry.replace(NextArrayEntry.find("0"), 1, std::to_string(i));
 
-                    UniformVariable ArrayEntryVariable;
+                    FUniformVariable ArrayEntryVariable;
                     ArrayEntryVariable.Location = glGetUniformLocation(ShaderProgramID, NextArrayEntry.c_str());
                     ArrayEntryVariable.Name = CopyToString(NextArrayEntry.c_str(), NextArrayEntry.length());
                     ArrayEntryVariable.Type = UniformType;
@@ -171,35 +171,35 @@ namespace lucid::gpu
             }
         }
 
-        Array<UniformVariable> tmpUniforms = uniformVariables.Copy();
+        FArray<FUniformVariable> tmpUniforms = uniformVariables.Copy();
         uniformVariables.Free();
         uniformVariables = tmpUniforms;
 
-        Array<TextureBinding> tmpBindings = textureBindings.Copy();
+        FArray<FTextureBinding> tmpBindings = textureBindings.Copy();
         textureBindings.Free();
         textureBindings = tmpBindings;
 
-        return new GLShader(InShaderName, ShaderProgramID, uniformVariables, textureBindings, InWarnMissingUniforms);
+        return new CGLShader(InShaderName, ShaderProgramID, uniformVariables, textureBindings, InWarnMissingUniforms);
     }
 
-    GLShader::GLShader(const ANSIString& InName,
+    CGLShader::CGLShader(const FANSIString& InName,
                        const GLuint& GLShaderID,
-                       Array<UniformVariable> UniformVariables,
-                       Array<TextureBinding> TextureBindings,
+                       FArray<FUniformVariable> UniformVariables,
+                       FArray<FTextureBinding> TextureBindings,
                        const bool& WarnMissingUniforms = false)
-    : Shader::Shader(InName), glShaderID(GLShaderID), uniformVariables(UniformVariables), textureBindings(TextureBindings),
+    : CShader::CShader(InName), glShaderID(GLShaderID), uniformVariables(UniformVariables), textureBindings(TextureBindings),
       warnMissingUniforms(WarnMissingUniforms)
 
     {
     }
 
-    void GLShader::Use()
+    void CGLShader::Use()
     {
         glUseProgram(glShaderID);
         gpu::Info.CurrentShader = this;
     }
 
-    void GLShader::Disable()
+    void CGLShader::Disable()
     {
         if (gpu::Info.CurrentShader == this)
         {
@@ -208,7 +208,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetInt(const ANSIString& InUniformName, const uint32_t& Value)
+    void CGLShader::SetInt(const FANSIString& InUniformName, const uint32_t& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         uint32 UniformId = GetIdForUniform(InUniformName);
@@ -219,7 +219,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetFloat(const ANSIString& InUniformName, const float& Value)
+    void CGLShader::SetFloat(const FANSIString& InUniformName, const float& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -230,7 +230,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetBool(const ANSIString& InUniformName, const bool& Value)
+    void CGLShader::SetBool(const FANSIString& InUniformName, const bool& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -241,7 +241,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetVector(const ANSIString& InUniformName, const glm::vec2& Value)
+    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::vec2& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -252,7 +252,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetVector(const ANSIString& InUniformName, const glm::vec3& Value)
+    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::vec3& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -263,7 +263,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetVector(const ANSIString& InUniformName, const glm::vec4& Value)
+    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::vec4& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -274,7 +274,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetVector(const ANSIString& InUniformName, const glm::ivec2& Value)
+    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::ivec2& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -285,7 +285,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetVector(const ANSIString& InUniformName, const glm::ivec3& Value)
+    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::ivec3& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -296,7 +296,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetVector(const ANSIString& InUniformName, const glm::ivec4& Value)
+    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::ivec4& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -307,7 +307,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::SetMatrix(const ANSIString& InUniformName, const glm::mat4& Value)
+    void CGLShader::SetMatrix(const FANSIString& InUniformName, const glm::mat4& Value)
     {
         assert(gpu::Info.CurrentShader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -318,7 +318,7 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::UseTexture(const ANSIString& InUniformName, Texture* TextureToUse)
+    void CGLShader::UseTexture(const FANSIString& InUniformName, CTexture* TextureToUse)
     {
         assert(gpu::Info.CurrentShader == this);
         const i32 UniformId = GetTextureId(InUniformName);
@@ -328,7 +328,7 @@ namespace lucid::gpu
             return;
         }
 
-        TextureBinding* binding = textureBindings[UniformId];
+        FTextureBinding* binding = textureBindings[UniformId];
         binding->BoundTexture = TextureToUse;
 
         gpu::Info.ActiveTextureUnit = binding->TextureIndex;
@@ -337,7 +337,7 @@ namespace lucid::gpu
         glUniform1i(binding->Location, binding->TextureIndex);
     }
 
-    void GLShader::RestoreTextureBindings()
+    void CGLShader::RestoreTextureBindings()
     {
         assert(gpu::Info.CurrentShader == this);
 
@@ -353,12 +353,12 @@ namespace lucid::gpu
         }
     }
 
-    void GLShader::AddBinding(BufferBinding* Binding) { buffersBindings.Add(Binding); }
+    void CGLShader::AddBinding(BufferBinding* Binding) { buffersBindings.Add(Binding); }
 
-    void GLShader::ReloadShader(Shader* RecompiledShader)
+    void CGLShader::ReloadShader(CShader* RecompiledShader)
     {
         // Preserve the current shader
-        Shader* CurrentShader = nullptr;
+        CShader* CurrentShader = nullptr;
         const GLuint OldProgramId = glShaderID;
         if (Info.CurrentShader == this)
         {
@@ -372,7 +372,7 @@ namespace lucid::gpu
         }
 
         // Get the new program
-        GLShader* GLRecompiledShader = (GLShader*)RecompiledShader;
+        CGLShader* GLRecompiledShader = (CGLShader*)RecompiledShader;
         glShaderID = GLRecompiledShader->glShaderID;
 
         // Use the new shader
@@ -391,29 +391,29 @@ namespace lucid::gpu
             const GLint OldUniformLocation = uniformVariables[OldUniformIndex]->Location;
             switch (uniformVariables[OldUniformIndex]->Type)
             {
-            case Type::BOOL:
-            case Type::INT_32:
+            case EType::BOOL:
+            case EType::INT_32:
             {
                 i32 Value;
                 glGetUniformiv(OldProgramId, OldUniformLocation, &Value);
                 glUniform1i(GLRecompiledShader->uniformVariables[i]->Location, Value);
                 break;
             }
-            case Type::FLOAT:
+            case EType::FLOAT:
             {
                 float Value;
                 glGetUniformfv(OldProgramId, OldUniformLocation, &Value);
                 glUniform1f(GLRecompiledShader->uniformVariables[i]->Location, Value);
                 break;
             }
-            case Type::VEC2:
+            case EType::VEC2:
             {
                 glm::vec2 Value;
                 glGetUniformfv(OldProgramId, OldUniformLocation, &Value[0]);
                 glUniform2fv(GLRecompiledShader->uniformVariables[i]->Location, 1, &Value[0]);
                 break;
             }
-            case Type::VEC3:
+            case EType::VEC3:
             {
                 glm::vec3 Value;
                 glGetUniformfv(OldProgramId, OldUniformLocation, &Value[0]);
@@ -421,21 +421,21 @@ namespace lucid::gpu
                 break;
             }
 
-            case Type::VEC4:
+            case EType::VEC4:
             {
                 glm::vec4 Value;
                 glGetUniformfv(OldProgramId, OldUniformLocation, &Value[0]);
                 glUniform4fv(GLRecompiledShader->uniformVariables[i]->Location, 1, &Value[0]);
                 break;
             }
-            case Type::IVEC2:
+            case EType::IVEC2:
             {
                 glm::ivec2 Value;
                 glGetUniformiv(OldProgramId, OldUniformLocation, &Value[0]);
                 glUniform2iv(GLRecompiledShader->uniformVariables[i]->Location, 1, &Value[0]);
                 break;
             }
-            case Type::IVEC3:
+            case EType::IVEC3:
             {
                 glm::ivec3 Value;
                 glGetUniformiv(OldProgramId, OldUniformLocation, &Value[0]);
@@ -443,14 +443,14 @@ namespace lucid::gpu
                 break;
             }
 
-            case Type::IVEC4:
+            case EType::IVEC4:
             {
                 glm::ivec4 Value;
                 glGetUniformiv(OldProgramId, OldUniformLocation, &Value[0]);
                 glUniform4iv(GLRecompiledShader->uniformVariables[i]->Location, 1, &Value[0]);
                 break;
             }
-            case Type::MAT4:
+            case EType::MAT4:
             {
                 glm::mat4 Value;
                 glGetUniformfv(OldProgramId, OldUniformLocation, &Value[0][0]);
@@ -495,7 +495,7 @@ namespace lucid::gpu
         glDeleteProgram(OldProgramId);
     }
 
-    void GLShader::SetupBuffersBindings()
+    void CGLShader::SetupBuffersBindings()
     {
         assert(gpu::Info.CurrentShader == this);
 
@@ -516,7 +516,7 @@ namespace lucid::gpu
         }
     }
 
-    u32 GLShader::GetIdForUniform(const ANSIString& InUniformName) const
+    u32 CGLShader::GetIdForUniform(const FANSIString& InUniformName) const
     {
         for (u32 idx = 0; idx < uniformVariables.GetLength(); ++idx)
         {
@@ -533,7 +533,7 @@ namespace lucid::gpu
         return uniformVariables.GetLength();
     };
 
-    u32 GLShader::GetTextureId(const ANSIString& InUniformName) const
+    u32 CGLShader::GetTextureId(const FANSIString& InUniformName) const
     {
         assert(gpu::Info.CurrentShader == this);
 
@@ -554,7 +554,7 @@ namespace lucid::gpu
         return textureBindings.GetLength();
     }
 
-    void GLShader::Free()
+    void CGLShader::Free()
     {
         if (glShaderID)
         {

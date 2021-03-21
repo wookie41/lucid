@@ -19,7 +19,7 @@ namespace lucid::gpu
     };
 
     void ClearBuffers(const ClearableBuffers& BuffersToClear);
-    void SetClearColor(const color& Color);
+    void SetClearColor(const FColor& Color);
     void SetClearDepth(const float& DepthValue);
 
     /////////////////////////////////////
@@ -70,7 +70,7 @@ namespace lucid::gpu
         ONE_MINUS_SRC1_ALPHA
     };
 
-    void SetBlendColor(const color& Color);
+    void SetBlendColor(const FColor& Color);
     void SetBlendFunction(const BlendFunction& SrcFunction, const BlendFunction& DstFunction);
     void SetBlendFunctionSeparate(const BlendFunction& SrcFunction,
                                   const BlendFunction& DstFunction,
@@ -112,31 +112,31 @@ namespace lucid::gpu
      * supported extension, which shader/framebuffer/texture and etc is currently bound
      */
 
-    class Framebuffer;
-    class Shader;
-    class Texture;
-    class Renderbuffer;
-    class Buffer;
-    class VertexArray;
-    class Cubemap;
+    class CFramebuffer;
+    class CShader;
+    class CTexture;
+    class CRenderbuffer;
+    class CBuffer;
+    class CVertexArray;
+    class CCubemap;
 
     struct GPUInfo
     {
-        Framebuffer* CurrentFramebuffer = nullptr;
-        Framebuffer* CurrentReadFramebuffer = nullptr;
-        Framebuffer* CurrentWriteFramebuffer = nullptr;
+        CFramebuffer* CurrentFramebuffer = nullptr;
+        CFramebuffer* CurrentReadFramebuffer = nullptr;
+        CFramebuffer* CurrentWriteFramebuffer = nullptr;
 
-        Cubemap* CurrentCubemap = nullptr;
-        Shader* CurrentShader = nullptr;
-        Texture** BoundTextures = nullptr;
-        Renderbuffer* CurrentRenderbuffer;
-        VertexArray* CurrentVAO = nullptr;
+        CCubemap* CurrentCubemap = nullptr;
+        CShader* CurrentShader = nullptr;
+        CTexture** BoundTextures = nullptr;
+        CRenderbuffer* CurrentRenderbuffer;
+        CVertexArray* CurrentVAO = nullptr;
 
-        Buffer* CurrentVertexBuffer;
-        Buffer* CurrentElementBuffer;
-        Buffer* CurrentReadBuffer;
-        Buffer* CurrentWriteBuffer;
-        Buffer* CurrentShaderStorageBuffer;
+        CBuffer* CurrentVertexBuffer;
+        CBuffer* CurrentElementBuffer;
+        CBuffer* CurrentReadBuffer;
+        CBuffer* CurrentWriteBuffer;
+        CBuffer* CurrentShaderStorageBuffer;
 
         u32 ActiveTextureUnit = 0;
         u32 MaxTextureUnits = 0;

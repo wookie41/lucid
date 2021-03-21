@@ -5,44 +5,44 @@
 
 namespace lucid::gpu
 {
-    class Shader;
-    class Texture;
-    class Framebuffer;
-    class Cubemap;
+    class CShader;
+    class CTexture;
+    class CFramebuffer;
+    class CCubemap;
 } // namespace lucid::gpu
 
 namespace lucid::scene
 {
-    struct RenderScene;
+    struct FRenderScene;
 
-    enum class LightType : u8
+    enum class ELightType : u8
     {
         DIRECTIONAL,
         POINT,
         SPOT
     };
 
-    struct ShadowMap
+    struct FShadowMap
     {
-        gpu::Texture* ShadowMapTexture;
+        gpu::CTexture* ShadowMapTexture;
     };
 
-    class Light
+    class CLight
     {
       public:
-        Light() = default;
+        CLight() = default;
 
-        virtual LightType GetType() const = 0;
-        virtual ~Light() = default;
+        virtual ELightType GetType() const = 0;
+        virtual ~CLight() = default;
 
         virtual void UpdateLightSpaceMatrix() = 0;
 
         // Updates the depth map by rendering the `SceneToRender` to the `TargetFramebuffer` using the `ShaderToUse`
         // assumes that `TargetFramebuffer` is bound
         // if `RenderStaticGeometry` is `false`, the it'll only render the dynamic geometry of the `RenderScene`
-        virtual void GenerateShadowMap(RenderScene* SceneToRender,
-                                       gpu::Framebuffer* TargetFramebuffer,
-                                       gpu::Shader* ShaderToUse,
+        virtual void GenerateShadowMap(FRenderScene* SceneToRender,
+                                       gpu::CFramebuffer* TargetFramebuffer,
+                                       gpu::CShader* ShaderToUse,
                                        bool RenderStaticGeometry,
                                        bool ClearShadowMap = false) = 0;
 
@@ -51,41 +51,41 @@ namespace lucid::scene
         glm::ivec2 ShadowMapSize{ 0, 0 };
     };
 
-    class DirectionalLight : public Light
+    class CDirectionalLight : public CLight
     {
       public:
-        DirectionalLight() = default;
+        CDirectionalLight() = default;
 
         void UpdateLightSpaceMatrix() override;
 
-        virtual void GenerateShadowMap(RenderScene* SceneToRender,
-                                       gpu::Framebuffer* TargetFramebuffer,
-                                       gpu::Shader* ShaderToUse,
+        virtual void GenerateShadowMap(FRenderScene* SceneToRender,
+                                       gpu::CFramebuffer* TargetFramebuffer,
+                                       gpu::CShader* ShaderToUse,
                                        bool RenderStaticGeometry,
                                        bool ClearShadowMap) override;
 
-        virtual LightType GetType() const override { return type; }
+        virtual ELightType GetType() const override { return type; }
 
         glm::vec3 Direction = { 0, 0, 0 };
 
         glm::vec3 LightUp{ 0, 1, 0 };
         glm::mat4 LightSpaceMatrix{ 1 };
-        gpu::Texture* ShadowMap = nullptr;
+        gpu::CTexture* ShadowMap = nullptr;
 
       private:
-        static const LightType type = LightType::DIRECTIONAL;
+        static const ELightType type = ELightType::DIRECTIONAL;
     };
 
-    struct PointLight : public Light
+    class CPointLight : public CLight
     {
       public:
-        virtual LightType GetType() const override { return type; }
+        virtual ELightType GetType() const override { return type; }
 
         virtual void UpdateLightSpaceMatrix() override;
 
-        virtual void GenerateShadowMap(RenderScene* SceneToRender,
-                                       gpu::Framebuffer* TargetFramebuffer,
-                                       gpu::Shader* ShaderToUse,
+        virtual void GenerateShadowMap(FRenderScene* SceneToRender,
+                                       gpu::CFramebuffer* TargetFramebuffer,
+                                       gpu::CShader* ShaderToUse,
                                        bool RenderStaticGeometry,
                                        bool ClearShadowMap) override;
 
@@ -94,32 +94,32 @@ namespace lucid::scene
         float Quadratic = 0;
 
         glm::mat4 LightSpaceMatrices[6];
-        gpu::Cubemap* ShadowMap = nullptr;
+        gpu::CCubemap* ShadowMap = nullptr;
 
         float NearPlane = 1.f;
         float FarPlane = 25.f;
 
       private:
-        static const LightType type = LightType::POINT;
+        static const ELightType type = ELightType::POINT;
     };
 
-    struct SpotLight : public Light
+    class CSpotLight : public CLight
     {
       public:
-        virtual LightType GetType() const { return type; }
+        virtual ELightType GetType() const { return type; }
 
         virtual void UpdateLightSpaceMatrix() override;
 
-        virtual void GenerateShadowMap(RenderScene* SceneToRender,
-                                       gpu::Framebuffer* TargetFramebuffer,
-                                       gpu::Shader* ShaderToUse,
+        virtual void GenerateShadowMap(FRenderScene* SceneToRender,
+                                       gpu::CFramebuffer* TargetFramebuffer,
+                                       gpu::CShader* ShaderToUse,
                                        bool RenderStaticGeometry,
                                        bool ClearShadowMap) override;
 
         glm::vec3 Direction = { 0, 0, 0 };
 
         glm::mat4 LightSpaceMatrix{ 1 };
-        gpu::Texture* ShadowMap = nullptr;
+        gpu::CTexture* ShadowMap = nullptr;
 
         glm::vec3 LightUp{ 0, 1, 0 };
         float Constant = 0;
@@ -129,12 +129,12 @@ namespace lucid::scene
         float OuterCutOffRad = 0;
 
       private:
-        static const LightType type = LightType::SPOT;
+        static const ELightType type = ELightType::SPOT;
     };
 
     // If CastsShadow = true, then this function will generate a shadow map for the light
     // if it's false, then the width and height parameters can be anything, but for you should make them 0 for clarity
-    DirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
-    SpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
-    PointLight CreatePointLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
+    CDirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
+    CSpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
+    CPointLight CreatePointLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
 } // namespace lucid::scene

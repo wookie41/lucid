@@ -4,8 +4,6 @@
 
 namespace lucid
 {
-
-
     using u8 = uint8_t;
     using u16 = uint16_t;
     using u32 = uint32_t;
@@ -16,15 +14,15 @@ namespace lucid
     using i64 = int64_t;
     using real = float;
     
-    using color = glm::vec4;
+    using FColor = glm::vec4;
 
-    const color RedColor{ 1, 0, 0, 1 };
-    const color GreenColor{ 0, 1, 0, 1 };
-    const color BlueColor{ 0, 0, 1, 1 };
-    const color WhiteColor{ 1, 1, 1, 1 };
-    const color BlackColor{ 0, 0, 0, 1 };
+    const FColor RedColor{ 1, 0, 0, 1 };
+    const FColor GreenColor{ 0, 1, 0, 1 };
+    const FColor BlueColor{ 0, 0, 1, 1 };
+    const FColor WhiteColor{ 1, 1, 1, 1 };
+    const FColor BlackColor{ 0, 0, 0, 1 };
 
-    enum class Type : u8
+    enum class EType : u8
     {
         BYTE,
         INT_8,

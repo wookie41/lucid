@@ -5,16 +5,16 @@
 namespace lucid
 {
     template <typename T>
-    struct Array
+    struct FArray
     {
-        Array(const u32& InCapacity, const bool& InAutoResize = false, const u8& InResizeFactor = 2);
+        FArray(const u32& InCapacity, const bool& InAutoResize = false, const u8& InResizeFactor = 2);
 
         T* operator[](const u32& InIndex) const;
 
         operator void*() const;
         
-        Array<T>& operator=(const Array& Rhs);
-        Array<T> Copy() const;
+        FArray<T>& operator=(const FArray& Rhs);
+        FArray<T> Copy() const;
 
         void Add(const T& Element);
         void Free();
@@ -33,25 +33,25 @@ namespace lucid
     };
 
     template <typename T>
-    struct LinkedListItem
+    struct FLinkedListItem
     {
         T* Element = nullptr;
-        LinkedListItem<T>* Next = nullptr;
-        LinkedListItem<T>* Prev = nullptr;
+        FLinkedListItem<T>* Next = nullptr;
+        FLinkedListItem<T>* Prev = nullptr;
     };
 
     template <typename T>
-    struct LinkedList
+    struct FLinkedList
     {
-        LinkedList();
+        FLinkedList();
 
         void Add(T* Element);
         void Remove(T* Element);
         bool Contains(T* Element);
         void Free();
 
-        LinkedListItem<T> Head;
-        LinkedListItem<T>* Tail;
+        FLinkedListItem<T> Head;
+        FLinkedListItem<T>* Tail;
     };
 } // namespace lucid
 

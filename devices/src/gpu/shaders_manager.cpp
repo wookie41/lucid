@@ -10,20 +10,20 @@
 
 namespace lucid::gpu
 {
-    ShadersManager GShadersManager;
+    CShadersManager GShadersManager;
 
     void ReloadShaders();
 
-    Shader* ShadersManager::CompileShader(const ANSIString& ShaderName,
-                                          const ANSIString& VertexShaderPath,
-                                          const ANSIString& FragmentShaderPath,
-                                          const ANSIString& GeometryShaderPath,
+    CShader* CShadersManager::CompileShader(const FANSIString& ShaderName,
+                                          const FANSIString& VertexShaderPath,
+                                          const FANSIString& FragmentShaderPath,
+                                          const FANSIString& GeometryShaderPath,
                                           const bool& ShouldStoreShader)
     {
-        DString VertexShaderSource = platform::ReadFile(VertexShaderPath, true);
-        DString FragmentShaderSource = platform::ReadFile(FragmentShaderPath, true);
+        FDString VertexShaderSource = platform::ReadFile(VertexShaderPath, true);
+        FDString FragmentShaderSource = platform::ReadFile(FragmentShaderPath, true);
 
-        DString GeometryShaderSource{""};
+        FDString GeometryShaderSource{""};
         if (GeometryShaderPath.GetLength())
         {
             GeometryShaderSource = platform::ReadFile(GeometryShaderPath, true);
@@ -31,14 +31,14 @@ namespace lucid::gpu
 
         if (VertexShaderSource.GetLength() == 0)
         {
-            LUCID_LOG(LogLevel::WARN, "Failed to read vertex shader source from file %s while compiling shader '%s'",
+            LUCID_LOG(ELogLevel::WARN, "Failed to read vertex shader source from file %s while compiling shader '%s'",
                       *VertexShaderPath, *ShaderName);
             return nullptr;
         }
 
         if (FragmentShaderSource.GetLength() == 0)
         {
-            LUCID_LOG(LogLevel::WARN, "Failed to read fragment shader source from file %s while compiling shader '%s'",
+            LUCID_LOG(ELogLevel::WARN, "Failed to read fragment shader source from file %s while compiling shader '%s'",
                       *FragmentShaderPath, *ShaderName);
             VertexShaderSource.Free();
             return nullptr;
@@ -46,14 +46,14 @@ namespace lucid::gpu
 
         if (GeometryShaderPath.GetLength() > 0 && GeometryShaderSource.GetLength() == 0)
         {
-            LUCID_LOG(LogLevel::WARN, "Failed to read geometry shader source from file %s while compiling shader '%s'",
+            LUCID_LOG(ELogLevel::WARN, "Failed to read geometry shader source from file %s while compiling shader '%s'",
                       *GeometryShaderPath, *ShaderName);
             VertexShaderSource.Free();
             FragmentShaderSource.Free();
             return nullptr;
         }
 
-        Shader* CompiledShader = gpu::CompileShaderProgram(
+        CShader* CompiledShader = gpu::CompileShaderProgram(
             ShaderName,
             VertexShaderSource,
             FragmentShaderSource,
@@ -70,7 +70,7 @@ namespace lucid::gpu
 
         if (ShouldStoreShader)
         {
-            const ShaderInstanceInfo ShaderInstanceInfo {
+            const FShaderInstanceInfo ShaderInstanceInfo {
                 CompiledShader,
                 CopyToString(*VertexShaderPath, VertexShaderPath.GetLength()),
                 CopyToString(*FragmentShaderPath, FragmentShaderPath.GetLength()),
@@ -82,24 +82,24 @@ namespace lucid::gpu
         return CompiledShader;
     }
 
-    void ShadersManager::EnableHotReload()
+    void CShadersManager::EnableHotReload()
     {
         platform::AddDirectoryListener(BaseShadersPath, ReloadShaders);
     }
 
-    void ShadersManager::DisableHotReload()
+    void CShadersManager::DisableHotReload()
     {
         platform::RemoveDirectoryListener(BaseShadersPath, ReloadShaders);
     }
 
     void ReloadShaders()
     {
-        platform::ExecuteCommand(String { LUCID_TEXT("sh tools\\preprocess_shaders.sh") });
+        platform::ExecuteCommand(FString { LUCID_TEXT("sh tools\\preprocess_shaders.sh") });
 
         for (u32 i = 0; i < GShadersManager.CompiledShaders.GetLength(); ++i)
         {
-            const ShaderInstanceInfo* ShaderInfo = GShadersManager.CompiledShaders[i];
-            Shader* RecompiledShader = GShadersManager.CompileShader(ShaderInfo->Shader->GetName(),
+            const FShaderInstanceInfo* ShaderInfo = GShadersManager.CompiledShaders[i];
+            CShader* RecompiledShader = GShadersManager.CompileShader(ShaderInfo->Shader->GetName(),
                                                                      ShaderInfo->VertexShaderPath,
                                                                      ShaderInfo->FragmentShaderPath,
                                                                      ShaderInfo->GeometryShaderPath, false);

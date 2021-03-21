@@ -5,24 +5,24 @@
 
 namespace lucid::gpu
 {
-    class Framebuffer;
-    class Shader;
+    class CFramebuffer;
+    class CShader;
 }; // namespace lucid::gpu
 
 namespace lucid::scene
 {
-    class Camera;
+    class CCamera;
     
-    struct RenderSource
+    struct FRenderView
     {
-        Camera* Camera;
-        gpu::Viewport Viewport;
+        CCamera* Camera;
+        gpu::FViewport Viewport;
     };
 
-    class Renderer
+    class CRenderer
     {
       public:
-        explicit Renderer(gpu::Shader* InDefaultShader) : DefaultRenderableShader(InDefaultShader) {}
+        explicit CRenderer(gpu::CShader* InDefaultShader) : DefaultRenderableShader(InDefaultShader) {}
 
         /**
           * Called before the first Render() call so that the renderer can set itself up, like create additional framebuffers and etc.
@@ -31,26 +31,26 @@ namespace lucid::scene
         virtual void Setup() = 0;
         
         /**
-         * Renders the scene from the specified source
+         * Renders the scene from the specified view
          */
-        virtual void Render(const RenderScene* InSceneToRender, const RenderSource* InRenderSource) = 0;
+        virtual void Render(const FRenderScene* InSceneToRender, const FRenderView* InRenderView) = 0;
 
         /**
-         * Called before the first renderer is deleted so it can cleanup whatever it did in Setup() or during Render(s)().
+         * Called before the renderer is deleted so it can cleanup whatever it did in Setup() or during Render(s)().
          */
         virtual void Cleanup() = 0;
 
         /**
         * Returns the framebuffer which holds the result of last Render() call.
         */
-        virtual gpu::Framebuffer* GetFinalFramebuffer() = 0;
+        virtual gpu::CFramebuffer* GetResultFramebuffer() = 0;
 
         
-        virtual ~Renderer() = default;
+        virtual ~CRenderer() = default;
 
       protected:
 
-        gpu::Shader* DefaultRenderableShader;
+        gpu::CShader* DefaultRenderableShader;
     };
 
 } // namespace lucid::scene

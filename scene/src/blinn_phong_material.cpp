@@ -8,13 +8,13 @@
 
 namespace lucid::scene
 {
-    static const String SHININESS("uMaterial.Shininess");
-    static const String DIFFUSE_COLOR("uMaterial.DiffuseColor");
-    static const String SPECULAR_COLOR("uMaterial.SpecularColor");
+    static const FString SHININESS("uMaterial.Shininess");
+    static const FString DIFFUSE_COLOR("uMaterial.DiffuseColor");
+    static const FString SPECULAR_COLOR("uMaterial.SpecularColor");
 
-    BlinnPhongMaterial::BlinnPhongMaterial(gpu::Shader* CustomShader) : Material(CustomShader) {}
+    CBlinnPhongMaterial::CBlinnPhongMaterial(gpu::CShader* CustomShader) : CMaterial(CustomShader) {}
 
-    void BlinnPhongMaterial::SetupShader(gpu::Shader* Shader)
+    void CBlinnPhongMaterial::SetupShader(gpu::CShader* Shader)
     {
         Shader->SetInt(SHININESS, Shininess);
         Shader->SetVector(DIFFUSE_COLOR, DiffuseColor);
@@ -23,17 +23,17 @@ namespace lucid::scene
 
     /* ---------------------------------------------------------------------------*/
 
-    static const String DIFFUSE_MAP("uMaterial.DiffuseMap");
-    static const String SPECULAR_MAP("uMaterial.SpecularMap");
-    static const String NORMAL_MAP("uMaterial.NormalMap");
-    static const String HAS_SPECULAR_MAP("uMaterial.HasSpecularMap");
-    static const String HAS_NORMAL_MAP("uMaterial.HasNormalMap");
-    static const String HAS_DISPLACEMENT_MAP("uMaterial.HasDisplacementMap");
-    static const String DISPLACEMENT_MAP("uMaterial.DisplacementMap");
+    static const FString DIFFUSE_MAP("uMaterial.DiffuseMap");
+    static const FString SPECULAR_MAP("uMaterial.SpecularMap");
+    static const FString NORMAL_MAP("uMaterial.NormalMap");
+    static const FString HAS_SPECULAR_MAP("uMaterial.HasSpecularMap");
+    static const FString HAS_NORMAL_MAP("uMaterial.HasNormalMap");
+    static const FString HAS_DISPLACEMENT_MAP("uMaterial.HasDisplacementMap");
+    static const FString DISPLACEMENT_MAP("uMaterial.DisplacementMap");
 
-    BlinnPhongMapsMaterial::BlinnPhongMapsMaterial(gpu::Shader* CustomShader) : Material(CustomShader) {}
+    CBlinnPhongMapsMaterial::CBlinnPhongMapsMaterial(gpu::CShader* CustomShader) : CMaterial(CustomShader) {}
 
-    void BlinnPhongMapsMaterial::SetupShader(gpu::Shader* Shader)
+    void CBlinnPhongMapsMaterial::SetupShader(gpu::CShader* Shader)
     {
         Shader->SetInt(SHININESS, Shininess);
         Shader->UseTexture(DIFFUSE_MAP, DiffuseMap);
@@ -71,16 +71,16 @@ namespace lucid::scene
     };
 
 
-    Renderable* CreateBlinnPhongRenderable(const ANSIString& InMeshName, resources::MeshResource* InMesh, gpu::Shader* InShader)
+    FRenderable* CreateBlinnPhongRenderable(const FANSIString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader)
         {
-            gpu::Texture* FallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
+            gpu::CTexture* FallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
 
-            BlinnPhongMapsMaterial* MeshMaterial = new BlinnPhongMapsMaterial(InShader);
+            CBlinnPhongMapsMaterial* MeshMaterial = new CBlinnPhongMapsMaterial(InShader);
             MeshMaterial->Shininess = 32;
     
             if (InMesh->DiffuseMap == nullptr)
             {
-                LUCID_LOG(LogLevel::INFO, "Mesh is missing a diffuse map");
+                LUCID_LOG(ELogLevel::INFO, "Mesh is missing a diffuse map");
                 MeshMaterial->DiffuseMap = FallbackTexture;
             }
             else
@@ -90,7 +90,7 @@ namespace lucid::scene
     
             if (InMesh->SpecularMap == nullptr)
             {
-                LUCID_LOG(LogLevel::INFO, "Mesh is missing a specular map");
+                LUCID_LOG(ELogLevel::INFO, "Mesh is missing a specular map");
                 MeshMaterial->SpecularMap = FallbackTexture;
             }
             else
@@ -100,7 +100,7 @@ namespace lucid::scene
     
             if (InMesh->NormalMap == nullptr)
             {
-                LUCID_LOG(LogLevel::INFO, "Mesh is missing a normal map");
+                LUCID_LOG(ELogLevel::INFO, "Mesh is missing a normal map");
                 MeshMaterial->NormalMap = FallbackTexture;
             }
             else
@@ -108,9 +108,9 @@ namespace lucid::scene
                 MeshMaterial->NormalMap = InMesh->NormalMap->TextureHandle;
             }
     
-            Renderable* MeshRenderable = new Renderable{ CopyToString(*InMeshName, InMeshName.GetLength()) };
+            FRenderable* MeshRenderable = new FRenderable{ CopyToString(*InMeshName, InMeshName.GetLength()) };
             MeshRenderable->Material = MeshMaterial;
-            MeshRenderable->Type = RenderableType::STATIC;
+            MeshRenderable->Type = ERenderableType::STATIC;
             MeshRenderable->VertexArray = InMesh->VAO;
     
             return MeshRenderable;

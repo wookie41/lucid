@@ -2,12 +2,12 @@
 
 namespace lucid::gpu
 {
-    struct GPUSettings
+    struct FGPUSettings
     {
         //TODO
     };
 
-    int Init(const GPUSettings& Setings);
+    int Init(const FGPUSettings& Setings);
     void Shutdown();
 } // namespace devices::gpu
 

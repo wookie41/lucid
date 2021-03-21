@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include "resources/holder.hpp"
 #include "devices/gpu/texture.hpp"
 
@@ -8,37 +7,37 @@ namespace lucid::resources
 {
     void InitTextures();
 
-    class TextureResource : public Resource
+    class CTextureResource : public CResource
     {
       public:
-        TextureResource(void* Data,
-                        gpu::Texture* Handle,
+        CTextureResource(void* Data,
+                        gpu::CTexture* Handle,
                         const u32& W,
                         const u32& H,
-                        gpu::TextureDataFormat InDataFormat,
-                        gpu::TexturePixelFormat InPixelFormat);
+                        gpu::ETextureDataFormat InDataFormat,
+                        gpu::ETexturePixelFormat InPixelFormat);
 
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
         void* const TextureData;
-        gpu::Texture* const TextureHandle;
+        gpu::CTexture* const TextureHandle;
         const u32 Width, Height;
-        gpu::TextureDataFormat DataFormat;
-        gpu::TexturePixelFormat PixelFormat;
+        gpu::ETextureDataFormat DataFormat;
+        gpu::ETexturePixelFormat PixelFormat;
     };
 
-    TextureResource* LoadJPEG(const ANSIString& InPath,
+    CTextureResource* LoadJPEG(const FANSIString& InPath,
                               const bool& InPerformGammaCorrection,
-                              const gpu::TextureDataType& InDataType,
+                              const gpu::ETextureDataType& InDataType,
                               const bool& InFlipY,
                               const bool& InSendToGPU);
     
-    TextureResource* LoadPNG(const ANSIString& InPath,
+    CTextureResource* LoadPNG(const FANSIString& InPath,
                               const bool& InPerformGammaCorrection,
-                              const gpu::TextureDataType& InDataType,
+                              const gpu::ETextureDataType& InDataType,
                               const bool& InFlipY,
                               const bool& InSendToGPU);
 
-    extern ResourcesHolder<TextureResource> TexturesHolder;
+    extern CResourcesHolder<CTextureResource> TexturesHolder;
 } // namespace lucid::resources

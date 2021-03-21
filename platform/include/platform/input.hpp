@@ -9,17 +9,17 @@ namespace lucid
 {
     namespace platform
     {
-        class Window;
+        class CWindow;
     }
 
-    enum MouseButton : u8
+    enum EMouseButton : u8
     {
         LEFT = 1,
         MIDDLE = 2,
         RIGHT = 4
     };
 
-    struct MousePosition
+    struct FMousePosition
     {
         bool MouseMoved;
         float X = 0, Y = 0;
@@ -27,16 +27,16 @@ namespace lucid
     };
 
     // ActiveWindow - window which callback functions should be called when window-related events occur 
-    void ReadEvents(platform::Window* ActiveWindow);
+    void ReadEvents(platform::CWindow* ActiveWindow);
 
     bool IsKeyPressed(const SDL_Keycode& KeyCode);
     bool WasKeyPressed(const SDL_Keycode& KeyCode);
     bool WasKeyReleased(const SDL_Keycode& KeyCode);
 
-    bool IsMouseButtonPressed(const MouseButton& Button);
-    bool WasMouseButtonPressed(const MouseButton& Button);
-    bool WasMouseButtonReleased(const MouseButton& Button);
+    bool IsMouseButtonPressed(const EMouseButton& Button);
+    bool WasMouseButtonPressed(const EMouseButton& Button);
+    bool WasMouseButtonReleased(const EMouseButton& Button);
 
-    MousePosition GetMousePostion();
+    FMousePosition GetMousePostion();
     float GetMouseWheelDelta();
 } // namespace lucid

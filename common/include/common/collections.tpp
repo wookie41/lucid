@@ -1,3 +1,4 @@
+#pragma once
 #include "common/collections.hpp"
 #include "common/bytes.hpp"
 
@@ -8,7 +9,7 @@
 namespace lucid
 {
     template <typename T>
-    Array<T>::Array(const u32& InCapacity, const bool& InAutoResize, const u8& InResizeFactor)
+    FArray<T>::FArray(const u32& InCapacity, const bool& InAutoResize, const u8& InResizeFactor)
     {
         Capacity = InCapacity;
         AutoResize = InAutoResize;
@@ -17,14 +18,14 @@ namespace lucid
     }
 
     template <typename T>
-    T* Array<T>::operator[](const u32& InIndex) const
+    T* FArray<T>::operator[](const u32& InIndex) const
     {
         assert(InIndex < Length);
         return ArrayPointer + InIndex;
     }
     
     template <typename T>
-    void Array<T>::Add(const T& Element)
+    void FArray<T>::Add(const T& Element)
     {
         if (Length == Capacity)
         {
@@ -45,7 +46,7 @@ namespace lucid
     }
 
     template <typename T>
-    void Array<T>::Free()
+    void FArray<T>::Free()
     {
         free(ArrayPointer);
         Capacity = -1;
@@ -53,13 +54,13 @@ namespace lucid
     }
 
     template <typename T>
-    Array<T>::operator void*() const
+    FArray<T>::operator void*() const
     {
         return ArrayPointer;
     }
 
     template <typename T>
-    Array<T>& Array<T>::operator=(const Array& Rhs)
+    FArray<T>& FArray<T>::operator=(const FArray& Rhs)
     {
         Length = Rhs.Length;
         Capacity = Rhs.Capacity;
@@ -68,33 +69,33 @@ namespace lucid
     }
 
     template <typename T>
-    Array<T> Array<T>::Copy() const
+    FArray<T> FArray<T>::Copy() const
     {
-        Array<T> NewArray  { Length, AutoResize, ResizeFactor };
+        FArray<T> NewArray  { Length, AutoResize, ResizeFactor };
         memcpy(NewArray.ArrayPointer, ArrayPointer, GetSizeInBytes());
         NewArray.Length = Length;
         return NewArray;
     }
 
     template <typename T>
-    LinkedList<T>::LinkedList()
+    FLinkedList<T>::FLinkedList()
     {
         Tail = &Head;
     }
 
     template <typename T>
-    void LinkedList<T>::Add(T* Element)
+    void FLinkedList<T>::Add(T* Element)
     {
         Tail->Element = Element;
-        Tail->Next = new LinkedListItem<T>;
+        Tail->Next = new FLinkedListItem<T>;
         Tail->Next->Prev = Tail;
         Tail = Tail->Next;
     }
 
     template <typename T>
-    void LinkedList<T>::Remove(T* Element)
+    void FLinkedList<T>::Remove(T* Element)
     {
-        LinkedListItem<T>* current = &Head;
+        FLinkedListItem<T>* current = &Head;
         while (current != nullptr)
         {
             if (current->Element == Element)
@@ -108,9 +109,9 @@ namespace lucid
     }
 
     template <typename T>
-    bool LinkedList<T>::Contains(T* Element)
+    bool FLinkedList<T>::Contains(T* Element)
     {
-        LinkedListItem<T>* current = &Head;
+        FLinkedListItem<T>* current = &Head;
         while (current != nullptr)
         {
             if (current->Element == Element)
@@ -120,10 +121,10 @@ namespace lucid
     }
 
     template <typename T>
-    void LinkedList<T>::Free()
+    void FLinkedList<T>::Free()
     {
-        LinkedListItem<T>* tmp = nullptr;
-        LinkedListItem<T>* current = Head.Next;
+        FLinkedListItem<T>* tmp = nullptr;
+        FLinkedListItem<T>* current = Head.Next;
         while (current != nullptr)
         {
             tmp = current->Next;

@@ -8,9 +8,9 @@
 
 namespace lucid::resources
 {
-    class TextureResource;
+    class CTextureResource;
 
-    enum class MeshFeatures : u32
+    enum class EMeshFeatures : u32
     {
         UV = 0x1,
         NORMALS = 0x2,
@@ -21,34 +21,34 @@ namespace lucid::resources
     // to find out whether the mesh contains things like
     // normals, uvs or bones data, check the MeshFeaturesFlags
 
-    class MeshResource : public Resource
+    class CMeshResource : public CResource
     {
       public:
-        MeshResource(const u32& MeshFeaturesFlags,
-                     TextureResource* MeshDiffuseMap,
-                     TextureResource* MeshSpecularMap,
-                     TextureResource* MeshNormalMap,
-                     gpu::VertexArray* const MeshVAO,
-                     gpu::Buffer* const MeshVertexBuffer,
-                     gpu::Buffer* const MeshElementBuffer,
-                     const MemBuffer& MeshVertexData,
-                     const MemBuffer& MeshElementData);
+        CMeshResource(const u32& MeshFeaturesFlags,
+                     CTextureResource* MeshDiffuseMap,
+                     CTextureResource* MeshSpecularMap,
+                     CTextureResource* MeshNormalMap,
+                     gpu::CVertexArray* const MeshVAO,
+                     gpu::CBuffer* const MeshVertexBuffer,
+                     gpu::CBuffer* const MeshElementBuffer,
+                     const FMemBuffer& MeshVertexData,
+                     const FMemBuffer& MeshElementData);
 
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
         const u32 FeaturesFlag;
 
-        TextureResource* const DiffuseMap;
-        TextureResource* const SpecularMap;
-        TextureResource* const NormalMap;
+        CTextureResource* const DiffuseMap;
+        CTextureResource* const SpecularMap;
+        CTextureResource* const NormalMap;
 
-        gpu::VertexArray* const VAO;
-        gpu::Buffer* const VertexBuffer;
-        gpu::Buffer* const ElementBuffer;
+        gpu::CVertexArray* const VAO;
+        gpu::CBuffer* const VertexBuffer;
+        gpu::CBuffer* const ElementBuffer;
 
-        const MemBuffer VertexData;
-        const MemBuffer ElementData;
+        const FMemBuffer VertexData;
+        const FMemBuffer ElementData;
     };
 
     // Loads the mesh from the given directory, assumes to following things:
@@ -66,7 +66,7 @@ namespace lucid::resources
     // Diffuse and specular maps should be stored in JPEG, wheras normal maps
     // should be stored in PNG
 
-    MeshResource* AssimpLoadMesh(const ANSIString& DirectoryPath, const ANSIString& MeshFileName);
+    CMeshResource* AssimpLoadMesh(const FANSIString& DirectoryPath, const FANSIString& MeshFileName);
 
-    extern ResourcesHolder<MeshResource> MeshesHolder;
+    extern CResourcesHolder<CMeshResource> MeshesHolder;
 } // namespace lucid::resources

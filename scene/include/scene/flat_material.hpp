@@ -5,18 +5,18 @@
 
 namespace lucid::gpu
 {
-    class Shader;
+    class CShader;
 };
 
 namespace lucid::scene
 {
-    class FlatMaterial : public Material
+    class FlatMaterial : public CMaterial
     {
       public:
-        explicit FlatMaterial(gpu::Shader* CustomShader = nullptr);
+        explicit FlatMaterial(gpu::CShader* CustomShader = nullptr);
 
-        virtual void SetupShader(gpu::Shader* Shader) override;
+        virtual void SetupShader(gpu::CShader* Shader) override;
 
-        color Color;
+        FColor Color;
     };
 }

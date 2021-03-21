@@ -3,18 +3,17 @@
 #include <glm/vec2.hpp>
 
 #include "scene/renderer.hpp"
-#include "common/strings.hpp"
 
 namespace lucid::resources
 {
-    class MeshResource;
+    class CMeshResource;
 };
 
 namespace lucid::gpu
 {
-    class Shader;
-    class Texture;
-    class Renderbuffer;
+    class CShader;
+    class CTexture;
+    class CRenderbuffer;
 }; // namespace lucid::gpu
 
 namespace lucid::scene
@@ -23,22 +22,23 @@ namespace lucid::scene
     // this mean that the same object might be rendered multiple times if it's affected
     // by multiple light.
 
-    class ForwardRenderer : public Renderer
+    class ForwardRenderer : public CRenderer
     {
       public:
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
         ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
                         const u8 InNumSSAOSamples,
-                        gpu::Shader* InDefaultRenderableShader,
-                        gpu::Shader* InPrepassShader,
-                        gpu::Shader* InSSAOShader,
-                        gpu::Shader* InSimpleBlurShader,
-                        gpu::Shader* SkyboxShader);
+                        gpu::CShader* InDefaultRenderableShader,
+                        gpu::CShader* InPrepassShader,
+                        gpu::CShader* InSSAOShader,
+                        gpu::CShader* InSimpleBlurShader,
+                        gpu::CShader* SkyboxShader);
 
         virtual void Setup() override;
-        virtual void Render(const RenderScene* InSceneToRender, const RenderSource* InRenderSource) override;
+        virtual void Render(const FRenderScene* InSceneToRender, const FRenderView* InRenderView) override;
         virtual void Cleanup() override;
-        virtual gpu::Framebuffer* GetFinalFramebuffer() override { return LightingPassFramebuffer; }
+
+        virtual gpu::CFramebuffer* GetResultFramebuffer() override { return LightingPassFramebuffer; }
 
         virtual ~ForwardRenderer() = default;
 
@@ -48,70 +48,70 @@ namespace lucid::scene
         glm::ivec2 FramebufferSize;
 
       private:
-        void Prepass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource);
-        void LightingPass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource);
+        void Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
+        void LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
 
-        inline void BindAndClearFramebuffer(gpu::Framebuffer* InFramebuffer);
-        inline void SetupRendererWideUniforms(gpu::Shader* InShader, const RenderSource* InRenderSource);
+        inline void BindAndClearFramebuffer(gpu::CFramebuffer* InFramebuffer);
+        inline void SetupRendererWideUniforms(gpu::CShader* InShader, const FRenderView* InRenderView);
 
-        void Render(gpu::Shader* InShader, const Renderable* InRenderable);
-        void RenderStaticGeometry(const RenderScene* InScene, const RenderSource* InRenderSource);
-        void RenderWithoutLights(const RenderScene* InScene, const RenderSource* InRenderSource);
-        void RenderLightContribution(const Light* InLight, const RenderScene* InScene, const RenderSource* InRenderSource);
-        void SetupLight(gpu::Shader* InShader, const Light* InLight);
+        void Render(gpu::CShader* InShader, const FRenderable* InRenderable);
+        void RenderStaticGeometry(const FRenderScene* InScene, const FRenderView* InRenderView);
+        void RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView);
+        void RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
+        void SetupLight(gpu::CShader* InShader, const CLight* InLight);
 
-        void RenderSkybox(const Skybox* InSkybox, const RenderSource* InRenderSource);
+        void RenderSkybox(const FSkybox* InSkybox, const FRenderView* InRenderView);
 
         u32 MaxNumOfDirectionalLights;
 
         /** Skybox Shader */
-        gpu::Shader* SkyboxShader;
+        gpu::CShader* SkyboxShader;
 
         /** Prepass Shader */
-        gpu::Shader* PrepassShader;
+        gpu::CShader* PrepassShader;
 
         /** SSAO Shader */
-        gpu::Shader* SSAOShader;
+        gpu::CShader* SSAOShader;
 
         u8 NumSSAOSamples = 64;
         float SSAOBias = 0.025;
         float SSAORadius = 0.5;
 
         /** Blur shader */
-        gpu::Shader* SimpleBlurShader;
+        gpu::CShader* SimpleBlurShader;
 
         u8 SimpleBlurXOffset = 2;
         u8 SimpleBlurYOffset = 2;
         
         /** Framebuffer used for when doing the depth-only prepass */
-        gpu::Framebuffer* PrepassFramebuffer;
+        gpu::CFramebuffer* PrepassFramebuffer;
 
         /** Framebuffer used when calculating SSAO */
-        gpu::Framebuffer* SSAOFramebuffer;
+        gpu::CFramebuffer* SSAOFramebuffer;
 
         /** Framebuffer used for blur calculation */
-        gpu::Framebuffer* BlurFramebuffer;
+        gpu::CFramebuffer* BlurFramebuffer;
 
         /** Framebuffer used for when doing the lighting pass */
-        gpu::Framebuffer* LightingPassFramebuffer;
+        gpu::CFramebuffer* LightingPassFramebuffer;
 
         /** Texture holding random rotation vectors for calculating SSAO */
-        gpu::Texture* SSAONoise;
+        gpu::CTexture* SSAONoise;
 
         /** Texture in which the result of SSAO algorithm will be stored */
-        gpu::Texture* SSAOResult;
+        gpu::CTexture* SSAOResult;
 
         /** Texture in which the result of blurring the SSAOResult texture will be stored */
-        gpu::Texture* SSAOBlurred;
+        gpu::CTexture* SSAOBlurred;
 
-        gpu::Texture* LightingPassColorBuffer;
-        gpu::Renderbuffer* DepthStencilRenderBuffer;
-
-        /** Generated in the depth prepass so we can later use it when calculating SSAO and things like that (VS - View Space) */
-        gpu::Texture* CurrentFrameVSNormalMap;
+        gpu::CTexture* LightingPassColorBuffer;
+        gpu::CRenderbuffer* DepthStencilRenderBuffer;
 
         /** Generated in the depth prepass so we can later use it when calculating SSAO and things like that (VS - View Space) */
-        gpu::Texture* CurrentFrameVSPositionMap;
+        gpu::CTexture* CurrentFrameVSNormalMap;
+
+        /** Generated in the depth prepass so we can later use it when calculating SSAO and things like that (VS - View Space) */
+        gpu::CTexture* CurrentFrameVSPositionMap;
     };
 
 }; // namespace lucid::scene

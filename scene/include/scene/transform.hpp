@@ -5,7 +5,7 @@
 
 namespace lucid::scene
 {
-    struct Transform3D
+    struct FTransform3D
     {
         glm::vec3 Translation{ 0, 0, 0 };
         glm::quat Rotation{ 0, 0, 0, 0 };

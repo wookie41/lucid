@@ -39,7 +39,7 @@ namespace lucid::gpu
         glClear(glBuffersBitField);
     }
 
-    void SetClearColor(const color& Color) { glClearColor(Color.r, Color.g, Color.b, Color.a); }
+    void SetClearColor(const FColor& Color) { glClearColor(Color.r, Color.g, Color.b, Color.a); }
 
     void SetClearDepth(const float& DepthValue) { glClearDepth(DepthValue); }
 
@@ -90,7 +90,7 @@ namespace lucid::gpu
 
 #define TO_GL_BLEND(blendMode) GL_BLEND_ENUMS[static_cast<u8>(blendMode)]
 
-    void SetBlendColor(const color& Color) { glBlendColor(Color.r, Color.g, Color.b, Color.a); }
+    void SetBlendColor(const FColor& Color) { glBlendColor(Color.r, Color.g, Color.b, Color.a); }
 
     void SetBlendFunction(const BlendFunction& SrcFunction, const BlendFunction& DstFunction)
     {
@@ -140,8 +140,8 @@ namespace lucid::gpu
 
     //////////////////////////////////////////////////////
 
-    static const String QUAD_POSITION ("uQuadPosition");
-    static const String QUAD_SIZE ("uQuadSize");
+    static const FString QUAD_POSITION ("uQuadPosition");
+    static const FString QUAD_SIZE ("uQuadSize");
     
     void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize)
     {

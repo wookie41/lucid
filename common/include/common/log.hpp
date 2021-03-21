@@ -4,14 +4,14 @@
 
 namespace lucid
 {
-    enum class LogLevel : u8
+    enum class ELogLevel : u8
     {
         INFO,
         WARN,
         ERR
     };
 
-    void Log(const LogLevel& InLevel, const char* InFile, const u32& InLine, const char* InFormat, ...);
+    void Log(const ELogLevel& InLevel, const char* InFile, const u32& InLine, const char* InFormat, ...);
 
 #ifndef NDEBUG
 #define LUCID_LOG(Level, Format, ...) Log(Level, __FILE__, __LINE__, Format, __VA_ARGS__);

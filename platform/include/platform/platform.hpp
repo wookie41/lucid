@@ -11,5 +11,5 @@ namespace lucid::platform
     void Update();
     void _UpdateSystem();
 
-    i8 ExecuteCommand(const ANSIString& InCommand);
+    i8 ExecuteCommand(const FANSIString& InCommand);
 } // namespace lucid::platform

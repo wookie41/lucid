@@ -4,7 +4,7 @@
 #include <cassert>
 
 #define NO_COHERENT_OR_PERSISTENT_BIT_SET(FLAGS) \
-    (((FLAGS & (u16)BufferAccessPolicy::BUFFER_COHERENT) | (FLAGS & (u16)BufferAccessPolicy::BUFFER_PERSISTENT)) == 0)
+    (((FLAGS & (u16)EBufferAccessPolicy::BUFFER_COHERENT) | (FLAGS & (u16)EBufferAccessPolicy::BUFFER_PERSISTENT)) == 0)
 
 #define AS_GL_BIND_POINT(bindPoint) (GL_BIND_POINTS[((u16)bindPoint) - 1])
 
@@ -22,7 +22,7 @@ static const GLenum GL_MAP_ACCESS_BITS[] = { GL_MAP_READ_BIT, GL_MAP_WRITE_BIT,
 
 namespace lucid::gpu
 {
-    GLbitfield calculateGLMapAccessBits(const BufferAccessPolicy& MapPolicy)
+    GLbitfield calculateGLMapAccessBits(const EBufferAccessPolicy& MapPolicy)
     {
         u8 accessBit = 1;
         GLbitfield glAccessBits = 0;
@@ -38,7 +38,7 @@ namespace lucid::gpu
         return glAccessBits;
     }
 
-    GLbitfield calculateImmutableAccessBits(const ImmutableBufferUsage& AccessPolicy)
+    GLbitfield calculateImmutableAccessBits(const EImmutableBufferUsage& AccessPolicy)
     {
         u8 accessBit = 1;
         GLbitfield glAccessBits = 0;
@@ -55,14 +55,14 @@ namespace lucid::gpu
         return glAccessBits;
     }
 
-    GLBuffer::GLBuffer(const GLuint& BufferHandle, const BufferDescription& Description, const bool& IsImmutable)
+    CGLBuffer::CGLBuffer(const GLuint& BufferHandle, const FBufferDescription& Description, const bool& IsImmutable)
     : glBufferHandle(BufferHandle), description(Description), isImmutable(IsImmutable)
     {
     }
 
-    uint32_t GLBuffer::GetSize() const { return description.size; }
+    uint32_t CGLBuffer::GetSize() const { return description.size; }
 
-    void GLBuffer::Bind(const BufferBindPoint& BindPoint)
+    void CGLBuffer::Bind(const EBufferBindPoint& BindPoint)
     {
         assert(glBufferHandle > 0);
 
@@ -71,7 +71,7 @@ namespace lucid::gpu
         glBindBuffer(AS_GL_BIND_POINT(BindPoint), glBufferHandle);
     }
 
-    void GLBuffer::BindIndexed(const uint32_t& Index, const BufferBindPoint& BindPoint)
+    void CGLBuffer::BindIndexed(const uint32_t& Index, const EBufferBindPoint& BindPoint)
     {
         assert(glBufferHandle > 0);
 
@@ -80,7 +80,7 @@ namespace lucid::gpu
         glBindBufferBase(AS_GL_BIND_POINT(BindPoint), Index, glBufferHandle);
     }
 
-    void GLBuffer::Download(void* Destination, uint32_t Size, const uint32_t& Offset)
+    void CGLBuffer::Download(void* Destination, uint32_t Size, const uint32_t& Offset)
     {
         assert(glBufferHandle > 0);
 
@@ -92,24 +92,24 @@ namespace lucid::gpu
         glBindBuffer(GL_COPY_READ_BUFFER, 0);
     }
 
-    void* GLBuffer::MemoryMap(const BufferBindPoint& BindPoint,
-                              const BufferAccessPolicy& AccessPolicy,
+    void* CGLBuffer::MemoryMap(const EBufferBindPoint& BindPoint,
+                              const EBufferAccessPolicy& AccessPolicy,
                               uint32_t Size,
                               const uint32_t& Offset)
     {
         assert(glBufferHandle > 0);
         assert(isImmutable ? true : NO_COHERENT_OR_PERSISTENT_BIT_SET(AccessPolicy));
         
-        gpu::Buffer** target = nullptr;
+        gpu::CBuffer** target = nullptr;
         switch (BindPoint)
         {
-        case BufferBindPoint::VERTEX:
+        case EBufferBindPoint::VERTEX:
             target = &gpu::Info.CurrentVertexBuffer;
             break;
-        case BufferBindPoint::ELEMENT:
+        case EBufferBindPoint::ELEMENT:
             target = &gpu::Info.CurrentElementBuffer;
             break;
-        case BufferBindPoint::SHADER_STORAGE:
+        case EBufferBindPoint::SHADER_STORAGE:
             target = &gpu::Info.CurrentShaderStorageBuffer;
             break;
         default:
@@ -141,18 +141,18 @@ namespace lucid::gpu
         return mappedRegion;
     }
 
-    void GLBuffer::MemoryUnmap()
+    void CGLBuffer::MemoryUnmap()
     {
-        gpu::Buffer** target = nullptr;
+        gpu::CBuffer** target = nullptr;
         switch (currentBindPoint)
         {
-        case BufferBindPoint::VERTEX:
+        case EBufferBindPoint::VERTEX:
             target = &gpu::Info.CurrentVertexBuffer;
             break;
-        case BufferBindPoint::ELEMENT:
+        case EBufferBindPoint::ELEMENT:
             target = &gpu::Info.CurrentElementBuffer;
             break;
-        case BufferBindPoint::SHADER_STORAGE:
+        case EBufferBindPoint::SHADER_STORAGE:
             target = &gpu::Info.CurrentShaderStorageBuffer;
             break;
         default:
@@ -165,10 +165,10 @@ namespace lucid::gpu
         *target = nullptr;
 
         glUnmapBuffer(AS_GL_BIND_POINT(currentBindPoint));
-        currentBindPoint = BufferBindPoint::UNBOUND;
+        currentBindPoint = EBufferBindPoint::UNBOUND;
     }
 
-    void GLBuffer::Upload(BufferDescription const* Description)
+    void CGLBuffer::Upload(FBufferDescription const* Description)
     {
         assert(glBufferHandle > 0);
         assert(!isImmutable);
@@ -180,13 +180,13 @@ namespace lucid::gpu
         description = *Description;
     }
 
-    void GLBuffer::Free()
+    void CGLBuffer::Free()
     {
         assert(glBufferHandle > 0);
         glDeleteBuffers(1, &glBufferHandle);
     }
 
-    Buffer* CreateBuffer(const BufferDescription& Description, const BufferUsage& Usage)
+    CBuffer* CreateBuffer(const FBufferDescription& Description, const EBufferUsage& Usage)
     {
         GLuint bufferHandle;
 
@@ -196,10 +196,10 @@ namespace lucid::gpu
                      GL_MUTABLE_USAGE_HINTS[(u16)Usage]);
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
-        return new GLBuffer(bufferHandle, Description, false);
+        return new CGLBuffer(bufferHandle, Description, false);
     };
 
-    Buffer* CreateImmutableBuffer(const BufferDescription& Description, const ImmutableBufferUsage& ImmutableBufferUsage)
+    CBuffer* CreateImmutableBuffer(const FBufferDescription& Description, const EImmutableBufferUsage& ImmutableBufferUsage)
     {
         GLuint bufferHandle;
 
@@ -209,6 +209,6 @@ namespace lucid::gpu
                         calculateImmutableAccessBits(ImmutableBufferUsage));
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
-        return new GLBuffer(bufferHandle, Description, true);
+        return new CGLBuffer(bufferHandle, Description, true);
     };
 } // namespace lucid::gpu

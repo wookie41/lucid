@@ -5,16 +5,16 @@
 
 namespace lucid::gpu
 {
-    class GLVertexArray : public VertexArray
+    class CGLVertexArray : public CVertexArray
     {
       public:
-        GLVertexArray(const GLuint& GLVAOHandle,
-                      const DrawMode& DrawMode,
-                      const uint32_t& VertexCount,
-                      const uint32_t& ElementCount,
-                      Buffer* VertexBuffer,
-                      Buffer* ElementBuffer,
-                      const bool& AutoDestroyBuffers);
+        CGLVertexArray(const GLuint& InGLVAOHandle,
+                      const EDrawMode& InDrawMode,
+                      const uint32_t& InVertexCount,
+                      const uint32_t& InElementCount,
+                      CBuffer* InVertexBuffer,
+                      CBuffer* InElementBuffer,
+                      const bool& InAutoDestroyBuffers);
 
         virtual void Bind() override;
         virtual void Unbind() override;
@@ -22,9 +22,9 @@ namespace lucid::gpu
         virtual void EnableAttribute(const uint32_t& AttributeIndex) override;
         virtual void DisableAttribute(const uint32_t& AttributeIndex) override;
 
-        virtual void AddVertexAttribute(const VertexAttribute& Attribute) override;
-        virtual void AddIntegerVertexAttribute(const VertexAttribute& Attribute) override;
-        virtual void AddLongVertexAttribute(const VertexAttribute& Attribute) override;
+        virtual void AddVertexAttribute(const FVertexAttribute& Attribute) override;
+        virtual void AddIntegerVertexAttribute(const FVertexAttribute& Attribute) override;
+        virtual void AddLongVertexAttribute(const FVertexAttribute& Attribute) override;
 
         virtual void SetVertexCount(const uint32_t& Count) override;
         virtual uint32_t GetVertexCount() const override;
@@ -39,18 +39,18 @@ namespace lucid::gpu
 
         virtual void Free() override;
 
-        virtual ~GLVertexArray() = default;
+        virtual ~CGLVertexArray() = default;
 
       private:
-        DrawMode drawMode;
+        EDrawMode DrawMode;
 
-        uint32_t vertexCount;
-        uint32_t elementCount;
+        uint32_t VertexCount;
+        uint32_t ElementCount;
 
-        bool autoDestroyBuffers;
-        Buffer* vertexBuffer;
-        Buffer* elementBuffer;
+        bool AutoDestroyBuffers;
+        CBuffer* VertexBuffer;
+        CBuffer* ElementBuffer;
 
-        GLuint glVAOHandle;
+        GLuint GLVAOHandle;
     };
 } // namespace lucid::gpu

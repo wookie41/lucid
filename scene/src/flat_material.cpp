@@ -3,10 +3,10 @@
 
 namespace lucid::scene
 {
-    static const String COLOR("uMaterial.Color");
+    static const FString COLOR("uMaterial.Color");
 
-    FlatMaterial::FlatMaterial(gpu::Shader* CustomShader) : Material(CustomShader) {}
+    FlatMaterial::FlatMaterial(gpu::CShader* CustomShader) : CMaterial(CustomShader) {}
 
-    void FlatMaterial::SetupShader(gpu::Shader* Shader) { Shader->SetVector(COLOR, Color); }
+    void FlatMaterial::SetupShader(gpu::CShader* Shader) { Shader->SetVector(COLOR, Color); }
 
 } // namespace lucid::scene

@@ -11,18 +11,18 @@ namespace lucid
     /**
      * Base ANSI string providing a common interface for ANSI string usage
      */
-    struct ANSIString
+    struct FANSIString
     {
-        explicit ANSIString(char* InCString, const u32& InLength = 0);
+        explicit FANSIString(char* InCString, const u32& InLength = 0);
 
         char operator[](const u32& InIndex) const;
         const char* operator*() const { return CString; } 
 
-        inline bool operator==(const ANSIString& InRhs) const { return Hash == InRhs.Hash; };
+        inline bool operator==(const FANSIString& InRhs) const { return Hash == InRhs.Hash; };
         inline u32 GetLength() const { return Length; }
         inline u64 GetHash() const { return Hash; }
 
-        virtual ~ANSIString() = default;
+        virtual ~FANSIString() = default;
 
     protected:
         
@@ -36,11 +36,11 @@ namespace lucid
     /**
      * ANSI Null-terminated dynamic string - strings allocated at runtime that can be changed/freed
      */
-    struct DString : public ANSIString
+    struct FDString : public FANSIString
     {
-        explicit DString(char* InCString, const u32& InLength = 0);
+        explicit FDString(char* InCString, const u32& InLength = 0);
         
-        void Append(const ANSIString& InString);
+        void Append(const FANSIString& InString);
         void Append(const char* InString, const u64& InStringLength);
         
         void Free();
@@ -49,17 +49,17 @@ namespace lucid
     /**
      * ANSI Null-terminated static string - buffers, compile-time strings that don't get freed
      */
-    struct String : public ANSIString
+    struct FString : public FANSIString
     {
-        explicit String(char* InCString, const u32& InLength = 0);
+        explicit FString(char* InCString, const u32& InLength = 0);
 
-        DString CopyToDynamicString() const;
+        FDString CopyToDynamicString() const;
     };
     
-    DString CopyToString(char const* InToCopy, const u32& InStringLength);
+    FDString CopyToString(char const* InToCopy, const u32& InStringLength);
 
-    DString SPrintf(const char* InFormat, ...);
+    FDString SPrintf(const char* InFormat, ...);
     
-    extern String EMPTY_STRING;
+    extern FString EMPTY_STRING;
 } // namespace lucid
     

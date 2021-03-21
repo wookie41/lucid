@@ -4,7 +4,7 @@
 
 namespace lucid::platform
 {
-    struct WindowDefiniton
+    struct FWindowDefiniton
     {
         char const* title;
         u16 x, y;
@@ -12,10 +12,10 @@ namespace lucid::platform
         bool sRGBFramebuffer;
     };
 
-    class Window
+    class CWindow
     {
       public:
-        Window() = default;
+        CWindow() = default;
 
         virtual void Swap() = 0;
         virtual void Prepare() = 0;
@@ -23,7 +23,7 @@ namespace lucid::platform
         virtual u16 GetWidth() const = 0;
         virtual u16 GetHeight() const = 0;
         virtual float GetAspectRatio() const = 0;
-        virtual gpu::Framebuffer* GetFramebuffer() const = 0;
+        virtual gpu::CFramebuffer* GetFramebuffer() const = 0;
         
         virtual void Show() = 0;
         virtual void Hide() = 0;
@@ -34,9 +34,9 @@ namespace lucid::platform
         
         virtual void OnFocusGained() = 0;
 
-        virtual ~Window() = default;
+        virtual ~CWindow() = default;
     };
 
-    Window* CreateWindow(const WindowDefiniton& Definiton);
+    CWindow* CreateWindow(const FWindowDefiniton& Definiton);
 
 } // namespace lucid::platform

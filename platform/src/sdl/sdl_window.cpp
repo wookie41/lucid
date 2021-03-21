@@ -6,7 +6,7 @@
 
 namespace lucid::platform
 {
-    Window* CreateWindow(const WindowDefiniton& Definition)
+    CWindow* CreateWindow(const FWindowDefiniton& Definition)
     {
         if (Definition.sRGBFramebuffer)
         {
@@ -16,14 +16,14 @@ namespace lucid::platform
                                               SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
         if (window == nullptr)
         {
-            LUCID_LOG(LogLevel::ERR, "[SDL] Failed to create a new window: %s", SDL_GetError());
+            LUCID_LOG(ELogLevel::ERR, "[SDL] Failed to create a new window: %s", SDL_GetError());
             return nullptr;
         }
         SDL_GLContext context = SDL_GL_CreateContext(window);
         if (context == nullptr)
         {
             SDL_DestroyWindow(window);
-            LUCID_LOG(LogLevel::ERR, "[SDL] Failed to create a context for the window: %s", SDL_GetError());
+            LUCID_LOG(ELogLevel::ERR, "[SDL] Failed to create a context for the window: %s", SDL_GetError());
             return nullptr;
         }
 
@@ -49,7 +49,7 @@ namespace lucid::platform
 
     float SDLWindow::GetAspectRatio() const { return AspectRatio; }
 
-    gpu::Framebuffer* SDLWindow::GetFramebuffer() const
+    gpu::CFramebuffer* SDLWindow::GetFramebuffer() const
     {
         return WindowFramebuffer;
     }

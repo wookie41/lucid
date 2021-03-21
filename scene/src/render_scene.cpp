@@ -4,19 +4,19 @@
 
 namespace lucid::scene
 {
-    Skybox CreateSkybox(const Array<String>& InSkyboxFacesPaths)
+    FSkybox CreateSkybox(const FArray<FString>& InSkyboxFacesPaths)
     {
         const char* skyboxFacesData[6];
-        resources::TextureResource* textureResources[6];
+        resources::CTextureResource* textureResources[6];
 
         for (u8 face = 0; face < 6; ++face)
         {
-            textureResources[face] = resources::LoadJPEG(*InSkyboxFacesPaths[face], true, gpu::TextureDataType::UNSIGNED_BYTE, false, false);
+            textureResources[face] = resources::LoadJPEG(*InSkyboxFacesPaths[face], true, gpu::ETextureDataType::UNSIGNED_BYTE, false, false);
             assert(textureResources[face]);
             skyboxFacesData[face] = (char*)textureResources[face]->TextureData;
         }
 
-        gpu::Cubemap* skyboxCubemap = gpu::CreateCubemap({ textureResources[0]->Width, textureResources[1]->Height }, gpu::TextureDataFormat::SRGB, gpu::TexturePixelFormat::RGB, gpu::TextureDataType::UNSIGNED_BYTE, skyboxFacesData);
+        gpu::CCubemap* skyboxCubemap = gpu::CreateCubemap({ textureResources[0]->Width, textureResources[1]->Height }, gpu::ETextureDataFormat::SRGB, gpu::ETexturePixelFormat::RGB, gpu::ETextureDataType::UNSIGNED_BYTE, skyboxFacesData);
 
         for (u8 face = 0; face < 6; ++face)
         {

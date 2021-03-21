@@ -5,7 +5,7 @@
 
 namespace lucid::gpu
 {
-    class Cubemap;
+    class CCubemap;
 };
 
 namespace lucid::scene
@@ -14,28 +14,28 @@ namespace lucid::scene
     // in a Renderer-implementation-agnostic format. The specific Renderers then
     // use the provided scene information to render the scene in their own specific way
 
-    class Light;
-    struct Renderable;
+    class CLight;
+    struct FRenderable;
 
     // Skybox
 
-    struct Skybox
+    struct FSkybox
     {
-        gpu::Cubemap* SkyboxCubemap = nullptr;
+        gpu::CCubemap* SkyboxCubemap = nullptr;
     };
 
-    Skybox CreateSkybox(const Array<String>& InSkyboxFacesPaths);
+    FSkybox CreateSkybox(const FArray<FString>& InSkyboxFacesPaths);
 
     ////////////////////////////////////////////////////////////
 
     // Render scene
 
-    struct RenderScene
+    struct FRenderScene
     {
-        LinkedList<Renderable> StaticGeometry;
-        LinkedList<Renderable> DynamicGeometry;
-        LinkedList<Light> Lights;
-        Skybox* SceneSkybox = nullptr;
+        FLinkedList<FRenderable> StaticGeometry;
+        FLinkedList<FRenderable> DynamicGeometry;
+        FLinkedList<CLight> Lights;
+        FSkybox* SceneSkybox = nullptr;
     };
 
     ////////////////////////////////////////////////////////////

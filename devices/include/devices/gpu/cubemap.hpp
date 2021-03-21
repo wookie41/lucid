@@ -4,11 +4,11 @@
 
 namespace lucid::gpu
 {
-    class Cubemap : public Texture
+    class CCubemap : public CTexture
     {
 
       public:
-        enum class Face : u8
+        enum class EFace : u8
         {
             RIGHT,
             LEFT,
@@ -18,14 +18,14 @@ namespace lucid::gpu
             FRONT
         };
 
-        virtual void AttachAsColor(const u8& Index, Face InFace) = 0;
+        virtual void AttachAsColor(const u8& Index, EFace InFace) = 0;
 
-        virtual ~Cubemap() = default;
+        virtual ~CCubemap() = default;
     };
 
-    Cubemap* CreateCubemap(const glm::ivec2& Size,
-                           TextureDataFormat InDataFormat,
-                           TexturePixelFormat InPixelFormat,
-                           TextureDataType DataType,
+    CCubemap* CreateCubemap(const glm::ivec2& Size,
+                           ETextureDataFormat InDataFormat,
+                           ETexturePixelFormat InPixelFormat,
+                           ETextureDataType DataType,
                            const char* FacesData[6] = nullptr);
 } // namespace lucid::gpu

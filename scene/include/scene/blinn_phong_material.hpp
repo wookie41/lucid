@@ -1,24 +1,26 @@
 #pragma once
 
+#include <glm/vec3.hpp>
+
 #include "scene/material.hpp"
 
 namespace lucid::resources
 {
-    class MeshResource;
+    class CMeshResource;
 }
 
 namespace lucid::scene
 {
-    struct Renderable;
+    struct FRenderable;
 
     // The most basic material compatible with the BlinnPhongRenderer
     // It'll setup the diffuse and specular colors which will be used over the entire surface
-    class BlinnPhongMaterial : public Material
+    class CBlinnPhongMaterial : public CMaterial
     {
       public:
-        explicit BlinnPhongMaterial(gpu::Shader* CustomShader = nullptr);
+        explicit CBlinnPhongMaterial(gpu::CShader* CustomShader = nullptr);
 
-        virtual void SetupShader(gpu::Shader* Shader) override;
+        virtual void SetupShader(gpu::CShader* Shader) override;
 
         // Material properties
         u32 Shininess;
@@ -30,22 +32,22 @@ namespace lucid::scene
 
     // Material compatible with the BlinnPhongRenderer
     // It'll setup the diffuse, specular and normal maps that wil be used to render the surface
-    class BlinnPhongMapsMaterial : public Material
+    class CBlinnPhongMapsMaterial : public CMaterial
     {
       public:
-        explicit BlinnPhongMapsMaterial(gpu::Shader* CustomShader = nullptr);
+        explicit CBlinnPhongMapsMaterial(gpu::CShader* CustomShader = nullptr);
 
-        virtual void SetupShader(gpu::Shader* Shader) override;
+        virtual void SetupShader(gpu::CShader* Shader) override;
 
         // Material properties
         u32 Shininess;
-        gpu::Texture* DiffuseMap = nullptr;
-        gpu::Texture* SpecularMap = nullptr;
-        gpu::Texture* NormalMap = nullptr;
-        gpu::Texture* DisplacementMap = nullptr;
+        gpu::CTexture* DiffuseMap = nullptr;
+        gpu::CTexture* SpecularMap = nullptr;
+        gpu::CTexture* NormalMap = nullptr;
+        gpu::CTexture* DisplacementMap = nullptr;
 
         glm::vec3 SpecularColor; //Fallback when specular map is not used
     };
 
-    Renderable* CreateBlinnPhongRenderable(const ANSIString& InMeshName, resources::MeshResource* InMesh, gpu::Shader* InShader);
+    FRenderable* CreateBlinnPhongRenderable(const FANSIString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader);
 } // namespace lucid::scene

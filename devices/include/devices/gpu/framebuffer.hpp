@@ -11,15 +11,15 @@ namespace lucid::gpu
     // we should query the GPU for it
     const u8 MAX_COLOR_ATTACHMENTS = 16;
 
-    class Texture;
-    class Framebuffer;
+    class CTexture;
+    class CFramebuffer;
     
-    enum class RenderbufferFormat : u8
+    enum class ERenderbufferFormat : u8
     {
         DEPTH24_STENCIL8 = 0
     };
 
-    class FramebufferAttachment
+    class CFramebufferAttachment
     {
       public:
         virtual void Bind() = 0;
@@ -33,25 +33,25 @@ namespace lucid::gpu
 
         virtual void Free() = 0;
 
-        virtual ~FramebufferAttachment() = default;
+        virtual ~CFramebufferAttachment() = default;
     };
 
-    class Renderbuffer : public FramebufferAttachment
+    class CRenderbuffer : public CFramebufferAttachment
     {
       public:
         virtual void Bind() = 0;
 
-        virtual ~Renderbuffer() = default;
+        virtual ~CRenderbuffer() = default;
     };
 
-    enum class FramebufferBindMode : u8
+    enum class EFramebufferBindMode : u8
     {
         READ,
         WRITE,
         READ_WRITE
     };
 
-    class Framebuffer
+    class CFramebuffer
     {
       public:
 
@@ -62,28 +62,28 @@ namespace lucid::gpu
         virtual void SetupDrawBuffers() = 0;
         virtual void DisableReadWriteBuffers() = 0;
 
-        virtual void Bind(const FramebufferBindMode& Mode) = 0;
+        virtual void Bind(const EFramebufferBindMode& Mode) = 0;
 
-        virtual void SetupColorAttachment(const u32& AttachmentIndex, FramebufferAttachment* AttachmentToUse) = 0;
-        virtual void SetupDepthAttachment(FramebufferAttachment* AttachmentToUse) = 0;
-        virtual void SetupStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;
-        virtual void SetupDepthStencilAttachment(FramebufferAttachment* AttachmentToUse) = 0;
+        virtual void SetupColorAttachment(const u32& AttachmentIndex, CFramebufferAttachment* AttachmentToUse) = 0;
+        virtual void SetupDepthAttachment(CFramebufferAttachment* AttachmentToUse) = 0;
+        virtual void SetupStencilAttachment(CFramebufferAttachment* AttachmentToUse) = 0;
+        virtual void SetupDepthStencilAttachment(CFramebufferAttachment* AttachmentToUse) = 0;
 
         virtual void Free() = 0;
         
-        virtual ~Framebuffer() = default;
+        virtual ~CFramebuffer() = default;
         //@TODO Attaching cubemap's faces as color attachments
     };
     
-    Framebuffer* CreateFramebuffer();
-    Renderbuffer* CreateRenderbuffer(const RenderbufferFormat& Format, const glm::ivec2& Size);
+    CFramebuffer* CreateFramebuffer();
+    CRenderbuffer* CreateRenderbuffer(const ERenderbufferFormat& Format, const glm::ivec2& Size);
 
-    void BlitFramebuffer(Framebuffer* Source,
-                         Framebuffer* Destination,
+    void BlitFramebuffer(CFramebuffer* Source,
+                         CFramebuffer* Destination,
                          const bool& Color,
                          const bool& Depth,
                          const bool& Stencil,
-                         const math::IRectangle& SrcRect,
-                         const math::IRectangle& DestRect);
+                         const math::FRectangle& SrcRect,
+                         const math::FRectangle& DestRect);
 
 } // namespace lucid::gpu

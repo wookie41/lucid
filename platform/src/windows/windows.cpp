@@ -28,7 +28,7 @@ namespace lucid::platform
 
     HANDLE* DirectoryChangedHandles;
     
-    i8 AddDirectoryListener(const ANSIString& InDirectoryPath, DirectoryChangedListener InListener)
+    i8 AddDirectoryListener(const FANSIString& InDirectoryPath, DirectoryChangedListener InListener)
     {
         // There is already an entry for this directory, let's just add a listener to it
         if(shgeti(HandleByDirectoryPath, *InDirectoryPath) != -1)
@@ -45,7 +45,7 @@ namespace lucid::platform
  
         if (ChangeHandle == INVALID_HANDLE_VALUE || ChangeHandle == NULL) 
         {
-            LUCID_LOG(LogLevel::WARN, "[platform-windows] FindFirstChangeNotification function failed with error code %d", GetLastError());
+            LUCID_LOG(ELogLevel::WARN, "[platform-windows] FindFirstChangeNotification function failed with error code %d", GetLastError());
             return -1;
         }
 
@@ -64,7 +64,7 @@ namespace lucid::platform
         return 0;
     }
 
-    void RemoveDirectoryListener(const ANSIString& InDirectoryPath, DirectoryChangedListener InListener)
+    void RemoveDirectoryListener(const FANSIString& InDirectoryPath, DirectoryChangedListener InListener)
     {
         if(shgeti(HandleByDirectoryPath, *InDirectoryPath) == -1)
         {
@@ -101,7 +101,7 @@ namespace lucid::platform
             const auto WaitResult = WaitForSingleObject(Handle, 0);
             if (WaitResult == WAIT_FAILED)
             {
-                LUCID_LOG(LogLevel::WARN, "[platform-windows] WaitForMultipleObjects function failed with error code %d", GetLastError());
+                LUCID_LOG(ELogLevel::WARN, "[platform-windows] WaitForMultipleObjects function failed with error code %d", GetLastError());
                 return;
             }
 
@@ -118,17 +118,17 @@ namespace lucid::platform
             // Listen for next changes
             if(FindNextChangeNotification(DirectoryChangedHandles[i]) == FALSE)
             {
-                LUCID_LOG(LogLevel::WARN, "[platform-windows] FindNextChangeNotification function failed with error code %d", GetLastError());
+                LUCID_LOG(ELogLevel::WARN, "[platform-windows] FindNextChangeNotification function failed with error code %d", GetLastError());
                 return;
             }
         }
     }
 
-    i8 ExecuteCommand(const ANSIString& InCommand)
+    i8 ExecuteCommand(const FANSIString& InCommand)
     {
         if(system(*InCommand) != 0)
         {
-            LUCID_LOG(LogLevel::WARN, "[platform-windows] system function failed with error code %d", GetLastError());
+            LUCID_LOG(ELogLevel::WARN, "[platform-windows] system function failed with error code %d", GetLastError());
             return -1;
         }
         return -1;

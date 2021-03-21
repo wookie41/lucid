@@ -14,7 +14,7 @@ namespace lucid
     // dummy, temporary solution
     static char msgBuff[1024];
 
-    void Log(const LogLevel& InLevel, const char* InFile, const u32& InLine, const char* InFormat, ...)
+    void Log(const ELogLevel& InLevel, const char* InFile, const u32& InLine, const char* InFormat, ...)
     {
         va_list args;
         va_start(args, InFormat);

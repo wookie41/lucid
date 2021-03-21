@@ -1,8 +1,5 @@
 #include "scene/forward_renderer.hpp"
 
-#include <algorithm>
-
-
 #include "common/log.hpp"
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/shader.hpp"
@@ -11,7 +8,6 @@
 #include "scene/lights.hpp"
 
 #include "scene/renderable.hpp"
-#include "scene/camera.hpp"
 #include "scene/blinn_phong_material.hpp"
 
 #include "devices/gpu/gpu.hpp"
@@ -23,6 +19,7 @@
 #include "misc/math.hpp"
 
 #include "common/collections.hpp"
+#include "scene/camera.hpp"
 
 namespace lucid::scene
 {
@@ -31,59 +28,59 @@ namespace lucid::scene
     static const u32 POINT_LIGHT = 2;
     static const u32 SPOT_LIGHT = 3;
 
-    static const String VIEWPORT_SIZE("uViewportSize");
+    static const FString VIEWPORT_SIZE("uViewportSize");
     
-    static const String SSAO_POSITIONS_VS("uPositionsVS");
-    static const String SSAO_NORMALS_VS("uNormalsVS");
-    static const String SSAO_NOISE("uNoise");
-    static const String SSAO_NOISE_SCALE("uNoiseScale");
-    static const String SSAO_RADIUS("uRadius");
-    static const String SSAO_BIAS("uBias");
+    static const FString SSAO_POSITIONS_VS("uPositionsVS");
+    static const FString SSAO_NORMALS_VS("uNormalsVS");
+    static const FString SSAO_NOISE("uNoise");
+    static const FString SSAO_NOISE_SCALE("uNoiseScale");
+    static const FString SSAO_RADIUS("uRadius");
+    static const FString SSAO_BIAS("uBias");
 
-    static const String SIMPLE_BLUR_OFFSET_X("uOffsetX");
-    static const String SIMPLE_BLUR_OFFSET_Y("uOffsetY");
-    static const String SIMPLE_BLUR_TEXTURE("uTextureToBlur");
+    static const FString SIMPLE_BLUR_OFFSET_X("uOffsetX");
+    static const FString SIMPLE_BLUR_OFFSET_Y("uOffsetY");
+    static const FString SIMPLE_BLUR_TEXTURE("uTextureToBlur");
     
-    static const String LIGHT_TYPE("uLight.Type");
-    static const String LIGHT_POSITION("uLight.Position");
-    static const String LIGHT_DIRECTION("uLight.Direction");
-    static const String LIGHT_COLOR("uLight.Color");
-    static const String LIGHT_CONSTANT("uLight.Constant");
-    static const String LIGHT_LINEAR("uLight.Linear");
-    static const String LIGHT_QUADRATIC("uLight.Quadratic");
-    static const String LIGHT_INNER_CUT_OFF("uLight.InnerCutOffCos");
-    static const String LIGHT_OUTER_CUT_OFF("uLight.OuterCutOffCos");
-    static const String LIGHT_SHADOW_MAP("uLight.ShadowMap");
-    static const String LIGHT_SPACE_MATRIX("uLight.LightSpaceMatrix");
-    static const String LIGHT_CASTS_SHADOWS("uLight.CastsShadows");
-    static const String LIGHT_FAR_PLANE("uLight.FarPlane");
-    static const String LIGHT_SHADOW_CUBE("uShadowCube");
+    static const FString LIGHT_TYPE("uLight.Type");
+    static const FString LIGHT_POSITION("uLight.Position");
+    static const FString LIGHT_DIRECTION("uLight.Direction");
+    static const FString LIGHT_COLOR("uLight.Color");
+    static const FString LIGHT_CONSTANT("uLight.Constant");
+    static const FString LIGHT_LINEAR("uLight.Linear");
+    static const FString LIGHT_QUADRATIC("uLight.Quadratic");
+    static const FString LIGHT_INNER_CUT_OFF("uLight.InnerCutOffCos");
+    static const FString LIGHT_OUTER_CUT_OFF("uLight.OuterCutOffCos");
+    static const FString LIGHT_SHADOW_MAP("uLight.ShadowMap");
+    static const FString LIGHT_SPACE_MATRIX("uLight.LightSpaceMatrix");
+    static const FString LIGHT_CASTS_SHADOWS("uLight.CastsShadows");
+    static const FString LIGHT_FAR_PLANE("uLight.FarPlane");
+    static const FString LIGHT_SHADOW_CUBE("uShadowCube");
 
     // Shader-wide uniforms
-    static const String AMBIENT_STRENGTH("uAmbientStrength");
-    static const String NUM_OF_PCF_SAMPLES("uNumSamplesPCF");
-    static const String AMBIENT_OCCLUSION("uAmbientOcclusion");
+    static const FString AMBIENT_STRENGTH("uAmbientStrength");
+    static const FString NUM_OF_PCF_SAMPLES("uNumSamplesPCF");
+    static const FString AMBIENT_OCCLUSION("uAmbientOcclusion");
 
-    static const String VIEW_POSITION("uViewPos");
+    static const FString VIEW_POSITION("uViewPos");
 
-    static const String MODEL_MATRIX("uModel");
-    static const String REVERSE_NORMALS("uReverseNormals");
-    static const String VIEW_MATRIX("uView");
-    static const String PROJECTION_MATRIX("uProjection");
+    static const FString MODEL_MATRIX("uModel");
+    static const FString REVERSE_NORMALS("uReverseNormals");
+    static const FString VIEW_MATRIX("uView");
+    static const FString PROJECTION_MATRIX("uProjection");
 
-    static const String SKYBOX_CUBEMAP("uSkybox");
+    static const FString SKYBOX_CUBEMAP("uSkybox");
 
-    static const String PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
+    static const FString PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
 
     ForwardRenderer::ForwardRenderer(
         const u32& InMaxNumOfDirectionalLights,
         const u8 InNumSSAOSamples,
-        gpu::Shader* InDefaultRenderableShader,
-        gpu::Shader* InPrepassShader,
-        gpu::Shader* InSSAOShader,
-        gpu::Shader* InSimpleBlurShader,
-        gpu::Shader* InSkyboxShader)
-    : Renderer(InDefaultRenderableShader),
+        gpu::CShader* InDefaultRenderableShader,
+        gpu::CShader* InPrepassShader,
+        gpu::CShader* InSSAOShader,
+        gpu::CShader* InSimpleBlurShader,
+        gpu::CShader* InSkyboxShader)
+    : CRenderer(InDefaultRenderableShader),
         MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
         NumSSAOSamples(InNumSSAOSamples),
         PrepassShader(InPrepassShader),
@@ -102,14 +99,14 @@ namespace lucid::scene
         BlurFramebuffer = gpu::CreateFramebuffer();
 
         // Create a common depth-stencil attachment for both framebuffers
-        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::RenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize);
+        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize);
 
         // Create render targets in which we'll store some additional information during the depth prepass
-        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::RGB16F, gpu::TexturePixelFormat::RGB, 0);
-        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::RGB16F, gpu::TexturePixelFormat::RGB, 0);
+        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGB16F, gpu::ETexturePixelFormat::RGB, 0);
+        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGB16F, gpu::ETexturePixelFormat::RGB, 0);
         
         // Setup the prepass framebuffer
-        PrepassFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         CurrentFrameVSNormalMap->Bind();
         CurrentFrameVSNormalMap->SetMinFilter(gpu::MinTextureFilter::NEAREST);
@@ -126,37 +123,37 @@ namespace lucid::scene
 
         if (!PrepassFramebuffer->IsComplete())
         {
-            LUCID_LOG(LogLevel::ERR, LUCID_TEXT("Failed to setup the prepass framebuffer"));
+            LUCID_LOG(ELogLevel::ERR, LUCID_TEXT("Failed to setup the prepass framebuffer"));
             return;
         }
 
         // Create texture to store SSO result
-        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::R, gpu::TexturePixelFormat::R, 0);
+        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::R, gpu::ETexturePixelFormat::R, 0);
         SSAOResult->Bind();
         SSAOResult->SetMinFilter(gpu::MinTextureFilter::NEAREST);
         SSAOResult->SetMagFilter(gpu::MagTextureFilter::NEAREST);
 
         // Create texture for the blurred SSAO result
-        SSAOBlurred = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::R, gpu::TexturePixelFormat::R, 0);
+        SSAOBlurred = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::R, gpu::ETexturePixelFormat::R, 0);
         SSAOBlurred->Bind();
         SSAOBlurred->SetMinFilter(gpu::MinTextureFilter::NEAREST);
         SSAOBlurred->SetMagFilter(gpu::MagTextureFilter::NEAREST);
             
         // Setup a SSAO framebuffer
-        SSAOFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        SSAOFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         SSAOFramebuffer->SetupColorAttachment(0, SSAOResult);
 
         if (!SSAOFramebuffer->IsComplete())
         {
-            LUCID_LOG(LogLevel::ERR, LUCID_TEXT("Failed to setup the SSAO framebuffer"));
+            LUCID_LOG(ELogLevel::ERR, LUCID_TEXT("Failed to setup the SSAO framebuffer"));
             return;
         }
         
         // Create color attachment for the lighting pass framebuffer
-        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::RGBA, gpu::TexturePixelFormat::RGBA, 0);
+        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGBA, gpu::ETexturePixelFormat::RGBA, 0);
 
         // Setup the lighting pass framebuffer
-        LightingPassFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         LightingPassColorBuffer->Bind();
         LightingPassFramebuffer->SetupColorAttachment(0, LightingPassColorBuffer);
@@ -166,7 +163,7 @@ namespace lucid::scene
 
         if (!LightingPassFramebuffer->IsComplete())
         {
-            LUCID_LOG(LogLevel::ERR, LUCID_TEXT("Failed to setup the lighting framebuffer"));
+            LUCID_LOG(ELogLevel::ERR, LUCID_TEXT("Failed to setup the lighting framebuffer"));
             return;
         }
 
@@ -192,7 +189,7 @@ namespace lucid::scene
             Sample *= Scale;
 
             // Send the sample to the shader
-            DString SampleUniformName = SPrintf(LUCID_TEXT("uSamples[%d]"), i);
+            FDString SampleUniformName = SPrintf(LUCID_TEXT("uSamples[%d]"), i);
             SSAOShader->SetVector(SampleUniformName, Sample);
             SampleUniformName.Free();
         }
@@ -206,7 +203,7 @@ namespace lucid::scene
             Noise[i].y = Noise[i].y * 2.0 - 1.0;
         }
 
-        SSAONoise = gpu::Create2DTexture(Noise, 4, 4, gpu::TextureDataType::FLOAT, gpu::TextureDataFormat::RG32F, gpu::TexturePixelFormat::RG, 0);
+        SSAONoise = gpu::Create2DTexture(Noise, 4, 4, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RG32F, gpu::ETexturePixelFormat::RG, 0);
         SSAONoise->Bind();
         SSAONoise->SetWrapSFilter(gpu::WrapTextureFilter::REPEAT);
         SSAONoise->SetWrapTFilter(gpu::WrapTextureFilter::REPEAT);
@@ -229,17 +226,17 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::Render(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
+    void ForwardRenderer::Render(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         gpu::EnableDepthTest();
         gpu::DisableSRGBFramebuffer();
-        gpu::SetViewport(InRenderSource->Viewport);
+        gpu::SetViewport(InRenderView->Viewport);
 
-        Prepass(InSceneToRender, InRenderSource);
-        LightingPass(InSceneToRender, InRenderSource);
+        Prepass(InSceneToRender, InRenderView);
+        LightingPass(InSceneToRender, InRenderView);
     }
 
-    void ForwardRenderer::RenderStaticGeometry(const RenderScene* InScene, const RenderSource* InRenderSource)
+    void ForwardRenderer::RenderStaticGeometry(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
         gpu::SetCullMode(gpu::CullMode::BACK);
 
@@ -250,15 +247,15 @@ namespace lucid::scene
         gpu::SetBlendFunctionSeparate(gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, gpu::BlendFunction::ONE,
                                       gpu::BlendFunction::ZERO);
 
-        const LinkedListItem<Light>* LightNode = &InScene->Lights.Head;
+        const FLinkedListItem<CLight>* LightNode = &InScene->Lights.Head;
         if (!LightNode->Element)
         {
             // no lights in the scene, render the geometry only with ambient contribution
-            RenderWithoutLights(InScene, InRenderSource);
+            RenderWithoutLights(InScene, InRenderView);
             return;
         }
 
-        RenderLightContribution(LightNode->Element, InScene, InRenderSource);
+        RenderLightContribution(LightNode->Element, InScene, InRenderView);
         if (!LightNode->Next || !LightNode->Next->Element)
         {
             // No more lights
@@ -271,20 +268,20 @@ namespace lucid::scene
         LightNode = LightNode->Next;
         while (LightNode && LightNode->Element)
         {
-            RenderLightContribution(LightNode->Element, InScene, InRenderSource);
+            RenderLightContribution(LightNode->Element, InScene, InRenderView);
             LightNode = LightNode->Next;
         }
     }
 
-    void ForwardRenderer::RenderLightContribution(const Light* InLight,
-                                                  const RenderScene* InScene,
-                                                  const RenderSource* InRenderSource)
+    void ForwardRenderer::RenderLightContribution(const CLight* InLight,
+                                                  const FRenderScene* InScene,
+                                                  const FRenderView* InRenderView)
     {
-        const LinkedListItem<Renderable>* CurrentNode = &InScene->StaticGeometry.Head;
-        gpu::Shader* LastUsedShader = DefaultRenderableShader;
+        const FLinkedListItem<FRenderable>* CurrentNode = &InScene->StaticGeometry.Head;
+        gpu::CShader* LastUsedShader = DefaultRenderableShader;
         while (CurrentNode && CurrentNode->Element)
         {
-            Renderable* CurrentRenderable = CurrentNode->Element;
+            FRenderable* CurrentRenderable = CurrentNode->Element;
 
             // Determine if the material uses a custom shader
             // if yes, then setup the renderer-provided uniforms
@@ -292,7 +289,7 @@ namespace lucid::scene
             LastUsedShader = CustomShader ? CustomShader : DefaultRenderableShader;
 
             LastUsedShader->Use();
-            SetupRendererWideUniforms(LastUsedShader, InRenderSource);
+            SetupRendererWideUniforms(LastUsedShader, InRenderView);
             SetupLight(LastUsedShader, InLight);
             Render(LastUsedShader, CurrentRenderable);
 
@@ -300,16 +297,16 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::SetupLight(gpu::Shader* InShader, const Light* InLight)
+    void ForwardRenderer::SetupLight(gpu::CShader* InShader, const CLight* InLight)
     {
         InShader->SetVector(LIGHT_COLOR, InLight->Color);
         InShader->SetVector(LIGHT_POSITION, InLight->Position);
 
         switch (InLight->GetType())
         {
-        case LightType::DIRECTIONAL:
+        case ELightType::DIRECTIONAL:
         {
-            DirectionalLight* light = (DirectionalLight*)InLight;
+            CDirectionalLight* light = (CDirectionalLight*)InLight;
             InShader->SetVector(LIGHT_DIRECTION, light->Direction);
             InShader->SetInt(LIGHT_TYPE, DIRECTIONAL_LIGHT);
             InShader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
@@ -325,9 +322,9 @@ namespace lucid::scene
             }
             break;
         }
-        case LightType::POINT:
+        case ELightType::POINT:
         {
-            PointLight* light = (PointLight*)InLight;
+            CPointLight* light = (CPointLight*)InLight;
             InShader->SetFloat(LIGHT_CONSTANT, light->Constant);
             InShader->SetFloat(LIGHT_LINEAR, light->Linear);
             InShader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
@@ -346,9 +343,9 @@ namespace lucid::scene
 
             break;
         }
-        case LightType::SPOT:
+        case ELightType::SPOT:
         {
-            SpotLight* light = (SpotLight*)InLight;
+            CSpotLight* light = (CSpotLight*)InLight;
             InShader->SetVector(LIGHT_DIRECTION, light->Direction);
             InShader->SetFloat(LIGHT_CONSTANT, light->Constant);
             InShader->SetFloat(LIGHT_LINEAR, light->Linear);
@@ -372,25 +369,25 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::RenderWithoutLights(const RenderScene* InScene,
-                                              const RenderSource* InRenderSource)
+    void ForwardRenderer::RenderWithoutLights(const FRenderScene* InScene,
+                                              const FRenderView* InRenderView)
     {
-        const LinkedListItem<Renderable>* CurrentNode = &InScene->StaticGeometry.Head;
-        gpu::Shader* LastUserShader = DefaultRenderableShader;
+        const FLinkedListItem<FRenderable>* CurrentNode = &InScene->StaticGeometry.Head;
+        gpu::CShader* LastUserShader = DefaultRenderableShader;
         
         LastUserShader->SetInt(LIGHT_TYPE, NO_LIGHT);
 
         while (CurrentNode && CurrentNode->Element)
         {
-            Renderable* CurrentRenderable = CurrentNode->Element;
+            FRenderable* CurrentRenderable = CurrentNode->Element;
 
             // Determine if the material uses a custom shader if yes, then setup the renderer-provided uniforms
-            gpu::Shader* CustomShader = CurrentRenderable->Material->GetCustomShader();
+            gpu::CShader* CustomShader = CurrentRenderable->Material->GetCustomShader();
             if (CustomShader)
             {
                 CustomShader->Use();
                 CustomShader->SetInt(LIGHT_TYPE, NO_LIGHT);
-                SetupRendererWideUniforms(CustomShader, InRenderSource);
+                SetupRendererWideUniforms(CustomShader, InRenderView);
                 LastUserShader = CustomShader;
             }
             else if (LastUserShader != DefaultRenderableShader)
@@ -404,7 +401,7 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::Prepass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
+    void ForwardRenderer::Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         // Render the scene
         gpu::SetReadOnlyDepthBuffer(false);
@@ -414,16 +411,16 @@ namespace lucid::scene
         PrepassFramebuffer->SetupDrawBuffers();
         
         PrepassShader->Use();
-        SetupRendererWideUniforms(PrepassShader, InRenderSource);
+        SetupRendererWideUniforms(PrepassShader, InRenderView);
 
         const glm::vec2 NoiseTextureSize = { SSAONoise->GetSize().x, SSAONoise->GetSize().y };
-        const glm::vec2 ViewportSize = { InRenderSource->Viewport.Width, InRenderSource->Viewport.Height };
+        const glm::vec2 ViewportSize = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
         const glm::vec2 NoiseScale = ViewportSize / NoiseTextureSize;
 
-        const LinkedListItem<Renderable>* CurrentNode = &InSceneToRender->StaticGeometry.Head;
+        const FLinkedListItem<FRenderable>* CurrentNode = &InSceneToRender->StaticGeometry.Head;
         while (CurrentNode && CurrentNode->Element)
         {
-            Renderable* CurrentRenderable = CurrentNode->Element;
+            FRenderable* CurrentRenderable = CurrentNode->Element;
             Render(PrepassShader, CurrentRenderable);
             CurrentNode = CurrentNode->Next;
         }
@@ -432,7 +429,7 @@ namespace lucid::scene
         gpu::DisableDepthTest();
         BindAndClearFramebuffer(SSAOFramebuffer);
         SSAOShader->Use();
-        SetupRendererWideUniforms(SSAOShader, InRenderSource);
+        SetupRendererWideUniforms(SSAOShader, InRenderView);
 
         SSAOShader->UseTexture(SSAO_POSITIONS_VS, CurrentFrameVSPositionMap);
         SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
@@ -444,7 +441,7 @@ namespace lucid::scene
         gpu::DrawImmediateQuad({ 0, 0 } , SSAOResult->GetSize());
 
         // Blur SSAO
-        BlurFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        BlurFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         BlurFramebuffer->SetupColorAttachment(0, SSAOBlurred);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
 
@@ -456,7 +453,7 @@ namespace lucid::scene
         gpu::DrawImmediateQuad({ 0, 0 } , SSAOResult->GetSize());        
     }
 
-    void ForwardRenderer::LightingPass(const RenderScene* InSceneToRender, const RenderSource* InRenderSource)
+    void ForwardRenderer::LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         gpu::EnableDepthTest();
         gpu::SetReadOnlyDepthBuffer(true);
@@ -466,34 +463,34 @@ namespace lucid::scene
         LightingPassFramebuffer->SetupDrawBuffers();
 
         DefaultRenderableShader->Use();
-        SetupRendererWideUniforms(DefaultRenderableShader, InRenderSource);
+        SetupRendererWideUniforms(DefaultRenderableShader, InRenderView);
 
-        RenderStaticGeometry(InSceneToRender, InRenderSource);
+        RenderStaticGeometry(InSceneToRender, InRenderView);
         if (InSceneToRender->SceneSkybox)
         {
-            RenderSkybox(InSceneToRender->SceneSkybox, InRenderSource);
+            RenderSkybox(InSceneToRender->SceneSkybox, InRenderView);
         }
     }
 
-    void ForwardRenderer::BindAndClearFramebuffer(gpu::Framebuffer* InFramebuffer)
+    void ForwardRenderer::BindAndClearFramebuffer(gpu::CFramebuffer* InFramebuffer)
     {
-        InFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        InFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
     }
 
-    void ForwardRenderer::SetupRendererWideUniforms(gpu::Shader* InShader, const RenderSource* InRenderSource)
+    void ForwardRenderer::SetupRendererWideUniforms(gpu::CShader* InShader, const FRenderView* InRenderView)
     {
         InShader->SetFloat(AMBIENT_STRENGTH, AmbientStrength);
         InShader->SetInt(NUM_OF_PCF_SAMPLES, NumSamplesPCF);
-        InShader->SetMatrix(PROJECTION_MATRIX, InRenderSource->Camera->GetProjectionMatrix());
-        InShader->SetMatrix(VIEW_MATRIX, InRenderSource->Camera->GetViewMatrix());
-        InShader->SetVector(VIEW_POSITION, InRenderSource->Camera->Position);
+        InShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
+        InShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
+        InShader->SetVector(VIEW_POSITION, InRenderView->Camera->Position);
         InShader->SetFloat(PARALLAX_HEIGHT_SCALE, 0.1f);
-        InShader->SetVector(VIEWPORT_SIZE, glm::vec2 { InRenderSource->Viewport.Width, InRenderSource->Viewport.Height });
+        InShader->SetVector(VIEWPORT_SIZE, glm::vec2 { InRenderView->Viewport.Width, InRenderView->Viewport.Height });
         InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
     }
 
-    void ForwardRenderer::Render(gpu::Shader* Shader, const Renderable* InRenderable)
+    void ForwardRenderer::Render(gpu::CShader* Shader, const FRenderable* InRenderable)
     {
         glm::mat4 modelMatrix = InRenderable->CalculateModelMatrix();
         Shader->SetMatrix(MODEL_MATRIX, modelMatrix);
@@ -505,15 +502,15 @@ namespace lucid::scene
         InRenderable->VertexArray->Draw();
     }
 
-    inline void ForwardRenderer::RenderSkybox(const Skybox* InSkybox, const RenderSource* InRenderSource)
+    inline void ForwardRenderer::RenderSkybox(const FSkybox* InSkybox, const FRenderView* InRenderView)
     {
         gpu::DisableBlending();
 
         SkyboxShader->Use();
 
         SkyboxShader->UseTexture(SKYBOX_CUBEMAP, InSkybox->SkyboxCubemap);
-        SkyboxShader->SetMatrix(VIEW_MATRIX, InRenderSource->Camera->GetViewMatrix());
-        SkyboxShader->SetMatrix(PROJECTION_MATRIX, InRenderSource->Camera->GetProjectionMatrix());
+        SkyboxShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
+        SkyboxShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
 
         misc::CubeVertexArray->Bind();
         misc::CubeVertexArray->Draw();

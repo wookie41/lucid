@@ -4,7 +4,7 @@
 
 namespace lucid::gpu
 {
-    void SetViewport(const Viewport& ViewportToUse)
+    void SetViewport(const FViewport& ViewportToUse)
     {
         glViewport(ViewportToUse.X, ViewportToUse.Y, ViewportToUse.Width, ViewportToUse.Height);
     }

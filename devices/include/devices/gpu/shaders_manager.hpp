@@ -4,27 +4,27 @@
 
 namespace lucid::gpu
 {
-    class Shader;
+    class CShader;
 
-    struct ShaderInstanceInfo
+    struct FShaderInstanceInfo
     {
-        Shader* Shader;
+        CShader* Shader;
         // @TODO Unicode paths support
         // @Note Paths are not freed, but it's okay, cause this code only hot-reloads shaders while in debug configuration
-        DString VertexShaderPath;
-        DString FragmentShaderPath;
-        DString GeometryShaderPath;
+        FDString VertexShaderPath;
+        FDString FragmentShaderPath;
+        FDString GeometryShaderPath;
     };
 
-    class ShadersManager
+    class CShadersManager
     {
     public:
 
         // @TODO Unicode paths support
-        Shader* CompileShader(const ANSIString& InShaderName,
-                              const ANSIString& InVertexShaderPath,
-                              const ANSIString& InFragementShaderPath,
-                              const ANSIString& InGeometryShaderPath,
+        CShader* CompileShader(const FANSIString& InShaderName,
+                              const FANSIString& InVertexShaderPath,
+                              const FANSIString& InFragementShaderPath,
+                              const FANSIString& InGeometryShaderPath,
                               const bool& ShouldStoreShader = true);
 
 #ifndef NDEBUG
@@ -35,10 +35,10 @@ namespace lucid::gpu
 
     private:
 
-        Array<ShaderInstanceInfo> CompiledShaders { 8, true };
+        FArray<FShaderInstanceInfo> CompiledShaders { 8, true };
 
-        const String BaseShadersPath { "shaders/glsl/base" };
+        const FString BaseShadersPath { "shaders/glsl/base" };
     };
 
-    extern ShadersManager GShadersManager;
+    extern CShadersManager GShadersManager;
 }

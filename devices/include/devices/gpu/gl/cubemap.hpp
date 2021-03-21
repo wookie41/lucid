@@ -5,11 +5,11 @@
 
 namespace lucid::gpu
 {
-    class GLCubemap : public Cubemap
+    class CGLCubemap : public CCubemap
     {
       public:
 
-        explicit GLCubemap(const GLuint& Handle, const glm::ivec2& Size);
+        explicit CGLCubemap(const GLuint& Handle, const glm::ivec2& Size);
 
         // Framebuffer attachment interface
 
@@ -20,7 +20,7 @@ namespace lucid::gpu
         virtual void AttachAsDepth() override;
         virtual void AttachAsStencilDepth() override;
 
-        virtual void AttachAsColor(const u8& Index, Face InFace) override;
+        virtual void AttachAsColor(const u8& Index, EFace InFace) override;
 
         ////////////////////////////////////
 

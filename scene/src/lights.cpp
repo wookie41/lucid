@@ -12,18 +12,18 @@
 
 namespace lucid::scene
 {
-    static const String MODEL{ "uModel" };
+    static const FString MODEL{ "uModel" };
 
-    static const String LIGHT_SPACE_MATRIX{ "uLightSpaceMatrix" };
+    static const FString LIGHT_SPACE_MATRIX{ "uLightSpaceMatrix" };
 
-    static const String LIGHT_POSITION{ "uLightPosition" };
-    static const String LIGHT_FAR_PLANE{ "uFarPlane" };
-    static const String LIGHT_SPACE_MATRIX_0{ "uLightSpaceMatrices[0]" };
-    static const String LIGHT_SPACE_MATRIX_1{ "uLightSpaceMatrices[1]" };
-    static const String LIGHT_SPACE_MATRIX_2{ "uLightSpaceMatrices[2]" };
-    static const String LIGHT_SPACE_MATRIX_3{ "uLightSpaceMatrices[3]" };
-    static const String LIGHT_SPACE_MATRIX_4{ "uLightSpaceMatrices[4]" };
-    static const String LIGHT_SPACE_MATRIX_5{ "uLightSpaceMatrices[5]" };
+    static const FString LIGHT_POSITION{ "uLightPosition" };
+    static const FString LIGHT_FAR_PLANE{ "uFarPlane" };
+    static const FString LIGHT_SPACE_MATRIX_0{ "uLightSpaceMatrices[0]" };
+    static const FString LIGHT_SPACE_MATRIX_1{ "uLightSpaceMatrices[1]" };
+    static const FString LIGHT_SPACE_MATRIX_2{ "uLightSpaceMatrices[2]" };
+    static const FString LIGHT_SPACE_MATRIX_3{ "uLightSpaceMatrices[3]" };
+    static const FString LIGHT_SPACE_MATRIX_4{ "uLightSpaceMatrices[4]" };
+    static const FString LIGHT_SPACE_MATRIX_5{ "uLightSpaceMatrices[5]" };
 
     // Shoule be tweakable based on game's graphics settings
     struct OrthoMatrixLightSettings
@@ -35,7 +35,7 @@ namespace lucid::scene
 
     static OrthoMatrixLightSettings LIGHT_SETTINGS = { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 15.f };
 
-    void RenderGeometry(gpu::Shader* ShaderToUse, LinkedList<class Renderable>& Geometry);
+    void RenderGeometry(gpu::CShader* ShaderToUse, FLinkedList<class FRenderable>& Geometry);
 
     inline glm::mat4 CreateLightSpaceMatrix(const glm::vec3& Position, const glm::vec3& LightUp)
     {
@@ -46,10 +46,10 @@ namespace lucid::scene
         return lightSpaceMatrix;
     }
 
-    static gpu::Texture* CreateShadowMapTexture(const glm::ivec2& ShadowMapSize)
+    static gpu::CTexture* CreateShadowMapTexture(const glm::ivec2& ShadowMapSize)
     {
-        gpu::Texture* shadowMap = gpu::CreateEmpty2DTexture(ShadowMapSize.x, ShadowMapSize.y, gpu::TextureDataType::FLOAT,
-                                                            gpu::TextureDataFormat::DEPTH_COMPONENT, gpu::TexturePixelFormat::DEPTH_COMPONENT, 0);
+        gpu::CTexture* shadowMap = gpu::CreateEmpty2DTexture(ShadowMapSize.x, ShadowMapSize.y, gpu::ETextureDataType::FLOAT,
+                                                            gpu::ETextureDataFormat::DEPTH_COMPONENT, gpu::ETexturePixelFormat::DEPTH_COMPONENT, 0);
         shadowMap->Bind();
         shadowMap->SetWrapSFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
         shadowMap->SetWrapTFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
@@ -60,9 +60,9 @@ namespace lucid::scene
         return shadowMap;
     }
 
-    DirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
+    CDirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
     {
-        DirectionalLight directionalLight;
+        CDirectionalLight directionalLight;
 
         if (CastsShadow)
         {
@@ -73,9 +73,9 @@ namespace lucid::scene
         return directionalLight;
     }
 
-    SpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
+    CSpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
     {
-        SpotLight spotLight;
+        CSpotLight spotLight;
 
         if (CastsShadow)
         {
@@ -86,25 +86,25 @@ namespace lucid::scene
         return spotLight;
     }
 
-    PointLight CreatePointLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
+    CPointLight CreatePointLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
     {
-        PointLight pointLight;
+        CPointLight pointLight;
 
         if (CastsShadow)
         {
-            pointLight.ShadowMap = gpu::CreateCubemap(ShadowMapSize, gpu::TextureDataFormat::DEPTH_COMPONENT, gpu::TexturePixelFormat::DEPTH_COMPONENT, gpu::TextureDataType::FLOAT);
+            pointLight.ShadowMap = gpu::CreateCubemap(ShadowMapSize, gpu::ETextureDataFormat::DEPTH_COMPONENT, gpu::ETexturePixelFormat::DEPTH_COMPONENT, gpu::ETextureDataType::FLOAT);
             pointLight.ShadowMapSize = ShadowMapSize;
         }
 
         return pointLight;
     }
 
-    static void _GenerateShadowMap(RenderScene* SceneToRender,
-                                   gpu::Framebuffer* TargetFramebuffer,
-                                   gpu::Shader* ShaderToUse,
+    static void _GenerateShadowMap(FRenderScene* SceneToRender,
+                                   gpu::CFramebuffer* TargetFramebuffer,
+                                   gpu::CShader* ShaderToUse,
                                    bool RenderStaticGeometry,
                                    bool ClearShadowMap,
-                                   gpu::Texture* ShadowMap)
+                                   gpu::CTexture* ShadowMap)
     {
         assert(ShadowMap);
 
@@ -113,7 +113,7 @@ namespace lucid::scene
 
         gpu::DisableBlending();
 
-        TargetFramebuffer->Bind(gpu::FramebufferBindMode::READ_WRITE);
+        TargetFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         TargetFramebuffer->SetupDepthAttachment(ShadowMap);
 
         if (ClearShadowMap)
@@ -136,9 +136,9 @@ namespace lucid::scene
         RenderGeometry(ShaderToUse, SceneToRender->DynamicGeometry);
     }
 
-    void RenderGeometry(gpu::Shader* ShaderToUse, LinkedList<class Renderable>& Geometry)
+    void RenderGeometry(gpu::CShader* ShaderToUse, FLinkedList<class FRenderable>& Geometry)
     {
-        LinkedListItem<Renderable>* node = &Geometry.Head;
+        FLinkedListItem<FRenderable>* node = &Geometry.Head;
         while (node && node->Element)
         {
             ShaderToUse->SetMatrix(MODEL, node->Element->CalculateModelMatrix());
@@ -148,9 +148,9 @@ namespace lucid::scene
         }
     }
 
-    void DirectionalLight::GenerateShadowMap(RenderScene* SceneToRender,
-                                             gpu::Framebuffer* TargetFramebuffer,
-                                             gpu::Shader* ShaderToUse,
+    void CDirectionalLight::GenerateShadowMap(FRenderScene* SceneToRender,
+                                             gpu::CFramebuffer* TargetFramebuffer,
+                                             gpu::CShader* ShaderToUse,
                                              bool RenderStaticGeometry,
                                              bool ClearShadowMap)
     {
@@ -160,11 +160,11 @@ namespace lucid::scene
         _GenerateShadowMap(SceneToRender, TargetFramebuffer, ShaderToUse, RenderStaticGeometry, ClearShadowMap, ShadowMap);
     }
 
-    void DirectionalLight::UpdateLightSpaceMatrix() { LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp); }
+    void CDirectionalLight::UpdateLightSpaceMatrix() { LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp); }
 
-    void SpotLight::GenerateShadowMap(RenderScene* SceneToRender,
-                                      gpu::Framebuffer* TargetFramebuffer,
-                                      gpu::Shader* ShaderToUse,
+    void CSpotLight::GenerateShadowMap(FRenderScene* SceneToRender,
+                                      gpu::CFramebuffer* TargetFramebuffer,
+                                      gpu::CShader* ShaderToUse,
                                       bool RenderStaticGeometry,
                                       bool ClearShadowMap)
 
@@ -175,9 +175,9 @@ namespace lucid::scene
         _GenerateShadowMap(SceneToRender, TargetFramebuffer, ShaderToUse, RenderStaticGeometry, ClearShadowMap, ShadowMap);
     }
 
-    void SpotLight::UpdateLightSpaceMatrix() { LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp); }
+    void CSpotLight::UpdateLightSpaceMatrix() { LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp); }
 
-    void PointLight::UpdateLightSpaceMatrix()
+    void CPointLight::UpdateLightSpaceMatrix()
     {
         glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.f), (float)ShadowMapSize.x / (float)ShadowMapSize.y, NearPlane, FarPlane);
 
@@ -189,9 +189,9 @@ namespace lucid::scene
         LightSpaceMatrices[5] = projectionMatrix * glm::lookAt(Position, Position + glm::vec3 { 0.0, 0.0, -1.0 }, glm::vec3 { 0.0, -1.0, 0.0 });
     }
 
-    void PointLight::GenerateShadowMap(RenderScene* SceneToRender,
-                                       gpu::Framebuffer* TargetFramebuffer,
-                                       gpu::Shader* ShaderToUse,
+    void CPointLight::GenerateShadowMap(FRenderScene* SceneToRender,
+                                       gpu::CFramebuffer* TargetFramebuffer,
+                                       gpu::CShader* ShaderToUse,
                                        bool RenderStaticGeometry,
                                        bool ClearShadowMap)
 

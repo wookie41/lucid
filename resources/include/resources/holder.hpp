@@ -8,24 +8,24 @@
 namespace lucid::resources
 {
     // Interface that represents a resource whose data can be stored in main/video memory or both
-    class Resource
+    class CResource
     {
       public:
         virtual void FreeMainMemory() = 0;
         virtual void FreeVideoMemory() = 0;
-        virtual ~Resource() = default;
+        virtual ~CResource() = default;
 
       protected:
-        bool isVideoMemoryFreed = false;
-        bool isMainMemoryFreed = false;
+        bool IsVideoMemoryFreed = false;
+        bool IsMainMemoryFreed = false;
     };
 
-    template <typename R, typename = std::enable_if<std::is_base_of<Resource, R>::value>>
-    class ResourcesHolder
+    template <typename R, typename = std::enable_if<std::is_base_of<CResource, R>::value>>
+    class CResourcesHolder
     {
       public:
         // DefaultResource is returned if the holder doesn't contain the resource
-        ResourcesHolder(R* DefaultResource = nullptr) : defaultResource(DefaultResource) {}
+        CResourcesHolder(R* DefaultResource = nullptr) : defaultResource(DefaultResource) {}
 
         inline void SetDefaultResource(R* Resource) { defaultResource = Resource; };
         inline R* GetDefaultResource() { return defaultResource; };

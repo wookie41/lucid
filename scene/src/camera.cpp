@@ -4,7 +4,7 @@
 
 namespace lucid::scene
 {
-    Camera::Camera(const CameraMode& CameraMode,
+    CCamera::CCamera(const ECameraMode& CameraMode,
                    const glm::vec3& CameraPosition,
                    const glm::vec3& CameraUp,
                    const real& CameraYaw,
@@ -19,51 +19,51 @@ namespace lucid::scene
         UpdateCameraVectors();
     }
 
-    glm::mat4 Camera::GetViewMatrix() const 
+    glm::mat4 CCamera::GetViewMatrix() const 
     { 
         return glm::lookAt(Position, Position + FrontVector, UpVector); 
     }
 
-    glm::mat4 Camera::GetProjectionMatrix() const
+    glm::mat4 CCamera::GetProjectionMatrix() const
     {
 
-        if (Mode == CameraMode::ORTHOGRAPHIC)
+        if (Mode == ECameraMode::ORTHOGRAPHIC)
         {
             return glm::ortho(Left, Right, Bottom, Top, NearPlane, FarPlane);
         }
         return glm::perspective(glm::radians(FOV), AspectRatio,  0.1f, 100.0f);
     }
 
-    void Camera::MoveForward(const real& DeltaTime)
+    void CCamera::MoveForward(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position += FrontVector * velocity;
     }
 
-    void Camera::MoveBackward(const real& DeltaTime)
+    void CCamera::MoveBackward(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position -= FrontVector * velocity;
     }
 
-    void Camera::MoveRight(const real& DeltaTime)
+    void CCamera::MoveRight(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position += RightVector * velocity;
     }
 
-    void Camera::MoveLeft(const real& DeltaTime)
+    void CCamera::MoveLeft(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position -= RightVector * velocity;
     }
 
-    void Camera::Move(const glm::vec3& DirectionVector, const real& DeltaTime)
+    void CCamera::Move(const glm::vec3& DirectionVector, const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position += DirectionVector * velocity;
     }
-    void Camera::AddRotation(real YawOffset, real PitchOffset, const bool& constrainPitch)
+    void CCamera::AddRotation(real YawOffset, real PitchOffset, const bool& constrainPitch)
     {
         YawOffset *= Sensitivity;
         PitchOffset *= Sensitivity;
@@ -84,7 +84,7 @@ namespace lucid::scene
         UpdateCameraVectors();
     }
 
-    void Camera::UpdateCameraVectors()
+    void CCamera::UpdateCameraVectors()
     {
         // calculate the new Front vector
         glm::vec3 newFront;

@@ -2,14 +2,14 @@
 
 namespace lucid::gpu
 {
-    class VertexArray;
+    class CVertexArray;
 }
 
 namespace lucid::misc
 {
 
-    extern gpu::VertexArray* QuadVertexArray;
-    extern gpu::VertexArray* CubeVertexArray;
+    extern gpu::CVertexArray* QuadVertexArray;
+    extern gpu::CVertexArray* CubeVertexArray;
 
     void InitBasicShapes();
 } // namespace lucid::graphics

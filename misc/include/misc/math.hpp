@@ -7,7 +7,7 @@
 
 namespace lucid::math
 {
-    struct IRectangle
+    struct FRectangle
     {
         int X, Y;
         int Width, Height;

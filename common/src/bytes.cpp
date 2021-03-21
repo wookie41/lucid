@@ -15,10 +15,10 @@ namespace lucid
         return Copied;        
     }
 
-    MemBuffer CreateMemBuffer(const u32& BufferCapacity)
+    FMemBuffer CreateMemBuffer(const u32& BufferCapacity)
     {
         char* p = (char*)malloc(BufferCapacity);
         Zero(p, BufferCapacity);
-        return MemBuffer{ p, BufferCapacity };
+        return FMemBuffer{ p, BufferCapacity };
     }
 } // namespace lucid

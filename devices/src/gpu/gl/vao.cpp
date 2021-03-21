@@ -22,10 +22,10 @@ GLenum GL_DRAW_MODES[] = { GL_POINTS,
 
 namespace lucid::gpu
 {
-    VertexArray* CreateVertexArray(Array<VertexAttribute>* VertexArrayAttributes,
-                                   Buffer* VertexBuffer,
-                                   Buffer* ElementBuffer,
-                                   const DrawMode& DrawMode,
+    CVertexArray* CreateVertexArray(FArray<FVertexAttribute>* VertexArrayAttributes,
+                                   CBuffer* VertexBuffer,
+                                   CBuffer* ElementBuffer,
+                                   const EDrawMode& DrawMode,
                                    const u32& VertexCount,
                                    const u32& ElementCount,
                                    const bool& AutoDestroyBuffers)
@@ -34,31 +34,31 @@ namespace lucid::gpu
 
         glGenVertexArrays(1, &VAO);
 
-        VertexArray* vertexArray =
-          new GLVertexArray(VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
+        CVertexArray* vertexArray =
+          new CGLVertexArray(VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
         vertexArray->Bind();
 
-        VertexBuffer->Bind(BufferBindPoint::VERTEX);
+        VertexBuffer->Bind(EBufferBindPoint::VERTEX);
 
         if (ElementBuffer != nullptr)
-            ElementBuffer->Bind(BufferBindPoint::ELEMENT);
+            ElementBuffer->Bind(EBufferBindPoint::ELEMENT);
 
         for (u32 attrIdx = 0; attrIdx < VertexArrayAttributes->GetLength(); ++attrIdx)
         {
-            VertexAttribute* vertexAttribute = (*VertexArrayAttributes)[attrIdx];
+            FVertexAttribute* vertexAttribute = (*VertexArrayAttributes)[attrIdx];
 
             switch (vertexAttribute->AttributeType)
             {
-            case lucid::Type::FLOAT:
+            case lucid::EType::FLOAT:
                 vertexArray->AddVertexAttribute(*vertexAttribute);
                 break;
-            case lucid::Type::BYTE:
-            case lucid::Type::UINT_8:
-            case lucid::Type::UINT_16:
-            case lucid::Type::UINT_32:
+            case lucid::EType::BYTE:
+            case lucid::EType::UINT_8:
+            case lucid::EType::UINT_16:
+            case lucid::EType::UINT_32:
                 vertexArray->AddIntegerVertexAttribute(*vertexAttribute);
                 break;
-            case lucid::Type::DOUBLE:
+            case lucid::EType::DOUBLE:
                 vertexArray->AddLongVertexAttribute(*vertexAttribute);
                 break;
             default:
@@ -77,7 +77,7 @@ namespace lucid::gpu
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 #endif
-    void GLVertexArray::AddVertexAttribute(const VertexAttribute& Attribute)
+    void CGLVertexArray::AddVertexAttribute(const FVertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], GL_FALSE,
@@ -86,7 +86,7 @@ namespace lucid::gpu
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
     }
 
-    void GLVertexArray::AddIntegerVertexAttribute(const VertexAttribute& Attribute)
+    void CGLVertexArray::AddIntegerVertexAttribute(const FVertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.Stride,
@@ -95,7 +95,7 @@ namespace lucid::gpu
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
     }
 
-    void GLVertexArray::AddLongVertexAttribute(const VertexAttribute& Attribute)
+    void CGLVertexArray::AddLongVertexAttribute(const FVertexAttribute& Attribute)
     {
         glEnableVertexAttribArray(Attribute.Index);
         glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.Stride,
@@ -106,90 +106,90 @@ namespace lucid::gpu
 
 #pragma GCC diagnostic pop
 
-    GLVertexArray::GLVertexArray(const GLuint& GLVAOHandle,
-                                 const DrawMode& DrawMode,
-                                 const u32& VertexCount,
-                                 const u32& ElementCount,
-                                 Buffer* VertexBuffer,
-                                 Buffer* ElementBuffer,
-                                 const bool& AutoDestroyBuffers)
-    : glVAOHandle(GLVAOHandle), drawMode(DrawMode), vertexBuffer(VertexBuffer), elementBuffer(ElementBuffer),
-      autoDestroyBuffers(AutoDestroyBuffers), vertexCount(VertexCount), elementCount(ElementCount)
+    CGLVertexArray::CGLVertexArray(const GLuint& InGLVAOHandle,
+                                 const EDrawMode& InDrawMode,
+                                 const u32& InVertexCount,
+                                 const u32& InElementCount,
+                                 CBuffer* InVertexBuffer,
+                                 CBuffer* InElementBuffer,
+                                 const bool& InAutoDestroyBuffers)
+    : GLVAOHandle(InGLVAOHandle), DrawMode(InDrawMode), VertexBuffer(InVertexBuffer), ElementBuffer(InElementBuffer),
+      AutoDestroyBuffers(InAutoDestroyBuffers), VertexCount(InVertexCount), ElementCount(InElementCount)
     {
     }
 
-    void GLVertexArray::Free()
+    void CGLVertexArray::Free()
     {
-        assert(glVAOHandle && vertexBuffer); // double free
-        glDeleteVertexArrays(1, &glVAOHandle);
+        assert(GLVAOHandle && VertexBuffer); // double free
+        glDeleteVertexArrays(1, &GLVAOHandle);
 
-        if (autoDestroyBuffers)
+        if (AutoDestroyBuffers)
         {
-            vertexBuffer->Free();
-            if (elementBuffer)
+            VertexBuffer->Free();
+            if (ElementBuffer)
             {
-                elementBuffer->Free();
-                elementBuffer = nullptr;
+                ElementBuffer->Free();
+                ElementBuffer = nullptr;
             }
         }
 
-        glVAOHandle = 0;
-        vertexBuffer = nullptr;
+        GLVAOHandle = 0;
+        VertexBuffer = nullptr;
     }
 
-    void GLVertexArray::Bind()
+    void CGLVertexArray::Bind()
     {
         gpu::Info.CurrentVAO = this;
-        glBindVertexArray(glVAOHandle);
+        glBindVertexArray(GLVAOHandle);
     }
 
-    void GLVertexArray::Unbind() { glBindVertexArray(0); }
+    void CGLVertexArray::Unbind() { glBindVertexArray(0); }
 
-    void GLVertexArray::EnableAttribute(const u32& AttributeIndex)
+    void CGLVertexArray::EnableAttribute(const u32& AttributeIndex)
     {
-        glEnableVertexArrayAttrib(glVAOHandle, AttributeIndex);
+        glEnableVertexArrayAttrib(GLVAOHandle, AttributeIndex);
     }
 
-    void GLVertexArray::DisableAttribute(const u32& AttributeIndex)
+    void CGLVertexArray::DisableAttribute(const u32& AttributeIndex)
     {
-        glDisableVertexArrayAttrib(glVAOHandle, AttributeIndex);
+        glDisableVertexArrayAttrib(GLVAOHandle, AttributeIndex);
     }
 
-    void GLVertexArray::Draw(const u32& First, const u32& Count)
+    void CGLVertexArray::Draw(const u32& First, const u32& Count)
     {
-        u32 count = Count == 0 ? (elementBuffer == nullptr ? vertexCount : elementCount) : Count;
+        u32 count = Count == 0 ? (ElementBuffer == nullptr ? VertexCount : ElementCount) : Count;
 
-        if (elementBuffer)
+        if (ElementBuffer)
         {
-            glDrawElements(GL_DRAW_MODES[drawMode], count, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_DRAW_MODES[DrawMode], count, GL_UNSIGNED_INT, 0);
         }
         else
         {
-            glDrawArrays(GL_DRAW_MODES[drawMode], First, count);
+            glDrawArrays(GL_DRAW_MODES[DrawMode], First, count);
         }
     }
 
-    void GLVertexArray::DrawInstanced(const u32& InstancesCount, const uint32_t& First, const uint32_t& Count)
+    void CGLVertexArray::DrawInstanced(const u32& InstancesCount, const uint32_t& First, const uint32_t& Count)
     {
-        uint32_t count = Count == 0 ? (elementBuffer == nullptr ? vertexCount : elementCount) : Count;
+        uint32_t count = Count == 0 ? (ElementBuffer == nullptr ? VertexCount : ElementCount) : Count;
 
-        if (elementBuffer)
+        if (ElementBuffer)
         {
-            glDrawElementsInstanced(GL_DRAW_MODES[drawMode], count, GL_UNSIGNED_INT, nullptr, InstancesCount);
+            glDrawElementsInstanced(GL_DRAW_MODES[DrawMode], count, GL_UNSIGNED_INT, nullptr, InstancesCount);
             ;
         }
         else
         {
-            glDrawArraysInstanced(GL_DRAW_MODES[drawMode], First, count, InstancesCount);
+            glDrawArraysInstanced(GL_DRAW_MODES[DrawMode], First, count, InstancesCount);
         }
     }
 
-    void GLVertexArray::SetVertexCount(const uint32_t& Count) { vertexCount = Count; }
+    void CGLVertexArray::SetVertexCount(const uint32_t& Count) { VertexCount = Count; }
 
-    uint32_t GLVertexArray::GetVertexCount() const { return vertexCount; }
+    uint32_t CGLVertexArray::GetVertexCount() const { return VertexCount; }
 
-    void GLVertexArray::SetElementCount(const uint32_t& Count) { elementCount = Count; }
+    void CGLVertexArray::SetElementCount(const uint32_t& Count) { ElementCount = Count; }
 
-    uint32_t GLVertexArray::GetElementCount() const { return elementCount; }
+    uint32_t CGLVertexArray::GetElementCount() const { return ElementCount; }
 
 } // namespace lucid::gpu

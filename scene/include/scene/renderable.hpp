@@ -8,25 +8,25 @@
 
 namespace lucid::gpu
 {
-    class VertexArray;
+    class CVertexArray;
 } // namespace lucid::gpu
 
 namespace lucid::scene
 {
     // intented to help to renderer in making decistion which Renderables'
     // are visible and which should be culled
-    enum class RenderableType : u8
+    enum class ERenderableType : u8
     {
         STATIC,
         DYNAMIC
     };
 
-    class Material;
+    class CMaterial;
 
-    struct Renderable
+    struct FRenderable
     {
-        explicit Renderable(const DString& InName) : Name(InName) {}
-        Renderable(const DString& InName, const Renderable& rhs) : Name(InName)
+        explicit FRenderable(const FDString& InName) : Name(InName) {}
+        FRenderable(const FDString& InName, const FRenderable& rhs) : Name(InName)
         {
             Type = rhs.Type;
             Transform = rhs.Transform;
@@ -43,11 +43,11 @@ namespace lucid::scene
             return translation * rotation * scale;            
         }
 
-        DString Name;
-        RenderableType Type;
-        Transform3D Transform;
-        gpu::VertexArray* VertexArray;
-        scene::Material* Material;
+        FDString Name;
+        ERenderableType Type;
+        FTransform3D Transform;
+        gpu::CVertexArray* VertexArray;
+        scene::CMaterial* Material;
 
         bool bReverseNormals = false;
     };

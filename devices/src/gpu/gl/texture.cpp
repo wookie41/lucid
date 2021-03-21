@@ -76,12 +76,12 @@ namespace lucid::gpu
         return textureHandle;
     }
 
-    Texture* Create2DTexture(void* Data,
+    CTexture* Create2DTexture(void* Data,
                              const uint32_t& Width,
                              const uint32_t& Height,
-                             const TextureDataType& DataType,
-                             const TextureDataFormat& InDataFormat,
-                             const TexturePixelFormat& InPixelFormat,
+                             const ETextureDataType& DataType,
+                             const ETextureDataFormat& InDataFormat,
+                             const ETexturePixelFormat& InPixelFormat,
                              const int32_t& MipMapLevel)
     {
         const GLenum GLDataFormat =  TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
@@ -93,11 +93,11 @@ namespace lucid::gpu
         return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 });
     }
 
-    Texture* CreateEmpty2DTexture(const uint32_t& Width,
+    CTexture* CreateEmpty2DTexture(const uint32_t& Width,
                                   const uint32_t& Height,
-                                  const TextureDataType& DataType,
-                                  const TextureDataFormat& InDataFormat,
-                                  const TexturePixelFormat& InPixelFormat,
+                                  const ETextureDataType& DataType,
+                                  const ETextureDataFormat& InDataFormat,
+                                  const ETexturePixelFormat& InPixelFormat,
                                        const int32_t& MipMapLevel)
     {
         const GLenum GLDataFormat =  TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
@@ -182,10 +182,10 @@ namespace lucid::gpu
 
     // Cubemap
 
-    Cubemap* CreateCubemap(const glm::ivec2& Size,
-                           TextureDataFormat InDataFormat,
-                           TexturePixelFormat InPixelFormat,
-                           TextureDataType DataType,
+    CCubemap* CreateCubemap(const glm::ivec2& Size,
+                           ETextureDataFormat InDataFormat,
+                           ETexturePixelFormat InPixelFormat,
+                           ETextureDataType DataType,
                            const char* FacesData[6])
     {
         GLuint handle;
@@ -205,74 +205,74 @@ namespace lucid::gpu
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-        return new GLCubemap(handle, Size);
+        return new CGLCubemap(handle, Size);
     }
 
-    GLCubemap::GLCubemap(const GLuint& Handle, const glm::ivec2& Size) : glCubemapHandle(Handle), size(Size) {}
+    CGLCubemap::CGLCubemap(const GLuint& Handle, const glm::ivec2& Size) : glCubemapHandle(Handle), size(Size) {}
 
-    void GLCubemap::AttachAsColor(const uint8_t& Index)
+    void CGLCubemap::AttachAsColor(const uint8_t& Index)
     {
         assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && gpu::Info.CurrentCubemap == this);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, glCubemapHandle, 0);
     }
 
-    void GLCubemap::AttachAsColor(const uint8_t& Index, Face InFace)
+    void CGLCubemap::AttachAsColor(const uint8_t& Index, EFace InFace)
     {
         assert(gpu::Info.BoundTextures[gpu::Info.ActiveTextureUnit] == this && gpu::Info.CurrentCubemap == this);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<uint8_t>(InFace), glCubemapHandle, 0);
     }
 
-    void GLCubemap::AttachAsStencil() { glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, glCubemapHandle, 0); }
+    void CGLCubemap::AttachAsStencil() { glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, glCubemapHandle, 0); }
 
-    void GLCubemap::AttachAsDepth() { glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, glCubemapHandle, 0); }
+    void CGLCubemap::AttachAsDepth() { glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, glCubemapHandle, 0); }
 
-    void GLCubemap::AttachAsStencilDepth()
+    void CGLCubemap::AttachAsStencilDepth()
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_CUBE_MAP, glCubemapHandle, 0);
     }
 
-    glm::ivec3 GLCubemap::GetDimensions() const { return { size.x, size.y, 0 }; }
+    glm::ivec3 CGLCubemap::GetDimensions() const { return { size.x, size.y, 0 }; }
 
-    glm::ivec2 GLCubemap::GetSize() const { return size; }
+    glm::ivec2 CGLCubemap::GetSize() const { return size; }
 
-    void GLCubemap::Bind()
+    void CGLCubemap::Bind()
     {
         gpu::Info.CurrentCubemap = this;
         glBindTexture(GL_TEXTURE_CUBE_MAP, glCubemapHandle);
     }
 
-    void GLCubemap::Free()
+    void CGLCubemap::Free()
     {
         assert(glCubemapHandle);
         glDeleteTextures(1, &glCubemapHandle);
     }
 
-    void GLCubemap::SetMinFilter(const MinTextureFilter& Filter)
+    void CGLCubemap::SetMinFilter(const MinTextureFilter& Filter)
     {
         assert(gpu::Info.CurrentCubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, TO_GL_MIN_FILTER(Filter));
     }
 
-    void GLCubemap::SetMagFilter(const MagTextureFilter& Filter)
+    void CGLCubemap::SetMagFilter(const MagTextureFilter& Filter)
     {
         assert(gpu::Info.CurrentCubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TO_GL_MAG_FILTER(Filter));
     }
 
-    void GLCubemap::SetWrapSFilter(const WrapTextureFilter& Filter)
+    void CGLCubemap::SetWrapSFilter(const WrapTextureFilter& Filter)
     {
         assert(gpu::Info.CurrentCubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void GLCubemap::SetWrapTFilter(const WrapTextureFilter& Filter)
+    void CGLCubemap::SetWrapTFilter(const WrapTextureFilter& Filter)
     {
         assert(gpu::Info.CurrentCubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void GLCubemap::SetWrapRFilter(const WrapTextureFilter& Filter)
+    void CGLCubemap::SetWrapRFilter(const WrapTextureFilter& Filter)
     {
         assert(gpu::Info.CurrentCubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, TO_GL_WRAP_FILTER(Filter));
