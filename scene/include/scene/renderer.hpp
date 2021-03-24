@@ -7,6 +7,8 @@ namespace lucid::gpu
 {
     class CFramebuffer;
     class CShader;
+    struct FGPUState;
+    
 }; // namespace lucid::gpu
 
 namespace lucid::scene
@@ -22,7 +24,10 @@ namespace lucid::scene
     class CRenderer
     {
       public:
-        explicit CRenderer(gpu::CShader* InDefaultShader) : DefaultRenderableShader(InDefaultShader) {}
+        explicit CRenderer(gpu::FGPUState* InGPUState, gpu::CShader* InDefaultShader)
+        : GPUState(InGPUState), DefaultRenderableShader(InDefaultShader)
+        {
+        }
 
         /**
           * Called before the first Render() call so that the renderer can set itself up, like create additional framebuffers and etc.
@@ -50,6 +55,7 @@ namespace lucid::scene
 
       protected:
 
+        gpu::FGPUState* GPUState;
         gpu::CShader* DefaultRenderableShader;
     };
 

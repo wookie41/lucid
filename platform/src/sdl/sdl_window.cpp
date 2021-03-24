@@ -3,6 +3,7 @@
 #include "common/log.hpp"
 #include "devices/gpu/gl/framebuffer.hpp"
 #include "SDL2/SDL.h"
+#include "devices/gpu/gpu.hpp"
 
 namespace lucid::platform
 {
@@ -27,16 +28,34 @@ namespace lucid::platform
             return nullptr;
         }
 
+
         SDL_GL_MakeCurrent(window, context);
         SDL_CaptureMouse(SDL_TRUE);
         SDL_SetRelativeMouseMode(SDL_TRUE);
-        return new SDLWindow(window, context, Definition.width, Definition.height);
+
+        // Set initial gpu state for this context
+        gpu::DisableDepthTest();
+        gpu::DisableBlending();
+        gpu::DisableCullFace();
+        
+        auto* NewWindow = new SDLWindow(window, context, Definition.width, Definition.height);
+        NewWindow->Init();
+        return NewWindow;
     }
 
     SDLWindow::SDLWindow(SDL_Window* InWindow, SDL_GLContext InContext, const u16& InWidth, const u16& InHeight)
     : MySDLWindow(InWindow), MyGLContext(InContext), Width(InWidth), Height(InHeight), AspectRatio((float)InWidth / (float)InHeight)
     {
-        WindowFramebuffer = new gpu::GLDefaultFramebuffer{ InWidth, InHeight };
+        WindowFramebuffer = new gpu::GLDefaultFramebuffer{ InWidth, InHeight, &GPUState };
+    }
+
+    void SDLWindow::Init()
+    {
+        GPUState.BoundTextures = new gpu::CTexture*[gpu::Info.MaxTextureUnits];
+        for (int i = 0; i < gpu::Info.MaxTextureUnits; ++i)
+        {
+            GPUState.BoundTextures[i] = nullptr;
+        }
     }
 
     void SDLWindow::Swap() { SDL_GL_SwapWindow(MySDLWindow); }

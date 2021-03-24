@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <assimp/material.h>
 #include <glm/vec2.hpp>
 
 #include "common/types.hpp"
@@ -10,7 +11,7 @@ namespace lucid::gpu
     /////////////////////////////////////
     //           Buffers               //
     /////////////////////////////////////
-    enum ClearableBuffers : u8
+    enum EGPUBuffer : u8
     {
         COLOR = 1,
         DEPTH = 2,
@@ -18,7 +19,7 @@ namespace lucid::gpu
         STENCIL = 8
     };
 
-    void ClearBuffers(const ClearableBuffers& BuffersToClear);
+    void ClearBuffers(const EGPUBuffer& BuffersToClear);
     void SetClearColor(const FColor& Color);
     void SetClearDepth(const float& DepthValue);
 
@@ -26,7 +27,7 @@ namespace lucid::gpu
     //           Depth tests          //
     /////////////////////////////////////
 
-    enum class DepthTestFunction : u8
+    enum class EDepthTestFunction : u8
     {
         NEVER,
         LESS,
@@ -40,14 +41,14 @@ namespace lucid::gpu
 
     void EnableDepthTest();
     void DisableDepthTest();
-    void SetDepthTestFunction(const DepthTestFunction& Function);
+    void SetDepthTestFunction(const EDepthTestFunction& Function);
     void SetReadOnlyDepthBuffer(const bool& InReadOnly);
 
     /////////////////////////////////////
     //           Blending              //
     /////////////////////////////////////
 
-    enum class BlendFunction : u8
+    enum class EBlendFunction : u8
     {
         ZERO,
         ONE,
@@ -71,11 +72,11 @@ namespace lucid::gpu
     };
 
     void SetBlendColor(const FColor& Color);
-    void SetBlendFunction(const BlendFunction& SrcFunction, const BlendFunction& DstFunction);
-    void SetBlendFunctionSeparate(const BlendFunction& SrcFunction,
-                                  const BlendFunction& DstFunction,
-                                  const BlendFunction& SrcAlphaFunction,
-                                  const BlendFunction& DstAlphaFunction);
+    void SetBlendFunction(const EBlendFunction& SrcFunction, const EBlendFunction& DstFunction);
+    void SetBlendFunctionSeparate(const EBlendFunction& SrcFunction,
+                                  const EBlendFunction& DstFunction,
+                                  const EBlendFunction& SrcAlphaFunction,
+                                  const EBlendFunction& DstAlphaFunction);
 
     void EnableBlending();
     void DisableBlending();
@@ -84,7 +85,7 @@ namespace lucid::gpu
     //            Culling              //
     /////////////////////////////////////
 
-    enum class CullMode : u8
+    enum class ECullMode : u8
     {
         FRONT,
         BACK,
@@ -94,7 +95,7 @@ namespace lucid::gpu
     void EnableCullFace();
     void DisableCullFace();
 
-    void SetCullMode(CullMode Mode);
+    void SetCullMode(ECullMode Mode);
 
     /////////////////////////////////////
     //              sRGB               //
@@ -119,25 +120,42 @@ namespace lucid::gpu
     class CBuffer;
     class CVertexArray;
     class CCubemap;
-
-    struct GPUInfo
+    
+    struct FGPUState
     {
-        CFramebuffer* CurrentFramebuffer = nullptr;
-        CFramebuffer* CurrentReadFramebuffer = nullptr;
-        CFramebuffer* CurrentWriteFramebuffer = nullptr;
+        CFramebuffer*   Framebuffer      = nullptr;
+        CFramebuffer*   ReadFramebuffer  = nullptr;
+        CFramebuffer*   WriteFramebuffer = nullptr;
 
-        CCubemap* CurrentCubemap = nullptr;
-        CShader* CurrentShader = nullptr;
-        CTexture** BoundTextures = nullptr;
-        CRenderbuffer* CurrentRenderbuffer;
-        CVertexArray* CurrentVAO = nullptr;
+        CCubemap*       Cubemap         = nullptr;
+        CShader*        Shader          = nullptr;
+        CTexture**      BoundTextures   = nullptr;
+        CRenderbuffer*  Renderbuffer    = nullptr;
+        CVertexArray*   VAO             = nullptr;
 
-        CBuffer* CurrentVertexBuffer;
-        CBuffer* CurrentElementBuffer;
-        CBuffer* CurrentReadBuffer;
-        CBuffer* CurrentWriteBuffer;
-        CBuffer* CurrentShaderStorageBuffer;
+        CBuffer*    VertexBuffer        = nullptr;
+        CBuffer*    ElementBuffer       = nullptr;
+        CBuffer*    ReadBuffer          = nullptr;
+        CBuffer*    WriteBuffer         = nullptr;
+        CBuffer*    ShaderStorageBuffer = nullptr;
 
+        FColor  ClearColorBufferColor   = {0, 0, 0, 1};
+        float   ClearDepthBufferValue   = 0;
+        
+        bool                IsDepthTestEnabled  = false;
+        EDepthTestFunction  DepthTestFunction   = EDepthTestFunction::LEQUAL;
+
+        bool                IsBlendingEnabled = false;
+        EBlendFunction      BlendFunction;
+
+        bool                IsCullingEnabled = false;
+        ECullMode           CullMode;
+
+        bool                IsSRGBFramebufferEnabled;
+    };
+    
+    struct FGPUInfo
+    {
         u32 ActiveTextureUnit = 0;
         u32 MaxTextureUnits = 0;
         u32 MaxColorAttachments = 0;
@@ -147,7 +165,7 @@ namespace lucid::gpu
     //     Immediate drawing           //
     /////////////////////////////////////
 
-    void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize);
+    void DrawImmediateQuad(FGPUState* InGPUState, const glm::vec2& InPosition, const glm::vec2& InSize);
 
-    extern GPUInfo Info;
+    extern FGPUInfo Info;
 } // namespace lucid::gpu

@@ -9,7 +9,7 @@ namespace lucid::gpu
     class CGLRenderbuffer : public CRenderbuffer
     {
       public:
-        CGLRenderbuffer(const GLuint& GLRBOHandle, const ERenderbufferFormat& InFormat, const glm::ivec2& Size);
+        CGLRenderbuffer(const GLuint& GLRBOHandle, const ERenderbufferFormat& InFormat, const glm::ivec2& Size, const FANSIString& InName, FGPUState* InGPUState);
 
         virtual void Bind() override;
 
@@ -24,6 +24,7 @@ namespace lucid::gpu
         virtual ~CGLRenderbuffer() = default;
 
       private:
+
         ERenderbufferFormat Format;
         glm::ivec2 size;
         GLuint glRBOHandle;
@@ -32,7 +33,7 @@ namespace lucid::gpu
     class GLDefaultFramebuffer : public CFramebuffer
     {
     public:
-        GLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight);
+        GLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight, FGPUState* InGPUState);
 
         virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const override;
 
@@ -58,7 +59,7 @@ namespace lucid::gpu
     class CGLFramebuffer : public CFramebuffer
     {
       public:
-        explicit CGLFramebuffer(const GLuint& GLFBOHandle);
+        explicit CGLFramebuffer(const GLuint& GLFBOHandle, const FANSIString& InName, FGPUState* InGPUState);
 
         virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const override
         {

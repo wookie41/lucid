@@ -8,13 +8,15 @@ namespace lucid::gpu
     class CGLVertexArray : public CVertexArray
     {
       public:
-        CGLVertexArray(const GLuint& InGLVAOHandle,
-                      const EDrawMode& InDrawMode,
-                      const uint32_t& InVertexCount,
-                      const uint32_t& InElementCount,
-                      CBuffer* InVertexBuffer,
-                      CBuffer* InElementBuffer,
-                      const bool& InAutoDestroyBuffers);
+        CGLVertexArray(const FANSIString& InName,
+                       FGPUState* InGPUState,
+                       const GLuint& InGLVAOHandle,
+                       const EDrawMode& InDrawMode,
+                       const uint32_t& InVertexCount,
+                       const uint32_t& InElementCount,
+                       CBuffer* InVertexBuffer,
+                       CBuffer* InElementBuffer,
+                       const bool& InAutoDestroyBuffers);
 
         virtual void Bind() override;
         virtual void Unbind() override;

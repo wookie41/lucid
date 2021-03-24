@@ -5,7 +5,7 @@
 namespace lucid::gpu
 {
     class CShader;
-
+    struct FGPUState;
     struct FShaderInstanceInfo
     {
         CShader* Shader;
@@ -25,6 +25,7 @@ namespace lucid::gpu
                               const FANSIString& InVertexShaderPath,
                               const FANSIString& InFragementShaderPath,
                               const FANSIString& InGeometryShaderPath,
+                              FGPUState* InGPUState,
                               const bool& ShouldStoreShader = true);
 
 #ifndef NDEBUG

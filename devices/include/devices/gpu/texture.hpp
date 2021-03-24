@@ -71,9 +71,12 @@ namespace lucid::gpu
         DEPTH_STENCIL
     };
     
-    class CTexture : public CFramebufferAttachment
+    class CTexture : public CFramebufferAttachment, public CGPUObject
     {
       public:
+
+        CTexture(const FANSIString& InName, FGPUState* InGPUState) : CGPUObject(InName, InGPUState) {}
+        
         virtual void Bind() = 0;
         virtual glm::ivec3 GetDimensions() const = 0;
 
@@ -83,17 +86,26 @@ namespace lucid::gpu
         virtual void SetWrapTFilter(const WrapTextureFilter& Filter) = 0;
         virtual void SetWrapRFilter(const WrapTextureFilter& Filter) = 0;
 
-        virtual void Free() = 0;
         virtual ~CTexture() = default;
     };
 
     CTexture* Create2DTexture(void* Data,
-                             const u32& Width,
-                             const u32& Height,
-                             const ETextureDataType& DataType,
-                             const ETextureDataFormat& InDataFormat,
-                             const ETexturePixelFormat& InPixelFormat,
-                             const int32_t& MipMapLevel);
+                              const uint32_t& Width,
+                              const uint32_t& Height,
+                              const ETextureDataType& DataType,
+                              const ETextureDataFormat& InDataFormat,
+                              const ETexturePixelFormat& InPixelFormat,
+                              const int32_t& MipMapLevel,
+                              const FANSIString& InName,
+                              FGPUState* InGPUState);
 
-    CTexture* CreateEmpty2DTexture(const u32& Width, const u32& Height, const ETextureDataType& DataType, const ETextureDataFormat& InDataFormat, const ETexturePixelFormat& InPixelFormat, const int32_t& MipMapLevel);
+    CTexture* CreateEmpty2DTexture(const uint32_t& Width,
+                                   const uint32_t& Height,
+                                   const ETextureDataType& DataType,
+                                   const ETextureDataFormat& InDataFormat,
+                                   const ETexturePixelFormat& InPixelFormat,
+                                   const int32_t& MipMapLevel,
+                                   const FANSIString& InName,
+                                   FGPUState* InGPUState);
+
 } // namespace lucid::gpu

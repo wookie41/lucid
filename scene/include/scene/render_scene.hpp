@@ -6,30 +6,26 @@
 namespace lucid::gpu
 {
     class CCubemap;
+    struct FGPUState;
 };
 
 namespace lucid::scene
 {
-    // The RenderScene contains thing like objects to render, lights, fog voluems
-    // in a Renderer-implementation-agnostic format. The specific Renderers then
-    // use the provided scene information to render the scene in their own specific way
-
     class CLight;
     struct FRenderable;
-
-    // Skybox
 
     struct FSkybox
     {
         gpu::CCubemap* SkyboxCubemap = nullptr;
     };
 
-    FSkybox CreateSkybox(const FArray<FString>& InSkyboxFacesPaths);
+    FSkybox CreateSkybox(const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName, gpu::FGPUState* InGPUState);
 
-    ////////////////////////////////////////////////////////////
-
-    // Render scene
-
+    /*
+    * The RenderScene contains things like objects to render, lights, fog voluems
+    * in a Renderer-implementation-agnostic format. The specific Renderers then
+    * use the provided scene information to render the scene in their own specific way
+    */
     struct FRenderScene
     {
         FLinkedList<FRenderable> StaticGeometry;
@@ -37,7 +33,4 @@ namespace lucid::scene
         FLinkedList<CLight> Lights;
         FSkybox* SceneSkybox = nullptr;
     };
-
-    ////////////////////////////////////////////////////////////
-
 } // namespace lucid::scene

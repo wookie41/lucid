@@ -1,11 +1,12 @@
 #pragma once
 
+#include "devices/gpu/gpu.hpp"
 #include "resources/holder.hpp"
 #include "devices/gpu/texture.hpp"
 
 namespace lucid::resources
 {
-    void InitTextures();
+    void InitTextures(gpu::FGPUState* InGPUState);
 
     class CTextureResource : public CResource
     {
@@ -28,16 +29,18 @@ namespace lucid::resources
     };
 
     CTextureResource* LoadJPEG(const FANSIString& InPath,
-                              const bool& InPerformGammaCorrection,
-                              const gpu::ETextureDataType& InDataType,
-                              const bool& InFlipY,
-                              const bool& InSendToGPU);
-    
+                               const bool& InPerformGammaCorrection,
+                               const gpu::ETextureDataType& InDataType,
+                               const bool& InFlipY,
+                               const bool& InSendToGPU,
+                               const FANSIString& InName,
+                               gpu::FGPUState* InGPUState);
+
     CTextureResource* LoadPNG(const FANSIString& InPath,
                               const bool& InPerformGammaCorrection,
                               const gpu::ETextureDataType& InDataType,
                               const bool& InFlipY,
-                              const bool& InSendToGPU);
+                              const bool& InSendToGPU,const FANSIString& InName, gpu::FGPUState* InGPUState);
 
     extern CResourcesHolder<CTextureResource> TexturesHolder;
 } // namespace lucid::resources

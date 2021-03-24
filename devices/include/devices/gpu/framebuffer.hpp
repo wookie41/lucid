@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+
+#include "gpu_object.hpp"
 #include "common/types.hpp"
 #include "misc/math.hpp"
 #include "glm/glm.hpp"
@@ -22,6 +24,7 @@ namespace lucid::gpu
     class CFramebufferAttachment
     {
       public:
+        
         virtual void Bind() = 0;
 
         virtual glm::ivec2 GetSize() const = 0;
@@ -31,14 +34,15 @@ namespace lucid::gpu
         virtual void AttachAsDepth() = 0;
         virtual void AttachAsStencilDepth() = 0;
 
-        virtual void Free() = 0;
-
         virtual ~CFramebufferAttachment() = default;
     };
 
-    class CRenderbuffer : public CFramebufferAttachment
+    class CRenderbuffer : public CFramebufferAttachment, public CGPUObject
     {
       public:
+        
+        CRenderbuffer(const FANSIString& InName, FGPUState* InGPUState) : CGPUObject(InName, InGPUState) {}
+        
         virtual void Bind() = 0;
 
         virtual ~CRenderbuffer() = default;
@@ -51,10 +55,11 @@ namespace lucid::gpu
         READ_WRITE
     };
 
-    class CFramebuffer
+    class CFramebuffer: public CGPUObject
     {
       public:
-
+        CFramebuffer(const FANSIString& InName, FGPUState* InGPUState) : CGPUObject(InName, InGPUState) {}
+        
         virtual bool IsComplete() = 0;
 
         virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const = 0;
@@ -75,8 +80,8 @@ namespace lucid::gpu
         //@TODO Attaching cubemap's faces as color attachments
     };
     
-    CFramebuffer* CreateFramebuffer();
-    CRenderbuffer* CreateRenderbuffer(const ERenderbufferFormat& Format, const glm::ivec2& Size);
+    CFramebuffer* CreateFramebuffer(const FANSIString& InName, FGPUState* InGPUState);
+    CRenderbuffer* CreateRenderbuffer(const ERenderbufferFormat& Format, const glm::ivec2& Size, const FANSIString& InName, FGPUState* InGPUState);
 
     void BlitFramebuffer(CFramebuffer* Source,
                          CFramebuffer* Destination,

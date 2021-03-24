@@ -46,10 +46,10 @@ namespace lucid::scene
         return lightSpaceMatrix;
     }
 
-    static gpu::CTexture* CreateShadowMapTexture(const glm::ivec2& ShadowMapSize)
+    static gpu::CTexture* CreateShadowMapTexture(const glm::ivec2& ShadowMapSize, gpu::FGPUState* InGPUState)
     {
         gpu::CTexture* shadowMap = gpu::CreateEmpty2DTexture(ShadowMapSize.x, ShadowMapSize.y, gpu::ETextureDataType::FLOAT,
-                                                            gpu::ETextureDataFormat::DEPTH_COMPONENT, gpu::ETexturePixelFormat::DEPTH_COMPONENT, 0);
+                                                            gpu::ETextureDataFormat::DEPTH_COMPONENT, gpu::ETexturePixelFormat::DEPTH_COMPONENT, 0, FString {"ShadowMap" }, InGPUState);
         shadowMap->Bind();
         shadowMap->SetWrapSFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
         shadowMap->SetWrapTFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
@@ -60,39 +60,39 @@ namespace lucid::scene
         return shadowMap;
     }
 
-    CDirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
+    CDirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize, gpu::FGPUState* InGPUState)
     {
         CDirectionalLight directionalLight;
 
         if (CastsShadow)
         {
-            directionalLight.ShadowMap = CreateShadowMapTexture(ShadowMapSize);
+            directionalLight.ShadowMap = CreateShadowMapTexture(ShadowMapSize, InGPUState);
             directionalLight.ShadowMapSize = ShadowMapSize;
         }
 
         return directionalLight;
     }
 
-    CSpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
+    CSpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize, gpu::FGPUState* InGPUState)
     {
         CSpotLight spotLight;
 
         if (CastsShadow)
         {
-            spotLight.ShadowMap = CreateShadowMapTexture(ShadowMapSize);
+            spotLight.ShadowMap = CreateShadowMapTexture(ShadowMapSize, InGPUState);
             spotLight.ShadowMapSize = ShadowMapSize;
         }
 
         return spotLight;
     }
 
-    CPointLight CreatePointLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
+    CPointLight CreatePointLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize, gpu::FGPUState* InGPUState)
     {
         CPointLight pointLight;
 
         if (CastsShadow)
         {
-            pointLight.ShadowMap = gpu::CreateCubemap(ShadowMapSize, gpu::ETextureDataFormat::DEPTH_COMPONENT, gpu::ETexturePixelFormat::DEPTH_COMPONENT, gpu::ETextureDataType::FLOAT);
+            pointLight.ShadowMap = gpu::CreateCubemap(ShadowMapSize, gpu::ETextureDataFormat::DEPTH_COMPONENT, gpu::ETexturePixelFormat::DEPTH_COMPONENT, gpu::ETextureDataType::FLOAT, nullptr, FString { "ShadowCubemap" }, InGPUState);
             pointLight.ShadowMapSize = ShadowMapSize;
         }
 
@@ -109,7 +109,7 @@ namespace lucid::scene
         assert(ShadowMap);
 
         gpu::EnableDepthTest();
-        gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
+        gpu::SetDepthTestFunction(gpu::EDepthTestFunction::LEQUAL);
 
         gpu::DisableBlending();
 
@@ -118,7 +118,7 @@ namespace lucid::scene
 
         if (ClearShadowMap)
         {
-            gpu::ClearBuffers(gpu::ClearableBuffers::DEPTH);
+            gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
         }
 
         TargetFramebuffer->DisableReadWriteBuffers();

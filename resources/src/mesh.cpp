@@ -9,6 +9,7 @@
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include "devices/gpu/buffer.hpp"
+#include "devices/gpu/gpu.hpp"
 #include "resources/texture.hpp"
 #include "platform/util.hpp"
 
@@ -87,11 +88,11 @@ namespace lucid::resources
 
     static u32 DetermineMeshFeatures(const aiScene* Root);
 
-    MeshGPUData sendMeshToGPU(const u32& Features, const MeshCPUData& MeshData);
+    MeshGPUData SendMeshToGPU(const u32& Features, const MeshCPUData& MeshData, gpu::FGPUState* InGPUState);
 
-    static CTextureResource* LoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
+    static CTextureResource* LoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat, gpu::FGPUState* InGPUState);
 
-    CMeshResource* AssimpLoadMesh(const FANSIString& DirectoryPath, const FANSIString& MeshFileName)
+    CMeshResource* AssimpLoadMesh(gpu::FGPUState* InGPUState, const FANSIString& DirectoryPath, const FANSIString& MeshFileName)
     {
         // read mesh file
         FDString MeshFilePath = CopyToString(*DirectoryPath, DirectoryPath.GetLength());
@@ -145,17 +146,17 @@ namespace lucid::resources
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            DiffuseMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE, false);
+            DiffuseMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE, false, InGPUState);
         }
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            SpecularMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, false);
+            SpecularMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, false, InGPUState);
         }
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            NormalMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, false);
+            NormalMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, false, InGPUState);
         }
 #ifndef NDEBUG
         LUCID_LOG(ELogLevel::INFO, "Loading textures %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
@@ -165,7 +166,7 @@ namespace lucid::resources
         // send the data to the gpu
         start = platform::GetCurrentTimeSeconds();
 
-        MeshGPUData meshGPUData = sendMeshToGPU(MeshFeatures, meshData);
+        MeshGPUData meshGPUData = SendMeshToGPU(MeshFeatures, meshData, InGPUState);
 
 #ifndef NDEBUG
 
@@ -334,7 +335,7 @@ namespace lucid::resources
         }
     }
 
-    static CTextureResource* LoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
+    static CTextureResource* LoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat, gpu::FGPUState* InGPUState)
     {
         aiString TextureFileName;
         Material->GetTexture(TextureType, 0, &TextureFileName);
@@ -347,8 +348,8 @@ namespace lucid::resources
         }
 
         CTextureResource* Texture = IsPNGFormat ?
-            LoadPNG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true) :
-            LoadJPEG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true);
+            LoadPNG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString {"Temporary_name"}, InGPUState) :
+            LoadJPEG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString {"Temporary_name"}, InGPUState);
         
         if (Texture == nullptr)
         {
@@ -364,7 +365,7 @@ namespace lucid::resources
         return Texture;
     }
 
-    MeshGPUData sendMeshToGPU(const uint32_t& Features, const MeshCPUData& MeshData)
+    MeshGPUData SendMeshToGPU(const uint32_t& Features, const MeshCPUData& MeshData, gpu::FGPUState* InGPUState)
     {
         gpu::FBufferDescription bufferDescription;
 
@@ -372,7 +373,7 @@ namespace lucid::resources
         bufferDescription.data = MeshData.VertexBuffer.Pointer;
         bufferDescription.size = MeshData.VertexBuffer.Length;
 
-        gpu::CBuffer* gpuVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC);
+        gpu::CBuffer* gpuVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FString{ "Temporary_Name" }, InGPUState);
         gpu::CBuffer* gpuElementBuffer = nullptr;
 
         // sending element to the gpu if it's present
@@ -381,7 +382,7 @@ namespace lucid::resources
             bufferDescription.data = MeshData.ElementBuffer.Pointer;
             bufferDescription.size = MeshData.ElementBuffer.Length;
 
-            gpuElementBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC);
+            gpuElementBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FString{ "Temporary_Name" }, InGPUState);
         }
 
         // prepare vertex array attributes
@@ -432,7 +433,7 @@ namespace lucid::resources
         if (Features & static_cast<uint32_t>(EMeshFeatures::UV))
             attributes.Add({ attributeIdx++, 2, EType::FLOAT, false, stride, uvOffset, 0 });
 
-        gpu::CVertexArray* vao = gpu::CreateVertexArray(&attributes, gpuVertexBuffer, gpuElementBuffer, gpu::EDrawMode::TRIANGLES,
+        gpu::CVertexArray* vao = gpu::CreateVertexArray(FString {"Temporary_Name" }, InGPUState, &attributes, gpuVertexBuffer, gpuElementBuffer, gpu::EDrawMode::TRIANGLES,
                                                        MeshData.VertexCount, MeshData.ElementCount);
         attributes.Free();
 

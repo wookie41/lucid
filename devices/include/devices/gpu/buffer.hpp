@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "gpu_object.hpp"
 #include "common/types.hpp"
 
 namespace lucid::gpu
@@ -47,9 +48,11 @@ namespace lucid::gpu
         void* data = nullptr;
     };
 
-    class CBuffer
+    class CBuffer : public CGPUObject
     {
       public:
+        CBuffer(const FANSIString& InName, FGPUState* InGPUState) : CGPUObject(InName, InGPUState) {}
+
         virtual uint32_t GetSize() const = 0;
 
         virtual void Bind(const EBufferBindPoint& BindPoint) = 0;
@@ -65,12 +68,16 @@ namespace lucid::gpu
 
         virtual void MemoryUnmap() = 0;
 
-        virtual void Free() = 0;
-
         virtual ~CBuffer() = default;
     };
 
-    CBuffer* CreateBuffer(const FBufferDescription& Description, const EBufferUsage& Usage);
+    CBuffer* CreateBuffer(const FBufferDescription& Description,
+                          const EBufferUsage& Usage,
+                          const FANSIString& InName,
+                          FGPUState* InGPUState);
+
     CBuffer* CreateImmutableBuffer(const FBufferDescription& Description,
-                                  const EImmutableBufferUsage& ImmutableBufferUsage);
+                                   const EImmutableBufferUsage& ImmutableBufferUsage,
+                                   const FANSIString& InName,
+                                   FGPUState* InGPUState);
 } // namespace lucid::gpu

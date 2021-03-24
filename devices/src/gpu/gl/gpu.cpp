@@ -8,30 +8,29 @@
 
 namespace lucid::gpu
 {
-
     // Buffers functions
-    void ClearBuffers(const ClearableBuffers& BuffersToClear)
+    void ClearBuffers(const EGPUBuffer& BuffersToClear)
     {
         static GLbitfield buffersBits[] = { GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_ACCUM_BUFFER_BIT,
                                             GL_STENCIL_BUFFER_BIT };
 
         GLbitfield glBuffersBitField = 0;
-        if (BuffersToClear & ClearableBuffers::COLOR)
+        if (BuffersToClear & EGPUBuffer::COLOR)
         {
             glBuffersBitField |= GL_COLOR_BUFFER_BIT;
         }
 
-        if (BuffersToClear & ClearableBuffers::DEPTH)
+        if (BuffersToClear & EGPUBuffer::DEPTH)
         {
             glBuffersBitField |= GL_DEPTH_BUFFER_BIT;
         }
 
-        if (BuffersToClear & ClearableBuffers::STENCIL)
+        if (BuffersToClear & EGPUBuffer::STENCIL)
         {
             glBuffersBitField |= GL_COLOR_BUFFER_BIT;
         }
 
-        if (BuffersToClear & ClearableBuffers::ACCUMULATION)
+        if (BuffersToClear & EGPUBuffer::ACCUMULATION)
         {
             glBuffersBitField |= GL_ACCUM_BUFFER_BIT;
         }
@@ -59,7 +58,7 @@ namespace lucid::gpu
         glDepthMask(!InReadOnly);
     }
     
-    void SetDepthTestFunction(const DepthTestFunction& Function)
+    void SetDepthTestFunction(const EDepthTestFunction& Function)
     {
         glDepthFunc(GL_DEPTH_FUNCTIONS[static_cast<u8>(Function)]);
     }
@@ -92,15 +91,15 @@ namespace lucid::gpu
 
     void SetBlendColor(const FColor& Color) { glBlendColor(Color.r, Color.g, Color.b, Color.a); }
 
-    void SetBlendFunction(const BlendFunction& SrcFunction, const BlendFunction& DstFunction)
+    void SetBlendFunction(const EBlendFunction& SrcFunction, const EBlendFunction& DstFunction)
     {
         glBlendFunc(TO_GL_BLEND(SrcFunction), TO_GL_BLEND(DstFunction));
     }
 
-    void SetBlendFunctionSeparate(const BlendFunction& SrcFunction,
-                                  const BlendFunction& DstFunction,
-                                  const BlendFunction& SrcAlphaFunction,
-                                  const BlendFunction& DstAlphaFunction)
+    void SetBlendFunctionSeparate(const EBlendFunction& SrcFunction,
+                                  const EBlendFunction& DstFunction,
+                                  const EBlendFunction& SrcAlphaFunction,
+                                  const EBlendFunction& DstAlphaFunction)
 
     {
         glBlendFuncSeparate(TO_GL_BLEND(SrcFunction), TO_GL_BLEND(DstFunction), TO_GL_BLEND(SrcAlphaFunction),
@@ -127,7 +126,7 @@ namespace lucid::gpu
         glDisable(GL_CULL_FACE);
     }
 
-    void SetCullMode(CullMode Mode)
+    void SetCullMode(ECullMode Mode)
     {
         glCullFace(CULL_MODE_MAPPING[static_cast<u8>(Mode)]);
     }
@@ -143,12 +142,12 @@ namespace lucid::gpu
     static const FString QUAD_POSITION ("uQuadPosition");
     static const FString QUAD_SIZE ("uQuadSize");
     
-    void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize)
+    void DrawImmediateQuad(FGPUState* InGPUState, const glm::vec2& InPosition, const glm::vec2& InSize)
     {
-        assert(Info.CurrentShader);
+        assert(InGPUState->Shader);
         misc::QuadVertexArray->Bind();
-        Info.CurrentShader->SetVector(QUAD_POSITION, InPosition);
-        Info.CurrentShader->SetVector(QUAD_SIZE, InSize);
+        InGPUState->Shader->SetVector(QUAD_POSITION, InPosition);
+        InGPUState->Shader->SetVector(QUAD_SIZE, InSize);
         misc::QuadVertexArray->Draw();
     }
     

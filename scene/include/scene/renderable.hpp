@@ -13,8 +13,6 @@ namespace lucid::gpu
 
 namespace lucid::scene
 {
-    // intented to help to renderer in making decistion which Renderables'
-    // are visible and which should be culled
     enum class ERenderableType : u8
     {
         STATIC,

@@ -8,9 +8,19 @@ namespace lucid::gpu
     class GLTexture : public CTexture
     {
       public:
-        GLTexture(const GLuint& TextureID, const TextureType& Type, const glm::ivec3& TextureDimensions);
-        GLTexture(const GLuint& TextureID, const glm::ivec3& Dimensions, const GLenum& TextureTaget);
+        GLTexture(const GLuint& InTextureID,
+                  const TextureType& InType,
+                  const glm::ivec3& InTextureDimensions,
+                  const FANSIString& InName,
+                  FGPUState* InGPUState);
 
+    protected:
+        GLTexture(const GLuint& TextureID,
+                  const glm::ivec3& Dimensions,
+                  const GLenum& TextureTaget,
+                  const FANSIString& InName,
+                  FGPUState* InGPUState);
+    public:
         // Texture methods //
 
         virtual glm::ivec3 GetDimensions() const override;

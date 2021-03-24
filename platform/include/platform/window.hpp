@@ -17,6 +17,8 @@ namespace lucid::platform
       public:
         CWindow() = default;
 
+        virtual void Init() = 0;
+        
         virtual void Swap() = 0;
         virtual void Prepare() = 0;
 
@@ -34,7 +36,12 @@ namespace lucid::platform
         
         virtual void OnFocusGained() = 0;
 
+        gpu::FGPUState* GetGPUState() { return &GPUState; };
+        
         virtual ~CWindow() = default;
+
+    protected:
+        gpu::FGPUState GPUState;
     };
 
     CWindow* CreateWindow(const FWindowDefiniton& Definiton);

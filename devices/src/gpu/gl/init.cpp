@@ -10,7 +10,7 @@
 
 namespace lucid::gpu
 {
-    GPUInfo Info;
+    FGPUInfo Info;
 
     void InitGPUInfo();
 
@@ -61,7 +61,6 @@ namespace lucid::gpu
         }
 
         InitGPUInfo();
-        
         SDL_GL_DeleteContext(context);
         SDL_DestroyWindow(window);
 
@@ -76,18 +75,12 @@ namespace lucid::gpu
 
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &property);
         LUCID_LOG(ELogLevel::INFO, "Available texture units = %d", property);
-        Info.BoundTextures = new CTexture*[property];
-        Info.MaxColorAttachments = property;
+        Info.MaxTextureUnits = property;
 
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &property);
         LUCID_LOG(ELogLevel::INFO, "Available draw buffers units = %d", property);
         Info.MaxColorAttachments = property;
-
-        for (int i = 0; i < property; ++i)
-        {
-            Info.BoundTextures[i] = nullptr;
-        }
-    }
+    }    
 
     void Shutdown()
     {

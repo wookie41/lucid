@@ -18,6 +18,7 @@ namespace lucid::gpu
                                           const FANSIString& VertexShaderPath,
                                           const FANSIString& FragmentShaderPath,
                                           const FANSIString& GeometryShaderPath,
+                                          FGPUState* InGPUState,
                                           const bool& ShouldStoreShader)
     {
         FDString VertexShaderSource = platform::ReadFile(VertexShaderPath, true);
@@ -57,7 +58,9 @@ namespace lucid::gpu
             ShaderName,
             VertexShaderSource,
             FragmentShaderSource,
-            GeometryShaderSource
+            GeometryShaderSource,
+            false,
+            InGPUState
         );
         
         if (CompiledShader == nullptr)
@@ -99,7 +102,8 @@ namespace lucid::gpu
         for (u32 i = 0; i < GShadersManager.CompiledShaders.GetLength(); ++i)
         {
             const FShaderInstanceInfo* ShaderInfo = GShadersManager.CompiledShaders[i];
-            CShader* RecompiledShader = GShadersManager.CompileShader(ShaderInfo->Shader->GetName(),
+            
+            CShader* RecompiledShader = GShadersManager.CompileShader( ShaderInfo->Shader->GetName() ,
                                                                      ShaderInfo->VertexShaderPath,
                                                                      ShaderInfo->FragmentShaderPath,
                                                                      ShaderInfo->GeometryShaderPath, false);

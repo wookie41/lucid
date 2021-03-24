@@ -15,13 +15,13 @@ namespace lucid::gpu
         int32_t Index = -1; // Used only for indexed buffers
     };
 
-    class CShader
+    class CShader : public CGPUObject
     {
       public:
 
         friend class ShaderManager;
 
-        explicit CShader(const FANSIString& InName);
+        explicit CShader(const FANSIString& InName, FGPUState* InGPUState) : CGPUObject(InName, InGPUState) {}
 
         virtual void Use() = 0;
         virtual void Disable() = 0;
@@ -49,12 +49,7 @@ namespace lucid::gpu
 
         virtual void AddBinding(BufferBinding* Binding) = 0;
 
-        virtual void Free() = 0;
-
         virtual ~CShader() = default;
-        
-        inline const FANSIString& GetName() const { return ShaderName; }
-
 #ifndef NDEBUG
         /**
          * Used when hot-reloading shaders. The RecompiledShader is the shader program with updated shaders that we have to pull
@@ -62,13 +57,14 @@ namespace lucid::gpu
          */
         virtual void ReloadShader(CShader* RecompiledShader) = 0;
 #endif
-    protected:
-        const FANSIString& ShaderName;
     };
 
-    CShader* CompileShaderProgram(const FANSIString& InShaderName,
-                                 const FANSIString& InVertexShaderSource,
-                                 const FANSIString& InFragementShaderSource,
-                                 const FANSIString& InGeometryShaderSource,
-                                 const bool& InWarnMissingUniforms = false);
+    CShader* CompileShaderProgram(
+        const FANSIString& InShaderName,
+        const FANSIString& InVertexShaderSource,
+        const FANSIString& InFragementShaderSource,
+        const FANSIString& InGeometryShaderSource,
+        const bool& InWarnMissingUniforms,
+        FGPUState* InGPUState);
+
 } // namespace lucid::gpu

@@ -22,20 +22,21 @@ GLenum GL_DRAW_MODES[] = { GL_POINTS,
 
 namespace lucid::gpu
 {
-    CVertexArray* CreateVertexArray(FArray<FVertexAttribute>* VertexArrayAttributes,
-                                   CBuffer* VertexBuffer,
-                                   CBuffer* ElementBuffer,
-                                   const EDrawMode& DrawMode,
-                                   const u32& VertexCount,
-                                   const u32& ElementCount,
-                                   const bool& AutoDestroyBuffers)
+    CVertexArray* CreateVertexArray(const FANSIString& InName,
+                                    FGPUState* InGPUState,
+                                    FArray<FVertexAttribute>* VertexArrayAttributes,
+                                    CBuffer* VertexBuffer,
+                                    CBuffer* ElementBuffer,
+                                    const EDrawMode& DrawMode,
+                                    const u32& VertexCount,
+                                    const u32& ElementCount,
+                                    const bool& AutoDestroyBuffers)
     {
         GLuint VAO;
 
         glGenVertexArrays(1, &VAO);
 
-        CVertexArray* vertexArray =
-          new CGLVertexArray(VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
+        CVertexArray* vertexArray = new CGLVertexArray(InName, InGPUState, VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
         vertexArray->Bind();
 
         VertexBuffer->Bind(EBufferBindPoint::VERTEX);
@@ -106,15 +107,18 @@ namespace lucid::gpu
 
 #pragma GCC diagnostic pop
 
-    CGLVertexArray::CGLVertexArray(const GLuint& InGLVAOHandle,
-                                 const EDrawMode& InDrawMode,
-                                 const u32& InVertexCount,
-                                 const u32& InElementCount,
-                                 CBuffer* InVertexBuffer,
-                                 CBuffer* InElementBuffer,
-                                 const bool& InAutoDestroyBuffers)
-    : GLVAOHandle(InGLVAOHandle), DrawMode(InDrawMode), VertexBuffer(InVertexBuffer), ElementBuffer(InElementBuffer),
-      AutoDestroyBuffers(InAutoDestroyBuffers), VertexCount(InVertexCount), ElementCount(InElementCount)
+    CGLVertexArray::CGLVertexArray(const FANSIString& InName,
+                                   FGPUState* InGPUState,
+                                   const GLuint& InGLVAOHandle,
+                                   const EDrawMode& InDrawMode,
+                                   const u32& InVertexCount,
+                                   const u32& InElementCount,
+                                   CBuffer* InVertexBuffer,
+                                   CBuffer* InElementBuffer,
+                                   const bool& InAutoDestroyBuffers)
+    : CVertexArray(InName, InGPUState), GLVAOHandle(InGLVAOHandle), DrawMode(InDrawMode), VertexBuffer(InVertexBuffer),
+      ElementBuffer(InElementBuffer), AutoDestroyBuffers(InAutoDestroyBuffers), VertexCount(InVertexCount),
+      ElementCount(InElementCount)
     {
     }
 
@@ -139,7 +143,7 @@ namespace lucid::gpu
 
     void CGLVertexArray::Bind()
     {
-        gpu::Info.CurrentVAO = this;
+        GPUState->VAO = this;
         glBindVertexArray(GLVAOHandle);
     }
 

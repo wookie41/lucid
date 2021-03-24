@@ -1,25 +1,23 @@
 #include "scene/forward_renderer.hpp"
 
 #include "common/log.hpp"
+#include "common/collections.hpp"
+
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/shader.hpp"
 #include "devices/gpu/vao.hpp"
 #include "devices/gpu/texture.hpp"
-#include "scene/lights.hpp"
-
-#include "scene/renderable.hpp"
-#include "scene/blinn_phong_material.hpp"
-
 #include "devices/gpu/gpu.hpp"
-
 #include "devices/gpu/cubemap.hpp"
 #include "devices/gpu/viewport.hpp"
 
+#include "scene/lights.hpp"
+#include "scene/renderable.hpp"
+#include "scene/blinn_phong_material.hpp"
+#include "scene/camera.hpp"
+
 #include "misc/basic_shapes.hpp"
 #include "misc/math.hpp"
-
-#include "common/collections.hpp"
-#include "scene/camera.hpp"
 
 namespace lucid::scene
 {
@@ -73,6 +71,7 @@ namespace lucid::scene
     static const FString PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
 
     ForwardRenderer::ForwardRenderer(
+        gpu::FGPUState* InGPUState,
         const u32& InMaxNumOfDirectionalLights,
         const u8 InNumSSAOSamples,
         gpu::CShader* InDefaultRenderableShader,
@@ -80,7 +79,7 @@ namespace lucid::scene
         gpu::CShader* InSSAOShader,
         gpu::CShader* InSimpleBlurShader,
         gpu::CShader* InSkyboxShader)
-    : CRenderer(InDefaultRenderableShader),
+    : CRenderer(InGPUState, InDefaultRenderableShader),
         MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
         NumSSAOSamples(InNumSSAOSamples),
         PrepassShader(InPrepassShader),
@@ -93,17 +92,17 @@ namespace lucid::scene
     void ForwardRenderer::Setup()
     {
         // Create the framebuffers
-        PrepassFramebuffer = gpu::CreateFramebuffer();
-        LightingPassFramebuffer = gpu::CreateFramebuffer();
-        SSAOFramebuffer = gpu::CreateFramebuffer();
-        BlurFramebuffer = gpu::CreateFramebuffer();
+        PrepassFramebuffer = gpu::CreateFramebuffer(FString{ "PrepassFramebuffer" }, GPUState);
+        LightingPassFramebuffer = gpu::CreateFramebuffer(FString{ "LightingPassFramebuffer"}, GPUState);
+        SSAOFramebuffer = gpu::CreateFramebuffer(FString{ "SSAOFramebuffer"}, GPUState);
+        BlurFramebuffer = gpu::CreateFramebuffer(FString{ "BlueFramebuffer"}, GPUState);
 
         // Create a common depth-stencil attachment for both framebuffers
-        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize);
+        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize, FString{ "LightingPassRenderbuffer" }, GPUState);
 
         // Create render targets in which we'll store some additional information during the depth prepass
-        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGB16F, gpu::ETexturePixelFormat::RGB, 0);
-        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGB16F, gpu::ETexturePixelFormat::RGB, 0);
+        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGB16F, gpu::ETexturePixelFormat::RGB, 0, FString{ "CurrentFrameVSNormalMap" }, GPUState);
+        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGB16F, gpu::ETexturePixelFormat::RGB, 0, FString{ "CurrentFrameVSPositionMap" }, GPUState);
         
         // Setup the prepass framebuffer
         PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -128,13 +127,13 @@ namespace lucid::scene
         }
 
         // Create texture to store SSO result
-        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::R, gpu::ETexturePixelFormat::R, 0);
+        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::R, gpu::ETexturePixelFormat::R, 0, FString{ "SSAOResult" }, GPUState);
         SSAOResult->Bind();
         SSAOResult->SetMinFilter(gpu::MinTextureFilter::NEAREST);
         SSAOResult->SetMagFilter(gpu::MagTextureFilter::NEAREST);
 
         // Create texture for the blurred SSAO result
-        SSAOBlurred = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::R, gpu::ETexturePixelFormat::R, 0);
+        SSAOBlurred = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::R, gpu::ETexturePixelFormat::R, 0, FString{ "SSOBlurred" }, GPUState);
         SSAOBlurred->Bind();
         SSAOBlurred->SetMinFilter(gpu::MinTextureFilter::NEAREST);
         SSAOBlurred->SetMagFilter(gpu::MagTextureFilter::NEAREST);
@@ -150,7 +149,7 @@ namespace lucid::scene
         }
         
         // Create color attachment for the lighting pass framebuffer
-        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGBA, gpu::ETexturePixelFormat::RGBA, 0);
+        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGBA, gpu::ETexturePixelFormat::RGBA, 0, FString{ "LightingPassColorBuffer" }, GPUState);
 
         // Setup the lighting pass framebuffer
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -203,7 +202,7 @@ namespace lucid::scene
             Noise[i].y = Noise[i].y * 2.0 - 1.0;
         }
 
-        SSAONoise = gpu::Create2DTexture(Noise, 4, 4, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RG32F, gpu::ETexturePixelFormat::RG, 0);
+        SSAONoise = gpu::Create2DTexture(Noise, 4, 4, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RG32F, gpu::ETexturePixelFormat::RG, 0, FString{ "SSAONoise" }, GPUState);
         SSAONoise->Bind();
         SSAONoise->SetWrapSFilter(gpu::WrapTextureFilter::REPEAT);
         SSAONoise->SetWrapTFilter(gpu::WrapTextureFilter::REPEAT);
@@ -238,14 +237,14 @@ namespace lucid::scene
 
     void ForwardRenderer::RenderStaticGeometry(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
-        gpu::SetCullMode(gpu::CullMode::BACK);
+        gpu::SetCullMode(gpu::ECullMode::BACK);
 
         // Render with lights contribution, ie. update the lighting uniforms,
         // as the underlying shader will use them when rendering the geometry
 
         gpu::EnableBlending();
-        gpu::SetBlendFunctionSeparate(gpu::BlendFunction::ONE, gpu::BlendFunction::ZERO, gpu::BlendFunction::ONE,
-                                      gpu::BlendFunction::ZERO);
+        gpu::SetBlendFunctionSeparate(gpu::EBlendFunction::ONE, gpu::EBlendFunction::ZERO, gpu::EBlendFunction::ONE,
+                                      gpu::EBlendFunction::ZERO);
 
         const FLinkedListItem<CLight>* LightNode = &InScene->Lights.Head;
         if (!LightNode->Element)
@@ -263,7 +262,7 @@ namespace lucid::scene
         }
 
         // Change the blending mode so we render the rest of the lights additively
-        gpu::SetBlendFunction(gpu::BlendFunction::ONE, gpu::BlendFunction::ONE);
+        gpu::SetBlendFunction(gpu::EBlendFunction::ONE, gpu::EBlendFunction::ONE);
 
         LightNode = LightNode->Next;
         while (LightNode && LightNode->Element)
@@ -405,7 +404,7 @@ namespace lucid::scene
     {
         // Render the scene
         gpu::SetReadOnlyDepthBuffer(false);
-        gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
+        gpu::SetDepthTestFunction(gpu::EDepthTestFunction::LEQUAL);
 
         BindAndClearFramebuffer(PrepassFramebuffer);
         PrepassFramebuffer->SetupDrawBuffers();
@@ -438,26 +437,26 @@ namespace lucid::scene
         SSAOShader->SetFloat(SSAO_BIAS, SSAOBias);
         SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
 
-        gpu::DrawImmediateQuad({ 0, 0 } , SSAOResult->GetSize());
+        gpu::DrawImmediateQuad(GPUState, { 0, 0 } , SSAOResult->GetSize());
 
         // Blur SSAO
         BlurFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         BlurFramebuffer->SetupColorAttachment(0, SSAOBlurred);
-        gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
+        gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
 
         SimpleBlurShader->Use();
         SimpleBlurShader->UseTexture(SIMPLE_BLUR_TEXTURE, SSAOResult);
         SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_X, SimpleBlurXOffset);
         SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_Y, SimpleBlurYOffset);
 
-        gpu::DrawImmediateQuad({ 0, 0 } , SSAOResult->GetSize());        
+        gpu::DrawImmediateQuad(GPUState, { 0, 0 } , SSAOResult->GetSize());        
     }
 
     void ForwardRenderer::LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         gpu::EnableDepthTest();
         gpu::SetReadOnlyDepthBuffer(true);
-        gpu::SetDepthTestFunction(gpu::DepthTestFunction::LEQUAL);
+        gpu::SetDepthTestFunction(gpu::EDepthTestFunction::LEQUAL);
 
         BindAndClearFramebuffer(LightingPassFramebuffer);
         LightingPassFramebuffer->SetupDrawBuffers();
@@ -475,7 +474,7 @@ namespace lucid::scene
     void ForwardRenderer::BindAndClearFramebuffer(gpu::CFramebuffer* InFramebuffer)
     {
         InFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        gpu::ClearBuffers((gpu::ClearableBuffers)(gpu::ClearableBuffers::COLOR | gpu::ClearableBuffers::DEPTH));
+        gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
     }
 
     void ForwardRenderer::SetupRendererWideUniforms(gpu::CShader* InShader, const FRenderView* InRenderView)

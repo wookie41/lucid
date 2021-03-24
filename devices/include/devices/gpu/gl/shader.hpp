@@ -25,11 +25,12 @@ namespace lucid::gpu
     class CGLShader : public CShader
     {
       public:
-        CGLShader(const FANSIString& InName,
-                 const GLuint& GLShaderID,
+        CGLShader(const GLuint& GLShaderID,
                  FArray<FUniformVariable> UniformVariables,
                  FArray<FTextureBinding> TextureBindings,
-                 const bool& WarnMissingUniforms);
+                 const bool& WarnMissingUniforms,
+                 const FANSIString& InName,
+                 FGPUState* InGPUState);
 
         virtual void Use() override;
 

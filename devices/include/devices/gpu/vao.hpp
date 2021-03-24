@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+
+#include "gpu_object.hpp"
 #include "common/types.hpp"
 #include "common/collections.hpp"
 
@@ -37,9 +39,12 @@ namespace lucid::gpu
         PATCHES
     };
 
-    class CVertexArray
+    class CVertexArray : public CGPUObject
     {
       public:
+
+        CVertexArray(const FANSIString& InName, FGPUState* InGPUState) : CGPUObject(InName, InGPUState) {}
+        
         virtual void Bind() = 0;
         virtual void Unbind() = 0;
 
@@ -62,16 +67,17 @@ namespace lucid::gpu
                                    const u32& First = 0,
                                    const u32& Count = 0) = 0;
 
-        virtual void Free() = 0;
-
         virtual ~CVertexArray() = default;
     };
+    CVertexArray* CreateVertexArray(const FANSIString& InName,
+                                    FGPUState* InGPUState,
+                                    FArray<FVertexAttribute>* VertexArrayAttributes,
+                                    CBuffer* VertexBuffer,
+                                    CBuffer* ElementBuffer,
+                                    const EDrawMode& DrawMode,
+                                    const u32& VertexCount,
+                                    const u32& ElementCount,
+                                    const bool& AutoDestroyBuffers = true);
 
-    CVertexArray* CreateVertexArray(FArray<FVertexAttribute>* VertexArrayAttributes,
-                                   CBuffer* VertexBuffer,
-                                   CBuffer* ElementBuffer,
-                                   const EDrawMode& DrawMode,
-                                   const u32& VertexCount,
-                                   const u32& ElementCount,
-                                   const bool& AutoDestroyBuffers = true);
+
 } // namespace lucid::gpu
