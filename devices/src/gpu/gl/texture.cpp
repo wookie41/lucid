@@ -4,6 +4,8 @@
 
 #include <cassert>
 
+#include "devices/gpu/gl/common.hpp"
+
 namespace lucid::gpu
 {
     static GLenum GL_MIN_FILTERS_MAPPING[] = { GL_NEAREST,
@@ -88,17 +90,17 @@ namespace lucid::gpu
                               const ETextureDataFormat& InDataFormat,
                               const ETexturePixelFormat& InPixelFormat,
                               const int32_t& MipMapLevel,
-                              const FANSIString& InName,
-                              FGPUState* InGPUState)
+                              const FANSIString& InName)
     {
         const GLenum GLDataFormat = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
         const GLenum GLPixelFormat = TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
 
-        GLuint textureHandle =
-          CreateGLTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
-                          TO_GL_TEXTURE_DATA_TYPE(DataType), GLDataFormat, GLPixelFormat, Data);
+        GLuint textureHandle = CreateGLTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
+                                               TO_GL_TEXTURE_DATA_TYPE(DataType), GLDataFormat, GLPixelFormat, Data);
 
-        return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 }, InName, InGPUState);
+        auto* GLTexture = new CGLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 }, InName);
+        GLTexture->SetObjectName();
+        return GLTexture;
     }
 
     CTexture* CreateEmpty2DTexture(const uint32_t& Width,
@@ -107,91 +109,92 @@ namespace lucid::gpu
                                    const ETextureDataFormat& InDataFormat,
                                    const ETexturePixelFormat& InPixelFormat,
                                    const int32_t& MipMapLevel,
-                                   const FANSIString& InName,
-                                   FGPUState* InGPUState)
+                                   const FANSIString& InName)
     {
         const GLenum GLDataFormat = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
         const GLenum GLPixelFormat = TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
         GLuint textureHandle = CreateGLTexture(TextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 },
-                          TO_GL_TEXTURE_DATA_TYPE(DataType), GLDataFormat, GLPixelFormat, nullptr);
+                                               TO_GL_TEXTURE_DATA_TYPE(DataType), GLDataFormat, GLPixelFormat, nullptr);
 
-        return new GLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 }, InName, InGPUState);
+        auto* GLTexture = new CGLTexture(textureHandle, TextureType::TWO_DIMENSIONAL, { Width, Height, 0 }, InName);
+        GLTexture->SetObjectName();
+        return GLTexture;
     }
 
-    GLTexture::GLTexture(const GLuint& TextureID,
+    CGLTexture::CGLTexture(const GLuint& TextureID,
                          const TextureType& Type,
                          const glm::ivec3& Dimensions,
-                         const FANSIString& InName,
-                         FGPUState* InGPUState)
-    : GLTexture(TextureID, Dimensions, TO_GL_TEXTURE_TARGET(Type), InName, InGPUState)
+                         const FANSIString& InName)
+    : CGLTexture(TextureID, Dimensions, TO_GL_TEXTURE_TARGET(Type), InName)
     {
     }
 
-    GLTexture::GLTexture(const GLuint& TextureID,
+    CGLTexture::CGLTexture(const GLuint& TextureID,
                          const glm::ivec3& Dimensions,
                          const GLenum& TextureTaget,
-                         const FANSIString& InName,
-                         FGPUState* InGPUState)
-    : CTexture(InName, InGPUState), glTextureHandle(TextureID), glTextureTarget(TextureTaget), dimensions(Dimensions)
+                         const FANSIString& InName)
+    : CTexture(InName), glTextureHandle(TextureID), glTextureTarget(TextureTaget), dimensions(Dimensions)
     {
     }
 
-        glm::ivec3 GLTexture::GetDimensions() const { return dimensions; }
+    void CGLTexture::SetObjectName() { SetGLObjectName(GL_TEXTURE, glTextureHandle, Name); }
 
-    void GLTexture::Bind()
+    glm::ivec3 CGLTexture::GetDimensions() const { return dimensions; }
+
+    void CGLTexture::Bind()
     {
         GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] = this;
         glBindTexture(glTextureTarget, glTextureHandle);
     }
 
-    void GLTexture::Free() { glDeleteTextures(1, &glTextureHandle); }
+    void CGLTexture::Free() { glDeleteTextures(1, &glTextureHandle); }
 
-    void GLTexture::SetMinFilter(const MinTextureFilter& Filter)
+    void CGLTexture::SetMinFilter(const MinTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(glTextureTarget, GL_TEXTURE_MIN_FILTER, TO_GL_MIN_FILTER(Filter));
     }
 
-    void GLTexture::SetMagFilter(const MagTextureFilter& Filter)
+    void CGLTexture::SetMagFilter(const MagTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(glTextureTarget, GL_TEXTURE_MAG_FILTER, TO_GL_MAG_FILTER(Filter));
     }
 
-    void GLTexture::SetWrapSFilter(const WrapTextureFilter& Filter)
+    void CGLTexture::SetWrapSFilter(const WrapTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(glTextureTarget, GL_TEXTURE_WRAP_S, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void GLTexture::SetWrapTFilter(const WrapTextureFilter& Filter)
+    void CGLTexture::SetWrapTFilter(const WrapTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(glTextureTarget, GL_TEXTURE_WRAP_T, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void GLTexture::SetWrapRFilter(const WrapTextureFilter& Filter)
+    void CGLTexture::SetWrapRFilter(const WrapTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(glTextureTarget, GL_TEXTURE_WRAP_R, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void GLTexture::AttachAsColor(const uint8_t& Index)
+    void CGLTexture::AttachAsColor(const uint8_t& Index)
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Index, glTextureTarget, glTextureHandle, 0);
     }
 
-    void GLTexture::AttachAsStencil()
+    void CGLTexture::AttachAsStencil()
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, glTextureTarget, glTextureHandle, 0);
     }
 
-    void GLTexture::AttachAsDepth()
+    void CGLTexture::AttachAsDepth()
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, glTextureTarget, glTextureHandle, 0);
     }
 
-    void GLTexture::AttachAsStencilDepth()
+    void CGLTexture::AttachAsStencilDepth()
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, glTextureHandle, 0);
     };
@@ -205,8 +208,7 @@ namespace lucid::gpu
                             ETexturePixelFormat InPixelFormat,
                             ETextureDataType DataType,
                             const char* FacesData[6],
-                            const FANSIString& InName,
-                            FGPUState* InGPUState)
+                            const FANSIString& InName)
     {
         GLuint handle;
         glGenTextures(1, &handle);
@@ -227,10 +229,15 @@ namespace lucid::gpu
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-        return new CGLCubemap(handle, Size, InName, InGPUState);
+        auto* GLCubemap = new CGLCubemap(handle, Size, InName);
+        GLCubemap->SetObjectName();
+        return GLCubemap;
     }
 
-    CGLCubemap::CGLCubemap(const GLuint& Handle, const glm::ivec2& Size, const FANSIString& InName, FGPUState* InGPUState) : CCubemap(InName, InGPUState), glCubemapHandle(Handle), size(Size) {}
+    CGLCubemap::CGLCubemap(const GLuint& Handle, const glm::ivec2& Size, const FANSIString& InName)
+    : CCubemap(InName), glCubemapHandle(Handle), size(Size)
+    {
+    }
 
     void CGLCubemap::AttachAsColor(const uint8_t& Index)
     {
@@ -255,6 +262,8 @@ namespace lucid::gpu
     }
 
     glm::ivec3 CGLCubemap::GetDimensions() const { return { size.x, size.y, 0 }; }
+
+    void CGLCubemap::SetObjectName() { SetGLObjectName(GL_TEXTURE, glCubemapHandle, Name); }
 
     glm::ivec2 CGLCubemap::GetSize() const { return size; }
 

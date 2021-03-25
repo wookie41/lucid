@@ -8,7 +8,7 @@ namespace lucid::gpu
     {
       public:
 
-        CCubemap(const FANSIString& InName, FGPUState* InGPUState) : CTexture(InName, InGPUState) {}
+        explicit CCubemap(const FANSIString& InName) : CTexture(InName) {}
 
         enum class EFace : u8
         {
@@ -30,7 +30,6 @@ namespace lucid::gpu
                             ETexturePixelFormat InPixelFormat,
                             ETextureDataType DataType,
                             const char* FacesData[6],
-                            const FANSIString& InName,
-                            FGPUState* InGPUState);
+                            const FANSIString& InName);
 
 } // namespace lucid::gpu

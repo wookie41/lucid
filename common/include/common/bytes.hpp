@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-#include "string.h"
 #include "types.hpp"
 
 namespace lucid

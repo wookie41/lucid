@@ -21,7 +21,7 @@ namespace lucid::gpu
 
         friend class ShaderManager;
 
-        explicit CShader(const FANSIString& InName, FGPUState* InGPUState) : CGPUObject(InName, InGPUState) {}
+        explicit CShader(const FANSIString& InName) : CGPUObject(InName) {}
 
         virtual void Use() = 0;
         virtual void Disable() = 0;
@@ -64,7 +64,6 @@ namespace lucid::gpu
         const FANSIString& InVertexShaderSource,
         const FANSIString& InFragementShaderSource,
         const FANSIString& InGeometryShaderSource,
-        const bool& InWarnMissingUniforms,
-        FGPUState* InGPUState);
+        const bool& InWarnMissingUniforms);
 
 } // namespace lucid::gpu

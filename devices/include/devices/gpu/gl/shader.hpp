@@ -29,9 +29,10 @@ namespace lucid::gpu
                  FArray<FUniformVariable> UniformVariables,
                  FArray<FTextureBinding> TextureBindings,
                  const bool& WarnMissingUniforms,
-                 const FANSIString& InName,
-                 FGPUState* InGPUState);
+                 const FANSIString& InName);
 
+        void SetObjectName() override;
+        
         virtual void Use() override;
 
         virtual void SetupBuffersBindings() override;

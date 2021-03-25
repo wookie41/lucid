@@ -8,10 +8,12 @@ namespace lucid::gpu
     class CGLBuffer : public CBuffer
     {
       public:
-        CGLBuffer(const GLuint& BufferHandle, const FBufferDescription& Description, const bool& IsImmutable, const FANSIString& InName, FGPUState* InGPUState);
+        CGLBuffer(const GLuint& BufferHandle, const FBufferDescription& Description, const bool& IsImmutable, const FANSIString& InName);
 
         virtual uint32_t GetSize() const override;
 
+        virtual void SetObjectName() override;
+        
         virtual void Bind(const EBufferBindPoint& BindPoint) override;
         virtual void BindIndexed(const uint32_t& Index, const EBufferBindPoint& BindPoint) override;
 

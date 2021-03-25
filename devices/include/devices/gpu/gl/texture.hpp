@@ -5,23 +5,23 @@
 
 namespace lucid::gpu
 {
-    class GLTexture : public CTexture
+    class CGLTexture : public CTexture
     {
       public:
-        GLTexture(const GLuint& InTextureID,
+        CGLTexture(const GLuint& InTextureID,
                   const TextureType& InType,
                   const glm::ivec3& InTextureDimensions,
-                  const FANSIString& InName,
-                  FGPUState* InGPUState);
+                  const FANSIString& InName);
 
     protected:
-        GLTexture(const GLuint& TextureID,
+        CGLTexture(const GLuint& TextureID,
                   const glm::ivec3& Dimensions,
                   const GLenum& TextureTaget,
-                  const FANSIString& InName,
-                  FGPUState* InGPUState);
+                  const FANSIString& InName);
     public:
         // Texture methods //
+
+        virtual void SetObjectName() override;
 
         virtual glm::ivec3 GetDimensions() const override;
 
@@ -47,7 +47,7 @@ namespace lucid::gpu
         ///////////////////////////
 
         virtual void Free() override;
-        virtual ~GLTexture() = default;
+        virtual ~CGLTexture() = default;
 
       private:
         glm::ivec3 dimensions;

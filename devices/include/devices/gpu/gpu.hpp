@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-#include <assimp/material.h>
 #include <glm/vec2.hpp>
 
 #include "common/types.hpp"
@@ -165,7 +163,8 @@ namespace lucid::gpu
     //     Immediate drawing           //
     /////////////////////////////////////
 
-    void DrawImmediateQuad(FGPUState* InGPUState, const glm::vec2& InPosition, const glm::vec2& InSize);
+    void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize);
 
     extern FGPUInfo Info;
+    inline thread_local FGPUState* GPUState;
 } // namespace lucid::gpu

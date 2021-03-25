@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/strings.hpp"
 #include "GL/glew.h"
 #include "common/types.hpp"
 
@@ -40,4 +41,6 @@ namespace lucid
     }
 
     EType ToLucidDataType(GLenum InGLType);
+
+    void SetGLObjectName(GLenum InIdentifier, GLuint InGLName, const FANSIString& InName);
 } // namespace lucid

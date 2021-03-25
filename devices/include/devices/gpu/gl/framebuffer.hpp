@@ -9,11 +9,16 @@ namespace lucid::gpu
     class CGLRenderbuffer : public CRenderbuffer
     {
       public:
-        CGLRenderbuffer(const GLuint& GLRBOHandle, const ERenderbufferFormat& InFormat, const glm::ivec2& Size, const FANSIString& InName, FGPUState* InGPUState);
+        CGLRenderbuffer(const GLuint& GLRBOHandle,
+                        const ERenderbufferFormat& InFormat,
+                        const glm::ivec2& Size,
+                        const FANSIString& InName);
+
+        void SetObjectName() override;
 
         virtual void Bind() override;
 
-        virtual glm::ivec2 GetSize() const override{ return size; };
+        virtual glm::ivec2 GetSize() const override { return size; };
 
         virtual void AttachAsColor(const u8& Index) override;
         virtual void AttachAsStencil() override;
@@ -24,17 +29,18 @@ namespace lucid::gpu
         virtual ~CGLRenderbuffer() = default;
 
       private:
-
         ERenderbufferFormat Format;
         glm::ivec2 size;
         GLuint glRBOHandle;
     };
 
-    class GLDefaultFramebuffer : public CFramebuffer
+    class CGLDefaultFramebuffer : public CFramebuffer
     {
-    public:
-        GLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight, FGPUState* InGPUState);
+      public:
+        CGLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight);
 
+        void SetObjectName() override;
+      
         virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const override;
 
         virtual bool IsComplete() override;
@@ -50,8 +56,9 @@ namespace lucid::gpu
         virtual void SetupDepthStencilAttachment(CFramebufferAttachment* AttachmentToUse) override;
         virtual void Free() override;
 
-        virtual ~GLDefaultFramebuffer() = default;
-    private:
+        virtual ~CGLDefaultFramebuffer() = default;
+
+      private:
         u16 WindowWidth;
         u16 WindowHeight;
     };
@@ -59,7 +66,9 @@ namespace lucid::gpu
     class CGLFramebuffer : public CFramebuffer
     {
       public:
-        explicit CGLFramebuffer(const GLuint& GLFBOHandle, const FANSIString& InName, FGPUState* InGPUState);
+        CGLFramebuffer(const GLuint& GLFBOHandle, const FANSIString& InName);
+
+        void SetObjectName() override;
 
         virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const override
         {

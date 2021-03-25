@@ -3,6 +3,8 @@
 
 #include <cassert>
 
+#include "devices/gpu/gl/common.hpp"
+
 #define NO_COHERENT_OR_PERSISTENT_BIT_SET(FLAGS) \
     (((FLAGS & (u16)EBufferAccessPolicy::BUFFER_COHERENT) | (FLAGS & (u16)EBufferAccessPolicy::BUFFER_PERSISTENT)) == 0)
 
@@ -54,13 +56,17 @@ namespace lucid::gpu
     CGLBuffer::CGLBuffer(const GLuint& BufferHandle,
                          const FBufferDescription& Description,
                          const bool& IsImmutable,
-                         const FANSIString& InName,
-                         FGPUState* InGPUState)
-    : CBuffer(InName, InGPUState), glBufferHandle(BufferHandle), description(Description), isImmutable(IsImmutable)
+                         const FANSIString& InName)
+    : CBuffer(InName), glBufferHandle(BufferHandle), description(Description), isImmutable(IsImmutable)
     {
     }
 
     uint32_t CGLBuffer::GetSize() const { return description.size; }
+
+    void CGLBuffer::SetObjectName()
+    {
+        SetGLObjectName(GL_BUFFER, glBufferHandle, Name);
+    }
 
     void CGLBuffer::Bind(const EBufferBindPoint& BindPoint)
     {
@@ -186,7 +192,7 @@ namespace lucid::gpu
         glDeleteBuffers(1, &glBufferHandle);
     }
 
-    CBuffer* CreateBuffer(const FBufferDescription& Description, const EBufferUsage& Usage, const FANSIString& InName, FGPUState* InGPUState)
+    CBuffer* CreateBuffer(const FBufferDescription& Description, const EBufferUsage& Usage, const FANSIString& InName)
     {
         GLuint bufferHandle;
 
@@ -195,7 +201,9 @@ namespace lucid::gpu
         glBufferData(GL_COPY_WRITE_BUFFER, Description.size, Description.data, GL_MUTABLE_USAGE_HINTS[(u16)Usage]);
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
-        return new CGLBuffer(bufferHandle, Description, false, InName, InGPUState);
+        auto* GLBuffer = new CGLBuffer(bufferHandle, Description, false, InName);
+        GLBuffer->SetObjectName();
+        return GLBuffer;
     };
 
     CBuffer* CreateImmutableBuffer(const FBufferDescription& Description, const EImmutableBufferUsage& ImmutableBufferUsage, const FANSIString& InName, FGPUState* InGPUState)
@@ -208,6 +216,8 @@ namespace lucid::gpu
                         calculateImmutableAccessBits(ImmutableBufferUsage));
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
-        return new CGLBuffer(bufferHandle, Description, true, InName, InGPUState);
+        auto* GLBuffer = new CGLBuffer(bufferHandle, Description, true, InName);
+        GLBuffer->SetObjectName();
+        return GLBuffer;
     };
 } // namespace lucid::gpu

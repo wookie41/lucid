@@ -142,12 +142,12 @@ namespace lucid::gpu
     static const FString QUAD_POSITION ("uQuadPosition");
     static const FString QUAD_SIZE ("uQuadSize");
     
-    void DrawImmediateQuad(FGPUState* InGPUState, const glm::vec2& InPosition, const glm::vec2& InSize)
+    void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize)
     {
-        assert(InGPUState->Shader);
+        assert(GPUState->Shader);
         misc::QuadVertexArray->Bind();
-        InGPUState->Shader->SetVector(QUAD_POSITION, InPosition);
-        InGPUState->Shader->SetVector(QUAD_SIZE, InSize);
+        GPUState->Shader->SetVector(QUAD_POSITION, InPosition);
+        GPUState->Shader->SetVector(QUAD_SIZE, InSize);
         misc::QuadVertexArray->Draw();
     }
     

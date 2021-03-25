@@ -19,7 +19,7 @@ namespace lucid::scene
         gpu::CCubemap* SkyboxCubemap = nullptr;
     };
 
-    FSkybox CreateSkybox(const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName, gpu::FGPUState* InGPUState);
+    FSkybox CreateSkybox(const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName);
 
     /*
     * The RenderScene contains things like objects to render, lights, fog voluems

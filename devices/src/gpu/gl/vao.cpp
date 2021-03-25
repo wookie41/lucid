@@ -23,7 +23,6 @@ GLenum GL_DRAW_MODES[] = { GL_POINTS,
 namespace lucid::gpu
 {
     CVertexArray* CreateVertexArray(const FANSIString& InName,
-                                    FGPUState* InGPUState,
                                     FArray<FVertexAttribute>* VertexArrayAttributes,
                                     CBuffer* VertexBuffer,
                                     CBuffer* ElementBuffer,
@@ -36,7 +35,7 @@ namespace lucid::gpu
 
         glGenVertexArrays(1, &VAO);
 
-        CVertexArray* vertexArray = new CGLVertexArray(InName, InGPUState, VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
+        CVertexArray* vertexArray = new CGLVertexArray(InName, VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
         vertexArray->Bind();
 
         VertexBuffer->Bind(EBufferBindPoint::VERTEX);
@@ -71,6 +70,7 @@ namespace lucid::gpu
         vertexArray->Unbind();
         glBindVertexArray(0);
 
+        vertexArray->SetObjectName();
         return vertexArray;
     }
 
@@ -108,7 +108,6 @@ namespace lucid::gpu
 #pragma GCC diagnostic pop
 
     CGLVertexArray::CGLVertexArray(const FANSIString& InName,
-                                   FGPUState* InGPUState,
                                    const GLuint& InGLVAOHandle,
                                    const EDrawMode& InDrawMode,
                                    const u32& InVertexCount,
@@ -116,10 +115,15 @@ namespace lucid::gpu
                                    CBuffer* InVertexBuffer,
                                    CBuffer* InElementBuffer,
                                    const bool& InAutoDestroyBuffers)
-    : CVertexArray(InName, InGPUState), GLVAOHandle(InGLVAOHandle), DrawMode(InDrawMode), VertexBuffer(InVertexBuffer),
+    : CVertexArray(InName), GLVAOHandle(InGLVAOHandle), DrawMode(InDrawMode), VertexBuffer(InVertexBuffer),
       ElementBuffer(InElementBuffer), AutoDestroyBuffers(InAutoDestroyBuffers), VertexCount(InVertexCount),
       ElementCount(InElementCount)
     {
+    }
+
+    void CGLVertexArray::SetObjectName()
+    {
+        SetGLObjectName(GL_VERTEX_ARRAY, GLVAOHandle, Name);
     }
 
     void CGLVertexArray::Free()

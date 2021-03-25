@@ -5,12 +5,15 @@
 #include "GL/glew.h"
 
 #include <cassert>
+#include <thread>
+
 
 #include "common/log.hpp"
 
 namespace lucid::gpu
 {
     FGPUInfo Info;
+    // thread_local FGPUState* GPUState;
 
     void InitGPUInfo();
 

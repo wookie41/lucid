@@ -1,9 +1,5 @@
 #include "common/bytes.hpp"
 
-#include <stdlib.h>
-
-#include "devices/gpu/buffer.hpp"
-
 namespace lucid
 {
     void* CopyBytes(const char* InToCopy, const u64& InCount, const u64& BufferSize)

@@ -135,7 +135,7 @@ namespace lucid::scene
 
     // If CastsShadow = true, then this function will generate a shadow map for the light
     // if it's false, then the width and height parameters can be anything, but for you should make them 0 for clarity
-    CDirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize, gpu::FGPUState* InGPUState);
-    CSpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize, gpu::FGPUState* InGPUState);
-    CPointLight CreatePointLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize, gpu::FGPUState* InGPUState);
+    CDirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
+    CSpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
+    CPointLight CreatePointLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize);
 } // namespace lucid::scene

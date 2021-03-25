@@ -29,4 +29,9 @@ namespace lucid
         }
         return EType::UNSUPPORTED;
     }
+
+    void SetGLObjectName(GLenum InIdentifier, GLuint InGLName, const FANSIString& InName)
+    {
+        glObjectLabel(InIdentifier, InGLName, InName.GetLength(), *InName);
+    }
 }

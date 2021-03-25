@@ -26,8 +26,7 @@ namespace lucid::scene
     {
       public:
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
-        ForwardRenderer(gpu::FGPUState* InGPUState,
-                        const u32& InMaxNumOfDirectionalLights,
+        ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
                         const u8 InNumSSAOSamples,
                         gpu::CShader* InDefaultRenderableShader,
                         gpu::CShader* InPrepassShader,

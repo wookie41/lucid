@@ -51,7 +51,7 @@ namespace lucid::gpu
     class CBuffer : public CGPUObject
     {
       public:
-        CBuffer(const FANSIString& InName, FGPUState* InGPUState) : CGPUObject(InName, InGPUState) {}
+        CBuffer(const FANSIString& InName) : CGPUObject(InName) {}
 
         virtual uint32_t GetSize() const = 0;
 
@@ -73,11 +73,9 @@ namespace lucid::gpu
 
     CBuffer* CreateBuffer(const FBufferDescription& Description,
                           const EBufferUsage& Usage,
-                          const FANSIString& InName,
-                          FGPUState* InGPUState);
+                          const FANSIString& InName);
 
     CBuffer* CreateImmutableBuffer(const FBufferDescription& Description,
                                    const EImmutableBufferUsage& ImmutableBufferUsage,
-                                   const FANSIString& InName,
-                                   FGPUState* InGPUState);
+                                   const FANSIString& InName);
 } // namespace lucid::gpu

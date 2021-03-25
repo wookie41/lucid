@@ -9,10 +9,11 @@ namespace lucid::gpu
     {
       public:
 
-        explicit CGLCubemap(const GLuint& Handle, const glm::ivec2& Size, const FANSIString& InName, FGPUState* InGPUState);
+        explicit CGLCubemap(const GLuint& Handle, const glm::ivec2& Size, const FANSIString& InName);
+        
+        virtual void SetObjectName() override;
 
-        // Framebuffer attachment interface
-
+        // Framebuffer attachment interface        
         virtual glm::ivec2 GetSize() const override;
 
         virtual void AttachAsColor(const u8& Index) override;

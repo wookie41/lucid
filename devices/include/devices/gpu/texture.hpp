@@ -75,7 +75,7 @@ namespace lucid::gpu
     {
       public:
 
-        CTexture(const FANSIString& InName, FGPUState* InGPUState) : CGPUObject(InName, InGPUState) {}
+        explicit CTexture(const FANSIString& InName) : CGPUObject(InName) {}
         
         virtual void Bind() = 0;
         virtual glm::ivec3 GetDimensions() const = 0;
@@ -96,8 +96,7 @@ namespace lucid::gpu
                               const ETextureDataFormat& InDataFormat,
                               const ETexturePixelFormat& InPixelFormat,
                               const int32_t& MipMapLevel,
-                              const FANSIString& InName,
-                              FGPUState* InGPUState);
+                              const FANSIString& InName);
 
     CTexture* CreateEmpty2DTexture(const uint32_t& Width,
                                    const uint32_t& Height,
@@ -105,7 +104,6 @@ namespace lucid::gpu
                                    const ETextureDataFormat& InDataFormat,
                                    const ETexturePixelFormat& InPixelFormat,
                                    const int32_t& MipMapLevel,
-                                   const FANSIString& InName,
-                                   FGPUState* InGPUState);
+                                   const FANSIString& InName);
 
 } // namespace lucid::gpu

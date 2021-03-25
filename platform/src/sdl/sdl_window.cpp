@@ -46,21 +46,25 @@ namespace lucid::platform
     SDLWindow::SDLWindow(SDL_Window* InWindow, SDL_GLContext InContext, const u16& InWidth, const u16& InHeight)
     : MySDLWindow(InWindow), MyGLContext(InContext), Width(InWidth), Height(InHeight), AspectRatio((float)InWidth / (float)InHeight)
     {
-        WindowFramebuffer = new gpu::GLDefaultFramebuffer{ InWidth, InHeight, &GPUState };
+        WindowFramebuffer = new gpu::CGLDefaultFramebuffer{ InWidth, InHeight };
     }
 
     void SDLWindow::Init()
     {
-        GPUState.BoundTextures = new gpu::CTexture*[gpu::Info.MaxTextureUnits];
+        GPUStateForMyContext.BoundTextures = new gpu::CTexture*[gpu::Info.MaxTextureUnits];
         for (int i = 0; i < gpu::Info.MaxTextureUnits; ++i)
         {
-            GPUState.BoundTextures[i] = nullptr;
+            GPUStateForMyContext.BoundTextures[i] = nullptr;
         }
     }
 
     void SDLWindow::Swap() { SDL_GL_SwapWindow(MySDLWindow); }
 
-    void SDLWindow::Prepare() { SDL_GL_MakeCurrent(MySDLWindow, MyGLContext); }
+    void SDLWindow::Prepare()
+    {
+        gpu::GPUState = &GPUStateForMyContext; 
+        SDL_GL_MakeCurrent(MySDLWindow, MyGLContext);
+    }
 
     u16 SDLWindow::GetWidth() const { return Width; }
 

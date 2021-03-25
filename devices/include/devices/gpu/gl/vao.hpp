@@ -9,7 +9,6 @@ namespace lucid::gpu
     {
       public:
         CGLVertexArray(const FANSIString& InName,
-                       FGPUState* InGPUState,
                        const GLuint& InGLVAOHandle,
                        const EDrawMode& InDrawMode,
                        const uint32_t& InVertexCount,
@@ -18,6 +17,8 @@ namespace lucid::gpu
                        CBuffer* InElementBuffer,
                        const bool& InAutoDestroyBuffers);
 
+        void SetObjectName() override;
+        
         virtual void Bind() override;
         virtual void Unbind() override;
 

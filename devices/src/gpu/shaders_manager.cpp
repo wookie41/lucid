@@ -18,7 +18,6 @@ namespace lucid::gpu
                                           const FANSIString& VertexShaderPath,
                                           const FANSIString& FragmentShaderPath,
                                           const FANSIString& GeometryShaderPath,
-                                          FGPUState* InGPUState,
                                           const bool& ShouldStoreShader)
     {
         FDString VertexShaderSource = platform::ReadFile(VertexShaderPath, true);
@@ -59,8 +58,7 @@ namespace lucid::gpu
             VertexShaderSource,
             FragmentShaderSource,
             GeometryShaderSource,
-            false,
-            InGPUState
+            false
         );
         
         if (CompiledShader == nullptr)

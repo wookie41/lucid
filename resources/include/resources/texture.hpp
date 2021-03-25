@@ -6,7 +6,7 @@
 
 namespace lucid::resources
 {
-    void InitTextures(gpu::FGPUState* InGPUState);
+    void InitTextures();
 
     class CTextureResource : public CResource
     {
@@ -33,14 +33,14 @@ namespace lucid::resources
                                const gpu::ETextureDataType& InDataType,
                                const bool& InFlipY,
                                const bool& InSendToGPU,
-                               const FANSIString& InName,
-                               gpu::FGPUState* InGPUState);
+                               const FANSIString& InName);
 
     CTextureResource* LoadPNG(const FANSIString& InPath,
                               const bool& InPerformGammaCorrection,
                               const gpu::ETextureDataType& InDataType,
                               const bool& InFlipY,
-                              const bool& InSendToGPU,const FANSIString& InName, gpu::FGPUState* InGPUState);
+                              const bool& InSendToGPU
+                              ,const FANSIString& InName);
 
     extern CResourcesHolder<CTextureResource> TexturesHolder;
 } // namespace lucid::resources

@@ -76,8 +76,7 @@ namespace lucid::gpu
         const FANSIString& InVertexShaderSource,
         const FANSIString& InFragementShaderSource,
         const FANSIString& InGeometryShaderSource,
-        const bool& InWarnMissingUniforms,
-        FGPUState* InGPUState)
+        const bool& InWarnMissingUniforms)
     {
         GLuint ShaderProgramID = glCreateProgram();
         GLuint VertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -178,19 +177,25 @@ namespace lucid::gpu
         textureBindings.Free();
         textureBindings = tmpBindings;
 
-        return new CGLShader(ShaderProgramID, uniformVariables, textureBindings, InWarnMissingUniforms, InShaderName, InGPUState);
+        auto* GLShader = new CGLShader(ShaderProgramID, uniformVariables, textureBindings, InWarnMissingUniforms, InShaderName);
+        GLShader->SetObjectName();
+        return GLShader;
     }
 
     CGLShader::CGLShader(const GLuint& GLShaderID,
                          FArray<FUniformVariable> UniformVariables,
                          FArray<FTextureBinding> TextureBindings,
                          const bool& WarnMissingUniforms,
-                         const FANSIString& InShaderName,
-                         FGPUState* InGPUState)
-    : CShader(InShaderName, InGPUState), glShaderID(GLShaderID), uniformVariables(UniformVariables),
+                         const FANSIString& InShaderName)
+    : CShader(InShaderName), glShaderID(GLShaderID), uniformVariables(UniformVariables),
       textureBindings(TextureBindings), warnMissingUniforms(WarnMissingUniforms)
 
     {
+    }
+
+    void CGLShader::SetObjectName()
+    {
+        SetGLObjectName(GL_PROGRAM, glShaderID, Name);
     }
 
     void CGLShader::Use()
