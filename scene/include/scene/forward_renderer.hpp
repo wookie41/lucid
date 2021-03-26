@@ -2,6 +2,8 @@
 
 #include <glm/vec2.hpp>
 
+
+#include "devices/gpu/gpu.hpp"
 #include "scene/renderer.hpp"
 
 namespace lucid::resources
@@ -64,6 +66,13 @@ namespace lucid::scene
 
         u32 MaxNumOfDirectionalLights;
 
+        /** Preconfigured pipeline states */
+        gpu::FPipelineState PrepassPipelineState;
+        gpu::FPipelineState InitialLightLightpassPipelineState;
+        gpu::FPipelineState LightpassPipelineState;
+        gpu::FPipelineState SkyboxPipelineState;
+
+        
         /** Skybox Shader */
         gpu::CShader* SkyboxShader;
 

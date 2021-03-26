@@ -25,6 +25,8 @@ namespace lucid::scene
     static const FString LIGHT_SPACE_MATRIX_4{ "uLightSpaceMatrices[4]" };
     static const FString LIGHT_SPACE_MATRIX_5{ "uLightSpaceMatrices[5]" };
 
+    static gpu::FPipelineState ShadowMapGenerationPipelineState;
+    
     // Shoule be tweakable based on game's graphics settings
     struct OrthoMatrixLightSettings
     {
@@ -108,10 +110,17 @@ namespace lucid::scene
     {
         assert(ShadowMap);
 
-        gpu::EnableDepthTest();
-        gpu::SetDepthTestFunction(gpu::EDepthTestFunction::LEQUAL);
+        ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor { 0 };
+        ShadowMapGenerationPipelineState.ClearDepthBufferValue = 0;
+        ShadowMapGenerationPipelineState.IsDepthTestEnabled = true;
+        ShadowMapGenerationPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
+        ShadowMapGenerationPipelineState.IsBlendingEnabled = false;
+        ShadowMapGenerationPipelineState.IsCullingEnabled = false;
+        ShadowMapGenerationPipelineState.IsSRGBFramebufferEnabled = true;
+        ShadowMapGenerationPipelineState.IsDepthBufferReadOnly = false;      
+        ShadowMapGenerationPipelineState.Viewport = { 0, 0, (u32)ShadowMap->GetSize().x, (u32)ShadowMap->GetSize().y };
 
-        gpu::DisableBlending();
+        gpu::ConfigurePipelineState(ShadowMapGenerationPipelineState);
 
         TargetFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         TargetFramebuffer->SetupDepthAttachment(ShadowMap);
@@ -122,11 +131,6 @@ namespace lucid::scene
         }
 
         TargetFramebuffer->DisableReadWriteBuffers();
-
-        gpu::SetViewport({ 0, 0, (u32)ShadowMap->GetSize().x, (u32)ShadowMap->GetSize().y });
-
-        // gpu::SetCullMode(gpu::CullMode::FRONT);
-        gpu::DisableCullFace();
 
         if (RenderStaticGeometry)
         {

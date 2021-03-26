@@ -39,7 +39,7 @@ int main(int argc, char** argv)
         return -1;
     }
     // create window
-    platform::CWindow* window = platform::CreateWindow({ "Lucid", 900, 420, 1280, 720, true });
+    platform::CWindow* window = platform::CreateWindow({ "Lucid", 100, 100, 1280, 720, true });
     window->Prepare();
     window->Show();
 
@@ -306,7 +306,7 @@ int main(int argc, char** argv)
     scene::FRenderView RenderView;
     RenderView.Camera = &PerspectiveCamera;
     RenderView.Viewport = windowViewport;
-    
+
     while (isRunning)
     {
         platform::Update();

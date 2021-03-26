@@ -1,5 +1,8 @@
 #include "devices/gpu/gpu.hpp"
 
+#include <atlalloc.h>
+
+
 
 #include "devices/gpu/shader.hpp"
 #include "devices/gpu/vao.hpp"
@@ -141,7 +144,110 @@ namespace lucid::gpu
 
     static const FString QUAD_POSITION ("uQuadPosition");
     static const FString QUAD_SIZE ("uQuadSize");
-    
+
+    void ConfigurePipelineState(const FPipelineState& InPipelineState)
+    {
+        // Clear color
+        if (GPUState->PipelineState.ClearColorBufferColor != InPipelineState.ClearColorBufferColor)
+        {
+            SetClearColor(InPipelineState.ClearColorBufferColor);
+        }
+
+        // Depth value
+        if (GPUState->PipelineState.ClearDepthBufferValue != InPipelineState.ClearDepthBufferValue)
+        {
+            SetClearDepth(GPUState->PipelineState.ClearDepthBufferValue);
+        }
+
+        // Depth testing
+        if (GPUState->PipelineState.IsDepthTestEnabled != InPipelineState.IsDepthTestEnabled)
+        {
+            if (InPipelineState.IsDepthTestEnabled)
+            {
+                EnableDepthTest();
+                SetDepthTestFunction(InPipelineState.DepthTestFunction);
+            }
+            else
+            {
+                DisableDepthTest();
+            }
+        }
+        else if (InPipelineState.IsDepthTestEnabled && GPUState->PipelineState.DepthTestFunction != InPipelineState.DepthTestFunction)
+        {
+            SetDepthTestFunction(InPipelineState.DepthTestFunction);
+        }
+
+        // Alpha testing
+        if (GPUState->PipelineState.IsBlendingEnabled != InPipelineState.IsBlendingEnabled)
+        {
+            if (InPipelineState.IsBlendingEnabled)
+            {
+                EnableBlending();
+                SetBlendFunctionSeparate(
+                InPipelineState.BlendFunctionSrc, InPipelineState.BlendFunctionDst,
+                InPipelineState.BlendFunctionAlphaSrc, InPipelineState.BlendFunctionAlphaDst
+                );
+            }
+            else
+            {
+                DisableBlending();
+            }
+        }
+        else if (InPipelineState.IsBlendingEnabled)
+        {
+            EnableBlending();
+            SetBlendFunctionSeparate(
+            InPipelineState.BlendFunctionSrc, InPipelineState.BlendFunctionDst,
+            InPipelineState.BlendFunctionAlphaSrc, InPipelineState.BlendFunctionAlphaDst
+            );
+        }
+
+        // Culling
+        if (GPUState->PipelineState.IsCullingEnabled != InPipelineState.IsCullingEnabled)
+        {
+            if (InPipelineState.IsCullingEnabled)
+            {
+                EnableCullFace();
+                SetCullMode(InPipelineState.CullMode);
+            }
+            else
+            {
+                DisableCullFace();
+            }
+        }
+        else if (InPipelineState.IsCullingEnabled && GPUState->PipelineState.CullMode != InPipelineState.CullMode)
+        {
+            EnableCullFace();
+            SetCullMode(InPipelineState.CullMode);
+        }
+
+        // sRGB framebuffer support
+        if (GPUState->PipelineState.IsSRGBFramebufferEnabled != InPipelineState.IsSRGBFramebufferEnabled)
+        {
+            if (InPipelineState.IsCullingEnabled)
+            {
+                EnableSRGBFramebuffer();
+            }
+            else
+            {
+                DisableSRGBFramebuffer();
+            }
+        }
+
+        // Depth buffer read-only
+        if (GPUState->PipelineState.IsDepthBufferReadOnly != InPipelineState.IsDepthBufferReadOnly)
+        {
+            SetReadOnlyDepthBuffer(InPipelineState.IsDepthBufferReadOnly);
+        }
+
+        if (GPUState->PipelineState.Viewport != InPipelineState.Viewport)
+        {
+            SetViewport(InPipelineState.Viewport);
+        }
+        
+        GPUState->PipelineState = InPipelineState;
+    }
+
     void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize)
     {
         assert(GPUState->Shader);

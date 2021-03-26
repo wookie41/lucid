@@ -90,6 +90,42 @@ namespace lucid::scene
 
     void ForwardRenderer::Setup()
     {
+        // Prepare pipeline states
+        PrepassPipelineState.ClearColorBufferColor = FColor { 0 };
+        PrepassPipelineState.IsDepthTestEnabled = true;
+        PrepassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
+        PrepassPipelineState.IsBlendingEnabled = false;
+        PrepassPipelineState.IsCullingEnabled = true;
+        // @TODO
+        // PrepassPipelineState.IsCullingEnabled = false;
+        // PrepassPipelineState.CullMode = gpu::ECullMode::BACK;
+        PrepassPipelineState.IsSRGBFramebufferEnabled = true;
+        PrepassPipelineState.IsDepthBufferReadOnly = false;
+        PrepassPipelineState.ClearDepthBufferValue = 0.f;
+        
+        InitialLightLightpassPipelineState.ClearColorBufferColor = FColor { 0 };
+        InitialLightLightpassPipelineState.IsDepthTestEnabled = true;
+        InitialLightLightpassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::EQUAL;
+        InitialLightLightpassPipelineState.IsBlendingEnabled = true;
+        InitialLightLightpassPipelineState.BlendFunctionSrc = gpu::EBlendFunction::ONE;
+        InitialLightLightpassPipelineState.BlendFunctionDst = gpu::EBlendFunction::ZERO;
+        InitialLightLightpassPipelineState.BlendFunctionAlphaSrc = gpu::EBlendFunction::ONE;
+        InitialLightLightpassPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ZERO;
+        // @TODO
+        InitialLightLightpassPipelineState.IsCullingEnabled = false;
+        // InitialLightLightpassPipelineState.IsCullingEnabled = true;
+        // InitialLightLightpassPipelineState.CullMode = gpu::ECullMode::BACK;
+        InitialLightLightpassPipelineState.IsSRGBFramebufferEnabled = true;
+        InitialLightLightpassPipelineState.IsDepthBufferReadOnly = true;
+        InitialLightLightpassPipelineState.ClearDepthBufferValue = 0.f;
+
+        LightpassPipelineState = InitialLightLightpassPipelineState;
+        LightpassPipelineState.BlendFunctionDst = gpu::EBlendFunction::ONE;
+        LightpassPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ONE;
+
+        SkyboxPipelineState = LightpassPipelineState;
+        SkyboxPipelineState.IsBlendingEnabled = false;
+        
         // Create the framebuffers
         PrepassFramebuffer = gpu::CreateFramebuffer(FString{ "PrepassFramebuffer" });
         LightingPassFramebuffer = gpu::CreateFramebuffer(FString{ "LightingPassFramebuffer"});
@@ -226,8 +262,8 @@ namespace lucid::scene
 
     void ForwardRenderer::Render(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
-        gpu::EnableDepthTest();
-        gpu::DisableSRGBFramebuffer();
+        SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
+        
         gpu::SetViewport(InRenderView->Viewport);
 
         Prepass(InSceneToRender, InRenderView);
@@ -236,15 +272,8 @@ namespace lucid::scene
 
     void ForwardRenderer::RenderStaticGeometry(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
-        gpu::SetCullMode(gpu::ECullMode::BACK);
-
         // Render with lights contribution, ie. update the lighting uniforms,
         // as the underlying shader will use them when rendering the geometry
-
-        gpu::EnableBlending();
-        gpu::SetBlendFunctionSeparate(gpu::EBlendFunction::ONE, gpu::EBlendFunction::ZERO, gpu::EBlendFunction::ONE,
-                                      gpu::EBlendFunction::ZERO);
-
         const FLinkedListItem<CLight>* LightNode = &InScene->Lights.Head;
         if (!LightNode->Element)
         {
@@ -261,7 +290,7 @@ namespace lucid::scene
         }
 
         // Change the blending mode so we render the rest of the lights additively
-        gpu::SetBlendFunction(gpu::EBlendFunction::ONE, gpu::EBlendFunction::ONE);
+        gpu::ConfigurePipelineState(LightpassPipelineState);
 
         LightNode = LightNode->Next;
         while (LightNode && LightNode->Element)
@@ -402,8 +431,7 @@ namespace lucid::scene
     void ForwardRenderer::Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         // Render the scene
-        gpu::SetReadOnlyDepthBuffer(false);
-        gpu::SetDepthTestFunction(gpu::EDepthTestFunction::LEQUAL);
+        gpu::ConfigurePipelineState(PrepassPipelineState);
 
         BindAndClearFramebuffer(PrepassFramebuffer);
         PrepassFramebuffer->SetupDrawBuffers();
@@ -424,7 +452,7 @@ namespace lucid::scene
         }
 
          // Calculate SSAO
-        gpu::DisableDepthTest();
+        // gpu::DisableDepthTest();
         BindAndClearFramebuffer(SSAOFramebuffer);
         SSAOShader->Use();
         SetupRendererWideUniforms(SSAOShader, InRenderView);
@@ -453,9 +481,7 @@ namespace lucid::scene
 
     void ForwardRenderer::LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
-        gpu::EnableDepthTest();
-        gpu::SetReadOnlyDepthBuffer(true);
-        gpu::SetDepthTestFunction(gpu::EDepthTestFunction::LEQUAL);
+        gpu::ConfigurePipelineState(InitialLightLightpassPipelineState);
 
         BindAndClearFramebuffer(LightingPassFramebuffer);
         LightingPassFramebuffer->SetupDrawBuffers();
@@ -502,7 +528,7 @@ namespace lucid::scene
 
     inline void ForwardRenderer::RenderSkybox(const FSkybox* InSkybox, const FRenderView* InRenderView)
     {
-        gpu::DisableBlending();
+        gpu::ConfigurePipelineState(SkyboxPipelineState);
 
         SkyboxShader->Use();
 

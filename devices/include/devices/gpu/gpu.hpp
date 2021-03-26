@@ -2,6 +2,8 @@
 
 #include <glm/vec2.hpp>
 
+
+#include "viewport.hpp"
 #include "common/types.hpp"
 
 namespace lucid::gpu
@@ -118,6 +120,29 @@ namespace lucid::gpu
     class CBuffer;
     class CVertexArray;
     class CCubemap;
+
+    struct FPipelineState
+    {
+        FColor  ClearColorBufferColor   = {0, 0, 0, 1};
+        float   ClearDepthBufferValue   = 0;
+                
+        bool                IsDepthTestEnabled  = false;
+        EDepthTestFunction  DepthTestFunction   = EDepthTestFunction::LEQUAL;
+        
+        bool                IsBlendingEnabled = false;
+        EBlendFunction      BlendFunctionSrc;
+        EBlendFunction      BlendFunctionDst;
+        EBlendFunction      BlendFunctionAlphaSrc;
+        EBlendFunction      BlendFunctionAlphaDst;
+        
+        bool                IsCullingEnabled = false;
+        ECullMode           CullMode;
+        
+        bool                IsSRGBFramebufferEnabled = false;
+        bool                IsDepthBufferReadOnly = false;
+
+        FViewport           Viewport;
+    };
     
     struct FGPUState
     {
@@ -137,20 +162,10 @@ namespace lucid::gpu
         CBuffer*    WriteBuffer         = nullptr;
         CBuffer*    ShaderStorageBuffer = nullptr;
 
-        FColor  ClearColorBufferColor   = {0, 0, 0, 1};
-        float   ClearDepthBufferValue   = 0;
-        
-        bool                IsDepthTestEnabled  = false;
-        EDepthTestFunction  DepthTestFunction   = EDepthTestFunction::LEQUAL;
-
-        bool                IsBlendingEnabled = false;
-        EBlendFunction      BlendFunction;
-
-        bool                IsCullingEnabled = false;
-        ECullMode           CullMode;
-
-        bool                IsSRGBFramebufferEnabled;
+       FPipelineState PipelineState; 
     };
+
+    void ConfigurePipelineState(const FPipelineState& InPipelineState);
     
     struct FGPUInfo
     {
@@ -162,7 +177,7 @@ namespace lucid::gpu
     /////////////////////////////////////
     //     Immediate drawing           //
     /////////////////////////////////////
-
+    
     void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize);
 
     extern FGPUInfo Info;
