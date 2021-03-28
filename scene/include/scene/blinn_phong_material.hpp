@@ -2,6 +2,8 @@
 
 #include <glm/vec3.hpp>
 
+
+#include "common/strings.hpp"
 #include "scene/material.hpp"
 
 namespace lucid::resources

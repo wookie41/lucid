@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/strings.hpp"
-
 namespace lucid::gpu
 {
     class CShader;
@@ -10,19 +8,10 @@ namespace lucid::gpu
 
 namespace lucid::scene
 {
-
-    enum class EMaterialType : u8
-    {
-        OPAQUE,
-        TRANSLUCENT
-    };
-
     class CMaterial
     {
       public:
         explicit CMaterial(gpu::CShader* InCustomShader = nullptr) : CustomShader(InCustomShader) {}
-
-        inline EMaterialType GetMaterialType() const { return Type; }
 
         /*
          * Function responsible for sending material's properties to the shader as uniform variables
@@ -39,6 +28,5 @@ namespace lucid::scene
       protected:
 
         gpu::CShader* CustomShader;
-        EMaterialType Type;
     };
 } // namespace lucid::scene

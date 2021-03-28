@@ -188,7 +188,7 @@ namespace lucid::gpu
                          const bool& WarnMissingUniforms,
                          const FANSIString& InShaderName)
     : CShader(InShaderName), glShaderID(GLShaderID), uniformVariables(UniformVariables),
-      textureBindings(TextureBindings), warnMissingUniforms(WarnMissingUniforms)
+      TextureBindings(TextureBindings), warnMissingUniforms(WarnMissingUniforms)
 
     {
     }
@@ -328,32 +328,32 @@ namespace lucid::gpu
         assert(GPUState->Shader == this);
         const i32 UniformId = GetTextureId(InUniformName);
 
-        if (UniformId == textureBindings.GetLength())
+        if (UniformId == TextureBindings.GetLength())
         {
             return;
         }
 
-        FTextureBinding* binding = textureBindings[UniformId];
-        binding->BoundTexture = TextureToUse;
+        FTextureBinding* Binding = TextureBindings[UniformId];
+        Binding->BoundTexture = TextureToUse;
 
-        gpu::Info.ActiveTextureUnit = binding->TextureIndex;
-        glActiveTexture(GL_TEXTURE0 + binding->TextureIndex);
+        gpu::Info.ActiveTextureUnit = Binding->TextureIndex;
+        glActiveTexture(GL_TEXTURE0 + Binding->TextureIndex);
         TextureToUse->Bind();
-        glUniform1i(binding->Location, binding->TextureIndex);
+        glUniform1i(Binding->Location, Binding->TextureIndex);
     }
 
     void CGLShader::RestoreTextureBindings()
     {
         assert(GPUState->Shader == this);
 
-        for (u32 i = 0; i < textureBindings.GetLength(); ++i)
+        for (u32 i = 0; i < TextureBindings.GetLength(); ++i)
         {
-            if (textureBindings[i]->BoundTexture != nullptr)
+            if (TextureBindings[i]->BoundTexture != nullptr)
             {
-                gpu::Info.ActiveTextureUnit = textureBindings[i]->TextureIndex;
-                glActiveTexture(GL_TEXTURE0 + textureBindings[i]->TextureIndex);
-                textureBindings[i]->BoundTexture->Bind();
-                glUniform1i(textureBindings[i]->Location, textureBindings[i]->TextureIndex);
+                gpu::Info.ActiveTextureUnit = TextureBindings[i]->TextureIndex;
+                glActiveTexture(GL_TEXTURE0 + TextureBindings[i]->TextureIndex);
+                TextureBindings[i]->BoundTexture->Bind();
+                glUniform1i(TextureBindings[i]->Location, TextureBindings[i]->TextureIndex);
             }
         }
     }
@@ -471,21 +471,21 @@ namespace lucid::gpu
 
         // Preserve texture bindings
         // @TODO n^2, might not be a problem, as we're not goin to ship it
-        for (u32 i = 0; i < GLRecompiledShader->textureBindings.GetLength(); ++i)
+        for (u32 i = 0; i < GLRecompiledShader->TextureBindings.GetLength(); ++i)
         {
-            for (u32 j = 0; j < textureBindings.GetLength(); ++j)
+            for (u32 j = 0; j < TextureBindings.GetLength(); ++j)
             {
-                if (GLRecompiledShader->textureBindings[i]->Name == textureBindings[j]->Name)
+                if (GLRecompiledShader->TextureBindings[i]->Name == TextureBindings[j]->Name)
                 {
-                    GLRecompiledShader->textureBindings[i]->BoundTexture = textureBindings[j]->BoundTexture;
-                    GLRecompiledShader->textureBindings[i]->TextureIndex = textureBindings[j]->TextureIndex;
+                    GLRecompiledShader->TextureBindings[i]->BoundTexture = TextureBindings[j]->BoundTexture;
+                    GLRecompiledShader->TextureBindings[i]->TextureIndex = TextureBindings[j]->TextureIndex;
                 }
             }
         }
 
         // Replace texture binding
-        textureBindings.Free();
-        textureBindings = GLRecompiledShader->textureBindings;
+        TextureBindings.Free();
+        TextureBindings = GLRecompiledShader->TextureBindings;
 
         RestoreTextureBindings();
         // Restore the currently bound shader's state
@@ -542,9 +542,9 @@ namespace lucid::gpu
     {
         assert(GPUState->Shader == this);
 
-        for (u32 idx = 0; idx < textureBindings.GetLength(); ++idx)
+        for (u32 idx = 0; idx < TextureBindings.GetLength(); ++idx)
         {
-            if (textureBindings[idx]->Name == InUniformName)
+            if (TextureBindings[idx]->Name == InUniformName)
             {
                 return idx;
             }
@@ -556,7 +556,7 @@ namespace lucid::gpu
             // LUCID_LOG(LogLevel::WARN, "Sampler with name %s not found in shader %s\n", *Name, *this->ShaderName);
         }
 #endif
-        return textureBindings.GetLength();
+        return TextureBindings.GetLength();
     }
 
     void CGLShader::Free()

@@ -2,26 +2,25 @@
 #define POINT_LIGHT 2
 #define SPOT_LIGHT 3
 
-struct Light
-{
-    int Type;
-    vec3 Direction;
-    vec3 Color;
-    vec3 Position;
-    float Constant;
-    float Linear;
-    float Quadratic;
-    float InnerCutOffCos;
-    float OuterCutOffCos;
-    mat4 LightSpaceMatrix;
-    bool CastsShadows;
-    sampler2D ShadowMap;
-    float FarPlane;
-};
+uniform int     uLightType;
+uniform vec3    uLightColor;
+uniform vec3    uLightPosition;
 
-uniform samplerCube uShadowCube;
+uniform vec3    uLightDirection;
 
-uniform Light uLight;
+uniform float   uLightConstant;
+uniform float   uLightLinear;
+uniform float   uLightQuadratic;
+
+uniform float   uLightInnerCutOffCos;
+uniform float   uLightOuterCutOffCos;
+
+uniform mat4    uLightMatrix;
+uniform float   uLightFarPlane;
+
+uniform bool        uLightCastsShadows;
+uniform sampler2D   uLightShadowMap;
+uniform samplerCube uLightShadowCube;
 
 struct LightContribution
 {
@@ -36,11 +35,11 @@ LightContribution _CalculateDirectionalLightContribution(in vec3 ToViewN,
                                            in int Shininess)
 {
     float diffuseStrength = max(dot(Normal, -LightDirN), 0.0);
-    vec3 diffuse = diffuseStrength * uLight.Color;
+    vec3 diffuse = diffuseStrength * uLightColor;
 
     vec3 halfWayN = normalize((-LightDirN) + ToViewN);
     float specularStrength = pow(max(dot(Normal, halfWayN), 0.0), Shininess);
-    vec3 specular = specularStrength * uLight.Color;
+    vec3 specular = specularStrength * uLightColor;
 
     return LightContribution(1, diffuse, specular);
 }
@@ -49,7 +48,7 @@ LightContribution CalculateDirectionalLightContribution(in vec3 ToViewN,
                                            in vec3 Normal,
                                            in int Shininess)
 {
-    return _CalculateDirectionalLightContribution(ToViewN, Normal, normalize(uLight.Direction), Shininess);
+    return _CalculateDirectionalLightContribution(ToViewN, Normal, normalize(uLightDirection), Shininess);
 }
 
 LightContribution _CalculatePointLightContribution(in vec3 FragPos,
@@ -58,9 +57,9 @@ LightContribution _CalculatePointLightContribution(in vec3 FragPos,
                                      in vec3 LightDirN,
                                      in int Shininess)
 {
-    float distanceToLight = length(FragPos - uLight.Position);
+    float distanceToLight = length(FragPos - uLightPosition);
     LightContribution ctrb = _CalculateDirectionalLightContribution(ToViewN, Normal, LightDirN, Shininess);
-    float attenuation = 1.0 / (uLight.Constant + (uLight.Linear * distanceToLight) + (uLight.Quadratic * (distanceToLight * distanceToLight)));
+    float attenuation = 1.0 / (uLightConstant + (uLightLinear * distanceToLight) + (uLightQuadratic * (distanceToLight * distanceToLight)));
     return LightContribution(attenuation, ctrb.Diffuse * attenuation, ctrb.Specular * attenuation);
 }
 
@@ -70,7 +69,7 @@ LightContribution CalculatePointLightContribution(in vec3 FragPos,
                                      in vec3 Normal,
                                      in int Shininess)
 {
-    return _CalculatePointLightContribution(FragPos, ToViewN, Normal, normalize(FragPos - uLight.Position), Shininess);
+    return _CalculatePointLightContribution(FragPos, ToViewN, Normal, normalize(FragPos - uLightPosition), Shininess);
 }
 
 
@@ -79,12 +78,12 @@ LightContribution CalculateSpotLightContribution(in vec3 FragPos,
                                     in vec3 Normal,
                                     in int Shininess)
 {
-    vec3 toLightN = normalize(uLight.Position - FragPos);
+    vec3 toLightN = normalize(uLightPosition - FragPos);
 
-    float epsilon = uLight.InnerCutOffCos - uLight.OuterCutOffCos;
-    float theta = dot(toLightN, normalize(-uLight.Direction));
-    float intensity = clamp((theta - uLight.OuterCutOffCos) / epsilon, 0.0, 1.0);
+    float epsilon = uLightInnerCutOffCos - uLightOuterCutOffCos;
+    float theta = dot(toLightN, normalize(-uLightDirection));
+    float intensity = clamp((theta - uLightOuterCutOffCos) / epsilon, 0.0, 1.0);
 
-    LightContribution ctrb = _CalculatePointLightContribution(FragPos, ToViewN, Normal, normalize(uLight.Direction), Shininess);
+    LightContribution ctrb = _CalculatePointLightContribution(FragPos, ToViewN, Normal, normalize(uLightDirection), Shininess);
     return LightContribution(ctrb.Attenuation, ctrb.Diffuse * intensity, ctrb.Specular * intensity);
 }

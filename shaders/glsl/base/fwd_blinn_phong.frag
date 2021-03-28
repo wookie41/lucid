@@ -28,19 +28,19 @@ void main()
     float shadowFactor = 1.0;
 
     LightContribution lightCntrb;
-    if (uLight.Type == DIRECTIONAL_LIGHT)
+    if (uLightType == DIRECTIONAL_LIGHT)
     {
-        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLight.Direction));
+        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLightDirection));
         lightCntrb = CalculateDirectionalLightContribution(toViewN, normal, uMaterial.Shininess);
     }
-    else if (uLight.Type == POINT_LIGHT)
+    else if (uLightType == POINT_LIGHT)
     {
-        shadowFactor = CalculateShadowCubemap(fsIn.FragPos, normal, uLight.Position);
+        shadowFactor = CalculateShadowCubemap(fsIn.FragPos, normal, uLightPosition);
         lightCntrb = CalculatePointLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
     }
-    else if (uLight.Type == SPOT_LIGHT)
+    else if (uLightType == SPOT_LIGHT)
     {
-        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLight.Direction));
+        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLightDirection));
         lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
     }
 

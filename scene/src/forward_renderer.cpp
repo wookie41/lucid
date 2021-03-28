@@ -1,5 +1,8 @@
 #include "scene/forward_renderer.hpp"
 
+#include <atlalloc.h>
+
+
 #include "common/log.hpp"
 #include "common/collections.hpp"
 
@@ -21,11 +24,9 @@
 
 namespace lucid::scene
 {
-    static const u32 NO_LIGHT = 0;
-    static const u32 DIRECTIONAL_LIGHT = 1;
-    static const u32 POINT_LIGHT = 2;
-    static const u32 SPOT_LIGHT = 3;
-
+    static const u8 NO_LIGHT = 0;
+    static const FString LIGHT_TYPE("uLight.Type");
+    
     static const FString VIEWPORT_SIZE("uViewportSize");
     
     static const FString SSAO_POSITIONS_VS("uPositionsVS");
@@ -37,22 +38,7 @@ namespace lucid::scene
 
     static const FString SIMPLE_BLUR_OFFSET_X("uOffsetX");
     static const FString SIMPLE_BLUR_OFFSET_Y("uOffsetY");
-    static const FString SIMPLE_BLUR_TEXTURE("uTextureToBlur");
-    
-    static const FString LIGHT_TYPE("uLight.Type");
-    static const FString LIGHT_POSITION("uLight.Position");
-    static const FString LIGHT_DIRECTION("uLight.Direction");
-    static const FString LIGHT_COLOR("uLight.Color");
-    static const FString LIGHT_CONSTANT("uLight.Constant");
-    static const FString LIGHT_LINEAR("uLight.Linear");
-    static const FString LIGHT_QUADRATIC("uLight.Quadratic");
-    static const FString LIGHT_INNER_CUT_OFF("uLight.InnerCutOffCos");
-    static const FString LIGHT_OUTER_CUT_OFF("uLight.OuterCutOffCos");
-    static const FString LIGHT_SHADOW_MAP("uLight.ShadowMap");
-    static const FString LIGHT_SPACE_MATRIX("uLight.LightSpaceMatrix");
-    static const FString LIGHT_CASTS_SHADOWS("uLight.CastsShadows");
-    static const FString LIGHT_FAR_PLANE("uLight.FarPlane");
-    static const FString LIGHT_SHADOW_CUBE("uShadowCube");
+    static const FString SIMPLE_BLUR_TEXTURE("uTextureToBlur");    
 
     // Shader-wide uniforms
     static const FString AMBIENT_STRENGTH("uAmbientStrength");
@@ -74,6 +60,8 @@ namespace lucid::scene
         const u32& InMaxNumOfDirectionalLights,
         const u8 InNumSSAOSamples,
         gpu::CShader* InDefaultRenderableShader,
+        gpu::CShader* InShadowMapShader,
+        gpu::CShader* InShadowCubeMapShader,
         gpu::CShader* InPrepassShader,
         gpu::CShader* InSSAOShader,
         gpu::CShader* InSimpleBlurShader,
@@ -81,6 +69,8 @@ namespace lucid::scene
     : CRenderer(InDefaultRenderableShader),
         MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
         NumSSAOSamples(InNumSSAOSamples),
+        ShadowMapShader(InShadowMapShader),
+        ShadowCubeMapShader(InShadowCubeMapShader),
         PrepassShader(InPrepassShader),
         SSAOShader(InSSAOShader),
         SimpleBlurShader(InSimpleBlurShader),
@@ -91,11 +81,20 @@ namespace lucid::scene
     void ForwardRenderer::Setup()
     {
         // Prepare pipeline states
+        ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor { 0 };
+        ShadowMapGenerationPipelineState.ClearDepthBufferValue = 0;
+        ShadowMapGenerationPipelineState.IsDepthTestEnabled = true;
+        ShadowMapGenerationPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
+        ShadowMapGenerationPipelineState.IsBlendingEnabled = false;
+        ShadowMapGenerationPipelineState.IsCullingEnabled = false;
+        ShadowMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
+        ShadowMapGenerationPipelineState.IsDepthBufferReadOnly = false;      
+        
         PrepassPipelineState.ClearColorBufferColor = FColor { 0 };
         PrepassPipelineState.IsDepthTestEnabled = true;
         PrepassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
         PrepassPipelineState.IsBlendingEnabled = false;
-        PrepassPipelineState.IsCullingEnabled = true;
+        PrepassPipelineState.IsCullingEnabled = false;
         // @TODO
         // PrepassPipelineState.IsCullingEnabled = false;
         // PrepassPipelineState.CullMode = gpu::ECullMode::BACK;
@@ -127,6 +126,7 @@ namespace lucid::scene
         SkyboxPipelineState.IsBlendingEnabled = false;
         
         // Create the framebuffers
+        ShadowMapFramebuffer = gpu::CreateFramebuffer(FString{ "ShadowmapFramebuffer" });
         PrepassFramebuffer = gpu::CreateFramebuffer(FString{ "PrepassFramebuffer" });
         LightingPassFramebuffer = gpu::CreateFramebuffer(FString{ "LightingPassFramebuffer"});
         SSAOFramebuffer = gpu::CreateFramebuffer(FString{ "SSAOFramebuffer"});
@@ -260,12 +260,13 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::Render(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
+    void ForwardRenderer::Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
         
         gpu::SetViewport(InRenderView->Viewport);
 
+        GenerateShadowMaps(InSceneToRender);
         Prepass(InSceneToRender, InRenderView);
         LightingPass(InSceneToRender, InRenderView);
     }
@@ -305,7 +306,7 @@ namespace lucid::scene
                                                   const FRenderView* InRenderView)
     {
         const FLinkedListItem<FRenderable>* CurrentNode = &InScene->StaticGeometry.Head;
-        gpu::CShader* LastUsedShader = DefaultRenderableShader;
+        gpu::CShader* LastUsedShader = nullptr;
         while (CurrentNode && CurrentNode->Element)
         {
             FRenderable* CurrentRenderable = CurrentNode->Element;
@@ -313,86 +314,18 @@ namespace lucid::scene
             // Determine if the material uses a custom shader
             // if yes, then setup the renderer-provided uniforms
             auto CustomShader = CurrentRenderable->Material->GetCustomShader();
-            LastUsedShader = CustomShader ? CustomShader : DefaultRenderableShader;
-
-            LastUsedShader->Use();
+            gpu::CShader* UsedShader = CustomShader ? CustomShader : DefaultRenderableShader;
+            if (UsedShader != LastUsedShader)
+            {
+                UsedShader->Use();
+            }
+            LastUsedShader = UsedShader;
+            
             SetupRendererWideUniforms(LastUsedShader, InRenderView);
-            SetupLight(LastUsedShader, InLight);
-            Render(LastUsedShader, CurrentRenderable);
+            InLight->SetupShader(UsedShader);
+            Render(UsedShader, CurrentRenderable);
 
             CurrentNode = CurrentNode->Next;
-        }
-    }
-
-    void ForwardRenderer::SetupLight(gpu::CShader* InShader, const CLight* InLight)
-    {
-        InShader->SetVector(LIGHT_COLOR, InLight->Color);
-        InShader->SetVector(LIGHT_POSITION, InLight->Position);
-
-        switch (InLight->GetType())
-        {
-        case ELightType::DIRECTIONAL:
-        {
-            CDirectionalLight* light = (CDirectionalLight*)InLight;
-            InShader->SetVector(LIGHT_DIRECTION, light->Direction);
-            InShader->SetInt(LIGHT_TYPE, DIRECTIONAL_LIGHT);
-            InShader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
-
-            if (light->ShadowMap != nullptr)
-            {
-                InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
-                InShader->UseTexture(LIGHT_SHADOW_MAP, light->ShadowMap);
-            }
-            else
-            {
-                InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
-            }
-            break;
-        }
-        case ELightType::POINT:
-        {
-            CPointLight* light = (CPointLight*)InLight;
-            InShader->SetFloat(LIGHT_CONSTANT, light->Constant);
-            InShader->SetFloat(LIGHT_LINEAR, light->Linear);
-            InShader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
-            InShader->SetFloat(LIGHT_FAR_PLANE, light->FarPlane);
-            InShader->SetInt(LIGHT_TYPE, POINT_LIGHT);
-
-            if (light->ShadowMap != nullptr)
-            {
-                InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
-                InShader->UseTexture(LIGHT_SHADOW_CUBE, light->ShadowMap);
-            }
-            else
-            {
-                InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
-            }
-
-            break;
-        }
-        case ELightType::SPOT:
-        {
-            CSpotLight* light = (CSpotLight*)InLight;
-            InShader->SetVector(LIGHT_DIRECTION, light->Direction);
-            InShader->SetFloat(LIGHT_CONSTANT, light->Constant);
-            InShader->SetFloat(LIGHT_LINEAR, light->Linear);
-            InShader->SetFloat(LIGHT_QUADRATIC, light->Quadratic);
-            InShader->SetFloat(LIGHT_INNER_CUT_OFF, glm::cos(light->InnerCutOffRad));
-            InShader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(light->OuterCutOffRad));
-            InShader->SetInt(LIGHT_TYPE, SPOT_LIGHT);
-            InShader->SetMatrix(LIGHT_SPACE_MATRIX, light->LightSpaceMatrix);
-
-            if (light->ShadowMap != nullptr)
-            {
-                InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
-                InShader->UseTexture(LIGHT_SHADOW_MAP, light->ShadowMap);
-            }
-            else
-            {
-                InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
-            }
-            break;
-        }
         }
     }
 
@@ -425,6 +358,64 @@ namespace lucid::scene
 
             Render(LastUserShader, CurrentRenderable);
             CurrentNode = CurrentNode->Next;
+        }
+    }
+
+    void ForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender)
+    {
+        // Prepare the pipeline state
+        gpu::ConfigurePipelineState(ShadowMapGenerationPipelineState);
+
+        ShadowMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        ShadowMapFramebuffer->DisableReadWriteBuffers();
+
+        u8              PrevShadowMapQuality = 255;
+        gpu::CShader*   PrevShadowMapShader = nullptr;
+
+        FLinkedListItem<CLight>* LightNode = &InSceneToRender->Lights.Head;
+        while (LightNode && LightNode->Element)
+        {
+            CLight* Light = LightNode->Element;
+
+            // @TODO This should happen only if light moves
+            Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
+            
+            gpu::CShader* CurrentShadowMapShader = Light->GetType() == ELightType::POINT ? ShadowCubeMapShader : ShadowMapShader;
+            if (CurrentShadowMapShader != PrevShadowMapShader)
+            {
+                PrevShadowMapShader = CurrentShadowMapShader;
+                CurrentShadowMapShader->Use();
+            }
+            
+            Light->SetupShadowMapShader(CurrentShadowMapShader);
+            
+            // Check if we need to adjust the viewport based on light's shadow map quality
+            if (Light->ShadowMap->GetQuality() != PrevShadowMapQuality)
+            {
+                PrevShadowMapQuality = Light->ShadowMap->GetQuality();
+                gpu::SetViewport({0, 0, (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].x, (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].y});
+            }
+
+            // Setup light's shadow map texture
+            ShadowMapFramebuffer->SetupDepthAttachment(Light->ShadowMap->GetShadowMapTexture());
+            gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
+            
+            // Render the scene from light's point of view
+            // @TODO we're skipping dynamic geometry as the FRenderScene will be reworked 
+            FLinkedListItem<FRenderable>* RenderableNode = &InSceneToRender->StaticGeometry.Head;
+            while (RenderableNode && RenderableNode->Element)
+            {
+                // @TODO Renderable should know how to render itself
+                FRenderable* Renderable = RenderableNode->Element;
+                CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, Renderable->CalculateModelMatrix());
+                Renderable->VertexArray->Bind();
+                Renderable->VertexArray->Draw();
+
+                RenderableNode = RenderableNode->Next;
+            }
+            
+            // Get next light
+            LightNode = LightNode->Next;
         }
     }
 
@@ -516,8 +507,8 @@ namespace lucid::scene
 
     void ForwardRenderer::Render(gpu::CShader* Shader, const FRenderable* InRenderable)
     {
-        glm::mat4 modelMatrix = InRenderable->CalculateModelMatrix();
-        Shader->SetMatrix(MODEL_MATRIX, modelMatrix);
+        const glm::mat4 ModelMatrix = InRenderable->CalculateModelMatrix();
+        Shader->SetMatrix(MODEL_MATRIX, ModelMatrix);
         Shader->SetBool(REVERSE_NORMALS, InRenderable->bReverseNormals);
 
         InRenderable->Material->SetupShader(Shader);

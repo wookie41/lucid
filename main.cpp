@@ -46,20 +46,49 @@ int main(int argc, char** argv)
     misc::InitBasicShapes();
     resources::InitTextures();
 
-    // Create shadowmap framebuffer (TODO move to forward_renderer)
-    gpu::CFramebuffer* ShadowMapFramebuffer = gpu::CreateFramebuffer(FString{ "ShadowmapFramebuffer" });
-
-    ShadowMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-    ShadowMapFramebuffer->DisableReadWriteBuffers();
-
     // Load textures uesd in the demo scene
-    resources::CMeshResource* backPackMesh = resources::AssimpLoadMesh(FString {LUCID_TEXT("assets\\models\\backpack\\")}, FString { LUCID_TEXT("backpack.obj") });
-    resources::CTextureResource* brickWallDiffuseMapResource = resources::LoadJPEG(FString{ LUCID_TEXT("assets/textures/brickwall.jpg") }, true, gpu::ETextureDataType::UNSIGNED_BYTE,true, true, FString{ "Brickwall" });   
-    resources::CTextureResource* brickWallNormalMapResource = resources::LoadJPEG(FString{ LUCID_TEXT("assets/textures/brickwall_normal.jpg") }, false, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString{"BrickwallNormal"});
-    resources::CTextureResource* woodDiffuseMapResource = resources::LoadJPEG(FString{ LUCID_TEXT("assets/textures/wood.png") }, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString{"Wood"});
-    resources::CTextureResource* blankTextureResource = resources::LoadPNG(FString{ LUCID_TEXT("assets/textures/blank.png") }, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString{"Blank"});
-    resources::CTextureResource* toyboxNormalMapResource = resources::LoadJPEG(FString{ LUCID_TEXT("assets/textures/toy_box_normal.png") }, false, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString{"ToyboxNormal"});
-    resources::CTextureResource* toyBoxDisplacementMapResource = resources::LoadPNG(FString{ LUCID_TEXT("assets/textures/toy_box_disp.png") }, false, gpu::ETextureDataType::UNSIGNED_BYTE,true, true, FString{ "ToyBoxDis" });
+    resources::CMeshResource* backPackMesh =
+      resources::AssimpLoadMesh(FString{ LUCID_TEXT("assets\\models\\backpack\\") }, FString{ LUCID_TEXT("backpack.obj") });
+    resources::CTextureResource* brickWallDiffuseMapResource =
+      resources::LoadJPEG(FString{ LUCID_TEXT("assets/textures/brickwall.jpg") },
+                          true,
+                          gpu::ETextureDataType::UNSIGNED_BYTE,
+                          true,
+                          true,
+                          FString{ "Brickwall" });
+    resources::CTextureResource* brickWallNormalMapResource =
+      resources::LoadJPEG(FString{ LUCID_TEXT("assets/textures/brickwall_normal.jpg") },
+                          false,
+                          gpu::ETextureDataType::UNSIGNED_BYTE,
+                          true,
+                          true,
+                          FString{ "BrickwallNormal" });
+    resources::CTextureResource* woodDiffuseMapResource = resources::LoadJPEG(FString{ LUCID_TEXT("assets/textures/wood.png") },
+                                                                              true,
+                                                                              gpu::ETextureDataType::UNSIGNED_BYTE,
+                                                                              true,
+                                                                              true,
+                                                                              FString{ "Wood" });
+    resources::CTextureResource* blankTextureResource = resources::LoadPNG(FString{ LUCID_TEXT("assets/textures/blank.png") },
+                                                                           true,
+                                                                           gpu::ETextureDataType::UNSIGNED_BYTE,
+                                                                           true,
+                                                                           true,
+                                                                           FString{ "Blank" });
+    resources::CTextureResource* toyboxNormalMapResource =
+      resources::LoadJPEG(FString{ LUCID_TEXT("assets/textures/toy_box_normal.png") },
+                          false,
+                          gpu::ETextureDataType::UNSIGNED_BYTE,
+                          true,
+                          true,
+                          FString{ "ToyboxNormal" });
+    resources::CTextureResource* toyBoxDisplacementMapResource =
+      resources::LoadPNG(FString{ LUCID_TEXT("assets/textures/toy_box_disp.png") },
+                         false,
+                         gpu::ETextureDataType::UNSIGNED_BYTE,
+                         true,
+                         true,
+                         FString{ "ToyBoxDis" });
 
     {
         auto texture = toyBoxDisplacementMapResource->TextureHandle;
@@ -82,20 +111,49 @@ int main(int argc, char** argv)
     auto woodDiffuseMap = woodDiffuseMapResource->TextureHandle;
     auto blankTextureMap = blankTextureResource->TextureHandle;
 
-    // auto backpackVao = backPackMesh->VAO;
-
     // Load and compile demo shaders
     gpu::GShadersManager.EnableHotReload();
 
-    gpu::CShader* BlinnPhongShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("BlinnPhong") }, FString{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong.vert") },FString{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong.frag") }, EMPTY_STRING);
-    gpu::CShader* BlinnPhongMapsShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("BlinnPhongMaps") }, FString{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong_maps.vert") },FString{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong_maps.frag") }, EMPTY_STRING);
-    gpu::CShader* SkyboxShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("Skybox") }, FString{ LUCID_TEXT("shaders/glsl/skybox.vert") },FString{ LUCID_TEXT("shaders/glsl/skybox.frag") }, EMPTY_STRING);
-    gpu::CShader* ShadowMapShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("ShadowMap") }, FString{ LUCID_TEXT("shaders/glsl/shadow_map.vert") },FString{ LUCID_TEXT("shaders/glsl/empty.frag") }, EMPTY_STRING);
-    gpu::CShader* ShadowCubemapShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("CubeShadowMap") }, FString{ LUCID_TEXT("shaders/glsl/shadow_cubemap.vert") },FString{ LUCID_TEXT("shaders/glsl/shadow_cubemap.frag") }, FString{ LUCID_TEXT("shaders/glsl/shadow_cubemap.geom") });
-    gpu::CShader* FlatShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("FlatShadowMap") }, FString{ LUCID_TEXT("shaders/glsl/flat.vert") },FString{ LUCID_TEXT("shaders/glsl/flat.frag") }, EMPTY_STRING);
-    gpu::CShader* ForwardPrepassShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("ForwardPrepass") }, FString{ LUCID_TEXT("shaders/glsl/forward_prepass.vert") },FString{ LUCID_TEXT("shaders/glsl/forward_prepass.frag") }, EMPTY_STRING);
-    gpu::CShader* SSAOShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("SSAO") }, FString{ LUCID_TEXT("shaders/glsl/ssao.vert") },FString{ LUCID_TEXT("shaders/glsl/ssao.frag") }, EMPTY_STRING);
-    gpu::CShader* SimpleBlurShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("Simple blur") }, FString{ LUCID_TEXT("shaders/glsl/simple_blur.vert") },FString{ LUCID_TEXT("shaders/glsl/simple_blur.frag") }, EMPTY_STRING);
+    gpu::CShader* BlinnPhongShader =
+      gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("BlinnPhong") },
+                                         FString{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong.vert") },
+                                         FString{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong.frag") },
+                                         EMPTY_STRING);
+    gpu::CShader* BlinnPhongMapsShader =
+      gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("BlinnPhongMaps") },
+                                         FString{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong_maps.vert") },
+                                         FString{ LUCID_TEXT("shaders/glsl/fwd_blinn_phong_maps.frag") },
+                                         EMPTY_STRING);
+    gpu::CShader* SkyboxShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("Skybox") },
+                                                                    FString{ LUCID_TEXT("shaders/glsl/skybox.vert") },
+                                                                    FString{ LUCID_TEXT("shaders/glsl/skybox.frag") },
+                                                                    EMPTY_STRING);
+    gpu::CShader* ShadowMapShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("ShadowMap") },
+                                                                       FString{ LUCID_TEXT("shaders/glsl/shadow_map.vert") },
+                                                                       FString{ LUCID_TEXT("shaders/glsl/empty.frag") },
+                                                                       EMPTY_STRING);
+    gpu::CShader* ShadowCubemapShader =
+      gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("CubeShadowMap") },
+                                         FString{ LUCID_TEXT("shaders/glsl/shadow_cubemap.vert") },
+                                         FString{ LUCID_TEXT("shaders/glsl/shadow_cubemap.frag") },
+                                         FString{ LUCID_TEXT("shaders/glsl/shadow_cubemap.geom") });
+    gpu::CShader* FlatShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("FlatShadowMap") },
+                                                                  FString{ LUCID_TEXT("shaders/glsl/flat.vert") },
+                                                                  FString{ LUCID_TEXT("shaders/glsl/flat.frag") },
+                                                                  EMPTY_STRING);
+    gpu::CShader* ForwardPrepassShader =
+      gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("ForwardPrepass") },
+                                         FString{ LUCID_TEXT("shaders/glsl/forward_prepass.vert") },
+                                         FString{ LUCID_TEXT("shaders/glsl/forward_prepass.frag") },
+                                         EMPTY_STRING);
+    gpu::CShader* SSAOShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("SSAO") },
+                                                                  FString{ LUCID_TEXT("shaders/glsl/ssao.vert") },
+                                                                  FString{ LUCID_TEXT("shaders/glsl/ssao.frag") },
+                                                                  EMPTY_STRING);
+    gpu::CShader* SimpleBlurShader = gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("Simple blur") },
+                                                                        FString{ LUCID_TEXT("shaders/glsl/simple_blur.vert") },
+                                                                        FString{ LUCID_TEXT("shaders/glsl/simple_blur.frag") },
+                                                                        EMPTY_STRING);
 
     // Prepare the scene
     gpu::FViewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
@@ -106,7 +164,15 @@ int main(int argc, char** argv)
     PerspectiveCamera.Yaw = -90.f;
     PerspectiveCamera.UpdateCameraVectors();
 
-    scene::ForwardRenderer Renderer{ 32, 64, BlinnPhongMapsShader, ForwardPrepassShader, SSAOShader, SimpleBlurShader, SkyboxShader };
+    scene::ForwardRenderer Renderer{ 32,
+                                     64,
+                                     BlinnPhongMapsShader,
+                                     ShadowMapShader,
+                                     ShadowCubemapShader,
+                                     ForwardPrepassShader,
+                                     SSAOShader,
+                                     SimpleBlurShader,
+                                     SkyboxShader };
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
     Renderer.FramebufferSize = { window->GetWidth(), window->GetHeight() };
@@ -179,7 +245,8 @@ int main(int argc, char** argv)
     gigaCube.Material = &woodMaterial;
     gigaCube.bReverseNormals = true;
 
-    scene::FRenderable* backPackRenderable = scene::CreateBlinnPhongRenderable( FString { LUCID_TEXT("MyMesh") }, backPackMesh, BlinnPhongMapsShader );
+    scene::FRenderable* backPackRenderable =
+      scene::CreateBlinnPhongRenderable(FString{ LUCID_TEXT("MyMesh") }, backPackMesh, BlinnPhongMapsShader);
     backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
     backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
@@ -199,69 +266,69 @@ int main(int argc, char** argv)
     flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
     flatBlueMaterial.SetCustomShader(FlatShader);
 
-    scene::CDirectionalLight shadowCastingLight = scene::CreateDirectionalLight(true, { 1024, 1024 });
-    shadowCastingLight.Direction = glm::normalize(glm::vec3{ 0.5, -1, 1 });
-    shadowCastingLight.Position = { -2.0f, 4.0f, -1.0f };
-    shadowCastingLight.Color = glm::vec3{ 1.0, 1.0, 1.0 };
+    scene::CDirectionalLight* DirectionalLight = Renderer.CreateDirectionalLight(true);
+    DirectionalLight->Direction = glm::normalize(glm::vec3{ 0.5, -1, 1 });
+    DirectionalLight->Position = { -2.0f, 4.0f, -1.0f };
+    DirectionalLight->Color = glm::vec3{ 1.0, 1.0, 1.0 };
 
-    scene::CSpotLight redLight = scene::CreateSpotLight(true, { 1024, 1024 });
-    redLight.Position = cube2.Transform.Translation + glm::vec3{ 0, 2, -1.5 };
-    redLight.Direction = glm::normalize(cube2.Transform.Translation - redLight.Position);
-    redLight.Color = { 1, 0, 0 };
-    redLight.Constant = 1;
-    redLight.Linear = 0.09;
-    redLight.Quadratic = 0.032;
-    redLight.InnerCutOffRad = glm::radians(30.0);
-    redLight.OuterCutOffRad = glm::radians(35.0);
+    scene::CSpotLight* RedSpotLight = Renderer.CreateSpotLight(true);
+    RedSpotLight->Position = cube2.Transform.Translation + glm::vec3{ 0, 2, -1.5 };
+    RedSpotLight->Direction = glm::normalize(cube2.Transform.Translation - RedSpotLight->Position);
+    RedSpotLight->Color = { 1, 0, 0 };
+    RedSpotLight->Constant = 1;
+    RedSpotLight->Linear = 0.09;
+    RedSpotLight->Quadratic = 0.032;
+    RedSpotLight->InnerCutOffRad = glm::radians(30.0);
+    RedSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::FRenderable redLightCube{ FDString{ "RedLightCube" }, cube };
-    redLightCube.Transform.Scale = glm::vec3{ 0.2 };
-    redLightCube.Material = &flatRedMaterial;
-    redLightCube.Transform.Translation = redLight.Position;
+    scene::FRenderable RedLightCube{ FDString{ "RedLightCube" }, cube };
+    RedLightCube.Transform.Scale = glm::vec3{ 0.2 };
+    RedLightCube.Material = &flatRedMaterial;
+    RedLightCube.Transform.Translation = RedSpotLight->Position;
 
-    scene::CSpotLight greenLight = scene::CreateSpotLight(true, { 1024, 1024 });
-    greenLight.Position = cube.Transform.Translation + glm::vec3(0, 2, -2.5);
-    greenLight.Direction = glm::normalize(cube.Transform.Translation - greenLight.Position);
-    greenLight.Color = { 0, 1, 0 };
-    greenLight.Constant = 1;
-    greenLight.Linear = 0.09;
-    greenLight.Quadratic = 0.032;
-    greenLight.InnerCutOffRad = glm::radians(30.0);
-    greenLight.OuterCutOffRad = glm::radians(35.0);
+    scene::CSpotLight* GreenSpotLight = Renderer.CreateSpotLight(true);
+    GreenSpotLight->Position = cube.Transform.Translation + glm::vec3(0, 2, -2.5);
+    GreenSpotLight->Direction = glm::normalize(cube.Transform.Translation - GreenSpotLight->Position);
+    GreenSpotLight->Color = { 0, 1, 0 };
+    GreenSpotLight->Constant = 1;
+    GreenSpotLight->Linear = 0.09;
+    GreenSpotLight->Quadratic = 0.032;
+    GreenSpotLight->InnerCutOffRad = glm::radians(30.0);
+    GreenSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::FRenderable greenLightCube{ FDString{ "GreenLightCube" }, redLightCube };
-    greenLightCube.Transform.Translation = greenLight.Position;
-    greenLightCube.Material = &flatGreenMaterial;
+    scene::FRenderable GreenLightCube{ FDString{ "GreenLightCube" }, RedLightCube };
+    GreenLightCube.Transform.Translation = GreenSpotLight->Position;
+    GreenLightCube.Material = &flatGreenMaterial;
 
-    scene::CSpotLight blueLight = scene::CreateSpotLight(true, { 1024, 1024 });
-    blueLight.Position = { 0, 5, 0 };
-    blueLight.Direction = { 0, -1, 0 };
-    blueLight.Color = { 0, 0, 1 };
-    blueLight.Constant = 1;
-    blueLight.Linear = 0.09;
-    blueLight.Quadratic = 0.032;
-    blueLight.InnerCutOffRad = glm::radians(30.0);
-    blueLight.OuterCutOffRad = glm::radians(35.0);
-    blueLight.LightUp = { -1, 0, 0 };
+    scene::CSpotLight* BlueSpotLight = Renderer.CreateSpotLight(true);
+    BlueSpotLight->Position = { 0, 5, 0 };
+    BlueSpotLight->Direction = { 0, -1, 0 };
+    BlueSpotLight->Color = { 0, 0, 1 };
+    BlueSpotLight->Constant = 1;
+    BlueSpotLight->Linear = 0.09;
+    BlueSpotLight->Quadratic = 0.032;
+    BlueSpotLight->InnerCutOffRad = glm::radians(30.0);
+    BlueSpotLight->OuterCutOffRad = glm::radians(35.0);
+    BlueSpotLight->LightUp = { -1, 0, 0 };
 
-    scene::FRenderable blueLightCube{ FDString{ "BlueLightCube" }, redLightCube };
-    blueLightCube.Transform.Translation = blueLight.Position;
-    blueLightCube.Material = &flatBlueMaterial;
+    scene::FRenderable BlueLightCube{ FDString{ "BlueLightCube" }, RedLightCube };
+    BlueLightCube.Transform.Translation = BlueSpotLight->Position;
+    BlueLightCube.Material = &flatBlueMaterial;
 
-    scene::FRenderable shadowCastingLightCube{ FDString{ "ShadowCastingLightCube" }, redLightCube };
-    shadowCastingLightCube.Transform.Translation = shadowCastingLight.Position;
+    scene::FRenderable shadowCastingLightCube{ FDString{ "ShadowCastingLightCube" }, RedLightCube };
+    shadowCastingLightCube.Transform.Translation = DirectionalLight->Position;
     shadowCastingLightCube.Material = &flatWhiteMaterial;
 
-    scene::CPointLight redPointLight = scene::CreatePointLight(true, { 1024, 1024 });
-    redPointLight.Position = { 0, 0, 1.5 };
-    redPointLight.Color = { 1, 0, 0 };
-    redPointLight.Constant = 1;
-    redPointLight.Linear = 0.007;
-    redPointLight.Quadratic = 0.017;
+    scene::CPointLight* RedPointLight = Renderer.CreatePointLight(true);
+    RedPointLight->Position = { 0, 0, 1.5 };
+    RedPointLight->Color = { 1, 0, 0 };
+    RedPointLight->Constant = 1;
+    RedPointLight->Linear = 0.007;
+    RedPointLight->Quadratic = 0.017;
 
-    scene::FRenderable redPointLightCube{ FDString{ "RedPointLightCube" }, redLightCube };
-    redPointLightCube.Transform.Translation = redPointLight.Position;
-    redPointLightCube.Material = &flatRedMaterial;
+    scene::FRenderable RedPointLightCube{ FDString{ "RedPointLightCube" }, RedLightCube };
+    RedPointLightCube.Transform.Translation = RedPointLight->Position;
+    RedPointLightCube.Material = &flatRedMaterial;
 
     scene::FRenderScene DemoScene;
     DemoScene.StaticGeometry.Add(&cube);
@@ -272,28 +339,28 @@ int main(int argc, char** argv)
     DemoScene.StaticGeometry.Add(backPackRenderable);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
-    DemoScene.Lights.Add(&redLight);
-    DemoScene.Lights.Add(&greenLight);
-    DemoScene.Lights.Add(&blueLight);
-    DemoScene.Lights.Add(&redPointLight);
+    DemoScene.Lights.Add(RedSpotLight);
+    DemoScene.Lights.Add(GreenSpotLight);
+    DemoScene.Lights.Add(BlueSpotLight);
+    DemoScene.Lights.Add(RedPointLight);
 
     // sceneToRender.StaticGeometry.Add(&shadowCastingLightCube);
-    DemoScene.StaticGeometry.Add(&redLightCube);
-    DemoScene.StaticGeometry.Add(&greenLightCube);
-    DemoScene.StaticGeometry.Add(&blueLightCube);
-    DemoScene.StaticGeometry.Add(&redPointLightCube);
+    DemoScene.StaticGeometry.Add(&RedLightCube);
+    DemoScene.StaticGeometry.Add(&GreenLightCube);
+    DemoScene.StaticGeometry.Add(&BlueLightCube);
+    DemoScene.StaticGeometry.Add(&RedPointLightCube);
 
     FArray<FString> SkyboxFacesPaths{ 6 };
-    SkyboxFacesPaths.Add(FString { LUCID_TEXT("assets/skybox/right.jpg") });
-    SkyboxFacesPaths.Add(FString { LUCID_TEXT("assets/skybox/left.jpg") });
-    SkyboxFacesPaths.Add(FString { LUCID_TEXT("assets/skybox/top.jpg") });
-    SkyboxFacesPaths.Add(FString { LUCID_TEXT("assets/skybox/bottom.jpg") });
-    SkyboxFacesPaths.Add(FString { LUCID_TEXT("assets/skybox/front.jpg") });
-    SkyboxFacesPaths.Add(FString { LUCID_TEXT("assets/skybox/back.jpg") });
+    SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/right.jpg") });
+    SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/left.jpg") });
+    SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/top.jpg") });
+    SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/bottom.jpg") });
+    SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/front.jpg") });
+    SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/back.jpg") });
 
-    scene::FSkybox skybox = scene::CreateSkybox(SkyboxFacesPaths, FString {"Skybox"});
+    scene::FSkybox skybox = scene::CreateSkybox(SkyboxFacesPaths, FString{ "Skybox" });
     DemoScene.SceneSkybox = &skybox;
-    
+
     gpu::SetClearColor(BlackColor);
 
     bool isRunning = true;
@@ -356,26 +423,9 @@ int main(int argc, char** argv)
                 cube.Transform.Rotation = glm::angleAxis(glm::radians(rotation), glm::normalize(glm::vec3{ 0.0, 1.0, 0.0 }));
             }
 
-            redPointLight.Position.z = sin(now * 0.5) * 3.0;
-            redPointLightCube.Transform.Translation = redPointLight.Position;
+            RedPointLight->Position.z = sin(now * 0.5) * 3.0;
+            RedPointLightCube.Transform.Translation = RedPointLight->Position;
         }
-
-        // Update lightmaps
-        gpu::DisableSRGBFramebuffer();
-        shadowCastingLight.UpdateLightSpaceMatrix();
-        shadowCastingLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowMapShader, true, true);
-
-        redLight.UpdateLightSpaceMatrix();
-        redLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowMapShader, true, true);
-
-        greenLight.UpdateLightSpaceMatrix();
-        greenLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowMapShader, true, true);
-
-        blueLight.UpdateLightSpaceMatrix();
-        blueLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowMapShader, true, true);
-
-        redPointLight.UpdateLightSpaceMatrix();
-        redPointLight.GenerateShadowMap(&DemoScene, ShadowMapFramebuffer, ShadowCubemapShader, true, true);
 
         // Render to off-screen framebuffer
         Renderer.Render(&DemoScene, &RenderView);
@@ -384,10 +434,13 @@ int main(int argc, char** argv)
         window->GetFramebuffer()->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
         gpu::EnableSRGBFramebuffer();
-        gpu::BlitFramebuffer(
-          Renderer.GetResultFramebuffer(), window->GetFramebuffer(), true, false, false,
-          { 0, 0, Renderer.FramebufferSize.x, Renderer.FramebufferSize.y },
-          { 0, 0, window->GetWidth(), window->GetHeight() });
+        gpu::BlitFramebuffer(Renderer.GetResultFramebuffer(),
+                             window->GetFramebuffer(),
+                             true,
+                             false,
+                             false,
+                             { 0, 0, Renderer.FramebufferSize.x, Renderer.FramebufferSize.y },
+                             { 0, 0, window->GetWidth(), window->GetHeight() });
         window->Swap();
     }
 

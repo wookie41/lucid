@@ -74,7 +74,7 @@ namespace lucid::gpu
         GLuint glShaderID;
 
         FArray<FUniformVariable> uniformVariables;
-        FArray<FTextureBinding> textureBindings;
+        FArray<FTextureBinding> TextureBindings;
         FLinkedList<BufferBinding> buffersBindings;
         bool warnMissingUniforms;
     };

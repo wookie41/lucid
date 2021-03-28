@@ -1,216 +1,191 @@
 #include "scene/lights.hpp"
+
+
+#include <stb.h>
+#include <GL/glew.h>
+
 #include "devices/gpu/texture.hpp"
-#include "devices/gpu/gpu.hpp"
 #include "devices/gpu/shader.hpp"
-#include "scene/render_scene.hpp"
 #include "scene/renderable.hpp"
-#include "devices/gpu/vao.hpp"
-#include "devices/gpu/viewport.hpp"
-#include "devices/gpu/cubemap.hpp"
 
 #include "glm/gtc/matrix_transform.hpp"
+#include "scene/renderer.hpp"
+#include "scene/settings.hpp"
 
 namespace lucid::scene
 {
-    static const FString MODEL{ "uModel" };
-
-    static const FString LIGHT_SPACE_MATRIX{ "uLightSpaceMatrix" };
+    static const FString LIGHT_TYPE("uLightType");
 
     static const FString LIGHT_POSITION{ "uLightPosition" };
-    static const FString LIGHT_FAR_PLANE{ "uFarPlane" };
-    static const FString LIGHT_SPACE_MATRIX_0{ "uLightSpaceMatrices[0]" };
-    static const FString LIGHT_SPACE_MATRIX_1{ "uLightSpaceMatrices[1]" };
-    static const FString LIGHT_SPACE_MATRIX_2{ "uLightSpaceMatrices[2]" };
-    static const FString LIGHT_SPACE_MATRIX_3{ "uLightSpaceMatrices[3]" };
-    static const FString LIGHT_SPACE_MATRIX_4{ "uLightSpaceMatrices[4]" };
-    static const FString LIGHT_SPACE_MATRIX_5{ "uLightSpaceMatrices[5]" };
+    static const FString LIGHT_COLOR{ "uLightColor" };
 
-    static gpu::FPipelineState ShadowMapGenerationPipelineState;
+    static const FString LIGHT_SPACE_MATRIX("uLightMatrix");
     
-    // Shoule be tweakable based on game's graphics settings
-    struct OrthoMatrixLightSettings
+    static const FString LIGHT_NEAR_PLANE{ "uLightNearPlane" };
+    static const FString LIGHT_FAR_PLANE{ "uLightFarPlane" };
+    
+    static const FString LIGHT_SPACE_MATRIX_0{ "uLightMatrices[0]" };
+    static const FString LIGHT_SPACE_MATRIX_1{ "uLightMatrices[1]" };
+    static const FString LIGHT_SPACE_MATRIX_2{ "uLightMatrices[2]" };
+    static const FString LIGHT_SPACE_MATRIX_3{ "uLightMatrices[3]" };
+    static const FString LIGHT_SPACE_MATRIX_4{ "uLightMatrices[4]" };
+    static const FString LIGHT_SPACE_MATRIX_5{ "uLightMatrices[5]" };
+
+    static const FString LIGHT_DIRECTION("uLightDirection");
+    static const FString LIGHT_CONSTANT("uLightConstant");
+    static const FString LIGHT_LINEAR("uLightLinear");
+    static const FString LIGHT_QUADRATIC("uLightQuadratic");
+    static const FString LIGHT_INNER_CUT_OFF("uLightInnerCutOffCos");
+    static const FString LIGHT_OUTER_CUT_OFF("uLightOuterCutOffCos");
+    static const FString LIGHT_SHADOW_MAP("uLightShadowMap");
+    static const FString LIGHT_CASTS_SHADOWS("uLightCastsShadows");
+    static const FString LIGHT_SHADOW_CUBE("uLightShadowCube");
+    
+    inline glm::mat4 CreateLightSpaceMatrix(const glm::vec3& Position, const glm::vec3& LightUp, const LightSettings& MatrixSettings)
     {
-        float Left, Right;
-        float Bottom, Top;
-        float Near, Far;
-    };
-
-    static OrthoMatrixLightSettings LIGHT_SETTINGS = { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 15.f };
-
-    void RenderGeometry(gpu::CShader* ShaderToUse, FLinkedList<class FRenderable>& Geometry);
-
-    inline glm::mat4 CreateLightSpaceMatrix(const glm::vec3& Position, const glm::vec3& LightUp)
-    {
-        glm::mat4 lightSpaceMatrix = glm::lookAt(Position, glm::vec3{ 0 }, LightUp);
-        lightSpaceMatrix = glm::ortho(LIGHT_SETTINGS.Left, LIGHT_SETTINGS.Right, LIGHT_SETTINGS.Bottom, LIGHT_SETTINGS.Top,
-                                      LIGHT_SETTINGS.Near, LIGHT_SETTINGS.Far) *
-                           lightSpaceMatrix;
-        return lightSpaceMatrix;
+        const glm::mat4 viewMatrix = glm::lookAt(Position, glm::vec3{ 0 }, LightUp);
+        const glm::mat4 projectionMatrix = glm::ortho(MatrixSettings.Left,
+                                                      MatrixSettings.Right,
+                                                      MatrixSettings.Bottom,
+                                                      MatrixSettings.Top,
+                                                      MatrixSettings.Near,
+                                                      MatrixSettings.Far);
+        return projectionMatrix * viewMatrix;
     }
 
-    static gpu::CTexture* CreateShadowMapTexture(const glm::ivec2& ShadowMapSize)
+    void CLight::SetupShader(gpu::CShader* InShader) const
     {
-        gpu::CTexture* shadowMap = gpu::CreateEmpty2DTexture(ShadowMapSize.x, ShadowMapSize.y, gpu::ETextureDataType::FLOAT,
-                                                            gpu::ETextureDataFormat::DEPTH_COMPONENT, gpu::ETexturePixelFormat::DEPTH_COMPONENT, 0, FString {"ShadowMap" });
-        shadowMap->Bind();
-        shadowMap->SetWrapSFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
-        shadowMap->SetWrapTFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
-        shadowMap->SetMinFilter(lucid::gpu::MinTextureFilter::NEAREST);
-        shadowMap->SetMagFilter(lucid::gpu::MagTextureFilter::NEAREST);
-
-        assert(shadowMap);
-        return shadowMap;
+        InShader->SetInt(LIGHT_TYPE, static_cast<uint32>(GetType()));
+        InShader->SetVector(LIGHT_POSITION, Position);
+        InShader->SetVector(LIGHT_COLOR, Color);
     }
 
-    CDirectionalLight CreateDirectionalLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
-    {
-        CDirectionalLight directionalLight;
+    /////////////////////////////////////
+    //        Directional light        //
+    /////////////////////////////////////
 
-        if (CastsShadow)
+    void CDirectionalLight::UpdateLightSpaceMatrix(const LightSettings& LightSettings)
+    {
+        LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp, LightSettings);
+    }
+
+    void CDirectionalLight::SetupShader(gpu::CShader* InShader) const
+    {
+        CLight::SetupShader(InShader);
+        InShader->SetVector(LIGHT_DIRECTION, Direction);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
+
+        if (ShadowMap != nullptr)
         {
-            directionalLight.ShadowMap = CreateShadowMapTexture(ShadowMapSize);
-            directionalLight.ShadowMapSize = ShadowMapSize;
+            InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
+            InShader->UseTexture(LIGHT_SHADOW_MAP, ShadowMap->GetShadowMapTexture());
         }
-
-        return directionalLight;
-    }
-
-    CSpotLight CreateSpotLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
-    {
-        CSpotLight spotLight;
-
-        if (CastsShadow)
+        else
         {
-            spotLight.ShadowMap = CreateShadowMapTexture(ShadowMapSize);
-            spotLight.ShadowMapSize = ShadowMapSize;
-        }
-
-        return spotLight;
-    }
-
-    CPointLight CreatePointLight(const bool& CastsShadow, const glm::ivec2& ShadowMapSize)
-    {
-        CPointLight pointLight;
-
-        if (CastsShadow)
-        {
-            pointLight.ShadowMap = gpu::CreateCubemap(ShadowMapSize, gpu::ETextureDataFormat::DEPTH_COMPONENT, gpu::ETexturePixelFormat::DEPTH_COMPONENT, gpu::ETextureDataType::FLOAT, nullptr, FString { "ShadowCubemap" });
-            pointLight.ShadowMapSize = ShadowMapSize;
-        }
-
-        return pointLight;
-    }
-
-    static void _GenerateShadowMap(FRenderScene* SceneToRender,
-                                   gpu::CFramebuffer* TargetFramebuffer,
-                                   gpu::CShader* ShaderToUse,
-                                   bool RenderStaticGeometry,
-                                   bool ClearShadowMap,
-                                   gpu::CTexture* ShadowMap)
-    {
-        assert(ShadowMap);
-
-        ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor { 0 };
-        ShadowMapGenerationPipelineState.ClearDepthBufferValue = 0;
-        ShadowMapGenerationPipelineState.IsDepthTestEnabled = true;
-        ShadowMapGenerationPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
-        ShadowMapGenerationPipelineState.IsBlendingEnabled = false;
-        ShadowMapGenerationPipelineState.IsCullingEnabled = false;
-        ShadowMapGenerationPipelineState.IsSRGBFramebufferEnabled = true;
-        ShadowMapGenerationPipelineState.IsDepthBufferReadOnly = false;      
-        ShadowMapGenerationPipelineState.Viewport = { 0, 0, (u32)ShadowMap->GetSize().x, (u32)ShadowMap->GetSize().y };
-
-        gpu::ConfigurePipelineState(ShadowMapGenerationPipelineState);
-
-        TargetFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        TargetFramebuffer->SetupDepthAttachment(ShadowMap);
-
-        if (ClearShadowMap)
-        {
-            gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
-        }
-
-        TargetFramebuffer->DisableReadWriteBuffers();
-
-        if (RenderStaticGeometry)
-        {
-            RenderGeometry(ShaderToUse, SceneToRender->StaticGeometry);
-        }
-
-        RenderGeometry(ShaderToUse, SceneToRender->DynamicGeometry);
-    }
-
-    void RenderGeometry(gpu::CShader* ShaderToUse, FLinkedList<class FRenderable>& Geometry)
-    {
-        FLinkedListItem<FRenderable>* node = &Geometry.Head;
-        while (node && node->Element)
-        {
-            ShaderToUse->SetMatrix(MODEL, node->Element->CalculateModelMatrix());
-            node->Element->VertexArray->Bind();
-            node->Element->VertexArray->Draw();
-            node = node->Next;
+            InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
         }
     }
 
-    void CDirectionalLight::GenerateShadowMap(FRenderScene* SceneToRender,
-                                             gpu::CFramebuffer* TargetFramebuffer,
-                                             gpu::CShader* ShaderToUse,
-                                             bool RenderStaticGeometry,
-                                             bool ClearShadowMap)
+    void CDirectionalLight::SetupShadowMapShader(gpu::CShader* InShader)
     {
-        ShaderToUse->Use();
-        ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
-
-        _GenerateShadowMap(SceneToRender, TargetFramebuffer, ShaderToUse, RenderStaticGeometry, ClearShadowMap, ShadowMap);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
     }
 
-    void CDirectionalLight::UpdateLightSpaceMatrix() { LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp); }
+    /////////////////////////////////////
+    //            Spot light           //
+    /////////////////////////////////////
 
-    void CSpotLight::GenerateShadowMap(FRenderScene* SceneToRender,
-                                      gpu::CFramebuffer* TargetFramebuffer,
-                                      gpu::CShader* ShaderToUse,
-                                      bool RenderStaticGeometry,
-                                      bool ClearShadowMap)
-
+    void CSpotLight::UpdateLightSpaceMatrix(const LightSettings& LightSettings)
     {
-        ShaderToUse->Use();
-        ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
-
-        _GenerateShadowMap(SceneToRender, TargetFramebuffer, ShaderToUse, RenderStaticGeometry, ClearShadowMap, ShadowMap);
+        LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp, LightSettings);
     }
 
-    void CSpotLight::UpdateLightSpaceMatrix() { LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp); }
-
-    void CPointLight::UpdateLightSpaceMatrix()
+    void CSpotLight::SetupShader(gpu::CShader* InShader) const
     {
-        glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.f), (float)ShadowMapSize.x / (float)ShadowMapSize.y, NearPlane, FarPlane);
+        CLight::SetupShader(InShader);
+        InShader->SetVector(LIGHT_DIRECTION, Direction);
+        InShader->SetFloat(LIGHT_CONSTANT, Constant);
+        InShader->SetFloat(LIGHT_LINEAR, Linear);
+        InShader->SetFloat(LIGHT_QUADRATIC, Quadratic);
+        InShader->SetFloat(LIGHT_INNER_CUT_OFF, glm::cos(InnerCutOffRad));
+        InShader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(OuterCutOffRad));
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
 
-        LightSpaceMatrices[0] = projectionMatrix * glm::lookAt(Position, Position + glm::vec3 { 1.0, 0.0, 0.0 }, glm::vec3 { 0.0, -1.0, 0.0 });
-        LightSpaceMatrices[1] = projectionMatrix * glm::lookAt(Position, Position + glm::vec3 { -1.0, 0.0, 0.0 }, glm::vec3 { 0.0, -1.0, 0.0 });
-        LightSpaceMatrices[2] = projectionMatrix * glm::lookAt(Position, Position + glm::vec3 { 0.0, 1.0, 0.0 }, glm::vec3 { 0.0, 0.0, 1.0 });
-        LightSpaceMatrices[3] = projectionMatrix * glm::lookAt(Position, Position + glm::vec3 { 0.0, -1.0, 0.0 }, glm::vec3 { 0.0, 0.0, -1.0 });
-        LightSpaceMatrices[4] = projectionMatrix * glm::lookAt(Position, Position + glm::vec3 { 0.0, 0.0, 1.0 }, glm::vec3 { 0.0, -1.0, 0.0 });
-        LightSpaceMatrices[5] = projectionMatrix * glm::lookAt(Position, Position + glm::vec3 { 0.0, 0.0, -1.0 }, glm::vec3 { 0.0, -1.0, 0.0 });
+        if (ShadowMap != nullptr)
+        {
+            InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
+            InShader->UseTexture(LIGHT_SHADOW_MAP, ShadowMap->GetShadowMapTexture());
+        }
+        else
+        {
+            InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
+        }
     }
 
-    void CPointLight::GenerateShadowMap(FRenderScene* SceneToRender,
-                                       gpu::CFramebuffer* TargetFramebuffer,
-                                       gpu::CShader* ShaderToUse,
-                                       bool RenderStaticGeometry,
-                                       bool ClearShadowMap)
-
+    void CSpotLight::SetupShadowMapShader(gpu::CShader* InShader)
     {
-        ShaderToUse->Use();
-        ShaderToUse->SetFloat(LIGHT_FAR_PLANE, FarPlane);
-        ShaderToUse->SetVector(LIGHT_POSITION, Position);
-        ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX_0, LightSpaceMatrices[0]);
-        ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX_1, LightSpaceMatrices[1]);
-        ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX_2, LightSpaceMatrices[2]);
-        ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX_3, LightSpaceMatrices[3]);
-        ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX_4, LightSpaceMatrices[4]);
-        ShaderToUse->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);
-
-        _GenerateShadowMap(SceneToRender, TargetFramebuffer, ShaderToUse, RenderStaticGeometry, ClearShadowMap, ShadowMap);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
     }
 
+    /////////////////////////////////////
+    //           Point light           //
+    /////////////////////////////////////
+    
+    void CPointLight::UpdateLightSpaceMatrix(const LightSettings& LightSettings)
+    {
+        const glm::vec2 ShadowMapSize = ShadowMap->GetShadowMapTexture()->GetSize();
+        glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.f), ShadowMapSize.x / ShadowMapSize.y, NearPlane, FarPlane);
+
+        LightSpaceMatrices[0] =
+          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+        LightSpaceMatrices[1] =
+          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+        LightSpaceMatrices[2] =
+          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 0.0, 1.0, 0.0 }, glm::vec3{ 0.0, 0.0, 1.0 });
+        LightSpaceMatrices[3] =
+          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 0.0, -1.0, 0.0 }, glm::vec3{ 0.0, 0.0, -1.0 });
+        LightSpaceMatrices[4] =
+          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 0.0, 0.0, 1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+        LightSpaceMatrices[5] =
+          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 0.0, 0.0, -1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+    }
+
+    void CPointLight::SetupShader(gpu::CShader* InShader) const
+    {
+        CLight::SetupShader(InShader);
+        InShader->SetFloat(LIGHT_CONSTANT, Constant);
+        InShader->SetFloat(LIGHT_LINEAR, Linear);
+        InShader->SetFloat(LIGHT_QUADRATIC, Quadratic);
+        InShader->SetFloat(LIGHT_NEAR_PLANE, NearPlane);
+        InShader->SetFloat(LIGHT_FAR_PLANE, FarPlane);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_0, LightSpaceMatrices[0]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_1, LightSpaceMatrices[1]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_2, LightSpaceMatrices[2]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_3, LightSpaceMatrices[3]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_4, LightSpaceMatrices[4]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);
+
+        if (ShadowMap != nullptr)
+        {
+            InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
+            InShader->UseTexture(LIGHT_SHADOW_CUBE, ShadowMap->GetShadowMapTexture());
+        }
+        else
+        {
+            InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
+        }
+
+    }
+
+    void CPointLight::SetupShadowMapShader(gpu::CShader* InShader)
+    {
+        InShader->SetFloat(LIGHT_FAR_PLANE, FarPlane);
+        InShader->SetVector(LIGHT_POSITION, Position);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_1, LightSpaceMatrices[1]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_2, LightSpaceMatrices[2]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_3, LightSpaceMatrices[3]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_4, LightSpaceMatrices[4]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);        
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);        
+    }
 } // namespace lucid::scene

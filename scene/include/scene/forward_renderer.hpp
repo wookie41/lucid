@@ -31,13 +31,15 @@ namespace lucid::scene
         ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
                         const u8 InNumSSAOSamples,
                         gpu::CShader* InDefaultRenderableShader,
+                        gpu::CShader* InShadowMapShader,
+                        gpu::CShader* InShadowCubeMapShader,
                         gpu::CShader* InPrepassShader,
                         gpu::CShader* InSSAOShader,
                         gpu::CShader* InSimpleBlurShader,
                         gpu::CShader* SkyboxShader);
 
         virtual void Setup() override;
-        virtual void Render(const FRenderScene* InSceneToRender, const FRenderView* InRenderView) override;
+        virtual void Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView) override;
         virtual void Cleanup() override;
 
         virtual gpu::CFramebuffer* GetResultFramebuffer() override { return LightingPassFramebuffer; }
@@ -50,6 +52,8 @@ namespace lucid::scene
         glm::ivec2 FramebufferSize;
 
       private:
+
+        void GenerateShadowMaps(FRenderScene* InSceneToRender);
         void Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
         void LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
 
@@ -60,18 +64,21 @@ namespace lucid::scene
         void RenderStaticGeometry(const FRenderScene* InScene, const FRenderView* InRenderView);
         void RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView);
         void RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
-        void SetupLight(gpu::CShader* InShader, const CLight* InLight);
 
         void RenderSkybox(const FSkybox* InSkybox, const FRenderView* InRenderView);
 
         u32 MaxNumOfDirectionalLights;
 
         /** Preconfigured pipeline states */
+        gpu::FPipelineState ShadowMapGenerationPipelineState;
         gpu::FPipelineState PrepassPipelineState;
         gpu::FPipelineState InitialLightLightpassPipelineState;
         gpu::FPipelineState LightpassPipelineState;
         gpu::FPipelineState SkyboxPipelineState;
 
+        /** Shadow map generation shader */
+        gpu::CShader* ShadowMapShader;
+        gpu::CShader* ShadowCubeMapShader;
         
         /** Skybox Shader */
         gpu::CShader* SkyboxShader;
@@ -91,6 +98,9 @@ namespace lucid::scene
 
         u8 SimpleBlurXOffset = 2;
         u8 SimpleBlurYOffset = 2;
+
+        /** Framebuffer when generating shadow maps*/
+        gpu::CFramebuffer* ShadowMapFramebuffer;
         
         /** Framebuffer used for when doing the depth-only prepass */
         gpu::CFramebuffer* PrepassFramebuffer;

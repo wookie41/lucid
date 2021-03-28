@@ -8,6 +8,7 @@ AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: false
+BinPackArguments: false
 BinPackParameters: false
 BreakBeforeBinaryOperators: false
 BreakBeforeBraces: Allman
@@ -43,3 +44,5 @@ PointerAlignment: Left
 AlwaysBreakTemplateDeclarations: true
 SortIncludes: false
 ColumnLimit: 130
+ExperimentalAutoDetectBinPacking: false
+AllowAllParametersOfDeclarationOnNextLine: false
