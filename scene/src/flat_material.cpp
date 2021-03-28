@@ -3,7 +3,7 @@
 
 namespace lucid::scene
 {
-    static const FString COLOR("uMaterial.Color");
+    static const FString COLOR("uMaterialColor");
 
     FlatMaterial::FlatMaterial(gpu::CShader* CustomShader) : CMaterial(CustomShader) {}
 

@@ -8,9 +8,9 @@
 
 namespace lucid::scene
 {
-    static const FString SHININESS("uMaterial.Shininess");
-    static const FString DIFFUSE_COLOR("uMaterial.DiffuseColor");
-    static const FString SPECULAR_COLOR("uMaterial.SpecularColor");
+    static const FString SHININESS("uMaterialShininess");
+    static const FString DIFFUSE_COLOR("uMaterialDiffuseColor");
+    static const FString SPECULAR_COLOR("uMaterialSpecularColor");
 
     CBlinnPhongMaterial::CBlinnPhongMaterial(gpu::CShader* CustomShader) : CMaterial(CustomShader) {}
 
@@ -23,13 +23,13 @@ namespace lucid::scene
 
     /* ---------------------------------------------------------------------------*/
 
-    static const FString DIFFUSE_MAP("uMaterial.DiffuseMap");
-    static const FString SPECULAR_MAP("uMaterial.SpecularMap");
-    static const FString NORMAL_MAP("uMaterial.NormalMap");
-    static const FString HAS_SPECULAR_MAP("uMaterial.HasSpecularMap");
-    static const FString HAS_NORMAL_MAP("uMaterial.HasNormalMap");
-    static const FString HAS_DISPLACEMENT_MAP("uMaterial.HasDisplacementMap");
-    static const FString DISPLACEMENT_MAP("uMaterial.DisplacementMap");
+    static const FString DIFFUSE_MAP("uMaterialDiffuseMap");
+    static const FString SPECULAR_MAP("uMaterialSpecularMap");
+    static const FString NORMAL_MAP("uMaterialNormalMap");
+    static const FString HAS_SPECULAR_MAP("uMaterialHasSpecularMap");
+    static const FString HAS_NORMAL_MAP("uMaterialHasNormalMap");
+    static const FString HAS_DISPLACEMENT_MAP("uMaterialHasDisplacementMap");
+    static const FString DISPLACEMENT_MAP("uMaterialDisplacementMap");
 
     CBlinnPhongMapsMaterial::CBlinnPhongMapsMaterial(gpu::CShader* CustomShader) : CMaterial(CustomShader) {}
 

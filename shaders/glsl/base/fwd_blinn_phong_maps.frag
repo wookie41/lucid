@@ -1,7 +1,6 @@
 #version 330 core
 
-#include "material.glsl"
-
+#include "blinn_phong_maps_uniforms.glsl"
 
 in VS_OUT
 {
@@ -15,12 +14,13 @@ fsIn;
 
 in vec4 gl_FragCoord;
 
-uniform float uAmbientStrength;
-uniform vec3 uViewPos;
-uniform BlinnPhongMapsMaterial uMaterial;
-uniform mat4 uModel;
-uniform sampler2D uAmbientOcclusion;
-uniform vec2 uViewportSize;
+uniform float       uAmbientStrength;
+uniform sampler2D   uAmbientOcclusion;
+
+uniform vec3    uViewPos;
+uniform vec2    uViewportSize;
+
+uniform mat4    uModel;
 
 #include "lights.glsl"
 #include "shadow_mapping.glsl"
@@ -35,9 +35,9 @@ void main()
     float AmbientOcclusion = texture(uAmbientOcclusion, ScreenSpaceCoords).r;
 
     vec2 textureCoords = fsIn.TextureCoords;
-    if (uMaterial.HasDisplacementMap)
+    if (uMaterialHasDisplacementMap)
     {
-        textureCoords = ParallaxOcclusionMapping(fsIn.inverseTBN * toViewN, fsIn.TextureCoords, uMaterial.DisplacementMap);
+        textureCoords = ParallaxOcclusionMapping(fsIn.inverseTBN * toViewN, fsIn.TextureCoords, uMaterialDisplacementMap);
         if (textureCoords.x > 1 || textureCoords.x < 0 || 
             textureCoords.y > 1 || textureCoords.y < 0)
         {
@@ -46,17 +46,17 @@ void main()
     }
 
     vec3 normal;
-    if (uMaterial.HasNormalMap)
+    if (uMaterialHasNormalMap)
     {
-        normal = normalize(fsIn.TBN * ((texture(uMaterial.NormalMap, textureCoords).rgb * 2) - 1));
+        normal = normalize(fsIn.TBN * ((texture(uMaterialNormalMap, textureCoords).rgb * 2) - 1));
     }
     else
     {
         normal = normalize(fsIn.InterpolatedNormal);
     }
 
-    vec3 diffuseColor =  texture(uMaterial.DiffuseMap, textureCoords).rgb * AmbientOcclusion;
-    vec3 specularColor = uMaterial.HasSpecularMap ? texture(uMaterial.SpecularMap, textureCoords).rgb : uMaterial.SpecularColor; 
+    vec3 diffuseColor =  texture(uMaterialDiffuseMap, textureCoords).rgb * AmbientOcclusion;
+    vec3 specularColor = uMaterialHasSpecularMap ? texture(uMaterialSpecularMap, textureCoords).rgb : uMaterialSpecularColor; 
 
     vec3 ambient = diffuseColor * uAmbientStrength * AmbientOcclusion;
     float shadowFactor = 1.0;
@@ -65,17 +65,17 @@ void main()
     if (uLightType == DIRECTIONAL_LIGHT)
     {
         shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLightDirection));
-        lightCntrb = CalculateDirectionalLightContribution(toViewN, normal, uMaterial.Shininess);
+        lightCntrb = CalculateDirectionalLightContribution(toViewN, normal, uMaterialShininess);
     }
     else if (uLightType == POINT_LIGHT)
     {   
         shadowFactor = CalculateShadowCubemap(fsIn.FragPos, normal, uLightPosition);
-        lightCntrb = CalculatePointLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
+        lightCntrb = CalculatePointLightContribution(fsIn.FragPos, toViewN, normal, uMaterialShininess);
     }
     else if (uLightType == SPOT_LIGHT)
     {
         shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLightDirection));
-        lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, uMaterial.Shininess);
+        lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, uMaterialShininess);
     }
     
     vec3 fragColor = (diffuseColor * lightCntrb.Diffuse) + (specularColor * lightCntrb.Specular);

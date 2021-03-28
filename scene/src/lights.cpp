@@ -174,7 +174,6 @@ namespace lucid::scene
         {
             InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
         }
-
     }
 
     void CPointLight::SetupShadowMapShader(gpu::CShader* InShader)
