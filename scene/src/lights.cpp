@@ -1,12 +1,9 @@
 #include "scene/lights.hpp"
 
-
 #include <stb.h>
-#include <GL/glew.h>
 
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/shader.hpp"
-#include "scene/renderable.hpp"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "scene/renderer.hpp"

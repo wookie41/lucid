@@ -4,6 +4,7 @@
 
 
 #include "common/strings.hpp"
+#include "renderable/mesh_renderable.hpp"
 #include "scene/material.hpp"
 
 namespace lucid::resources
@@ -22,7 +23,7 @@ namespace lucid::scene
     class CBlinnPhongMaterial : public CMaterial
     {
       public:
-        explicit CBlinnPhongMaterial(gpu::CShader* CustomShader = nullptr);
+        explicit CBlinnPhongMaterial(gpu::CShader* InShader);
 
         virtual void SetupShader(gpu::CShader* Shader) override;
 
@@ -38,7 +39,7 @@ namespace lucid::scene
     class CBlinnPhongMapsMaterial : public CMaterial
     {
       public:
-        explicit CBlinnPhongMapsMaterial(gpu::CShader* CustomShader = nullptr);
+        explicit CBlinnPhongMapsMaterial(gpu::CShader* InShader);
 
         virtual void SetupShader(gpu::CShader* Shader) override;
 
@@ -51,5 +52,5 @@ namespace lucid::scene
         glm::vec3 SpecularColor; //Fallback when specular map is not used
     };
 
-    FRenderable* CreateBlinnPhongRenderable(const FANSIString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader);
+    CStaticMesh* CreateBlinnPhongRenderable(const FANSIString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader);
 } // namespace lucid::scene

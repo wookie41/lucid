@@ -5,7 +5,7 @@ namespace lucid::scene
 {
     static const FString COLOR("uMaterialColor");
 
-    FlatMaterial::FlatMaterial(gpu::CShader* CustomShader) : CMaterial(CustomShader) {}
+    FlatMaterial::FlatMaterial(gpu::CShader* InShader) : CMaterial(InShader) {}
 
     void FlatMaterial::SetupShader(gpu::CShader* Shader) { Shader->SetVector(COLOR, Color); }
 

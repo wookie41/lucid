@@ -4,7 +4,7 @@
 #include "devices/gpu/texture.hpp"
 #include "resources/mesh.hpp"
 #include "resources/texture.hpp"
-#include "scene/renderable.hpp"
+#include "scene/renderable/mesh_renderable.hpp"
 
 namespace lucid::scene
 {
@@ -12,7 +12,7 @@ namespace lucid::scene
     static const FString DIFFUSE_COLOR("uMaterialDiffuseColor");
     static const FString SPECULAR_COLOR("uMaterialSpecularColor");
 
-    CBlinnPhongMaterial::CBlinnPhongMaterial(gpu::CShader* CustomShader) : CMaterial(CustomShader) {}
+    CBlinnPhongMaterial::CBlinnPhongMaterial(gpu::CShader* InShader) : CMaterial(InShader) {}
 
     void CBlinnPhongMaterial::SetupShader(gpu::CShader* Shader)
     {
@@ -31,7 +31,7 @@ namespace lucid::scene
     static const FString HAS_DISPLACEMENT_MAP("uMaterialHasDisplacementMap");
     static const FString DISPLACEMENT_MAP("uMaterialDisplacementMap");
 
-    CBlinnPhongMapsMaterial::CBlinnPhongMapsMaterial(gpu::CShader* CustomShader) : CMaterial(CustomShader) {}
+    CBlinnPhongMapsMaterial::CBlinnPhongMapsMaterial(gpu::CShader* InShader) : CMaterial(InShader) {}
 
     void CBlinnPhongMapsMaterial::SetupShader(gpu::CShader* Shader)
     {
@@ -71,7 +71,7 @@ namespace lucid::scene
     };
 
 
-    FRenderable* CreateBlinnPhongRenderable(const FANSIString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader)
+    CStaticMesh* CreateBlinnPhongRenderable(const FANSIString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader)
         {
             gpu::CTexture* FallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
 
@@ -108,11 +108,6 @@ namespace lucid::scene
                 MeshMaterial->NormalMap = InMesh->NormalMap->TextureHandle;
             }
     
-            FRenderable* MeshRenderable = new FRenderable{ CopyToString(*InMeshName, InMeshName.GetLength()) };
-            MeshRenderable->Material = MeshMaterial;
-            MeshRenderable->Type = ERenderableType::STATIC;
-            MeshRenderable->VertexArray = InMesh->VAO;
-    
-            return MeshRenderable;
+            return new CStaticMesh{ CopyToString(*InMeshName, InMeshName.GetLength()), nullptr, InMesh->VAO, MeshMaterial, STATIONARY };    
         }
 } // namespace lucid::scene

@@ -5,25 +5,37 @@
 
 namespace lucid::scene
 {
-    FSkybox CreateSkybox(const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName)
+    CSkybox CreateSkybox(const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName)
     {
         const char* skyboxFacesData[6];
         resources::CTextureResource* textureResources[6];
 
         for (u8 face = 0; face < 6; ++face)
         {
-            textureResources[face] = resources::LoadJPEG(*InSkyboxFacesPaths[face], true, gpu::ETextureDataType::UNSIGNED_BYTE, false, false, InName);
+            textureResources[face] =
+              resources::LoadJPEG(*InSkyboxFacesPaths[face], true, gpu::ETextureDataType::UNSIGNED_BYTE, false, false, InName);
             assert(textureResources[face]);
             skyboxFacesData[face] = (char*)textureResources[face]->TextureData;
         }
 
-        gpu::CCubemap* skyboxCubemap = gpu::CreateCubemap({ textureResources[0]->Width, textureResources[1]->Height }, gpu::ETextureDataFormat::SRGB, gpu::ETexturePixelFormat::RGB, gpu::ETextureDataType::UNSIGNED_BYTE, skyboxFacesData, InName);
+        gpu::CCubemap* skyboxCubemap = gpu::CreateCubemap({ textureResources[0]->Width, textureResources[1]->Height },
+                                                          gpu::ETextureDataFormat::SRGB,
+                                                          gpu::ETexturePixelFormat::RGB,
+                                                          gpu::ETextureDataType::UNSIGNED_BYTE,
+                                                          skyboxFacesData,
+                                                          InName);
 
         for (u8 face = 0; face < 6; ++face)
         {
             textureResources[face]->FreeMainMemory();
         }
 
-        return { skyboxCubemap };
+        return CSkybox{ skyboxCubemap };
     }
+
+    void CRenderScene::AddStaticMesh(CStaticMesh* InStaticMesh) { StaticMeshes.Add(InStaticMesh); }
+
+    void CRenderScene::AddLight(CLight* InLight) { Lights.Add(InLight); }
+
+    void CRenderScene::SetSkybox(CSkybox* InSkybox) { SceneSkybox = InSkybox; }
 }; // namespace lucid::scene

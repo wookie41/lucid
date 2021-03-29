@@ -29,8 +29,7 @@ namespace lucid::scene
       public:
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
         ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
-                        const u8 InNumSSAOSamples,
-                        gpu::CShader* InDefaultRenderableShader,
+                        const u8& InNumSSAOSamples,
                         gpu::CShader* InShadowMapShader,
                         gpu::CShader* InShadowCubeMapShader,
                         gpu::CShader* InPrepassShader,
@@ -39,7 +38,7 @@ namespace lucid::scene
                         gpu::CShader* SkyboxShader);
 
         virtual void Setup() override;
-        virtual void Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView) override;
+        virtual void Render(CRenderScene* InSceneToRender, const FRenderView* InRenderView) override;
         virtual void Cleanup() override;
 
         virtual gpu::CFramebuffer* GetResultFramebuffer() override { return LightingPassFramebuffer; }
@@ -53,19 +52,20 @@ namespace lucid::scene
 
       private:
 
-        void GenerateShadowMaps(FRenderScene* InSceneToRender);
-        void Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
-        void LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
+        void GenerateShadowMaps(CRenderScene* InSceneToRender);
+        void Prepass(const CRenderScene* InSceneToRender, const FRenderView* InRenderSource);
+        void LightingPass(const CRenderScene* InSceneToRender, const FRenderView* InRenderSource);
 
         inline void BindAndClearFramebuffer(gpu::CFramebuffer* InFramebuffer);
         inline void SetupRendererWideUniforms(gpu::CShader* InShader, const FRenderView* InRenderView);
 
-        void Render(gpu::CShader* InShader, const FRenderable* InRenderable);
-        void RenderStaticGeometry(const FRenderScene* InScene, const FRenderView* InRenderView);
-        void RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView);
-        void RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
+        void RenderWithoutLights(const CRenderScene* InScene, const FRenderView* InRenderView);
 
-        void RenderSkybox(const FSkybox* InSkybox, const FRenderView* InRenderView);
+        void RenderStaticMeshes(const CRenderScene* InScene, const FRenderView* InRenderView);
+        void RenderLightContribution(const CLight* InLight, const CRenderScene* InScene, const FRenderView* InRenderView);
+        void RenderStaticMesh(gpu::CShader* InShader, const CStaticMesh* InStaticMesh);
+
+        void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
         u32 MaxNumOfDirectionalLights;
 

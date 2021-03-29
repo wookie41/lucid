@@ -71,7 +71,6 @@ namespace lucid::scene
     class CRenderer
     {
       public:
-        explicit CRenderer(gpu::CShader* InDefaultShader) : DefaultRenderableShader(InDefaultShader) {}
 
         /////////////////////////////////////
         //        Renderer interface       //
@@ -86,7 +85,7 @@ namespace lucid::scene
         /**
          * Renders the scene from the specified view
          */
-        virtual void Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView) = 0;
+        virtual void Render(CRenderScene* InSceneToRender, const FRenderView* InRenderView) = 0;
 
         /**
          * Called before the renderer is deleted so it can cleanup whatever it did in Setup() or during Render(s)().
@@ -112,7 +111,6 @@ namespace lucid::scene
         virtual ~CRenderer() = default;
 
       protected:
-        gpu::CShader* DefaultRenderableShader;
 
         /** Lights and shadow maps arrays */
         CLight** CreatedLights = nullptr;

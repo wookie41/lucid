@@ -15,7 +15,6 @@
 #include "devices/gpu/viewport.hpp"
 
 #include "scene/lights.hpp"
-#include "scene/renderable.hpp"
 #include "scene/blinn_phong_material.hpp"
 #include "scene/camera.hpp"
 
@@ -58,15 +57,14 @@ namespace lucid::scene
 
     ForwardRenderer::ForwardRenderer(
         const u32& InMaxNumOfDirectionalLights,
-        const u8 InNumSSAOSamples,
-        gpu::CShader* InDefaultRenderableShader,
+        const u8& InNumSSAOSamples,
         gpu::CShader* InShadowMapShader,
         gpu::CShader* InShadowCubeMapShader,
         gpu::CShader* InPrepassShader,
         gpu::CShader* InSSAOShader,
         gpu::CShader* InSimpleBlurShader,
         gpu::CShader* InSkyboxShader)
-    : CRenderer(InDefaultRenderableShader),
+    : 
         MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
         NumSSAOSamples(InNumSSAOSamples),
         ShadowMapShader(InShadowMapShader),
@@ -124,7 +122,8 @@ namespace lucid::scene
 
         SkyboxPipelineState = LightpassPipelineState;
         SkyboxPipelineState.IsBlendingEnabled = false;
-        
+        SkyboxPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
+
         // Create the framebuffers
         ShadowMapFramebuffer = gpu::CreateFramebuffer(FString{ "ShadowmapFramebuffer" });
         PrepassFramebuffer = gpu::CreateFramebuffer(FString{ "PrepassFramebuffer" });
@@ -260,7 +259,7 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView)
+    void ForwardRenderer::Render(CRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
         
@@ -271,97 +270,7 @@ namespace lucid::scene
         LightingPass(InSceneToRender, InRenderView);
     }
 
-    void ForwardRenderer::RenderStaticGeometry(const FRenderScene* InScene, const FRenderView* InRenderView)
-    {
-        // Render with lights contribution, ie. update the lighting uniforms,
-        // as the underlying shader will use them when rendering the geometry
-        const FLinkedListItem<CLight>* LightNode = &InScene->Lights.Head;
-        if (!LightNode->Element)
-        {
-            // no lights in the scene, render the geometry only with ambient contribution
-            RenderWithoutLights(InScene, InRenderView);
-            return;
-        }
-
-        RenderLightContribution(LightNode->Element, InScene, InRenderView);
-        if (!LightNode->Next || !LightNode->Next->Element)
-        {
-            // No more lights
-            return;
-        }
-
-        // Change the blending mode so we render the rest of the lights additively
-        gpu::ConfigurePipelineState(LightpassPipelineState);
-
-        LightNode = LightNode->Next;
-        while (LightNode && LightNode->Element)
-        {
-            RenderLightContribution(LightNode->Element, InScene, InRenderView);
-            LightNode = LightNode->Next;
-        }
-    }
-
-    void ForwardRenderer::RenderLightContribution(const CLight* InLight,
-                                                  const FRenderScene* InScene,
-                                                  const FRenderView* InRenderView)
-    {
-        const FLinkedListItem<FRenderable>* CurrentNode = &InScene->StaticGeometry.Head;
-        gpu::CShader* LastUsedShader = nullptr;
-        while (CurrentNode && CurrentNode->Element)
-        {
-            FRenderable* CurrentRenderable = CurrentNode->Element;
-
-            // Determine if the material uses a custom shader
-            // if yes, then setup the renderer-provided uniforms
-            auto CustomShader = CurrentRenderable->Material->GetCustomShader();
-            gpu::CShader* UsedShader = CustomShader ? CustomShader : DefaultRenderableShader;
-            if (UsedShader != LastUsedShader)
-            {
-                UsedShader->Use();
-            }
-            LastUsedShader = UsedShader;
-            
-            SetupRendererWideUniforms(LastUsedShader, InRenderView);
-            InLight->SetupShader(UsedShader);
-            Render(UsedShader, CurrentRenderable);
-
-            CurrentNode = CurrentNode->Next;
-        }
-    }
-
-    void ForwardRenderer::RenderWithoutLights(const FRenderScene* InScene,
-                                              const FRenderView* InRenderView)
-    {
-        const FLinkedListItem<FRenderable>* CurrentNode = &InScene->StaticGeometry.Head;
-        gpu::CShader* LastUserShader = DefaultRenderableShader;
-        
-        LastUserShader->SetInt(LIGHT_TYPE, NO_LIGHT);
-
-        while (CurrentNode && CurrentNode->Element)
-        {
-            FRenderable* CurrentRenderable = CurrentNode->Element;
-
-            // Determine if the material uses a custom shader if yes, then setup the renderer-provided uniforms
-            gpu::CShader* CustomShader = CurrentRenderable->Material->GetCustomShader();
-            if (CustomShader)
-            {
-                CustomShader->Use();
-                CustomShader->SetInt(LIGHT_TYPE, NO_LIGHT);
-                SetupRendererWideUniforms(CustomShader, InRenderView);
-                LastUserShader = CustomShader;
-            }
-            else if (LastUserShader != DefaultRenderableShader)
-            {
-                DefaultRenderableShader->Use();
-                LastUserShader = DefaultRenderableShader;
-            }
-
-            Render(LastUserShader, CurrentRenderable);
-            CurrentNode = CurrentNode->Next;
-        }
-    }
-
-    void ForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender)
+    void ForwardRenderer::GenerateShadowMaps(CRenderScene* InSceneToRender)
     {
         // Prepare the pipeline state
         gpu::ConfigurePipelineState(ShadowMapGenerationPipelineState);
@@ -372,7 +281,7 @@ namespace lucid::scene
         u8              PrevShadowMapQuality = 255;
         gpu::CShader*   PrevShadowMapShader = nullptr;
 
-        FLinkedListItem<CLight>* LightNode = &InSceneToRender->Lights.Head;
+        const FLinkedListItem<CLight>* LightNode = &InSceneToRender->GetLights().Head;
         while (LightNode && LightNode->Element)
         {
             CLight* Light = LightNode->Element;
@@ -401,17 +310,17 @@ namespace lucid::scene
             gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
             
             // Render the scene from light's point of view
-            // @TODO we're skipping dynamic geometry as the FRenderScene will be reworked 
-            FLinkedListItem<FRenderable>* RenderableNode = &InSceneToRender->StaticGeometry.Head;
-            while (RenderableNode && RenderableNode->Element)
-            {
-                // @TODO Renderable should know how to render itself
-                FRenderable* Renderable = RenderableNode->Element;
-                CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, Renderable->CalculateModelMatrix());
-                Renderable->VertexArray->Bind();
-                Renderable->VertexArray->Draw();
 
-                RenderableNode = RenderableNode->Next;
+            //  - Static geometry
+            const FLinkedListItem<CStaticMesh>* CurrentNode = &InSceneToRender->GetStaticMeshes().Head;
+            while (CurrentNode && CurrentNode->Element)
+            {
+                CStaticMesh* StaticMesh = CurrentNode->Element;
+                CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
+                StaticMesh->GetVertexArray()->Bind();
+                StaticMesh->GetVertexArray()->Draw();
+
+                CurrentNode = CurrentNode->Next;
             }
             
             // Get next light
@@ -419,7 +328,7 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
+    void ForwardRenderer::Prepass(const CRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         // Render the scene
         gpu::ConfigurePipelineState(PrepassPipelineState);
@@ -430,20 +339,19 @@ namespace lucid::scene
         PrepassShader->Use();
         SetupRendererWideUniforms(PrepassShader, InRenderView);
 
-        const glm::vec2 NoiseTextureSize = { SSAONoise->GetSize().x, SSAONoise->GetSize().y };
-        const glm::vec2 ViewportSize = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
-        const glm::vec2 NoiseScale = ViewportSize / NoiseTextureSize;
+        const glm::vec2 NoiseTextureSize    = { SSAONoise->GetSize().x, SSAONoise->GetSize().y };
+        const glm::vec2 ViewportSize        = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
+        const glm::vec2 NoiseScale          = ViewportSize / NoiseTextureSize;
 
-        const FLinkedListItem<FRenderable>* CurrentNode = &InSceneToRender->StaticGeometry.Head;
-        while (CurrentNode && CurrentNode->Element)
+        const FLinkedListItem<CStaticMesh>* CurrentStaticMeshNode = &InSceneToRender->GetStaticMeshes().Head;
+        while (CurrentStaticMeshNode && CurrentStaticMeshNode->Element)
         {
-            FRenderable* CurrentRenderable = CurrentNode->Element;
-            Render(PrepassShader, CurrentRenderable);
-            CurrentNode = CurrentNode->Next;
+            CStaticMesh* StaticMesh = CurrentStaticMeshNode->Element;
+            RenderStaticMesh(PrepassShader, StaticMesh);
+            CurrentStaticMeshNode = CurrentStaticMeshNode->Next;
         }
 
-         // Calculate SSAO
-        // gpu::DisableDepthTest();
+        // Calculate SSAO
         BindAndClearFramebuffer(SSAOFramebuffer);
         SSAOShader->Use();
         SetupRendererWideUniforms(SSAOShader, InRenderView);
@@ -470,20 +378,109 @@ namespace lucid::scene
         gpu::DrawImmediateQuad({ 0, 0 }, SSAOResult->GetSize());        
     }
 
-    void ForwardRenderer::LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
+    void ForwardRenderer::LightingPass(const CRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         gpu::ConfigurePipelineState(InitialLightLightpassPipelineState);
 
         BindAndClearFramebuffer(LightingPassFramebuffer);
         LightingPassFramebuffer->SetupDrawBuffers();
 
-        DefaultRenderableShader->Use();
-        SetupRendererWideUniforms(DefaultRenderableShader, InRenderView);
-
-        RenderStaticGeometry(InSceneToRender, InRenderView);
-        if (InSceneToRender->SceneSkybox)
+        RenderStaticMeshes(InSceneToRender, InRenderView);
+        if (InSceneToRender->GetSkybox())
         {
-            RenderSkybox(InSceneToRender->SceneSkybox, InRenderView);
+            RenderSkybox(InSceneToRender->GetSkybox(), InRenderView);
+        }
+    }
+
+    
+    void ForwardRenderer::RenderStaticMeshes(const CRenderScene* InScene, const FRenderView* InRenderView)
+    {
+        // Render with lights contribution, ie. update the lighting uniforms,
+        // as the underlying shader will use them when rendering the geometry
+        const FLinkedListItem<CLight>* LightNode = &InScene->GetLights().Head;
+        if (!LightNode->Element)
+        {
+            // no lights in the scene, render the geometry only with ambient contribution
+            RenderWithoutLights(InScene, InRenderView);
+            return;
+        }
+
+        RenderLightContribution(LightNode->Element, InScene, InRenderView);
+        if (!LightNode->Next || !LightNode->Next->Element)
+        {
+            // No more lights
+            return;
+        }
+
+        // Change the blending mode so we render the rest of the lights additively
+        gpu::ConfigurePipelineState(LightpassPipelineState);
+
+        LightNode = LightNode->Next;
+        while (LightNode && LightNode->Element)
+        {
+            RenderLightContribution(LightNode->Element, InScene, InRenderView);
+            LightNode = LightNode->Next;
+        }
+    }
+
+    void ForwardRenderer::RenderLightContribution(const CLight* InLight,
+                                                  const CRenderScene* InScene,
+                                                  const FRenderView* InRenderView)
+    {
+        // Render Static Meshes
+        const FLinkedListItem<CStaticMesh>* CurrentNode = &InScene->GetStaticMeshes().Head;
+
+        gpu::CShader* LastUsedShader = nullptr;
+        while (CurrentNode && CurrentNode->Element)
+        {
+            CStaticMesh* CurrentMesh = CurrentNode->Element;
+
+            // Determine if the material uses a custom shader
+            // if yes, then setup the renderer-provided uniforms
+            auto Shader = CurrentMesh->GetMaterial()->GetShader();
+            if (Shader != LastUsedShader)
+            {
+                Shader->Use();
+            }
+            LastUsedShader = Shader;
+            
+            SetupRendererWideUniforms(LastUsedShader, InRenderView);
+            InLight->SetupShader(Shader);
+            RenderStaticMesh(Shader, CurrentMesh);
+
+            CurrentNode = CurrentNode->Next;
+        }
+    }
+
+    void ForwardRenderer::RenderWithoutLights(const CRenderScene* InScene,
+                                              const FRenderView* InRenderView)
+    {
+        const FLinkedListItem<CStaticMesh>* CurrentNode = &InScene->GetStaticMeshes().Head;
+        gpu::CShader* LastUserShader = nullptr;
+        
+        LastUserShader->SetInt(LIGHT_TYPE, NO_LIGHT);
+
+        while (CurrentNode && CurrentNode->Element)
+        {
+            CStaticMesh* StaticMesh = CurrentNode->Element;
+
+            // Determine if the material uses a custom shader if yes, then setup the renderer-provided uniforms
+            gpu::CShader* CustomShader = StaticMesh->GetMaterial()->GetShader();
+            if (CustomShader)
+            {
+                CustomShader->Use();
+                CustomShader->SetInt(LIGHT_TYPE, NO_LIGHT);
+                SetupRendererWideUniforms(CustomShader, InRenderView);
+                LastUserShader = CustomShader;
+            }
+            else if (LastUserShader != CustomShader)
+            {
+                CustomShader->Use();
+                LastUserShader = CustomShader;
+            }
+
+            RenderStaticMesh(LastUserShader, StaticMesh);
+            CurrentNode = CurrentNode->Next;
         }
     }
 
@@ -505,25 +502,25 @@ namespace lucid::scene
         InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
     }
 
-    void ForwardRenderer::Render(gpu::CShader* Shader, const FRenderable* InRenderable)
+    void ForwardRenderer::RenderStaticMesh(gpu::CShader* Shader, const CStaticMesh* InStaticMesh)
     {
-        const glm::mat4 ModelMatrix = InRenderable->CalculateModelMatrix();
+        const glm::mat4 ModelMatrix = InStaticMesh->CalculateModelMatrix();
         Shader->SetMatrix(MODEL_MATRIX, ModelMatrix);
-        Shader->SetBool(REVERSE_NORMALS, InRenderable->bReverseNormals);
+        Shader->SetBool(REVERSE_NORMALS, InStaticMesh->GetReverseNormals());
 
-        InRenderable->Material->SetupShader(Shader);
+        InStaticMesh->GetMaterial()->SetupShader(Shader);
 
-        InRenderable->VertexArray->Bind();
-        InRenderable->VertexArray->Draw();
+        InStaticMesh->GetVertexArray()->Bind();
+        InStaticMesh->GetVertexArray()->Draw();
     }
 
-    inline void ForwardRenderer::RenderSkybox(const FSkybox* InSkybox, const FRenderView* InRenderView)
+    inline void ForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
     {
         gpu::ConfigurePipelineState(SkyboxPipelineState);
 
         SkyboxShader->Use();
 
-        SkyboxShader->UseTexture(SKYBOX_CUBEMAP, InSkybox->SkyboxCubemap);
+        SkyboxShader->UseTexture(SKYBOX_CUBEMAP, InSkybox->GetCubemap());
         SkyboxShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
         SkyboxShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
 

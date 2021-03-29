@@ -13,7 +13,7 @@ namespace lucid::scene
     class FlatMaterial : public CMaterial
     {
       public:
-        explicit FlatMaterial(gpu::CShader* CustomShader = nullptr);
+        explicit FlatMaterial(gpu::CShader* InShader);
 
         virtual void SetupShader(gpu::CShader* Shader) override;
 
