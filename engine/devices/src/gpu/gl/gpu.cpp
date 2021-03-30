@@ -7,7 +7,6 @@
 #include "devices/gpu/shader.hpp"
 #include "devices/gpu/vao.hpp"
 #include "GL/glew.h"
-#include "misc/basic_shapes.hpp"
 
 namespace lucid::gpu
 {
@@ -142,9 +141,6 @@ namespace lucid::gpu
 
     //////////////////////////////////////////////////////
 
-    static const FString QUAD_POSITION ("uQuadPosition");
-    static const FString QUAD_SIZE ("uQuadSize");
-
     void ConfigurePipelineState(const FPipelineState& InPipelineState)
     {
         // Clear color
@@ -247,14 +243,4 @@ namespace lucid::gpu
         
         GPUState->PipelineState = InPipelineState;
     }
-
-    void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize)
-    {
-        assert(GPUState->Shader);
-        misc::QuadVertexArray->Bind();
-        GPUState->Shader->SetVector(QUAD_POSITION, InPosition);
-        GPUState->Shader->SetVector(QUAD_SIZE, InSize);
-        misc::QuadVertexArray->Draw();
-    }
-    
 } // namespace lucid::gpu

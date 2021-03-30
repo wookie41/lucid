@@ -1,17 +1,16 @@
 -- premake5.lua
-workspace "lucid"
+workspace "lucid_engine"
    configurations { "Debug", "Release" }
    platforms { "Win32", "Win64", "Linux"}
 
-project "lucid"
-   kind "ConsoleApp"
+project "lucid_engine"
+   kind "StaticLib"
    language "C++"
    targetdir "bin/%{cfg.buildcfg}"
    cppdialect "C++17"
 
-   includedirs { "." }
-
-   includedirs { 
+   includedirs {
+      ".",
       "platform/include", 
       "devices/include", 
       "common/include", 
@@ -21,17 +20,17 @@ project "lucid"
    }
 
    includedirs { 
-      "libs/glm", 
-      "libs/stb", 
-      "libs/glew/include", 
-      "libs/SDL2/include",
-      "libs/assimp/include" 
+      "../libs/glm", 
+      "../libs/stb", 
+      "../libs/glew/include", 
+      "../libs/SDL2/include",
+      "../libs/assimp/include" 
    }
    
    libdirs { 
-      "libs/glew/lib/x64", 
-      "libs/SDL2/lib/x64",
-      "libs/assimp/lib/x64" 
+      "../libs/glew/lib/x64", 
+      "../libs/SDL2/lib/x64",
+      "../libs/assimp/lib/x64" 
    }
 
    links { 
@@ -41,9 +40,7 @@ project "lucid"
    }
 
    files { 
-      "libs/stb/stb_init.cpp",
-      "libs/stb/stb_init.hpp",
-      "main.cpp", 
+      "../libs/stb/*",
       "devices/src/**.cpp",
       "devices/include/**.hpp",
       "devices/include/**.tpp",
@@ -57,7 +54,8 @@ project "lucid"
       "scene/src/**.cpp",
       "scene/include/**.hpp",
       "resources/src/**.cpp",
-      "resources/include/**.hpp"
+      "resources/include/**.hpp",
+      "engine_init.cpp"
    }
 
    filter "platforms:Win64"

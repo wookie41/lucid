@@ -6,7 +6,6 @@
 #include "platform/input.hpp"
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/gpu.hpp"
-#include "stdio.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "scene/camera.hpp"
 #include "devices/gpu/viewport.hpp"
@@ -15,9 +14,7 @@
 #include "scene/render_scene.hpp"
 #include "scene/renderable/mesh_renderable.hpp"
 #include "scene/lights.hpp"
-#include "stb_init.hpp"
 #include "resources/texture.hpp"
-#include <time.h>
 
 #include "scene/flat_material.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -25,27 +22,26 @@
 #include "platform/platform.hpp"
 #include "devices/gpu/shaders_manager.hpp"
 #include "resources/mesh.hpp"
+#include "engine_init.hpp"
 
 using namespace lucid;
 
 int main(int argc, char** argv)
 {
-    srand(time(NULL));
-    InitSTB();
+    FEngineConfig EngineConfig;
+    EngineConfig.bHotReloadShaders = true;
 
-    if (gpu::Init({}) < 0)
-    {
-        puts("Failed to init GPU");
-        return -1;
-    }
+    lucid::InitEngine(EngineConfig);
+    resources::InitTextures();
+    
     // create window
     platform::CWindow* window = platform::CreateWindow({ "Lucid", 100, 100, 1280, 720, true });
     window->Prepare();
     window->Show();
 
-    misc::InitBasicShapes();
-    resources::InitTextures();
-
+    gpu::CVertexArray* UnitCubeVAO = misc::CreateCubeVAO();
+    gpu::CVertexArray* QuadVAO = misc::CreateQuadVAO();
+    
     // Load textures uesd in the demo scene
     resources::CMeshResource* backPackMesh =
       resources::AssimpLoadMesh(FString{ LUCID_TEXT("assets\\models\\backpack\\") }, FString{ LUCID_TEXT("backpack.obj") });
@@ -112,7 +108,6 @@ int main(int argc, char** argv)
     auto blankTextureMap = blankTextureResource->TextureHandle;
 
     // Load and compile demo shaders
-    gpu::GShadersManager.EnableHotReload();
 
     gpu::CShader* BlinnPhongShader =
       gpu::GShadersManager.CompileShader(FString{ LUCID_TEXT("BlinnPhong") },
@@ -205,28 +200,28 @@ int main(int argc, char** argv)
     flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.Shininess = 32;
 
-    scene::CStaticMesh woodenFloor{ FDString{ "woodenFloor" }, nullptr, misc::QuadVertexArray, &woodMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh woodenFloor{ FDString{ "woodenFloor" }, nullptr, QuadVAO, &woodMaterial, scene::EStaticMeshType::STATIONARY };
     woodenFloor.Transform.Scale = glm::vec3{ 25.0 };
     woodenFloor.Transform.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{ 1.0, 0.0, 0.0 });
     woodenFloor.Transform.Translation = glm::vec3{ 0, -0.5, 0 };
 
-    scene::CStaticMesh cube { FDString{ "Cube" }, nullptr, misc::CubeVertexArray, &brickMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh cube { FDString{ "Cube" }, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY };
     cube.Transform.Translation = { 4.0, -3.5, 0.0 };
     cube.Transform.Scale = glm::vec3{ 0.5 };
 
-    scene::CStaticMesh cube1{ FDString{ "Cube1" }, nullptr, misc::CubeVertexArray, &flatBlinnPhongMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh cube1{ FDString{ "Cube1" }, nullptr, UnitCubeVAO, &flatBlinnPhongMaterial, scene::EStaticMeshType::STATIONARY };
     cube1.Transform.Translation = { 2.0, 3.0, 1.0 };
     cube1.Transform.Scale = glm::vec3{ 0.75 };
 
-    scene::CStaticMesh cube2 { FDString{ "Cube2" }, nullptr, misc::CubeVertexArray, &brickMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh cube2 { FDString{ "Cube2" }, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY };
     cube2.Transform.Translation = { -1.5, 2.0, -3.0 };
     cube2.Transform.Scale = glm::vec3{ 0.75 };
 
-    scene::CStaticMesh cube3 { FDString{ "Cube3" }, nullptr, misc::CubeVertexArray, &toyboxMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh cube3 { FDString{ "Cube3" }, nullptr, UnitCubeVAO, &toyboxMaterial, scene::EStaticMeshType::STATIONARY };
     cube3.Transform.Translation = { -1.5, 1.0, 1.5 };
     cube3.Transform.Scale = glm::vec3{ 0.75 };
 
-    scene::CStaticMesh gigaCube{ FDString{ "Gigacube" }, nullptr, misc::CubeVertexArray, &woodMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh gigaCube{ FDString{ "Gigacube" }, nullptr, UnitCubeVAO, &woodMaterial, scene::EStaticMeshType::STATIONARY };
     gigaCube.Transform.Translation = glm::vec3{ 0 };
     gigaCube.Transform.Scale = glm::vec3{ 10 };
     gigaCube.Transform.Rotation = glm::quat{ 0, 0, 0, 0 };
@@ -263,7 +258,7 @@ int main(int argc, char** argv)
     RedSpotLight->InnerCutOffRad = glm::radians(30.0);
     RedSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CStaticMesh RedLightCube{ FDString{ "RedLightCube" }, nullptr, misc::CubeVertexArray, &flatRedMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh RedLightCube{ FDString{ "RedLightCube" }, nullptr, UnitCubeVAO, &flatRedMaterial, scene::EStaticMeshType::STATIONARY };
     RedLightCube.Transform.Scale = glm::vec3{ 0.2 };
     RedLightCube.Transform.Translation = RedSpotLight->Position;
 
@@ -277,11 +272,11 @@ int main(int argc, char** argv)
     GreenSpotLight->InnerCutOffRad = glm::radians(30.0);
     GreenSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CStaticMesh GreenLightCube{ FDString{ "GreenLightCube" }, nullptr, misc::CubeVertexArray, &flatGreenMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh GreenLightCube{ FDString{ "GreenLightCube" }, nullptr, UnitCubeVAO, &flatGreenMaterial, scene::EStaticMeshType::STATIONARY };
     GreenLightCube.Transform.Translation = GreenSpotLight->Position;
     GreenLightCube.Transform.Scale = glm::vec3 { 0.25 };
 
-    scene::CStaticMesh GreenLightCubeChild{ FDString{ "GreenLightCube" }, &GreenLightCube, misc::CubeVertexArray, &flatGreenMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh GreenLightCubeChild{ FDString{ "GreenLightCube" }, &GreenLightCube, UnitCubeVAO, &flatGreenMaterial, scene::EStaticMeshType::STATIONARY };
     GreenLightCubeChild.Transform.Translation = {0, 2, 0};
     GreenLightCubeChild.Transform.Scale = glm::vec3 { 0.15 };
 
@@ -296,11 +291,11 @@ int main(int argc, char** argv)
     BlueSpotLight->OuterCutOffRad = glm::radians(35.0);
     BlueSpotLight->LightUp = { -1, 0, 0 };
 
-    scene::CStaticMesh BlueLightCube{ FDString{ "BlueLightCube" }, nullptr, misc::CubeVertexArray, &flatBlueMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh BlueLightCube{ FDString{ "BlueLightCube" }, nullptr, UnitCubeVAO, &flatBlueMaterial, scene::EStaticMeshType::STATIONARY };
     BlueLightCube.Transform.Translation = BlueSpotLight->Position;
     BlueLightCube.Transform.Scale = glm::vec3 { 0.25 };
 
-    scene::CStaticMesh shadowCastingLightCube{ FDString{ "ShadowCastingLightCube" }, nullptr, misc::CubeVertexArray, &flatWhiteMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh shadowCastingLightCube{ FDString{ "ShadowCastingLightCube" }, nullptr, UnitCubeVAO, &flatWhiteMaterial, scene::EStaticMeshType::STATIONARY };
     shadowCastingLightCube.Transform.Translation = DirectionalLight->Position;
 
     scene::CPointLight* RedPointLight = Renderer.CreatePointLight(true);
@@ -310,7 +305,7 @@ int main(int argc, char** argv)
     RedPointLight->Linear = 0.007;
     RedPointLight->Quadratic = 0.017;
 
-    scene::CStaticMesh RedPointLightCube{ FDString{ "RedPointLightCube" }, nullptr, misc::CubeVertexArray, &flatRedMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh RedPointLightCube{ FDString{ "RedPointLightCube" }, nullptr, UnitCubeVAO, &flatRedMaterial, scene::EStaticMeshType::STATIONARY };
     RedPointLightCube.Transform.Translation = RedPointLight->Position;
     RedPointLightCube.Transform.Scale = glm::vec3 { 0.25 };
 

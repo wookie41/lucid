@@ -174,12 +174,6 @@ namespace lucid::gpu
         u32 MaxColorAttachments = 0;
     };
 
-    /////////////////////////////////////
-    //     Immediate drawing           //
-    /////////////////////////////////////
-    
-    void DrawImmediateQuad(const glm::vec2& InPosition, const glm::vec2& InSize);
-
     extern FGPUInfo Info;
     inline thread_local FGPUState* GPUState;
 } // namespace lucid::gpu

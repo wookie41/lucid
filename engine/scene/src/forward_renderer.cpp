@@ -58,26 +58,40 @@ namespace lucid::scene
     ForwardRenderer::ForwardRenderer(
         const u32& InMaxNumOfDirectionalLights,
         const u8& InNumSSAOSamples,
-        gpu::CShader* InShadowMapShader,
-        gpu::CShader* InShadowCubeMapShader,
-        gpu::CShader* InPrepassShader,
-        gpu::CShader* InSSAOShader,
-        gpu::CShader* InSimpleBlurShader,
-        gpu::CShader* InSkyboxShader)
+        gpu::CShader*       InShadowMapShader,
+        gpu::CShader*       InShadowCubeMapShader,
+        gpu::CShader*       InPrepassShader,
+        gpu::CShader*       InSSAOShader,
+        gpu::CShader*       InSimpleBlurShader,
+        gpu::CShader*       InSkyboxShader,
+        gpu::CVertexArray*  InScreenWideQuadVAO,
+        gpu::CVertexArray*  InUnitCubeVAO)
     : 
         MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
+        ScreenWideQuadVAO(InScreenWideQuadVAO),
         NumSSAOSamples(InNumSSAOSamples),
         ShadowMapShader(InShadowMapShader),
         ShadowCubeMapShader(InShadowCubeMapShader),
         PrepassShader(InPrepassShader),
         SSAOShader(InSSAOShader),
         SimpleBlurShader(InSimpleBlurShader),
-        SkyboxShader(InSkyboxShader)
+        SkyboxShader(InSkyboxShader),
+        UnitCubeVAO(InUnitCubeVAO)
     {
     }
 
     void ForwardRenderer::Setup()
     {
+        if (!ScreenWideQuadVAO)
+        {
+            ScreenWideQuadVAO = misc::CreateQuadVAO();
+        }
+
+        if (!UnitCubeVAO)
+        {
+            UnitCubeVAO = misc::CreateCubeVAO();
+        }
+        
         // Prepare pipeline states
         ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor { 0 };
         ShadowMapGenerationPipelineState.ClearDepthBufferValue = 0;
@@ -363,7 +377,8 @@ namespace lucid::scene
         SSAOShader->SetFloat(SSAO_BIAS, SSAOBias);
         SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
 
-        gpu::DrawImmediateQuad({ 0, 0 }, SSAOResult->GetSize());
+        ScreenWideQuadVAO->Bind();
+        ScreenWideQuadVAO->Draw();
 
         // Blur SSAO
         BlurFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -375,7 +390,8 @@ namespace lucid::scene
         SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_X, SimpleBlurXOffset);
         SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_Y, SimpleBlurYOffset);
 
-        gpu::DrawImmediateQuad({ 0, 0 }, SSAOResult->GetSize());        
+        ScreenWideQuadVAO->Bind();
+        ScreenWideQuadVAO->Draw();
     }
 
     void ForwardRenderer::LightingPass(const CRenderScene* InSceneToRender, const FRenderView* InRenderView)
@@ -524,7 +540,7 @@ namespace lucid::scene
         SkyboxShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
         SkyboxShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
 
-        misc::CubeVertexArray->Bind();
-        misc::CubeVertexArray->Draw();
+        UnitCubeVAO->Bind();
+        UnitCubeVAO->Draw();
     }
 } // namespace lucid::scene

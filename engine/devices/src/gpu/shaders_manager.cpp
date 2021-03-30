@@ -95,7 +95,7 @@ namespace lucid::gpu
 
     void ReloadShaders()
     {
-        platform::ExecuteCommand(FString { LUCID_TEXT("sh tools\\preprocess_shaders.sh") });
+        platform::ExecuteCommand(FString { LUCID_TEXT("sh tools\\scripts\\preprocess_shaders.sh") });
 
         for (u32 i = 0; i < GShadersManager.CompiledShaders.GetLength(); ++i)
         {
