@@ -43,12 +43,12 @@ namespace lucid::resources
         CTextureResource* const SpecularMap;
         CTextureResource* const NormalMap;
 
-        gpu::CVertexArray* const VAO;
-        gpu::CBuffer* const VertexBuffer;
-        gpu::CBuffer* const ElementBuffer;
+        gpu::CVertexArray* const    VAO;
+        gpu::CBuffer* const         VertexBuffer;
+        gpu::CBuffer* const         ElementBuffer;
 
-        const FMemBuffer VertexData;
-        const FMemBuffer ElementData;
+        const FMemBuffer            VertexData;
+        const FMemBuffer            ElementData;
     };
 
     // Loads the mesh from the given directory, assumes to following things:

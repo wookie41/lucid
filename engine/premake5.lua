@@ -16,7 +16,8 @@ project "lucid_engine"
       "common/include", 
       "misc/include", 
       "scene/include",
-      "resources/include" 
+      "resources/include",
+      "imgui/include"       -- TODO include only in development
    }
 
    includedirs { 
@@ -24,6 +25,7 @@ project "lucid_engine"
       "../libs/stb", 
       "../libs/glew/include", 
       "../libs/SDL2/include",
+      "../libs/SDL2/include/SDL2",
       "../libs/assimp/include" 
    }
    
@@ -55,7 +57,9 @@ project "lucid_engine"
       "scene/include/**.hpp",
       "resources/src/**.cpp",
       "resources/include/**.hpp",
-      "engine_init.cpp"
+      "engine_init.cpp",
+      "imgui/include/*.h",
+      "imgui/src/*.cpp"
    }
 
    filter "platforms:Win64"
@@ -90,3 +94,6 @@ project "lucid_engine"
       optimize "On"
    
    filter {}
+   
+--   @TODO Filter
+   defines { "DEVELOPMENT=1" }

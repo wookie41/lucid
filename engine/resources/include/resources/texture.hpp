@@ -21,11 +21,12 @@ namespace lucid::resources
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
-        void* const TextureData;
-        gpu::CTexture* const TextureHandle;
-        const u32 Width, Height;
-        gpu::ETextureDataFormat DataFormat;
-        gpu::ETexturePixelFormat PixelFormat;
+        void* const                 TextureData;
+        gpu::CTexture* const        TextureHandle;
+        const u32                   Width;
+        const u32                   Height;
+        gpu::ETextureDataFormat     DataFormat;
+        gpu::ETexturePixelFormat    PixelFormat;
     };
 
     CTextureResource* LoadJPEG(const FANSIString& InPath,

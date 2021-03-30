@@ -1,9 +1,16 @@
 #include "platform/sdl/sdl_window.hpp"
 
+
 #include "common/log.hpp"
+
 #include "devices/gpu/gl/framebuffer.hpp"
-#include "SDL2/SDL.h"
 #include "devices/gpu/gpu.hpp"
+
+#include "SDL2/SDL.h"
+
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
 
 namespace lucid::platform
 {
@@ -94,4 +101,22 @@ namespace lucid::platform
         SDL_CaptureMouse(SDL_TRUE);
     }
 
+    void SDLWindow::ImgUiSetup()
+    {
+        ImGui_ImplSDL2_InitForOpenGL(MySDLWindow, MyGLContext);
+        ImGui_ImplOpenGL3_Init("#version 330 core");
+    }
+
+    void SDLWindow::ImgUiStartNewFrame()
+    {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame(MySDLWindow);
+        ImGui::NewFrame();
+    }
+
+    void SDLWindow::ImgUiDrawFrame()
+    {
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
 } // namespace lucid::platform

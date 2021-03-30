@@ -29,6 +29,16 @@ namespace lucid::platform
 
         virtual void OnFocusGained() override;
 
+
+#if DEVELOPMENT
+        
+        virtual void ImgUiSetup() override;        
+        virtual void ImgUiStartNewFrame() override;
+        virtual void ImgUiDrawFrame() override;
+
+#endif
+
+        
         virtual void Destroy() override;
 
         virtual ~SDLWindow() = default;

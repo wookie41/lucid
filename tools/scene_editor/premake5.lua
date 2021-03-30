@@ -22,9 +22,11 @@ project "lucid_scene_editor"
       "../../libs/stb" 
    }
 
-   includedirs { 
+   includedirs {
+      "include", 
       "../../libs/glm", 
       "../../libs/SDL2/include",
+      "../../libs/glew/include"
    }
    
    libdirs { 
@@ -41,8 +43,8 @@ project "lucid_scene_editor"
       "lucid_engine"
    }
 
-   files { 
-      "src/main.cpp", 
+   files {
+      "src/*.cpp", 
    }
 
    filter "platforms:Win64"
@@ -77,3 +79,13 @@ project "lucid_scene_editor"
       optimize "On"
    
    filter {}
+
+
+--   @TODO Filter
+    defines { "DEVELOPMENT=1" }
+
+
+-- TODO include only in development
+   includedirs {
+        "../../engine/imgui/include"
+   }

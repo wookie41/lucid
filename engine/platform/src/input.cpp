@@ -1,4 +1,7 @@
 #include "platform/input.hpp"
+
+#include <imgui_impl_sdl.h>
+
 #include "SDL2/SDL_events.h"
 #include "common/bytes.hpp"
 #include "platform/window.hpp"
@@ -66,6 +69,9 @@ namespace lucid
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
+#if DEVELOPMENT
+            ImGui_ImplSDL2_ProcessEvent(&event);
+#endif
             /* Window events */
 
             if (event.type == SDL_WINDOWEVENT)

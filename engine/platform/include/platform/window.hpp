@@ -40,6 +40,15 @@ namespace lucid::platform
         
         virtual ~CWindow() = default;
 
+        // Development stuff
+
+#if DEVELOPMENT
+        // Dear ImgUi
+        virtual void ImgUiSetup() = 0;
+        virtual void ImgUiStartNewFrame() = 0;
+        virtual void ImgUiDrawFrame() = 0;
+#endif
+
     protected:
         gpu::FGPUState GPUStateForMyContext;
     };
