@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "common/types.hpp"
+#include "schemas/types.hpp"
 
 namespace lucid
 {

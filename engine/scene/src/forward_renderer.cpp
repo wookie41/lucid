@@ -2,7 +2,6 @@
 
 #include <atlalloc.h>
 
-
 #include "common/log.hpp"
 #include "common/collections.hpp"
 
@@ -25,9 +24,9 @@ namespace lucid::scene
 {
     static const u8 NO_LIGHT = 0;
     static const FString LIGHT_TYPE("uLight.Type");
-    
+
     static const FString VIEWPORT_SIZE("uViewportSize");
-    
+
     static const FString SSAO_POSITIONS_VS("uPositionsVS");
     static const FString SSAO_NORMALS_VS("uNormalsVS");
     static const FString SSAO_NOISE("uNoise");
@@ -37,7 +36,7 @@ namespace lucid::scene
 
     static const FString SIMPLE_BLUR_OFFSET_X("uOffsetX");
     static const FString SIMPLE_BLUR_OFFSET_Y("uOffsetY");
-    static const FString SIMPLE_BLUR_TEXTURE("uTextureToBlur");    
+    static const FString SIMPLE_BLUR_TEXTURE("uTextureToBlur");
 
     // Shader-wide uniforms
     static const FString AMBIENT_STRENGTH("uAmbientStrength");
@@ -55,28 +54,26 @@ namespace lucid::scene
 
     static const FString PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
 
-    ForwardRenderer::ForwardRenderer(
-        const u32& InMaxNumOfDirectionalLights,
-        const u8& InNumSSAOSamples,
-        gpu::CShader*       InShadowMapShader,
-        gpu::CShader*       InShadowCubeMapShader,
-        gpu::CShader*       InPrepassShader,
-        gpu::CShader*       InSSAOShader,
-        gpu::CShader*       InSimpleBlurShader,
-        gpu::CShader*       InSkyboxShader,
-        gpu::CVertexArray*  InScreenWideQuadVAO,
-        gpu::CVertexArray*  InUnitCubeVAO)
-    : 
-        MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights),
-        ScreenWideQuadVAO(InScreenWideQuadVAO),
-        NumSSAOSamples(InNumSSAOSamples),
-        ShadowMapShader(InShadowMapShader),
-        ShadowCubeMapShader(InShadowCubeMapShader),
-        PrepassShader(InPrepassShader),
-        SSAOShader(InSSAOShader),
-        SimpleBlurShader(InSimpleBlurShader),
-        SkyboxShader(InSkyboxShader),
-        UnitCubeVAO(InUnitCubeVAO)
+#if DEVELOPMENT
+    static const FString RENDERABLE_ID("uRenderableId");
+#endif
+
+    
+    ForwardRenderer::ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
+                                     const u8& InNumSSAOSamples,
+                                     gpu::CShader* InShadowMapShader,
+                                     gpu::CShader* InShadowCubeMapShader,
+                                     gpu::CShader* InPrepassShader,
+                                     gpu::CShader* InSSAOShader,
+                                     gpu::CShader* InSimpleBlurShader,
+                                     gpu::CShader* InSkyboxShader,
+                                     gpu::CShader* InHitMapShader,
+                                     gpu::CVertexArray* InScreenWideQuadVAO,
+                                     gpu::CVertexArray* InUnitCubeVAO)
+    : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples),
+      ShadowMapShader(InShadowMapShader), ShadowCubeMapShader(InShadowCubeMapShader), PrepassShader(InPrepassShader),
+      SSAOShader(InSSAOShader), SimpleBlurShader(InSimpleBlurShader), SkyboxShader(InSkyboxShader), HitMapShader(InHitMapShader),
+      ScreenWideQuadVAO(InScreenWideQuadVAO), UnitCubeVAO(InUnitCubeVAO)
     {
     }
 
@@ -91,18 +88,18 @@ namespace lucid::scene
         {
             UnitCubeVAO = misc::CreateCubeVAO();
         }
-        
+
         // Prepare pipeline states
-        ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor { 0 };
+        ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor{ 0 };
         ShadowMapGenerationPipelineState.ClearDepthBufferValue = 0;
         ShadowMapGenerationPipelineState.IsDepthTestEnabled = true;
         ShadowMapGenerationPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
         ShadowMapGenerationPipelineState.IsBlendingEnabled = false;
         ShadowMapGenerationPipelineState.IsCullingEnabled = false;
         ShadowMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
-        ShadowMapGenerationPipelineState.IsDepthBufferReadOnly = false;      
-        
-        PrepassPipelineState.ClearColorBufferColor = FColor { 0 };
+        ShadowMapGenerationPipelineState.IsDepthBufferReadOnly = false;
+
+        PrepassPipelineState.ClearColorBufferColor = FColor{ 0 };
         PrepassPipelineState.IsDepthTestEnabled = true;
         PrepassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
         PrepassPipelineState.IsBlendingEnabled = false;
@@ -113,8 +110,8 @@ namespace lucid::scene
         PrepassPipelineState.IsSRGBFramebufferEnabled = true;
         PrepassPipelineState.IsDepthBufferReadOnly = false;
         PrepassPipelineState.ClearDepthBufferValue = 0.f;
-        
-        InitialLightLightpassPipelineState.ClearColorBufferColor = FColor { 0 };
+
+        InitialLightLightpassPipelineState.ClearColorBufferColor = FColor{ 0 };
         InitialLightLightpassPipelineState.IsDepthTestEnabled = true;
         InitialLightLightpassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::EQUAL;
         InitialLightLightpassPipelineState.IsBlendingEnabled = true;
@@ -138,20 +135,37 @@ namespace lucid::scene
         SkyboxPipelineState.IsBlendingEnabled = false;
         SkyboxPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
 
+        HitMapGenerationPipelineState = SkyboxPipelineState;
+        HitMapGenerationPipelineState.IsDepthBufferReadOnly = false;
+        HitMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
+
         // Create the framebuffers
         ShadowMapFramebuffer = gpu::CreateFramebuffer(FString{ "ShadowmapFramebuffer" });
         PrepassFramebuffer = gpu::CreateFramebuffer(FString{ "PrepassFramebuffer" });
-        LightingPassFramebuffer = gpu::CreateFramebuffer(FString{ "LightingPassFramebuffer"});
-        SSAOFramebuffer = gpu::CreateFramebuffer(FString{ "SSAOFramebuffer"});
-        BlurFramebuffer = gpu::CreateFramebuffer(FString{ "BlueFramebuffer"});
+        LightingPassFramebuffer = gpu::CreateFramebuffer(FString{ "LightingPassFramebuffer" });
+        SSAOFramebuffer = gpu::CreateFramebuffer(FString{ "SSAOFramebuffer" });
+        BlurFramebuffer = gpu::CreateFramebuffer(FString{ "BlueFramebuffer" });
 
         // Create a common depth-stencil attachment for both framebuffers
-        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize, FString{ "LightingPassRenderbuffer" });
+        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(
+          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize, FString{ "LightingPassRenderbuffer" });
 
         // Create render targets in which we'll store some additional information during the depth prepass
-        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGB16F, gpu::ETexturePixelFormat::RGB, 0, FString{ "CurrentFrameVSNormalMap" });
-        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGB16F, gpu::ETexturePixelFormat::RGB, 0, FString{ "CurrentFrameVSPositionMap" });
-        
+        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x,
+                                                            FramebufferSize.y,
+                                                            gpu::ETextureDataType::FLOAT,
+                                                            gpu::ETextureDataFormat::RGB16F,
+                                                            gpu::ETexturePixelFormat::RGB,
+                                                            0,
+                                                            FString{ "CurrentFrameVSNormalMap" });
+        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x,
+                                                              FramebufferSize.y,
+                                                              gpu::ETextureDataType::FLOAT,
+                                                              gpu::ETextureDataFormat::RGB16F,
+                                                              gpu::ETexturePixelFormat::RGB,
+                                                              0,
+                                                              FString{ "CurrentFrameVSPositionMap" });
+
         // Setup the prepass framebuffer
         PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
@@ -175,17 +189,29 @@ namespace lucid::scene
         }
 
         // Create texture to store SSO result
-        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::R, gpu::ETexturePixelFormat::R, 0, FString{ "SSAOResult" });
+        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x,
+                                               FramebufferSize.y,
+                                               gpu::ETextureDataType::FLOAT,
+                                               gpu::ETextureDataFormat::R,
+                                               gpu::ETexturePixelFormat::R,
+                                               0,
+                                               FString{ "SSAOResult" });
         SSAOResult->Bind();
         SSAOResult->SetMinFilter(gpu::MinTextureFilter::NEAREST);
         SSAOResult->SetMagFilter(gpu::MagTextureFilter::NEAREST);
 
         // Create texture for the blurred SSAO result
-        SSAOBlurred = gpu::CreateEmpty2DTexture(FramebufferSize.x ,FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::R, gpu::ETexturePixelFormat::R, 0, FString{ "SSOBlurred" });
+        SSAOBlurred = gpu::CreateEmpty2DTexture(FramebufferSize.x,
+                                                FramebufferSize.y,
+                                                gpu::ETextureDataType::FLOAT,
+                                                gpu::ETextureDataFormat::R,
+                                                gpu::ETexturePixelFormat::R,
+                                                0,
+                                                FString{ "SSOBlurred" });
         SSAOBlurred->Bind();
         SSAOBlurred->SetMinFilter(gpu::MinTextureFilter::NEAREST);
         SSAOBlurred->SetMagFilter(gpu::MagTextureFilter::NEAREST);
-            
+
         // Setup a SSAO framebuffer
         SSAOFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         SSAOFramebuffer->SetupColorAttachment(0, SSAOResult);
@@ -195,9 +221,15 @@ namespace lucid::scene
             LUCID_LOG(ELogLevel::ERR, LUCID_TEXT("Failed to setup the SSAO framebuffer"));
             return;
         }
-        
+
         // Create color attachment for the lighting pass framebuffer
-        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x, FramebufferSize.y, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RGBA, gpu::ETexturePixelFormat::RGBA, 0, FString{ "LightingPassColorBuffer" });
+        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x,
+                                                            FramebufferSize.y,
+                                                            gpu::ETextureDataType::FLOAT,
+                                                            gpu::ETextureDataFormat::RGBA,
+                                                            gpu::ETexturePixelFormat::RGBA,
+                                                            0,
+                                                            FString{ "LightingPassColorBuffer" });
 
         // Setup the lighting pass framebuffer
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -218,20 +250,20 @@ namespace lucid::scene
         SSAOShader->Use();
         SSAOShader->UseTexture(SSAO_POSITIONS_VS, CurrentFrameVSPositionMap);
         SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
-        
+
         // Sample vectors
         for (int i = 0; i < NumSSAOSamples; ++i)
         {
             glm::vec3 Sample = math::RandomVec3();
 
-            // Transform x and y to [-1, 1], keep z [0, 1] so the we sample around a hemisphere 
+            // Transform x and y to [-1, 1], keep z [0, 1] so the we sample around a hemisphere
             Sample.x = Sample.x * 2.0 - 1.0;
             Sample.y = Sample.y * 2.0 - 1.0;
             Sample = glm::normalize(Sample);
             Sample *= math::RandomFloat();
 
             // Use an accelerating interpolation function so there are more samples close to the fragment
-            float Scale = (float)i/(float)NumSSAOSamples;
+            float Scale = (float)i / (float)NumSSAOSamples;
             Scale = math::Lerp(0.1, 1.0f, Scale * Scale);
             Sample *= Scale;
 
@@ -250,12 +282,43 @@ namespace lucid::scene
             Noise[i].y = Noise[i].y * 2.0 - 1.0;
         }
 
-        SSAONoise = gpu::Create2DTexture(Noise, 4, 4, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RG32F, gpu::ETexturePixelFormat::RG, 0, FString{ "SSAONoise" });
+        SSAONoise = gpu::Create2DTexture(Noise,
+                                         4,
+                                         4,
+                                         gpu::ETextureDataType::FLOAT,
+                                         gpu::ETextureDataFormat::RG32F,
+                                         gpu::ETexturePixelFormat::RG,
+                                         0,
+                                         FString{ "SSAONoise" });
         SSAONoise->Bind();
         SSAONoise->SetWrapSFilter(gpu::WrapTextureFilter::REPEAT);
         SSAONoise->SetWrapTFilter(gpu::WrapTextureFilter::REPEAT);
         SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
         SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
+
+        // HitMap generation
+#if DEVELOPMENT
+        HitMapTexture = gpu::CreateEmpty2DTexture(FramebufferSize.x,
+                                                  FramebufferSize.y,
+                                                  gpu::ETextureDataType::UNSIGNED_INT,
+                                                  gpu::ETextureDataFormat::R32UI,
+                                                  gpu::ETexturePixelFormat::R_INTEGER,
+                                                  0,
+                                                  FString{ "HitMapTexture" });
+
+        HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { FramebufferSize.x, FramebufferSize.y }, FString{ "HitMapRenderbuffer" });
+
+        HitMapFramebuffer = gpu::CreateFramebuffer(FString{ "HitMapMapFramebuffer" });
+        HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+
+        HitMapTexture->Bind();
+        HitMapFramebuffer->SetupColorAttachment(0, HitMapTexture);
+
+        HitMapDepthStencilRenderbuffer->Bind();
+        HitMapFramebuffer->SetupDepthStencilAttachment(HitMapDepthStencilRenderbuffer);
+
+        HitMapFramebuffer->IsComplete();
+#endif
     }
 
     void ForwardRenderer::Cleanup()
@@ -276,12 +339,15 @@ namespace lucid::scene
     void ForwardRenderer::Render(CRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
-        
+
         gpu::SetViewport(InRenderView->Viewport);
 
         GenerateShadowMaps(InSceneToRender);
         Prepass(InSceneToRender, InRenderView);
         LightingPass(InSceneToRender, InRenderView);
+#if DEVELOPMENT
+        GenerateHitmap(InSceneToRender, InRenderView);
+#endif
     }
 
     void ForwardRenderer::GenerateShadowMaps(CRenderScene* InSceneToRender)
@@ -292,8 +358,8 @@ namespace lucid::scene
         ShadowMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         ShadowMapFramebuffer->DisableReadWriteBuffers();
 
-        u8              PrevShadowMapQuality = 255;
-        gpu::CShader*   PrevShadowMapShader = nullptr;
+        u8 PrevShadowMapQuality = 255;
+        gpu::CShader* PrevShadowMapShader = nullptr;
 
         const FLinkedListItem<CLight>* LightNode = &InSceneToRender->GetLights().Head;
         while (LightNode && LightNode->Element)
@@ -302,27 +368,30 @@ namespace lucid::scene
 
             // @TODO This should happen only if light moves
             Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
-            
+
             gpu::CShader* CurrentShadowMapShader = Light->GetType() == ELightType::POINT ? ShadowCubeMapShader : ShadowMapShader;
             if (CurrentShadowMapShader != PrevShadowMapShader)
             {
                 PrevShadowMapShader = CurrentShadowMapShader;
                 CurrentShadowMapShader->Use();
             }
-            
+
             Light->SetupShadowMapShader(CurrentShadowMapShader);
-            
+
             // Check if we need to adjust the viewport based on light's shadow map quality
             if (Light->ShadowMap->GetQuality() != PrevShadowMapQuality)
             {
                 PrevShadowMapQuality = Light->ShadowMap->GetQuality();
-                gpu::SetViewport({0, 0, (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].x, (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].y});
+                gpu::SetViewport({ 0,
+                                   0,
+                                   (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].x,
+                                   (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].y });
             }
 
             // Setup light's shadow map texture
             ShadowMapFramebuffer->SetupDepthAttachment(Light->ShadowMap->GetShadowMapTexture());
             gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
-            
+
             // Render the scene from light's point of view
 
             //  - Static geometry
@@ -336,7 +405,7 @@ namespace lucid::scene
 
                 CurrentNode = CurrentNode->Next;
             }
-            
+
             // Get next light
             LightNode = LightNode->Next;
         }
@@ -349,13 +418,13 @@ namespace lucid::scene
 
         BindAndClearFramebuffer(PrepassFramebuffer);
         PrepassFramebuffer->SetupDrawBuffers();
-        
+
         PrepassShader->Use();
         SetupRendererWideUniforms(PrepassShader, InRenderView);
 
-        const glm::vec2 NoiseTextureSize    = { SSAONoise->GetSize().x, SSAONoise->GetSize().y };
-        const glm::vec2 ViewportSize        = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
-        const glm::vec2 NoiseScale          = ViewportSize / NoiseTextureSize;
+        const glm::vec2 NoiseTextureSize = { SSAONoise->GetSize().x, SSAONoise->GetSize().y };
+        const glm::vec2 ViewportSize = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
+        const glm::vec2 NoiseScale = ViewportSize / NoiseTextureSize;
 
         const FLinkedListItem<CStaticMesh>* CurrentStaticMeshNode = &InSceneToRender->GetStaticMeshes().Head;
         while (CurrentStaticMeshNode && CurrentStaticMeshNode->Element)
@@ -408,7 +477,6 @@ namespace lucid::scene
         }
     }
 
-    
     void ForwardRenderer::RenderStaticMeshes(const CRenderScene* InScene, const FRenderView* InRenderView)
     {
         // Render with lights contribution, ie. update the lighting uniforms,
@@ -439,9 +507,8 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::RenderLightContribution(const CLight* InLight,
-                                                  const CRenderScene* InScene,
-                                                  const FRenderView* InRenderView)
+    void
+    ForwardRenderer::RenderLightContribution(const CLight* InLight, const CRenderScene* InScene, const FRenderView* InRenderView)
     {
         // Render Static Meshes
         const FLinkedListItem<CStaticMesh>* CurrentNode = &InScene->GetStaticMeshes().Head;
@@ -459,7 +526,7 @@ namespace lucid::scene
                 Shader->Use();
             }
             LastUsedShader = Shader;
-            
+
             SetupRendererWideUniforms(LastUsedShader, InRenderView);
             InLight->SetupShader(Shader);
             RenderStaticMesh(Shader, CurrentMesh);
@@ -468,12 +535,11 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::RenderWithoutLights(const CRenderScene* InScene,
-                                              const FRenderView* InRenderView)
+    void ForwardRenderer::RenderWithoutLights(const CRenderScene* InScene, const FRenderView* InRenderView)
     {
         const FLinkedListItem<CStaticMesh>* CurrentNode = &InScene->GetStaticMeshes().Head;
         gpu::CShader* LastUserShader = nullptr;
-        
+
         LastUserShader->SetInt(LIGHT_TYPE, NO_LIGHT);
 
         while (CurrentNode && CurrentNode->Element)
@@ -514,7 +580,7 @@ namespace lucid::scene
         InShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
         InShader->SetVector(VIEW_POSITION, InRenderView->Camera->Position);
         InShader->SetFloat(PARALLAX_HEIGHT_SCALE, 0.1f);
-        InShader->SetVector(VIEWPORT_SIZE, glm::vec2 { InRenderView->Viewport.Width, InRenderView->Viewport.Height });
+        InShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
         InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
     }
 
@@ -543,4 +609,33 @@ namespace lucid::scene
         UnitCubeVAO->Bind();
         UnitCubeVAO->Draw();
     }
+
+#if DEVELOPMENT
+    void ForwardRenderer::GenerateHitmap(const CRenderScene* InScene, const FRenderView* InRenderView) const
+    {
+        // We do it in a separate pass just for simplicity
+        // It might not be the most efficient way to do it, but that way we avoid the need to maintain two
+        // versions of the lighting pass shader - one used in tools that also writes the ids, and one for cooked games
+        gpu::ConfigurePipelineState(HitMapGenerationPipelineState);
+
+        HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
+
+        HitMapShader->Use();
+        HitMapShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
+        HitMapShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
+
+        // Render static geometry
+        const FLinkedListItem<CStaticMesh>* CurrentNode = &InScene->GetStaticMeshes().Head;
+        while (CurrentNode && CurrentNode->Element)
+        {
+            HitMapShader->SetUInt(RENDERABLE_ID, CurrentNode->Element->Id);
+            HitMapShader->SetMatrix(MODEL_MATRIX, CurrentNode->Element->CalculateModelMatrix());
+            CurrentNode->Element->GetVertexArray()->Bind();
+            CurrentNode->Element->GetVertexArray()->Draw();
+            CurrentNode = CurrentNode->Next;
+        }
+    }
+#endif
+
 } // namespace lucid::scene

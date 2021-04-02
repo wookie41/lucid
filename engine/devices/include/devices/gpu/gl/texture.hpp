@@ -19,6 +19,7 @@ namespace lucid::gpu
                   const GLenum& TextureTaget,
                   const FANSIString& InName);
     public:
+
         // Texture methods //
 
         virtual void SetObjectName() override;

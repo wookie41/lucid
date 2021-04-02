@@ -213,7 +213,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetInt(const FANSIString& InUniformName, const uint32_t& Value)
+    void CGLShader::SetInt(const FANSIString& InUniformName, const i32& Value)
     {
         assert(GPUState->Shader == this);
         uint32 UniformId = GetIdForUniform(InUniformName);
@@ -224,6 +224,18 @@ namespace lucid::gpu
         }
     }
 
+    void CGLShader::SetUInt(const FANSIString& InUniformName, const u32& Value)
+    {
+        assert(GPUState->Shader == this);
+        uint32 UniformId = GetIdForUniform(InUniformName);
+
+        if (UniformId < uniformVariables.GetLength())
+        {
+            glUniform1ui(uniformVariables[UniformId]->Location, Value);
+        }
+    }
+
+    
     void CGLShader::SetFloat(const FANSIString& InUniformName, const float& Value)
     {
         assert(GPUState->Shader == this);

@@ -30,7 +30,8 @@ namespace lucid::gpu
 
         virtual u32 GetIdForUniform(const FANSIString& InUniformName) const = 0;
 
-        virtual void SetInt(const FANSIString& InUniformName, const u32& Value) = 0;
+        virtual void SetInt(const FANSIString& InUniformName, const i32& Value) = 0;
+        virtual void SetUInt(const FANSIString& InUniformName, const u32& Value) = 0;
         virtual void SetFloat(const FANSIString& InUniformName, const float& Value) = 0;
         virtual void SetBool(const FANSIString& InUniformName, const bool& Value) = 0;
 

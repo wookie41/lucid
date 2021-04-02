@@ -19,6 +19,7 @@ project "lucid_scene_editor"
       "../../engine/misc/include", 
       "../../engine/scene/include",
       "../../engine/resources/include", 
+      "../../engine/schemas/include", 
       "../../libs/stb" 
    }
 
@@ -26,7 +27,9 @@ project "lucid_scene_editor"
       "include", 
       "../../libs/glm", 
       "../../libs/SDL2/include",
-      "../../libs/glew/include"
+      "../../libs/glew/include",
+      "../../libs/df_serialize",
+      "../../libs/rapidjson"
    }
    
    libdirs { 
@@ -44,7 +47,7 @@ project "lucid_scene_editor"
    }
 
    files {
-      "src/*.cpp", 
+      "src/*.cpp"
    }
 
    filter "platforms:Win64"

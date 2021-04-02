@@ -17,6 +17,7 @@ project "lucid_engine"
       "misc/include", 
       "scene/include",
       "resources/include",
+      "schemas/include",
       "imgui/include"       -- TODO include only in development
    }
 
@@ -26,7 +27,9 @@ project "lucid_engine"
       "../libs/glew/include", 
       "../libs/SDL2/include",
       "../libs/SDL2/include/SDL2",
-      "../libs/assimp/include" 
+      "../libs/assimp/include",
+      "../libs/rapidjson",
+      "../libs/df_serialize" 
    }
    
    libdirs { 
@@ -57,9 +60,12 @@ project "lucid_engine"
       "scene/include/**.hpp",
       "resources/src/**.cpp",
       "resources/include/**.hpp",
+      "schemas/include/**.hpp",
       "engine_init.cpp",
       "imgui/include/*.h",
-      "imgui/src/*.cpp"
+      "imgui/src/*.cpp",
+      "../libs/rapidjson/**.h",
+      "../libs/df_serialize/*.h" 
    }
 
    filter "platforms:Win64"

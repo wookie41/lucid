@@ -8,6 +8,7 @@ namespace lucid::gpu
     {
       public:
         explicit CGPUObject(const FANSIString& InName) : Name(InName) {};
+
         /* Sets the name on the GPU side */
         virtual void SetObjectName() = 0;
         

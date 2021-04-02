@@ -35,7 +35,8 @@ namespace lucid::scene
                         gpu::CShader*       InPrepassShader,
                         gpu::CShader*       InSSAOShader,
                         gpu::CShader*       InSimpleBlurShader,
-                        gpu::CShader*       SkyboxShader,
+                        gpu::CShader*       InSkyboxShader,
+                        gpu::CShader*       InHitMapShader,
                         gpu::CVertexArray*  InScreenWideQuadVAO = nullptr,
                         gpu::CVertexArray*  InUnitCubeVAO = nullptr);
 
@@ -69,6 +70,10 @@ namespace lucid::scene
 
         void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
+#if DEVELOPMENT
+        void GenerateHitmap(const CRenderScene* InScene, const FRenderView* InRenderView) const;
+#endif
+        
         u32 MaxNumOfDirectionalLights;
 
         /** VAO used when doing post-processing */
@@ -97,6 +102,12 @@ namespace lucid::scene
         /** SSAO Shader */
         gpu::CShader* SSAOShader;
 
+        /**
+         *  Shader that saves ids of the objects in the scene to a texture
+         *  so it can be later used for picking, used only for tools
+         */
+        gpu::CShader* HitMapShader;
+        
         u8 NumSSAOSamples = 64;
         float SSAOBias = 0.025;
         float SSAORadius = 0.5;
@@ -139,6 +150,14 @@ namespace lucid::scene
 
         /** Generated in the depth prepass so we can later use it when calculating SSAO and things like that (VS - View Space) */
         gpu::CTexture* CurrentFrameVSPositionMap;
+
+#if DEVELOPMENT        
+        /** Used to render ids of the objects in the scene so we can do nice mouse picking in the tools */ 
+        gpu::CTexture* HitMapTexture;
+        gpu::CFramebuffer* HitMapFramebuffer;
+        gpu::FPipelineState HitMapGenerationPipelineState;
+        gpu::CRenderbuffer* HitMapDepthStencilRenderbuffer;
+#endif
     };
 
 }; // namespace lucid::scene

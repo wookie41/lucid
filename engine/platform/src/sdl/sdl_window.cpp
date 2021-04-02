@@ -27,6 +27,7 @@ namespace lucid::platform
             LUCID_LOG(ELogLevel::ERR, "[SDL] Failed to create a new window: %s", SDL_GetError());
             return nullptr;
         }
+
         SDL_GLContext context = SDL_GL_CreateContext(window);
         if (context == nullptr)
         {
@@ -35,10 +36,9 @@ namespace lucid::platform
             return nullptr;
         }
 
-
         SDL_GL_MakeCurrent(window, context);
-        SDL_CaptureMouse(SDL_TRUE);
-        SDL_SetRelativeMouseMode(SDL_TRUE);
+        SDL_CaptureMouse(SDL_FALSE);
+        SDL_SetRelativeMouseMode(SDL_FALSE);
 
         // Set initial gpu state for this context
         gpu::DisableDepthTest();
@@ -98,7 +98,7 @@ namespace lucid::platform
 
     void SDLWindow::OnFocusGained()
     {
-        SDL_CaptureMouse(SDL_TRUE);
+        // SDL_CaptureMouse(SDL_TRUE);
     }
 
     void SDLWindow::ImgUiSetup()

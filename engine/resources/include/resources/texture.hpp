@@ -3,6 +3,7 @@
 #include "devices/gpu/gpu.hpp"
 #include "resources/holder.hpp"
 #include "devices/gpu/texture.hpp"
+#include "schemas/types.hpp"
 
 namespace lucid::resources
 {
@@ -28,6 +29,8 @@ namespace lucid::resources
         gpu::ETextureDataFormat     DataFormat;
         gpu::ETexturePixelFormat    PixelFormat;
     };
+
+    CTextureResource* LoadTexture(const schema::FTextureResource& InTextureDescription);
 
     CTextureResource* LoadJPEG(const FANSIString& InPath,
                                const bool& InPerformGammaCorrection,

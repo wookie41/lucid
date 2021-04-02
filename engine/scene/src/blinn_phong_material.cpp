@@ -71,43 +71,43 @@ namespace lucid::scene
     };
 
 
-    CStaticMesh* CreateBlinnPhongRenderable(const FANSIString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader)
+    CMaterial* CreateBlinnPhongMapsMaterial(const FANSIString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader)
         {
             gpu::CTexture* FallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
 
-            CBlinnPhongMapsMaterial* MeshMaterial = new CBlinnPhongMapsMaterial(InShader);
-            MeshMaterial->Shininess = 32;
+            CBlinnPhongMapsMaterial* Material = new CBlinnPhongMapsMaterial(InShader);
+            Material->Shininess = 32;
     
             if (InMesh->DiffuseMap == nullptr)
             {
                 LUCID_LOG(ELogLevel::INFO, "Mesh is missing a diffuse map");
-                MeshMaterial->DiffuseMap = FallbackTexture;
+                Material->DiffuseMap = FallbackTexture;
             }
             else
             {
-                MeshMaterial->DiffuseMap = InMesh->DiffuseMap->TextureHandle;
+                Material->DiffuseMap = InMesh->DiffuseMap->TextureHandle;
             }
     
             if (InMesh->SpecularMap == nullptr)
             {
                 LUCID_LOG(ELogLevel::INFO, "Mesh is missing a specular map");
-                MeshMaterial->SpecularMap = FallbackTexture;
+                Material->SpecularMap = FallbackTexture;
             }
             else
             {
-                MeshMaterial->SpecularMap = InMesh->SpecularMap->TextureHandle;
+                Material->SpecularMap = InMesh->SpecularMap->TextureHandle;
             }
     
             if (InMesh->NormalMap == nullptr)
             {
                 LUCID_LOG(ELogLevel::INFO, "Mesh is missing a normal map");
-                MeshMaterial->NormalMap = FallbackTexture;
+                Material->NormalMap = FallbackTexture;
             }
             else
             {
-                MeshMaterial->NormalMap = InMesh->NormalMap->TextureHandle;
+                Material->NormalMap = InMesh->NormalMap->TextureHandle;
             }
-    
-            return new CStaticMesh{ CopyToString(*InMeshName, InMeshName.GetLength()), nullptr, InMesh->VAO, MeshMaterial, STATIONARY };    
+
+            return Material;
         }
 } // namespace lucid::scene

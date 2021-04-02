@@ -8,7 +8,8 @@ namespace lucid::gpu
     enum class ETextureDataType : u8
     {
         UNSIGNED_BYTE,
-        FLOAT
+        FLOAT,
+        UNSIGNED_INT
     };
 
     enum class TextureType : u8
@@ -46,6 +47,7 @@ namespace lucid::gpu
         R,
         R16F,
         R32F,
+        R32UI,
         RG,
         RG16F,
         RG32F,
@@ -64,6 +66,7 @@ namespace lucid::gpu
     enum class ETexturePixelFormat : u8
     {
         R,
+        R_INTEGER,
         RG,
         RGB,
         RGBA,

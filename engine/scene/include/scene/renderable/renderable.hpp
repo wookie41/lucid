@@ -18,8 +18,8 @@ namespace lucid::scene
     /** Base interface for all things that can be a part of the scene and thus can be rendered */
     struct IRenderable
     {
-        IRenderable(const FDString& InName, const IRenderable* InParent) : Name(InName), Parent(InParent) {}
-        IRenderable(const FDString& InName, const IRenderable& InRHS) : Name(InName)
+        IRenderable(const u32& InId, const FDString& InName, const IRenderable* InParent) : Id(InId), Name(InName), Parent(InParent) {}
+        IRenderable(const u32& InId, const FDString& InName, const IRenderable& InRHS) : Id(InId), Name(InName)
         {
             Parent      =   InRHS.Parent;
             Transform   =   InRHS.Transform;
@@ -35,6 +35,10 @@ namespace lucid::scene
             return Parent ? Parent->CalculateModelMatrix() * ModelMatrix : ModelMatrix;
         }
 
+        /**
+         *Unique id for a renderable, used e.x. by the renderer when generating the hitmap texture
+         * Starts with 1, 0 = INVALID */
+        const u32               Id; 
         const IRenderable*      Parent     = nullptr;
         const FDString          Name;
         FTransform3D            Transform;

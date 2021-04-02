@@ -39,7 +39,8 @@ namespace lucid::gpu
 
         virtual void Disable() override;
 
-        virtual void SetInt(const FANSIString& InUniformName, const u32& Value) override;
+        virtual void SetInt(const FANSIString& InUniformName, const i32& Value) override;
+        virtual void SetUInt(const FANSIString& InUniformName, const u32& Value) override;
         virtual void SetFloat(const FANSIString& InUniformName, const float& Value) override;
         virtual void SetBool(const  FANSIString& InUniformName, const bool& Value) override;
 

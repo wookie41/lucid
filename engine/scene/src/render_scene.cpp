@@ -5,7 +5,7 @@
 
 namespace lucid::scene
 {
-    CSkybox CreateSkybox(const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName)
+    CSkybox CreateSkybox(const u32& RenderableId, const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName)
     {
         const char* skyboxFacesData[6];
         resources::CTextureResource* textureResources[6];
@@ -30,7 +30,8 @@ namespace lucid::scene
             textureResources[face]->FreeMainMemory();
         }
 
-        return CSkybox{ skyboxCubemap };
+        // @TODO skybox name is not freed
+        return CSkybox{ RenderableId, CopyToString(*InName, InName.GetLength()), nullptr, skyboxCubemap };
     }
 
     void CRenderScene::AddStaticMesh(CStaticMesh* InStaticMesh) { StaticMeshes.Add(InStaticMesh); }
