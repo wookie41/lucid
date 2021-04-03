@@ -506,6 +506,12 @@ int main(int argc, char** argv)
         }
 
         // Rendering
+        const scene::FHitMap& CachedHitMap = Renderer.GetCachedHitMap();
+
+        LUCID_LOG(ELogLevel::INFO,
+                  "Hovered over object with id %u\n",
+                  CachedHitMap.GetIdAtMousePositon(GetMousePostion()));
+        
         window->ImgUiDrawFrame();
         window->Swap();
     }

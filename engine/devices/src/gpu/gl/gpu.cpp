@@ -238,9 +238,4 @@ namespace lucid::gpu
         
         GPUState->PipelineState = InPipelineState;
     }
-
-    void Finish()
-    {
-        glFinish();
-    }
 } // namespace lucid::gpu

@@ -646,7 +646,7 @@ namespace lucid::scene
         }
 
         // Get the result
-        gpu::Finish(); //@TODO don't force command flash, read it async
+        // gpu::Finish(); //@TODO don't force command flash, read it async
         HitMapFramebuffer->ReadPixels(CachedHitMap.CachedTextureData);
     }
 #endif
