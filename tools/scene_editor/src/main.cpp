@@ -25,6 +25,8 @@
 #include "scene/renderable/mesh_renderable.hpp"
 #include "scene/lights.hpp"
 #include "scene/flat_material.hpp"
+#include "scene/world.hpp"
+
 #include "resources/texture.hpp"
 
 #include "glm/gtc/quaternion.hpp"
@@ -61,11 +63,11 @@ int main(int argc, char** argv)
     WoodTextureResource.GammaCorrect = true;
     WoodTextureResource.DataType = schema::ETextureResourceDataType::UNSIGNED_BYTE;
 
-    WriteToJSONFile(WoodTextureResource, "wood_texture.json");
+    // WriteToJSONFile(WoodTextureResource, "wood_texture.json");
 
     lucid::schema::FScene SceneDescription;
     SceneDescription.Textures.push_back(WoodTextureResource);
-    WriteToJSONFile(SceneDescription, "scene.json");
+    // WriteToJSONFile(SceneDescription, "scene.json");
 
     // Load textures used in the demo scene
     // resources::CMeshResource* backPackMesh =
@@ -344,26 +346,27 @@ int main(int argc, char** argv)
     RedPointLightCube.Transform.Translation = RedPointLight->Position;
     RedPointLightCube.Transform.Scale = glm::vec3{ 0.25 };
 
-    scene::CRenderScene DemoScene;
-    DemoScene.AddStaticMesh(&cube);
-    DemoScene.AddStaticMesh(&cube1);
-    DemoScene.AddStaticMesh(&cube2);
-    DemoScene.AddStaticMesh(&cube3);
-    DemoScene.AddStaticMesh(&gigaCube);
-    // DemoScene.AddStaticMesh(backPackRenderable);
-    DemoScene.AddStaticMesh(&GreenLightCubeChild);
+    scene::CWorld DemoWorld;
+    DemoWorld.Init();
+    DemoWorld.AddStaticMesh(&cube);
+    DemoWorld.AddStaticMesh(&cube1);
+    DemoWorld.AddStaticMesh(&cube2);
+    DemoWorld.AddStaticMesh(&cube3);
+    DemoWorld.AddStaticMesh(&gigaCube);
+    // DemoWorld.AddStaticMesh(backPackRenderable);
+    DemoWorld.AddStaticMesh(&GreenLightCubeChild);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
-    DemoScene.AddLight(RedSpotLight);
-    DemoScene.AddLight(GreenSpotLight);
-    DemoScene.AddLight(BlueSpotLight);
-    DemoScene.AddLight(RedPointLight);
+    DemoWorld.AddLight(RedSpotLight);
+    DemoWorld.AddLight(GreenSpotLight);
+    DemoWorld.AddLight(BlueSpotLight);
+    DemoWorld.AddLight(RedPointLight);
 
     // sceneToRender.StaticGeometry.Add(&shadowCastingLightCube);
-    DemoScene.AddStaticMesh(&RedLightCube);
-    DemoScene.AddStaticMesh(&GreenLightCube);
-    DemoScene.AddStaticMesh(&BlueLightCube);
-    DemoScene.AddStaticMesh(&RedPointLightCube);
+    DemoWorld.AddStaticMesh(&RedLightCube);
+    DemoWorld.AddStaticMesh(&GreenLightCube);
+    DemoWorld.AddStaticMesh(&BlueLightCube);
+    DemoWorld.AddStaticMesh(&RedPointLightCube);
 
     FArray<FString> SkyboxFacesPaths{ 6 };
     SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/right.jpg") });
@@ -374,7 +377,7 @@ int main(int argc, char** argv)
     SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/back.jpg") });
 
     scene::CSkybox skybox = scene::CreateSkybox(13, SkyboxFacesPaths, FString{ "Skybox" });
-    DemoScene.SetSkybox(&skybox);
+    DemoWorld.SetSkybox(&skybox);
 
     gpu::SetClearColor(BlackColor);
 
@@ -456,7 +459,7 @@ int main(int argc, char** argv)
         }
 
         // Render to off-screen framebuffer
-        Renderer.Render(&DemoScene, &RenderView);
+        Renderer.Render(DemoWorld.MakeRenderScene(&PerspectiveCamera), &RenderView);
 
         // Blit the off-screen frame buffer to the window framebuffer
         window->GetFramebuffer()->Bind(gpu::EFramebufferBindMode::READ_WRITE);

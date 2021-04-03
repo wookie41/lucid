@@ -33,10 +33,4 @@ namespace lucid::scene
         // @TODO skybox name is not freed
         return CSkybox{ RenderableId, CopyToString(*InName, InName.GetLength()), nullptr, skyboxCubemap };
     }
-
-    void CRenderScene::AddStaticMesh(CStaticMesh* InStaticMesh) { StaticMeshes.Add(InStaticMesh); }
-
-    void CRenderScene::AddLight(CLight* InLight) { Lights.Add(InLight); }
-
-    void CRenderScene::SetSkybox(CSkybox* InSkybox) { SceneSkybox = InSkybox; }
 }; // namespace lucid::scene

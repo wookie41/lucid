@@ -66,9 +66,10 @@ namespace lucid::scene
         gpu::CTexture*  ShadowMapTexture;
     };
 
+
 #if DEVELOPMENT
     /** Stores ids of the objects on the scene, used for picking in tools */
-    struct FHitMap        // @TODO Move to Scene
+    struct FHitMap
     {
         inline u32 GetIdAtMousePositon(const FMousePosition& MousePosition) const
         {
@@ -79,12 +80,12 @@ namespace lucid::scene
             }
             return 0;
         }
-        
+
         u32*    CachedTextureData;
         u32     Width, Height;
     };
 #endif
-
+    
     /////////////////////////////////////
     //            Renderer             //
     /////////////////////////////////////
@@ -105,7 +106,7 @@ namespace lucid::scene
         /**
          * Renders the scene from the specified view
          */
-        virtual void Render(CRenderScene* InSceneToRender, const FRenderView* InRenderView) = 0;
+        virtual void Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView) = 0;
 
         /**
          * Called before the renderer is deleted so it can cleanup whatever it did in Setup() or during Render(s)().
