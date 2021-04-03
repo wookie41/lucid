@@ -226,30 +226,30 @@ int main(int argc, char** argv)
     flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.Shininess = 32;
 
-    scene::CStaticMesh woodenFloor{ 424242,        FDString{ "woodenFloor" },         nullptr, QuadVAO,
+    scene::CStaticMesh woodenFloor{ FDString{ "woodenFloor" },         nullptr, QuadVAO,
                                     &woodMaterial, scene::EStaticMeshType::STATIONARY };
     woodenFloor.Transform.Scale = glm::vec3{ 25.0 };
     woodenFloor.Transform.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{ 1.0, 0.0, 0.0 });
     woodenFloor.Transform.Translation = glm::vec3{ 0, -0.5, 0 };
 
-    scene::CStaticMesh cube{ 1, FDString{ "Cube" }, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh cube{ FDString{ "Cube" }, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY };
     cube.Transform.Translation = { 4.0, -3.5, 0.0 };
     cube.Transform.Scale = glm::vec3{ 0.5 };
 
-    scene::CStaticMesh cube1{ 2,           FDString{ "Cube1" },     nullptr,
+    scene::CStaticMesh cube1{ FDString{ "Cube1" },     nullptr,
                               UnitCubeVAO, &flatBlinnPhongMaterial, scene::EStaticMeshType::STATIONARY };
     cube1.Transform.Translation = { 2.0, 3.0, 1.0 };
     cube1.Transform.Scale = glm::vec3{ 0.75 };
 
-    scene::CStaticMesh cube2{ 3, FDString{ "Cube2" }, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh cube2{ FDString{ "Cube2" }, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY };
     cube2.Transform.Translation = { -1.5, 2.0, -3.0 };
     cube2.Transform.Scale = glm::vec3{ 0.75 };
 
-    scene::CStaticMesh cube3{ 4, FDString{ "Cube3" }, nullptr, UnitCubeVAO, &toyboxMaterial, scene::EStaticMeshType::STATIONARY };
+    scene::CStaticMesh cube3{ FDString{ "Cube3" }, nullptr, UnitCubeVAO, &toyboxMaterial, scene::EStaticMeshType::STATIONARY };
     cube3.Transform.Translation = { -1.5, 1.0, 1.5 };
     cube3.Transform.Scale = glm::vec3{ 0.75 };
 
-    scene::CStaticMesh gigaCube{ 5,           FDString{ "Gigacube" }, nullptr,
+    scene::CStaticMesh gigaCube{ FDString{ "Gigacube" }, nullptr,
                                  UnitCubeVAO, &woodMaterial,          scene::EStaticMeshType::STATIONARY };
     gigaCube.Transform.Translation = glm::vec3{ 0 };
     gigaCube.Transform.Scale = glm::vec3{ 10 };
@@ -287,7 +287,7 @@ int main(int argc, char** argv)
     RedSpotLight->InnerCutOffRad = glm::radians(30.0);
     RedSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CStaticMesh RedLightCube{ 7,           FDString{ "RedLightCube" }, nullptr,
+    scene::CStaticMesh RedLightCube{ FDString{ "RedLightCube" }, nullptr,
                                      UnitCubeVAO, &flatRedMaterial,           scene::EStaticMeshType::STATIONARY };
     RedLightCube.Transform.Scale = glm::vec3{ 0.2 };
     RedLightCube.Transform.Translation = RedSpotLight->Position;
@@ -302,12 +302,12 @@ int main(int argc, char** argv)
     GreenSpotLight->InnerCutOffRad = glm::radians(30.0);
     GreenSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CStaticMesh GreenLightCube{ 8,           FDString{ "GreenLightCube" }, nullptr,
+    scene::CStaticMesh GreenLightCube{ FDString{ "GreenLightCube" }, nullptr,
                                        UnitCubeVAO, &flatGreenMaterial,           scene::EStaticMeshType::STATIONARY };
     GreenLightCube.Transform.Translation = GreenSpotLight->Position;
     GreenLightCube.Transform.Scale = glm::vec3{ 0.25 };
 
-    scene::CStaticMesh GreenLightCubeChild{ 9,           FDString{ "GreenLightCube" }, &GreenLightCube,
+    scene::CStaticMesh GreenLightCubeChild{ FDString{ "GreenLightCube" }, &GreenLightCube,
                                             UnitCubeVAO, &flatGreenMaterial,           scene::EStaticMeshType::STATIONARY };
     GreenLightCubeChild.Transform.Translation = { 0, 2, 0 };
     GreenLightCubeChild.Transform.Scale = glm::vec3{ 0.15 };
@@ -323,13 +323,13 @@ int main(int argc, char** argv)
     BlueSpotLight->OuterCutOffRad = glm::radians(35.0);
     BlueSpotLight->LightUp = { -1, 0, 0 };
 
-    scene::CStaticMesh BlueLightCube{ 10,          FDString{ "BlueLightCube" }, nullptr,
+    scene::CStaticMesh BlueLightCube{ FDString{ "BlueLightCube" }, nullptr,
                                       UnitCubeVAO, &flatBlueMaterial,           scene::EStaticMeshType::STATIONARY };
     BlueLightCube.Transform.Translation = BlueSpotLight->Position;
     BlueLightCube.Transform.Scale = glm::vec3{ 0.25 };
 
     scene::CStaticMesh shadowCastingLightCube{
-        11, FDString{ "ShadowCastingLightCube" }, nullptr, UnitCubeVAO, &flatWhiteMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{ "ShadowCastingLightCube" }, nullptr, UnitCubeVAO, &flatWhiteMaterial, scene::EStaticMeshType::STATIONARY
     };
     shadowCastingLightCube.Transform.Translation = DirectionalLight->Position;
 
@@ -341,7 +341,7 @@ int main(int argc, char** argv)
     RedPointLight->Quadratic = 0.017;
 
     scene::CStaticMesh RedPointLightCube{
-        12, FDString{ "RedPointLightCube" }, nullptr, UnitCubeVAO, &flatRedMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{ "RedPointLightCube" }, nullptr, UnitCubeVAO, &flatRedMaterial, scene::EStaticMeshType::STATIONARY
     };
     RedPointLightCube.Transform.Translation = RedPointLight->Position;
     RedPointLightCube.Transform.Scale = glm::vec3{ 0.25 };
@@ -511,9 +511,14 @@ int main(int argc, char** argv)
         // Rendering
         const scene::FHitMap& CachedHitMap = Renderer.GetCachedHitMap();
 
-        LUCID_LOG(ELogLevel::INFO,
-                  "Hovered over object with id %u\n",
-                  CachedHitMap.GetIdAtMousePositon(GetMousePostion()));
+        scene::IRenderable* HitRenderable = DemoWorld.GetRenderableById(CachedHitMap.GetIdAtMousePositon(GetMousePostion()));
+        if (HitRenderable)
+        {
+            LUCID_LOG(ELogLevel::INFO,
+                      "Hovered over '%s'\n",
+                      *(HitRenderable->Name));
+            
+        }
         
         window->ImgUiDrawFrame();
         window->Swap();

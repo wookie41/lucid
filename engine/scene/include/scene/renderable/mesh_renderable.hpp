@@ -18,8 +18,7 @@ namespace lucid::scene
     class CStaticMesh : public IRenderable
     {
       public:
-        CStaticMesh(const u32& InId,
-                    const FDString& InName,
+        CStaticMesh(const FDString& InName,
                     const IRenderable* InParent,
                     gpu::CVertexArray* InVertexArray,
                     CMaterial* InMaterial,

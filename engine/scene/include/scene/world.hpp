@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <glm/ext/scalar_int_sized.hpp>
+
 #include "common/types.hpp"
 #include "platform/input.hpp"
 
@@ -9,6 +11,7 @@ namespace lucid::scene
     class   CSkybox;
     class   CLight;
     class   CCamera;
+    class   IRenderable;
     struct  FRenderScene;
     
     /**
@@ -18,15 +21,28 @@ namespace lucid::scene
      */
     class CWorld
     {
+
     public:
+
         void            Init();
         void            AddStaticMesh(CStaticMesh* InStaticMesh);
         void            AddLight(CLight* InLight);
         void            SetSkybox(CSkybox* InSkybox);
         
         FRenderScene*   MakeRenderScene(CCamera* InCamera);
-    
+        IRenderable*    GetRenderableById(const u32& RenderableId);
+
     private:
+        u32             AddRenderable(IRenderable* InRenderable);
+        
+        struct
+        {
+            u32             key; // Renderable id
+            IRenderable*    value; //
+        }* RenderableById = NULL;
+
+        u32             NextRenderableId = 1;
+        
         CStaticMesh**   StaticMeshes = nullptr;
         CLight**        Lights = nullptr;
         CSkybox*        Skybox = nullptr;

@@ -15,12 +15,12 @@ namespace lucid::scene
 {
     class CLight;
 
-    class CSkybox : IRenderable
+    class CSkybox : public IRenderable
 
     {
       public:
-        explicit CSkybox(const u32& InId, const FDString& InName, const IRenderable* InParent, gpu::CCubemap* InSkyboxCubemap)
-        : IRenderable(InId, InName, InParent), SkyboxCubemap(InSkyboxCubemap)
+        explicit CSkybox(const FDString& InName, const IRenderable* InParent, gpu::CCubemap* InSkyboxCubemap)
+        : IRenderable(InName, InParent), SkyboxCubemap(InSkyboxCubemap)
         {
         }
 

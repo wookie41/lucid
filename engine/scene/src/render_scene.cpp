@@ -31,6 +31,6 @@ namespace lucid::scene
         }
 
         // @TODO skybox name is not freed
-        return CSkybox{ RenderableId, CopyToString(*InName, InName.GetLength()), nullptr, skyboxCubemap };
+        return CSkybox{ CopyToString(*InName, InName.GetLength()), nullptr, skyboxCubemap };
     }
 }; // namespace lucid::scene
