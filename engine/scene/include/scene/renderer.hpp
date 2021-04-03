@@ -4,6 +4,7 @@
 #include "settings.hpp"
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/viewport.hpp"
+#include "platform/input.hpp"
 #include "scene/render_scene.hpp"
 
 namespace lucid::gpu
@@ -65,6 +66,25 @@ namespace lucid::scene
         gpu::CTexture*  ShadowMapTexture;
     };
 
+#if DEVELOPMENT
+    /** Stores ids of the objects on the scene, used for picking in tools */
+    struct FHitMap        // @TODO Move to Scene
+    {
+        inline u32 GetIdAtMousePositon(const FMousePosition& MousePosition) const
+        {
+            if (MousePosition.X > -1 && (int)MousePosition.X <= Width &&
+                MousePosition.Y > -1 && (int)MousePosition.Y <= Height)
+            {
+                return CachedTextureData[(Width * (Height - (int)MousePosition.Y)) + (int)MousePosition.X];
+            }
+            return 0;
+        }
+        
+        u32*    CachedTextureData;
+        u32     Width, Height;
+    };
+#endif
+
     /////////////////////////////////////
     //            Renderer             //
     /////////////////////////////////////
@@ -101,17 +121,21 @@ namespace lucid::scene
         //         Lights/ShadowMaps       //
         /////////////////////////////////////
 
-        CDirectionalLight* CreateDirectionalLight(const bool& CastsShadow);
-        CSpotLight* CreateSpotLight(const bool& CastsShadow);
-        CPointLight* CreatePointLight(const bool& CastsShadow);
+        CDirectionalLight*  CreateDirectionalLight(const bool& CastsShadow);
+        CSpotLight*         CreateSpotLight(const bool& CastsShadow);
+        CPointLight*        CreatePointLight(const bool& CastsShadow);
 
         CShadowMap* CreateShadowMap(const ELightType& InLightType);
-        void RemoveShadowMap(CShadowMap* InShadowMap);
+        void        RemoveShadowMap(CShadowMap* InShadowMap);
 
+#if DEVELOPMENT
+        inline const FHitMap& GetCachedHitMap() const { return CachedHitMap; } 
+#endif
+        
         virtual ~CRenderer() = default;
-
+    
       protected:
-
+        
         /** Lights and shadow maps arrays */
         CLight** CreatedLights = nullptr;
         CShadowMap** CreatedShadowMaps = nullptr;
@@ -132,5 +156,9 @@ namespace lucid::scene
             { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 15.f },
             { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 30.f }
         };
+
+#if DEVELOPMENT
+        FHitMap CachedHitMap;
+#endif
     };
 } // namespace lucid::scene

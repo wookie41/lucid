@@ -91,7 +91,7 @@ project "lucid_engine"
    
    filter "configurations:Debug"
       defines { "DEBUG" }
-      symbols "On"
+      symbols "Full"
       optimize "Off"
 
    filter "configurations:Release"

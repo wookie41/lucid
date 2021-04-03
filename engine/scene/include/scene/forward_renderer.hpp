@@ -153,8 +153,8 @@ namespace lucid::scene
 
 #if DEVELOPMENT        
         /** Used to render ids of the objects in the scene so we can do nice mouse picking in the tools */ 
-        gpu::CTexture* HitMapTexture;
-        gpu::CFramebuffer* HitMapFramebuffer;
+        gpu::CTexture*      HitMapTexture;
+        gpu::CFramebuffer*  HitMapFramebuffer;
         gpu::FPipelineState HitMapGenerationPipelineState;
         gpu::CRenderbuffer* HitMapDepthStencilRenderbuffer;
 #endif

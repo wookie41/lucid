@@ -1,85 +1,21 @@
 #pragma once
 
 #include "devices/gpu/framebuffer.hpp"
+#include "devices/gpu/texture_enums.hpp"
 #include "glm/glm.hpp"
 
 namespace lucid::gpu
 {
-    enum class ETextureDataType : u8
-    {
-        UNSIGNED_BYTE,
-        FLOAT,
-        UNSIGNED_INT
-    };
-
-    enum class TextureType : u8
-    {
-        ONE_DIMENSIONAL,
-        TWO_DIMENSIONAL,
-        THREE_DIMENSIONAL
-    };
-
-    enum class MinTextureFilter : u8
-    {
-        NEAREST,
-        LINEAR,
-        NEAREST_MIPMAP_NEAREST,
-        LINEAR_MIPMAP_NEAREST,
-        NEARST_MIPMAP_LINEAR,
-        LINEAR_MIPMAP_LINEAR
-    };
-
-    enum class MagTextureFilter : u8
-    {
-        NEAREST,
-        LINEAR
-    };
-
-    enum class WrapTextureFilter : u8
-    {
-        CLAMP_TO_EDGE,
-        MIRRORED_REPEAT,
-        REPEAT
-    };
-
-    enum class ETextureDataFormat : u8
-    {
-        R,
-        R16F,
-        R32F,
-        R32UI,
-        RG,
-        RG16F,
-        RG32F,
-        RGB,
-        RGB16F,
-        RGB32F,
-        RGBA,
-        RGBA16F,
-        RGBA32F,
-        SRGB,
-        SRGBA,
-        DEPTH_COMPONENT,
-        DEPTH_STENCIL
-    };
-
-    enum class ETexturePixelFormat : u8
-    {
-        R,
-        R_INTEGER,
-        RG,
-        RGB,
-        RGBA,
-        DEPTH_COMPONENT,
-        DEPTH_STENCIL
-    };
-    
-    class CTexture : public CFramebufferAttachment, public CGPUObject
+    class CTexture : public IFramebufferAttachment, public CGPUObject
     {
       public:
+        CTexture(const FANSIString& InName,
+                 const ETextureDataType InTextureDataType,
+                 const ETexturePixelFormat InTexturePixelFormat)
+        : CGPUObject(InName), TextureDataType(InTextureDataType), TexturePixelFormat(InTexturePixelFormat)
+        {
+        }
 
-        explicit CTexture(const FANSIString& InName) : CGPUObject(InName) {}
-        
         virtual void Bind() = 0;
         virtual glm::ivec3 GetDimensions() const = 0;
 
@@ -89,13 +25,25 @@ namespace lucid::gpu
         virtual void SetWrapTFilter(const WrapTextureFilter& Filter) = 0;
         virtual void SetWrapRFilter(const WrapTextureFilter& Filter) = 0;
 
+        virtual ETextureDataType GetAttachmentDataType() const override { return TextureDataType; }
+
+        virtual ETexturePixelFormat GetAttachmentPixelFormat() const override { return TexturePixelFormat; };
+
+        virtual u64 GetSizeInBytes() const = 0;
+
+        virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) = 0;
+
         virtual ~CTexture() = default;
+
+      protected:
+        const ETextureDataType TextureDataType;
+        const ETexturePixelFormat TexturePixelFormat;
     };
 
     CTexture* Create2DTexture(void* Data,
                               const uint32_t& Width,
                               const uint32_t& Height,
-                              const ETextureDataType& DataType,
+                              const ETextureDataType& InDataType,
                               const ETextureDataFormat& InDataFormat,
                               const ETexturePixelFormat& InPixelFormat,
                               const int32_t& MipMapLevel,
@@ -103,10 +51,12 @@ namespace lucid::gpu
 
     CTexture* CreateEmpty2DTexture(const uint32_t& Width,
                                    const uint32_t& Height,
-                                   const ETextureDataType& DataType,
+                                   const ETextureDataType& InDataType,
                                    const ETextureDataFormat& InDataFormat,
                                    const ETexturePixelFormat& InPixelFormat,
                                    const int32_t& MipMapLevel,
                                    const FANSIString& InName);
 
+    u8 GetSizeInBytes(const gpu::ETextureDataType& InType);
+    u8 GetNumChannels(const gpu::ETexturePixelFormat& InType);
 } // namespace lucid::gpu

@@ -1,6 +1,5 @@
 ﻿#include "scene/renderer.hpp"
 
-#include <atlalloc.h>
 #include <stb_ds.h>
 
 #include "devices/gpu/cubemap.hpp"

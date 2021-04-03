@@ -8,18 +8,23 @@ namespace lucid::gpu
     class CGLCubemap : public CCubemap
     {
       public:
+        explicit CGLCubemap(const GLuint& Handle,
+                            const glm::ivec2& Size,
+                            const FANSIString& InName,
+                            const ETextureDataType InTextureDataType,
+                            const ETexturePixelFormat InTexturePixelFormat);
 
-        explicit CGLCubemap(const GLuint& Handle, const glm::ivec2& Size, const FANSIString& InName);
-        
         virtual void SetObjectName() override;
 
-        // Framebuffer attachment interface        
+        // Framebuffer attachment interface
         virtual glm::ivec2 GetSize() const override;
 
         virtual void AttachAsColor(const u8& Index) override;
         virtual void AttachAsStencil() override;
         virtual void AttachAsDepth() override;
         virtual void AttachAsStencilDepth() override;
+
+        virtual u64 GetSizeInBytes() const override;
 
         virtual void AttachAsColor(const u8& Index, EFace InFace) override;
 
@@ -37,6 +42,8 @@ namespace lucid::gpu
         virtual void SetWrapSFilter(const WrapTextureFilter& Filter) override;
         virtual void SetWrapTFilter(const WrapTextureFilter& Filter) override;
         virtual void SetWrapRFilter(const WrapTextureFilter& Filter) override;
+
+        virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) override;
 
         ////////////////////////
 

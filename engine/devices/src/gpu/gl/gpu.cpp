@@ -1,11 +1,6 @@
 #include "devices/gpu/gpu.hpp"
 
-#include <atlalloc.h>
-
-
-
 #include "devices/gpu/shader.hpp"
-#include "devices/gpu/vao.hpp"
 #include "GL/glew.h"
 
 namespace lucid::gpu
@@ -242,5 +237,10 @@ namespace lucid::gpu
         }
         
         GPUState->PipelineState = InPipelineState;
+    }
+
+    void Finish()
+    {
+        glFinish();
     }
 } // namespace lucid::gpu

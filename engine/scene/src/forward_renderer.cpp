@@ -1,7 +1,5 @@
 #include "scene/forward_renderer.hpp"
 
-#include <atlalloc.h>
-
 #include "common/log.hpp"
 #include "common/collections.hpp"
 
@@ -193,7 +191,7 @@ namespace lucid::scene
                                                FramebufferSize.y,
                                                gpu::ETextureDataType::FLOAT,
                                                gpu::ETextureDataFormat::R,
-                                               gpu::ETexturePixelFormat::R,
+                                               gpu::ETexturePixelFormat::RED,
                                                0,
                                                FString{ "SSAOResult" });
         SSAOResult->Bind();
@@ -205,7 +203,7 @@ namespace lucid::scene
                                                 FramebufferSize.y,
                                                 gpu::ETextureDataType::FLOAT,
                                                 gpu::ETextureDataFormat::R,
-                                                gpu::ETexturePixelFormat::R,
+                                                gpu::ETexturePixelFormat::RED,
                                                 0,
                                                 FString{ "SSOBlurred" });
         SSAOBlurred->Bind();
@@ -302,9 +300,10 @@ namespace lucid::scene
                                                   FramebufferSize.y,
                                                   gpu::ETextureDataType::UNSIGNED_INT,
                                                   gpu::ETextureDataFormat::R32UI,
-                                                  gpu::ETexturePixelFormat::R_INTEGER,
+                                                  gpu::ETexturePixelFormat::RED_INTEGER,
                                                   0,
                                                   FString{ "HitMapTexture" });
+
 
         HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { FramebufferSize.x, FramebufferSize.y }, FString{ "HitMapRenderbuffer" });
 
@@ -312,12 +311,20 @@ namespace lucid::scene
         HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         HitMapTexture->Bind();
+        HitMapTexture->SetMinFilter(gpu::MinTextureFilter::NEAREST);
+        HitMapTexture->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+
         HitMapFramebuffer->SetupColorAttachment(0, HitMapTexture);
 
         HitMapDepthStencilRenderbuffer->Bind();
         HitMapFramebuffer->SetupDepthStencilAttachment(HitMapDepthStencilRenderbuffer);
 
         HitMapFramebuffer->IsComplete();
+
+        CachedHitMap.Width = FramebufferSize.x;
+        CachedHitMap.Height = FramebufferSize.y;
+        CachedHitMap.CachedTextureData = (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
+        Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
 #endif
     }
 
@@ -619,6 +626,8 @@ namespace lucid::scene
         gpu::ConfigurePipelineState(HitMapGenerationPipelineState);
 
         HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        HitMapFramebuffer->SetupDrawBuffers();
+        
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
 
         HitMapShader->Use();
@@ -635,7 +644,11 @@ namespace lucid::scene
             CurrentNode->Element->GetVertexArray()->Draw();
             CurrentNode = CurrentNode->Next;
         }
+
+        // Get the result
+        gpu::Finish(); //@TODO don't force command flash, read it async
+        HitMapFramebuffer->ReadPixels(CachedHitMap.CachedTextureData);
     }
 #endif
 
-} // namespace lucid::scene
+} // namespace lucid::scene	

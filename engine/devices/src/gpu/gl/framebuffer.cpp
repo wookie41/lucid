@@ -130,32 +130,44 @@ namespace lucid::gpu
 
     void CGLFramebuffer::Bind(const EFramebufferBindMode& Mode) { GLBindFramebuffer(GPUState, this, glFBOHandle, Mode); }
 
-    void CGLFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, CFramebufferAttachment* AttachmentToUse)
+    void CGLFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, IFramebufferAttachment* AttachmentToUse)
     {
         assert(GPUState->Framebuffer == this && AttachmentIndex < gpu::Info.MaxColorAttachments);
         colorAttachments[AttachmentIndex] = AttachmentToUse;
         AttachmentToUse->AttachAsColor(AttachmentIndex);
     }
 
-    void CGLFramebuffer::SetupDepthAttachment(CFramebufferAttachment* AttachmentToUse)
+    void CGLFramebuffer::SetupDepthAttachment(IFramebufferAttachment* AttachmentToUse)
     {
         assert(GPUState->Framebuffer == this);
         depthAttachment = AttachmentToUse;
         AttachmentToUse->AttachAsDepth();
     }
 
-    void CGLFramebuffer::SetupStencilAttachment(CFramebufferAttachment* AttachmentToUse)
+    void CGLFramebuffer::SetupStencilAttachment(IFramebufferAttachment* AttachmentToUse)
     {
         assert(GPUState->Framebuffer == this);
         stencilAttachment = AttachmentToUse;
         AttachmentToUse->AttachAsStencil();
     }
 
-    void CGLFramebuffer::SetupDepthStencilAttachment(CFramebufferAttachment* AttachmentToUse)
+    void CGLFramebuffer::SetupDepthStencilAttachment(IFramebufferAttachment* AttachmentToUse)
     {
         assert(GPUState->Framebuffer == this);
         depthStencilAttachment = AttachmentToUse;
         AttachmentToUse->AttachAsStencilDepth();
+    }
+
+    void CGLFramebuffer::ReadPixels(void* Pixels)
+    {
+        assert(GPUState->Framebuffer == this);
+        glReadPixels(0,
+                     0,
+                     colorAttachments[0]->GetSize().x,
+                     colorAttachments[0]->GetSize().y,
+                     TO_GL_TEXTURE_PIXEL_FORMAT(colorAttachments[0]->GetAttachmentPixelFormat()),
+                     TO_GL_TEXTURE_DATA_TYPE(colorAttachments[0]->GetAttachmentDataType()),
+                     Pixels);
     }
 
     void CGLFramebuffer::DisableReadWriteBuffers()
@@ -207,7 +219,7 @@ namespace lucid::gpu
     {
         assert(GPUState->Renderbuffer == this);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
-    };
+    }
 
     void CGLRenderbuffer::Free() { glDeleteRenderbuffers(1, &glRBOHandle); }
 
@@ -245,16 +257,29 @@ namespace lucid::gpu
 
     void CGLDefaultFramebuffer::Bind(const EFramebufferBindMode& Mode) { GLBindFramebuffer(GPUState, this, 0, Mode); }
 
-    void CGLDefaultFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, CFramebufferAttachment* AttachmentToUse)
+    void CGLDefaultFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, IFramebufferAttachment* AttachmentToUse)
     {
         assert(0);
     }
 
-    void CGLDefaultFramebuffer::SetupDepthAttachment(CFramebufferAttachment* AttachmentToUse) { assert(0); }
+    void CGLDefaultFramebuffer::SetupDepthAttachment(IFramebufferAttachment* AttachmentToUse) { assert(0); }
 
-    void CGLDefaultFramebuffer::SetupStencilAttachment(CFramebufferAttachment* AttachmentToUse) { assert(0); }
+    void CGLDefaultFramebuffer::SetupStencilAttachment(IFramebufferAttachment* AttachmentToUse) { assert(0); }
 
-    void CGLDefaultFramebuffer::SetupDepthStencilAttachment(CFramebufferAttachment* AttachmentToUse) { assert(0); }
+    void CGLDefaultFramebuffer::SetupDepthStencilAttachment(IFramebufferAttachment* AttachmentToUse) { assert(0); }
+
+    void CGLDefaultFramebuffer::ReadPixels(void* Pixels)
+    {
+        assert(GPUState->Framebuffer == this);
+        glReadPixels(0,
+             0,
+             WindowWidth,
+             WindowHeight,
+             GL_RGBA,
+             GL_UNSIGNED_INT_8_8_8_8,
+             Pixels);
+
+    }
 
     void CGLDefaultFramebuffer::Free()
     {
@@ -288,7 +313,15 @@ namespace lucid::gpu
             bufferToBlit |= GL_STENCIL_BUFFER_BIT;
         }
 
-        glBlitFramebuffer(SrcRect.X, SrcRect.Y, SrcRect.Width, SrcRect.Height, DestRect.X, DestRect.Y, DestRect.Width,
-                          DestRect.Height, bufferToBlit, GL_LINEAR);
+        glBlitFramebuffer(SrcRect.X,
+                          SrcRect.Y,
+                          SrcRect.Width,
+                          SrcRect.Height,
+                          DestRect.X,
+                          DestRect.Y,
+                          DestRect.Width,
+                          DestRect.Height,
+                          bufferToBlit,
+                          GL_LINEAR);
     }
 } // namespace lucid::gpu

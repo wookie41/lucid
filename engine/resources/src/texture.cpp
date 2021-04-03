@@ -162,5 +162,5 @@ namespace lucid::resources
             TextureHandle->Free();
             IsVideoMemoryFreed = true;
         }
-    }
+    }    
 } // namespace lucid::resources

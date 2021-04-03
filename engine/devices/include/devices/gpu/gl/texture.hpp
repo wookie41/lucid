@@ -8,16 +8,16 @@ namespace lucid::gpu
     class CGLTexture : public CTexture
     {
       public:
-        CGLTexture(const GLuint& InTextureID,
-                  const TextureType& InType,
+        CGLTexture(const GLuint& InGLTextureID,
+                  const GLenum& InGLTextureTarget,
                   const glm::ivec3& InTextureDimensions,
-                  const FANSIString& InName);
+                  const FANSIString& InName,
+                  const GLenum& InGLPixelFormat,
+                  const GLenum& InGLTextureDataType,
+                  const u64& InSizeInBytes,
+                  const ETextureDataType& InDataType,
+                  const ETexturePixelFormat& InPixelFormat);
 
-    protected:
-        CGLTexture(const GLuint& TextureID,
-                  const glm::ivec3& Dimensions,
-                  const GLenum& TextureTaget,
-                  const FANSIString& InName);
     public:
 
         // Texture methods //
@@ -26,7 +26,7 @@ namespace lucid::gpu
 
         virtual glm::ivec3 GetDimensions() const override;
 
-        virtual glm::ivec2 GetSize() const override { return { dimensions.x, dimensions.y }; }
+        virtual glm::ivec2 GetSize() const override { return { Dimensions.x, Dimensions.y }; }
 
         virtual void Bind() override;
 
@@ -36,9 +36,14 @@ namespace lucid::gpu
         virtual void SetWrapTFilter(const WrapTextureFilter& Filter) override;
         virtual void SetWrapRFilter(const WrapTextureFilter& Filter) override;
 
+        virtual u64 GetSizeInBytes() const override;
+        
+        virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) override;
+        
         ///////////////////////////
 
         // Framebuffer attachment methods //
+
 
         virtual void AttachAsColor(const u8& Index) override;
         virtual void AttachAsStencil() override;
@@ -51,8 +56,12 @@ namespace lucid::gpu
         virtual ~CGLTexture() = default;
 
       private:
-        glm::ivec3 dimensions;
-        GLenum glTextureTarget;
-        GLuint glTextureHandle;
+
+        glm::ivec3 Dimensions;
+        const GLenum GLTextureTarget;
+        const GLuint GLTextureHandle;
+        const GLenum GLPixelFormat;
+        const GLenum GLTextureDataType;
+        u64 SizeInBytes;
     };
 } // namespace lucid::gpu

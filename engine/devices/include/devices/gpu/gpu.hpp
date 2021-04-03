@@ -176,4 +176,7 @@ namespace lucid::gpu
 
     extern FGPUInfo Info;
     inline thread_local FGPUState* GPUState;
+
+    /** Forces all of the command to finish before the next on is executed */
+    void Finish();
 } // namespace lucid::gpu
