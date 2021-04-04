@@ -73,8 +73,8 @@ namespace lucid::scene
     {
         inline u32 GetIdAtMousePositon(const FMousePosition& MousePosition) const
         {
-            if (MousePosition.X > -1 && (int)MousePosition.X <= Width &&
-                MousePosition.Y > -1 && (int)MousePosition.Y <= Height)
+            if (MousePosition.X > -1 && (int)MousePosition.X < Width &&
+                MousePosition.Y > -1 && (int)MousePosition.Y < Height)
             {
                 return CachedTextureData[(Width * (Height - (int)MousePosition.Y)) + (int)MousePosition.X];
             }

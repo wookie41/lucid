@@ -26,12 +26,16 @@ namespace lucid::scene
 
     glm::mat4 CCamera::GetProjectionMatrix() const
     {
-
         if (Mode == ECameraMode::ORTHOGRAPHIC)
         {
             return glm::ortho(Left, Right, Bottom, Top, NearPlane, FarPlane);
         }
         return glm::perspective(glm::radians(FOV), AspectRatio,  0.1f, 100.0f);
+    }
+
+    glm::mat4 CCamera::GetOrthoProjectionMatrix() const
+    {
+        return glm::ortho(Left, Right, Bottom, Top, NearPlane, FarPlane);
     }
 
     void CCamera::MoveForward(const real& DeltaTime)

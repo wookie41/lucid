@@ -1,4 +1,6 @@
 #include <scene/renderer.hpp>
+#include <scene/renderable/renderable.hpp>
+
 
 #include "engine_init.hpp"
 #include "common/log.hpp"
@@ -188,7 +190,8 @@ int main(int argc, char** argv)
     PerspectiveCamera.Position = { 0, 0, 3 };
     PerspectiveCamera.Yaw = -90.f;
     PerspectiveCamera.UpdateCameraVectors();
-
+    PerspectiveCamera.Right = window->GetWidth();
+    PerspectiveCamera.Top = window->GetHeight();
     scene::ForwardRenderer Renderer{
         32,           64,           ShadowMapShader, ShadowCubemapShader, ForwardPrepassShader, SSAOShader, SimpleBlurShader,
         SkyboxShader, HitmapShader,
@@ -405,6 +408,8 @@ int main(int argc, char** argv)
 
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    scene::IRenderable* CurrentlyDraggedRenderable = nullptr;
+    float DistanceToRenderable = 0;
     while (isRunning)
     {
         platform::Update();
@@ -443,9 +448,39 @@ int main(int argc, char** argv)
             }
 
             auto mousePos = GetMousePostion();
-            if (mousePos.MouseMoved)
+            if (IsMouseButtonPressed(RIGHT) && !CurrentlyDraggedRenderable)
             {
-                PerspectiveCamera.AddRotation(-mousePos.DeltaX, mousePos.DeltaY);
+                PerspectiveCamera.AddRotation(-mousePos.DeltaX * 7.5 * dt, mousePos.DeltaY * 7.5 * dt);
+                CurrentlyDraggedRenderable = nullptr;
+            }
+            else if (CurrentlyDraggedRenderable)
+            {
+                if (IsMouseButtonPressed(LEFT))
+                {
+                    glm::vec4 RenderablePosView = PerspectiveCamera.GetViewMatrix() * glm::vec4 { CurrentlyDraggedRenderable->Transform.Translation, 1 };
+
+                    const glm::vec2 MouseRayNDC = 2.f * glm::vec2 { GetMousePostion().X / (float) window->GetWidth(),  1 - (GetMousePostion().Y / (float) window->GetHeight()) } - 1.f;
+                    const glm::vec4 MouseRayClip {  MouseRayNDC, -1, 1 };
+                    const glm::vec4 MouseRayView = glm::inverse(PerspectiveCamera.GetProjectionMatrix()) * MouseRayClip;
+                    
+                    RenderablePosView.x = -MouseRayView.x * DistanceToRenderable;
+                    RenderablePosView.y = -MouseRayView.y * DistanceToRenderable;
+                    
+                    CurrentlyDraggedRenderable->Transform.Translation =  (glm::inverse(PerspectiveCamera.GetViewMatrix()) * RenderablePosView);
+                }
+                else
+                {
+                    CurrentlyDraggedRenderable = nullptr;
+                }
+            }
+            else if (IsMouseButtonPressed(LEFT))
+            {
+                const scene::FHitMap& CachedHitMap = Renderer.GetCachedHitMap();
+                CurrentlyDraggedRenderable = DemoWorld.GetRenderableById(CachedHitMap.GetIdAtMousePositon(GetMousePostion()));
+
+                glm::vec4 RenderablePosView = PerspectiveCamera.GetViewMatrix() * glm::vec4 { CurrentlyDraggedRenderable->Transform.Translation, 1 };
+                DistanceToRenderable = RenderablePosView.z;
+
             }
 
             if (IsKeyPressed(SDLK_r))
@@ -506,18 +541,6 @@ int main(int argc, char** argv)
             if (ImGui::Button("Close Me"))
                 show_another_window = false;
             ImGui::End();
-        }
-
-        // Rendering
-        const scene::FHitMap& CachedHitMap = Renderer.GetCachedHitMap();
-
-        scene::IRenderable* HitRenderable = DemoWorld.GetRenderableById(CachedHitMap.GetIdAtMousePositon(GetMousePostion()));
-        if (HitRenderable)
-        {
-            LUCID_LOG(ELogLevel::INFO,
-                      "Hovered over '%s'\n",
-                      *(HitRenderable->Name));
-            
         }
         
         window->ImgUiDrawFrame();

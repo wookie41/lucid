@@ -25,6 +25,7 @@ namespace lucid::scene
 
         glm::mat4 GetViewMatrix() const;
         glm::mat4 GetProjectionMatrix() const;
+        glm::mat4 GetOrthoProjectionMatrix() const;
 
         void MoveForward(const real& DeltaTime);
         void MoveBackward(const real& DeltaTime);
