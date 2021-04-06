@@ -183,6 +183,7 @@ int main(int argc, char** argv)
                                                                         EMPTY_STRING);
 
     gpu::CShader* HitmapShader = gpu::GShadersManager.CompileShader(FString{ "HitMapShader" }, FString{ "shaders/glsl/hit_map.vert" }, FString{ "shaders/glsl/hit_map.frag" }, EMPTY_STRING);
+    gpu::CShader* BillboardHitmapShader = gpu::GShadersManager.CompileShader(FString{ "HitMapShader" }, FString{ "shaders/glsl/billboard_hitmap.vert" }, FString{ "shaders/glsl/hit_map.frag" }, EMPTY_STRING);
     gpu::CShader* BillboardShader = gpu::GShadersManager.CompileShader(FString{ "BillboardShader" }, FString{ "shaders/glsl/billboard.vert" }, FString{ "shaders/glsl/billboard.frag" }, EMPTY_STRING);
 
     // Prepare the scene
@@ -200,6 +201,7 @@ int main(int argc, char** argv)
         SkyboxShader, BillboardShader, FlatShader
     };
     Renderer.HitMapShader = HitmapShader;
+    Renderer.BillboardHitMapShader = BillboardHitmapShader;
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
     Renderer.FramebufferSize = { window->GetWidth(), window->GetHeight() };
@@ -434,7 +436,7 @@ int main(int argc, char** argv)
                     const glm::vec2 MouseRayNDC = 2.f * glm::vec2 { GetMousePostion().X / (float) window->GetWidth(),  1 - (GetMousePostion().Y / (float) window->GetHeight()) } - 1.f;
                     const glm::vec4 MouseRayClip {  MouseRayNDC, -1, 1 };
                     const glm::vec4 MouseRayView = glm::inverse(PerspectiveCamera.GetProjectionMatrix()) * MouseRayClip;
-                    
+
                     ActorPosView.x = -MouseRayView.x * DistanceToActor;
                     ActorPosView.y = -MouseRayView.y * DistanceToActor;
                     

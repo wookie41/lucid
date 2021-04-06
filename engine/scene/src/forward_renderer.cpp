@@ -624,8 +624,16 @@ namespace lucid::scene
         gpu::ConfigurePipelineState(LightsBillboardsPipelineState);
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
+        // Keep it camera-oriented
+        const glm::mat4 BillboardMatrix = {
+            { InRenderView->Camera->RightVector, 0},
+            { InRenderView->Camera->UpVector, 0},
+            { -InRenderView->Camera->FrontVector, 0},
+            { 0, 0, 0, 1 } 
+        };
+
         BillboardShader->Use();
-        BillboardShader->SetMatrix(BILLBOARD_MATRIX, IDENTITY_MATRIX); // Keep it camera-oriented
+        BillboardShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix); 
         BillboardShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
         BillboardShader->UseTexture(BILLBOARD_TEXTURE, LightBulbTexture);
         BillboardShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
@@ -668,19 +676,31 @@ namespace lucid::scene
             StaticMesh->GetVertexArray()->Draw();
         }
 
+        // Render lights quads
         ScreenWideQuadVAO->Bind();
 
-        const glm::vec3 LightQuadScale { BillboardViewportSize, 0 };
+        // Keep it camera-oriented
+        const glm::mat4 BillboardMatrix = {
+            { InRenderView->Camera->RightVector, 0},
+            { InRenderView->Camera->UpVector, 0},
+            { -InRenderView->Camera->FrontVector, 0},
+            { 0, 0, 0, 1 }
+        };
 
-        // Render lights quads
+        BillboardHitMapShader->Use();
+        BillboardHitMapShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix); 
+        BillboardHitMapShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
+        BillboardHitMapShader->UseTexture(BILLBOARD_TEXTURE, LightBulbTexture);
+        BillboardHitMapShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
+        BillboardHitMapShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
+        BillboardHitMapShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
+        
         for (int i = 0; i < arrlen(InScene->Lights); ++i)
         {
             CLight* Light = InScene->Lights[i];
             
-            glm::mat4 ModelMatrix = glm::translate(IDENTITY_MATRIX, Light->Transform.Translation);
-            ModelMatrix = glm::scale(ModelMatrix, LightQuadScale);
-            HitMapShader->SetMatrix(MODEL_MATRIX, ModelMatrix);
-            HitMapShader->SetUInt(ACTOR_ID, Light->Id);
+            BillboardHitMapShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
+            BillboardHitMapShader->SetUInt(ACTOR_ID, Light->Id);
 
             ScreenWideQuadVAO->Draw();
         }

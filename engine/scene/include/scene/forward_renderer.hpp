@@ -164,6 +164,7 @@ namespace lucid::scene
         *  so it can be later used for picking, used only for tools
         */
         gpu::CShader* HitMapShader = nullptr;
+        gpu::CShader* BillboardHitMapShader = nullptr;
 
     private:
         
