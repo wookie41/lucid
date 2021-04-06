@@ -2,35 +2,14 @@
 
 #include "common/collections.hpp"
 #include "common/strings.hpp"
-#include "devices/gpu/texture.hpp"
-#include "renderable/mesh_renderable.hpp"
-
-namespace lucid::gpu
-{
-    class CCubemap;
-    struct FGPUState;
-}; // namespace lucid::gpu
 
 namespace lucid::scene
 {
     class CLight;
-
-    class CSkybox : public IRenderable
-
-    {
-      public:
-        explicit CSkybox(const FDString& InName, const IRenderable* InParent, gpu::CCubemap* InSkyboxCubemap)
-        : IRenderable(InName, InParent), SkyboxCubemap(InSkyboxCubemap)
-        {
-        }
-
-        gpu::CCubemap* GetCubemap() const { return SkyboxCubemap; }
-
-      private:
-        gpu::CCubemap* SkyboxCubemap = nullptr;
-    };
-
-    CSkybox CreateSkybox(const u32& RenderableId, const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName);
+    class CStaticMesh;
+    class CSkybox;
+    
+    CSkybox* CreateSkybox(const u32& RenderableId, const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName);
 
     /*
      * The RenderScene contains things like objects to render, lights, fog volumes in a Renderer-implementation-agnostic format.
@@ -39,11 +18,10 @@ namespace lucid::scene
      */
     struct FRenderScene
     {
-      public:
         FRenderScene() = default;
 
         CStaticMesh**   StaticMeshes    = nullptr;
         CLight**        Lights          = nullptr;
-        CSkybox*        Skybox     = nullptr;
+        CSkybox*        Skybox          = nullptr;
     };
 } // namespace lucid::scene

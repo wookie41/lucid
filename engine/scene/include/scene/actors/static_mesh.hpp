@@ -1,6 +1,5 @@
 ﻿#pragma once
-#include "mesh_renderable.hpp"
-#include "renderable.hpp"
+#include "scene/actors/actor.hpp"
 
 namespace lucid::gpu
 {
@@ -15,11 +14,11 @@ namespace lucid::scene
         MOVABLE
     };
 
-    class CStaticMesh : public IRenderable
+    class CStaticMesh : public IActor
     {
       public:
         CStaticMesh(const FDString& InName,
-                    const IRenderable* InParent,
+                    const IActor* InParent,
                     gpu::CVertexArray* InVertexArray,
                     CMaterial* InMaterial,
                     const EStaticMeshType& InType);

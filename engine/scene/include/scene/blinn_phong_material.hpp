@@ -2,9 +2,9 @@
 
 #include <glm/vec3.hpp>
 
-
 #include "common/strings.hpp"
-#include "renderable/mesh_renderable.hpp"
+
+#include "scene/actors/actor.hpp"
 #include "scene/material.hpp"
 
 namespace lucid::resources

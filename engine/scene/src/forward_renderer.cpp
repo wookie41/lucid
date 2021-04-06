@@ -8,15 +8,18 @@
 #include "devices/gpu/vao.hpp"
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/gpu.hpp"
-#include "devices/gpu/cubemap.hpp"
 #include "devices/gpu/viewport.hpp"
+#include "devices/gpu/cubemap.hpp"
 
 #include "scene/lights.hpp"
 #include "scene/blinn_phong_material.hpp"
 #include "scene/camera.hpp"
+#include "scene/actors/static_mesh.hpp"
+#include "scene/actors/skybox.hpp"
 
 #include "misc/basic_shapes.hpp"
 #include "misc/math.hpp"
+
 #include "resources/holder.hpp"
 
 namespace lucid::scene

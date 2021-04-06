@@ -1,8 +1,8 @@
 ﻿#include "scene/world.hpp"
-
-#include <atlalloc.h>
-
 #include "scene/render_scene.hpp"
+
+#include "scene/actors/static_mesh.hpp"
+#include "scene/actors/skybox.hpp"
 
 #include "stb_ds.h"
 
@@ -17,7 +17,7 @@ namespace lucid::scene
 
     void CWorld::AddStaticMesh(CStaticMesh* InStaticMesh)
     {
-        if (AddRenderable(InStaticMesh))
+        if (AddActor(InStaticMesh))
         {
             arrput(StaticMeshes, InStaticMesh);            
         }
@@ -44,22 +44,22 @@ namespace lucid::scene
         return &StaticRenderScene;
     }
 
-    IRenderable* CWorld::GetRenderableById(const u32& RenderableId)
+    IActor* CWorld::GetActorById(const u32& InActorId)
     {
-        if (hmgeti(RenderableById, RenderableId) != -1)
+        if (hmgeti(ActorById, InActorId) != -1)
         {
-            return hmget(RenderableById, RenderableId);
+            return hmget(ActorById, InActorId);
         }
         return nullptr;
     }
 
-    u32 CWorld::AddRenderable(IRenderable* InRenderable)
+    u32 CWorld::AddActor(IActor* InActor)
     {
-        if (InRenderable->Id == 0 || hmgeti(RenderableById, InRenderable->Id) == -1)
+        if (InActor->Id == 0 || hmgeti(ActorById, InActor->Id) == -1)
         {
-            InRenderable->Id = NextRenderableId++;
-            hmput(RenderableById, InRenderable->Id, InRenderable);
-            return InRenderable->Id;
+            InActor->Id = NextActorId++;
+            hmput(ActorById, InActor->Id, InActor);
+            return InActor->Id;
         }
         return 0;
     }

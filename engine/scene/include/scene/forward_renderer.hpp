@@ -2,7 +2,6 @@
 
 #include <glm/vec2.hpp>
 
-
 #include "devices/gpu/gpu.hpp"
 #include "scene/renderer.hpp"
 

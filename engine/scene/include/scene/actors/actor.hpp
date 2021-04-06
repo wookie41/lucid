@@ -15,11 +15,18 @@ namespace lucid::scene
 {
     class CMaterial;
 
-    /** Base interface for all things that can be a part of the scene and thus can be rendered */
-    struct IRenderable
+    enum class EActorType : u8
     {
-        IRenderable(const FDString& InName, const IRenderable* InParent) : Name(InName), Parent(InParent) {}
-        IRenderable(const FDString& InName, const IRenderable& InRHS) : Name(InName)
+        STATIC_MESH,
+        SKYBOX,
+        LIGHT
+    };
+    
+    /** Base interface for all things that can be a part of the scene and thus can be rendered */
+    struct IActor
+    {
+        IActor(const FDString& InName, const IActor* InParent) : Name(InName), Parent(InParent) {}
+        IActor(const FDString& InName, const IActor& InRHS) : Name(InName)
         {
             Parent      =   InRHS.Parent;
             Transform   =   InRHS.Transform;
@@ -35,12 +42,26 @@ namespace lucid::scene
             return Parent ? Parent->CalculateModelMatrix() * ModelMatrix : ModelMatrix;
         }
 
+        inline EActorType GetActorType() const { return ActorType; }
+
+#if DEVELOPMENT
+
+        /** Editor stuff */
+        void EditorOnSelected();
+        
+#endif
+
+
         /**
-         * Unique id for a renderable, used e.x. by the renderer when generating the hitmap texture
-         * Starts with 1, 0 = INVALID */
+         * Unique id for an actor, used e.x. by the renderer when generating the hitmap texture
+         * Starts with 1, 0 = INVALID
+         */
         u32                     Id = 0; 
-        const IRenderable*      Parent     = nullptr;
+        const IActor*           Parent     = nullptr;
         const FDString          Name;
         FTransform3D            Transform;
+
+    protected:
+        EActorType ActorType;
     };
 } // namespace lucid::scene

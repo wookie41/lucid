@@ -1,9 +1,4 @@
-#include <scene/renderer.hpp>
-#include <scene/renderable/renderable.hpp>
-
-
 #include "engine_init.hpp"
-#include "common/log.hpp"
 #include "common/collections.hpp"
 
 #include "devices/gpu/framebuffer.hpp"
@@ -24,7 +19,8 @@
 #include "scene/forward_renderer.hpp"
 #include "scene/blinn_phong_material.hpp"
 #include "scene/render_scene.hpp"
-#include "scene/renderable/mesh_renderable.hpp"
+#include "scene/actors/static_mesh.hpp"
+#include "scene/actors/skybox.hpp"
 #include "scene/lights.hpp"
 #include "scene/flat_material.hpp"
 #include "scene/world.hpp"
@@ -379,8 +375,8 @@ int main(int argc, char** argv)
     SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/front.jpg") });
     SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/back.jpg") });
 
-    scene::CSkybox skybox = scene::CreateSkybox(13, SkyboxFacesPaths, FString{ "Skybox" });
-    DemoWorld.SetSkybox(&skybox);
+    scene::CSkybox* skybox = scene::CreateSkybox(13, SkyboxFacesPaths, FString{ "Skybox" });
+    DemoWorld.SetSkybox(skybox);
 
     gpu::SetClearColor(BlackColor);
 
@@ -408,8 +404,8 @@ int main(int argc, char** argv)
 
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    scene::IRenderable* CurrentlyDraggedRenderable = nullptr;
-    float DistanceToRenderable = 0;
+    scene::IActor* CurrentlyDraggedActor = nullptr;
+    float DistanceToActor = 0;
     while (isRunning)
     {
         platform::Update();
@@ -448,39 +444,42 @@ int main(int argc, char** argv)
             }
 
             auto mousePos = GetMousePostion();
-            if (IsMouseButtonPressed(RIGHT) && !CurrentlyDraggedRenderable)
+            if (IsMouseButtonPressed(RIGHT) && !CurrentlyDraggedActor)
             {
-                PerspectiveCamera.AddRotation(-mousePos.DeltaX * 7.5 * dt, mousePos.DeltaY * 7.5 * dt);
-                CurrentlyDraggedRenderable = nullptr;
+                PerspectiveCamera.AddRotation(-mousePos.DeltaX * 17.5 * dt, mousePos.DeltaY * 17.5 * dt);
+                CurrentlyDraggedActor = nullptr;
             }
-            else if (CurrentlyDraggedRenderable)
+            else if (CurrentlyDraggedActor)
             {
                 if (IsMouseButtonPressed(LEFT))
                 {
-                    glm::vec4 RenderablePosView = PerspectiveCamera.GetViewMatrix() * glm::vec4 { CurrentlyDraggedRenderable->Transform.Translation, 1 };
+                    glm::vec4 ActorPosView = PerspectiveCamera.GetViewMatrix() * glm::vec4 { CurrentlyDraggedActor->Transform.Translation, 1 };
 
                     const glm::vec2 MouseRayNDC = 2.f * glm::vec2 { GetMousePostion().X / (float) window->GetWidth(),  1 - (GetMousePostion().Y / (float) window->GetHeight()) } - 1.f;
                     const glm::vec4 MouseRayClip {  MouseRayNDC, -1, 1 };
                     const glm::vec4 MouseRayView = glm::inverse(PerspectiveCamera.GetProjectionMatrix()) * MouseRayClip;
                     
-                    RenderablePosView.x = -MouseRayView.x * DistanceToRenderable;
-                    RenderablePosView.y = -MouseRayView.y * DistanceToRenderable;
+                    ActorPosView.x = -MouseRayView.x * DistanceToActor;
+                    ActorPosView.y = -MouseRayView.y * DistanceToActor;
                     
-                    CurrentlyDraggedRenderable->Transform.Translation =  (glm::inverse(PerspectiveCamera.GetViewMatrix()) * RenderablePosView);
+                    CurrentlyDraggedActor->Transform.Translation =  (glm::inverse(PerspectiveCamera.GetViewMatrix()) * ActorPosView);
                 }
                 else
                 {
-                    CurrentlyDraggedRenderable = nullptr;
+                    CurrentlyDraggedActor = nullptr;
                 }
             }
             else if (IsMouseButtonPressed(LEFT))
             {
                 const scene::FHitMap& CachedHitMap = Renderer.GetCachedHitMap();
-                CurrentlyDraggedRenderable = DemoWorld.GetRenderableById(CachedHitMap.GetIdAtMousePositon(GetMousePostion()));
+                scene::IActor* ClickedActor = DemoWorld.GetActorById(CachedHitMap.GetIdAtMousePositon(GetMousePostion()));
 
-                glm::vec4 RenderablePosView = PerspectiveCamera.GetViewMatrix() * glm::vec4 { CurrentlyDraggedRenderable->Transform.Translation, 1 };
-                DistanceToRenderable = RenderablePosView.z;
-
+                if (ClickedActor != nullptr && ClickedActor->GetActorType() != scene::EActorType::SKYBOX)
+                {
+                    glm::vec4 ActorPosView = PerspectiveCamera.GetViewMatrix() * glm::vec4 { ClickedActor->Transform.Translation, 1 };
+                    DistanceToActor = ActorPosView.z;
+                    CurrentlyDraggedActor = ClickedActor;
+                }
             }
 
             if (IsKeyPressed(SDLK_r))

@@ -1,10 +1,11 @@
 #include "scene/blinn_phong_material.hpp"
+
 #include "devices/gpu/shader.hpp"
+
 #include "common/log.hpp"
-#include "devices/gpu/texture.hpp"
+
 #include "resources/mesh.hpp"
 #include "resources/texture.hpp"
-#include "scene/renderable/mesh_renderable.hpp"
 
 namespace lucid::scene
 {
