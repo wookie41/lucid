@@ -1,6 +1,8 @@
 #pragma once
 
-#include "settings.hpp"
+#include "scene/settings.hpp"
+#include "scene/actors/actor.hpp"
+
 #include "common/types.hpp"
 #include "glm/glm.hpp"
 
@@ -23,14 +25,17 @@ namespace lucid::scene
         SPOT
     };
 
-    class CLight
+    class CLight : public IActor
     {
       public:
-        CLight() = default;
+
+        CLight(const FDString& InName, const IActor* InParent) : IActor(InName, InParent)
+        {
+            ActorType = EActorType::LIGHT;
+        };
 
         virtual ELightType GetType() const = 0;
-        virtual ~CLight() = default;
-
+        
         /** Recalculates the light space matrix when e.x. the light moves or is initially created */
         virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) = 0;
 
@@ -43,6 +48,8 @@ namespace lucid::scene
         u8          Quality         = 1;
 
         CShadowMap* ShadowMap       = nullptr;
+
+        virtual ~CLight() = default;
     };
 
     /////////////////////////////////////
@@ -52,7 +59,7 @@ namespace lucid::scene
     class CDirectionalLight : public CLight
     {
       public:
-        CDirectionalLight() = default;
+        CDirectionalLight(const FDString& InName, const IActor* InParent) : CLight(InName, InParent) {}
 
         virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
         virtual void SetupShader(gpu::CShader* InShader) const override;
@@ -74,6 +81,8 @@ namespace lucid::scene
     class CSpotLight : public CLight
     {
     public:
+        CSpotLight(const FDString& InName, const IActor* InParent) : CLight(InName, InParent) {}
+        
         virtual ELightType GetType() const override { return ELightType::SPOT; }
 
         virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
@@ -99,6 +108,9 @@ namespace lucid::scene
     class CPointLight : public CLight
     {
       public:
+
+        CPointLight(const FDString& InName, const IActor* InParent) : CLight(InName, InParent) {}
+        
         virtual ELightType GetType() const override { return ELightType::POINT; }
 
         virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;

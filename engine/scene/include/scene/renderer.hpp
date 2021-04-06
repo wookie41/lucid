@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lights.hpp"
+#include "scene/actors/lights.hpp"
 #include "settings.hpp"
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/viewport.hpp"
@@ -122,9 +122,9 @@ namespace lucid::scene
         //         Lights/ShadowMaps       //
         /////////////////////////////////////
 
-        CDirectionalLight*  CreateDirectionalLight(const bool& CastsShadow);
-        CSpotLight*         CreateSpotLight(const bool& CastsShadow);
-        CPointLight*        CreatePointLight(const bool& CastsShadow);
+        CDirectionalLight*  CreateDirectionalLight(const FDString& InName, const IActor* InParent, const bool& CastsShadow);
+        CSpotLight*         CreateSpotLight(const FDString& InName, const IActor* InParent, const bool& CastsShadow);
+        CPointLight*        CreatePointLight(const FDString& InName, const IActor* InParent, const bool& CastsShadow);
 
         CShadowMap* CreateShadowMap(const ELightType& InLightType);
         void        RemoveShadowMap(CShadowMap* InShadowMap);

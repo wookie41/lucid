@@ -23,8 +23,9 @@ namespace lucid::scene
     };
     
     /** Base interface for all things that can be a part of the scene and thus can be rendered */
-    struct IActor
+    class IActor
     {
+    public:
         IActor(const FDString& InName, const IActor* InParent) : Name(InName), Parent(InParent) {}
         IActor(const FDString& InName, const IActor& InRHS) : Name(InName)
         {
@@ -48,7 +49,7 @@ namespace lucid::scene
 
         /** Editor stuff */
         void EditorOnSelected();
-        
+
 #endif
 
 
@@ -61,6 +62,8 @@ namespace lucid::scene
         const FDString          Name;
         FTransform3D            Transform;
 
+        virtual ~IActor() = default;
+    
     protected:
         EActorType ActorType;
     };

@@ -12,9 +12,9 @@ namespace lucid::scene
     //         Lights/ShadowMaps       //
     /////////////////////////////////////
 
-    CDirectionalLight* CRenderer::CreateDirectionalLight(const bool& CastsShadow)
+    CDirectionalLight* CRenderer::CreateDirectionalLight(const FDString& InName, const IActor* InParent, const bool& CastsShadow)
     {
-        auto* DirectionalLight = new CDirectionalLight;
+        auto* DirectionalLight = new CDirectionalLight(InName, InParent);
 
         if (CastsShadow)
         {
@@ -25,9 +25,9 @@ namespace lucid::scene
         return DirectionalLight;
     }
 
-    CSpotLight* CRenderer::CreateSpotLight(const bool& CastsShadow)
+    CSpotLight* CRenderer::CreateSpotLight(const FDString& InName, const IActor* InParent, const bool& CastsShadow)
     {
-        auto* SpotLight = new CSpotLight;
+        auto* SpotLight = new CSpotLight(InName, InParent);
 
         if (CastsShadow)
         {
@@ -38,9 +38,9 @@ namespace lucid::scene
         return SpotLight;
     }
 
-    CPointLight* CRenderer::CreatePointLight(const bool& CastsShadow)
+    CPointLight* CRenderer::CreatePointLight(const FDString& InName, const IActor* InParent, const bool& CastsShadow)
     {
-        auto* PointLight = new CPointLight;
+        auto* PointLight = new CPointLight(InName, InParent);
 
         if (CastsShadow)
         {

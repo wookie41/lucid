@@ -20,8 +20,7 @@
 #include "scene/blinn_phong_material.hpp"
 #include "scene/render_scene.hpp"
 #include "scene/actors/static_mesh.hpp"
-#include "scene/actors/skybox.hpp"
-#include "scene/lights.hpp"
+#include "scene/actors/lights.hpp"
 #include "scene/flat_material.hpp"
 #include "scene/world.hpp"
 
@@ -271,12 +270,12 @@ int main(int argc, char** argv)
     scene::FlatMaterial flatBlueMaterial{ FlatShader };
     flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
 
-    scene::CDirectionalLight* DirectionalLight = Renderer.CreateDirectionalLight(true);
+    scene::CDirectionalLight* DirectionalLight = Renderer.CreateDirectionalLight(FDString{"DirectionalLight"}, nullptr, true);
     DirectionalLight->Direction = glm::normalize(glm::vec3{ 0.5, -1, 1 });
     DirectionalLight->Position = { -2.0f, 4.0f, -1.0f };
     DirectionalLight->Color = glm::vec3{ 1.0, 1.0, 1.0 };
 
-    scene::CSpotLight* RedSpotLight = Renderer.CreateSpotLight(true);
+    scene::CSpotLight* RedSpotLight = Renderer.CreateSpotLight(FDString{"RedSpotLight"}, nullptr, true);
     RedSpotLight->Position = cube2.Transform.Translation + glm::vec3{ 0, 2, -1.5 };
     RedSpotLight->Direction = glm::normalize(cube2.Transform.Translation - RedSpotLight->Position);
     RedSpotLight->Color = { 1, 0, 0 };
@@ -291,7 +290,7 @@ int main(int argc, char** argv)
     RedLightCube.Transform.Scale = glm::vec3{ 0.2 };
     RedLightCube.Transform.Translation = RedSpotLight->Position;
 
-    scene::CSpotLight* GreenSpotLight = Renderer.CreateSpotLight(true);
+    scene::CSpotLight* GreenSpotLight = Renderer.CreateSpotLight(FDString{"GreenSpotLight"}, nullptr,true);
     GreenSpotLight->Position = cube.Transform.Translation + glm::vec3(0, 2, -2.5);
     GreenSpotLight->Direction = glm::normalize(cube.Transform.Translation - GreenSpotLight->Position);
     GreenSpotLight->Color = { 0, 1, 0 };
@@ -311,7 +310,7 @@ int main(int argc, char** argv)
     GreenLightCubeChild.Transform.Translation = { 0, 2, 0 };
     GreenLightCubeChild.Transform.Scale = glm::vec3{ 0.15 };
 
-    scene::CSpotLight* BlueSpotLight = Renderer.CreateSpotLight(true);
+    scene::CSpotLight* BlueSpotLight = Renderer.CreateSpotLight(FDString{"BlueSpotLight"}, nullptr,true);
     BlueSpotLight->Position = { 0, 5, 0 };
     BlueSpotLight->Direction = { 0, -1, 0 };
     BlueSpotLight->Color = { 0, 0, 1 };
@@ -332,7 +331,7 @@ int main(int argc, char** argv)
     };
     shadowCastingLightCube.Transform.Translation = DirectionalLight->Position;
 
-    scene::CPointLight* RedPointLight = Renderer.CreatePointLight(true);
+    scene::CPointLight* RedPointLight = Renderer.CreatePointLight(FDString{"RedSpotLight"}, nullptr,true);
     RedPointLight->Position = { 0, 0, 1.5 };
     RedPointLight->Color = { 1, 0, 0 };
     RedPointLight->Constant = 1;

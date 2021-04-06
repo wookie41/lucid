@@ -11,7 +11,7 @@
 #include "devices/gpu/viewport.hpp"
 #include "devices/gpu/cubemap.hpp"
 
-#include "scene/lights.hpp"
+#include "scene/actors/lights.hpp"
 #include "scene/blinn_phong_material.hpp"
 #include "scene/camera.hpp"
 #include "scene/actors/static_mesh.hpp"

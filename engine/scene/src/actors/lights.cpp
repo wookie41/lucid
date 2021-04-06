@@ -1,6 +1,4 @@
-#include "scene/lights.hpp"
-
-#include <stb.h>
+#include "scene/actors/lights.hpp"
 
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/shader.hpp"
@@ -52,7 +50,7 @@ namespace lucid::scene
 
     void CLight::SetupShader(gpu::CShader* InShader) const
     {
-        InShader->SetInt(LIGHT_TYPE, static_cast<uint32>(GetType()));
+        InShader->SetInt(LIGHT_TYPE, static_cast<u32>(GetType()));
         InShader->SetVector(LIGHT_POSITION, Position);
         InShader->SetVector(LIGHT_COLOR, Color);
     }
