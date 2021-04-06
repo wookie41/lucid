@@ -1,11 +1,11 @@
 #version 330 core
 
 
-uniform uint uRenderableId;
+uniform uint uActorId;
 
-out uint oRenderableId;
+out uint oActorId;
 
 void main() 
 {
-    oRenderableId = uRenderableId;
+    oActorId = uActorId;
 }

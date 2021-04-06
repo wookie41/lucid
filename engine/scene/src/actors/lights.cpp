@@ -51,7 +51,7 @@ namespace lucid::scene
     void CLight::SetupShader(gpu::CShader* InShader) const
     {
         InShader->SetInt(LIGHT_TYPE, static_cast<u32>(GetType()));
-        InShader->SetVector(LIGHT_POSITION, Position);
+        InShader->SetVector(LIGHT_POSITION, Transform.Translation);
         InShader->SetVector(LIGHT_COLOR, Color);
     }
 
@@ -61,7 +61,7 @@ namespace lucid::scene
 
     void CDirectionalLight::UpdateLightSpaceMatrix(const LightSettings& LightSettings)
     {
-        LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp, LightSettings);
+        LightSpaceMatrix = CreateLightSpaceMatrix(Transform.Translation, LightUp, LightSettings);
     }
 
     void CDirectionalLight::SetupShader(gpu::CShader* InShader) const
@@ -92,7 +92,7 @@ namespace lucid::scene
 
     void CSpotLight::UpdateLightSpaceMatrix(const LightSettings& LightSettings)
     {
-        LightSpaceMatrix = CreateLightSpaceMatrix(Position, LightUp, LightSettings);
+        LightSpaceMatrix = CreateLightSpaceMatrix(Transform.Translation, LightUp, LightSettings);
     }
 
     void CSpotLight::SetupShader(gpu::CShader* InShader) const
@@ -132,17 +132,17 @@ namespace lucid::scene
         glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.f), ShadowMapSize.x / ShadowMapSize.y, NearPlane, FarPlane);
 
         LightSpaceMatrices[0] =
-          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
         LightSpaceMatrices[1] =
-          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
         LightSpaceMatrices[2] =
-          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 0.0, 1.0, 0.0 }, glm::vec3{ 0.0, 0.0, 1.0 });
+          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 1.0, 0.0 }, glm::vec3{ 0.0, 0.0, 1.0 });
         LightSpaceMatrices[3] =
-          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 0.0, -1.0, 0.0 }, glm::vec3{ 0.0, 0.0, -1.0 });
+          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, -1.0, 0.0 }, glm::vec3{ 0.0, 0.0, -1.0 });
         LightSpaceMatrices[4] =
-          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 0.0, 0.0, 1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 0.0, 1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
         LightSpaceMatrices[5] =
-          projectionMatrix * glm::lookAt(Position, Position + glm::vec3{ 0.0, 0.0, -1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 0.0, -1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
     }
 
     void CPointLight::SetupShader(gpu::CShader* InShader) const
@@ -174,7 +174,7 @@ namespace lucid::scene
     void CPointLight::SetupShadowMapShader(gpu::CShader* InShader)
     {
         InShader->SetFloat(LIGHT_FAR_PLANE, FarPlane);
-        InShader->SetVector(LIGHT_POSITION, Position);
+        InShader->SetVector(LIGHT_POSITION, Transform.Translation);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_1, LightSpaceMatrices[1]);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_2, LightSpaceMatrices[2]);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_3, LightSpaceMatrices[3]);

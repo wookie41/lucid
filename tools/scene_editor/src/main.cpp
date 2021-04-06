@@ -117,12 +117,20 @@ int main(int argc, char** argv)
         texture->SetWrapTFilter(gpu::WrapTextureFilter::CLAMP_TO_EDGE);
     }
 
+    resources::CTextureResource* LightBulbTextureResource = resources::LoadPNG(FString{ LUCID_TEXT("assets/textures/light-bulb.png") },
+                     false,
+                     gpu::ETextureDataType::UNSIGNED_BYTE,
+                     true,
+                     true,
+                     FString{ "LightBulb" });
+
     brickWallDiffuseMapResource->FreeMainMemory();
     brickWallNormalMapResource->FreeMainMemory();
     woodDiffuseMapResource->FreeMainMemory();
     blankTextureResource->FreeMainMemory();
     toyboxNormalMapResource->FreeMainMemory();
     toyBoxDisplacementMapResource->FreeMainMemory();
+    LightBulbTextureResource->FreeMainMemory();
 
     // backPackMesh->FreeMainMemory();
 
@@ -174,8 +182,8 @@ int main(int argc, char** argv)
                                                                         FString{ LUCID_TEXT("shaders/glsl/simple_blur.frag") },
                                                                         EMPTY_STRING);
 
-    gpu::CShader* HitmapShader = gpu::GShadersManager.CompileShader(
-      FString{ "HitMapShader" }, FString{ "shaders/glsl/hit_map.vert" }, FString{ "shaders/glsl/hit_map.frag" }, EMPTY_STRING);
+    gpu::CShader* HitmapShader = gpu::GShadersManager.CompileShader(FString{ "HitMapShader" }, FString{ "shaders/glsl/hit_map.vert" }, FString{ "shaders/glsl/hit_map.frag" }, EMPTY_STRING);
+    gpu::CShader* BillboardShader = gpu::GShadersManager.CompileShader(FString{ "BillboardShader" }, FString{ "shaders/glsl/billboard.vert" }, FString{ "shaders/glsl/billboard.frag" }, EMPTY_STRING);
 
     // Prepare the scene
     gpu::FViewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
@@ -189,11 +197,13 @@ int main(int argc, char** argv)
     PerspectiveCamera.Top = window->GetHeight();
     scene::ForwardRenderer Renderer{
         32,           64,           ShadowMapShader, ShadowCubemapShader, ForwardPrepassShader, SSAOShader, SimpleBlurShader,
-        SkyboxShader, HitmapShader,
+        SkyboxShader, BillboardShader, FlatShader
     };
+    Renderer.HitMapShader = HitmapShader;
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
     Renderer.FramebufferSize = { window->GetWidth(), window->GetHeight() };
+    Renderer.LightBulbTexture = LightBulbTextureResource->TextureHandle;
     Renderer.Setup();
 
     scene::CBlinnPhongMapsMaterial woodMaterial{ BlinnPhongMapsShader };
@@ -272,12 +282,12 @@ int main(int argc, char** argv)
 
     scene::CDirectionalLight* DirectionalLight = Renderer.CreateDirectionalLight(FDString{"DirectionalLight"}, nullptr, true);
     DirectionalLight->Direction = glm::normalize(glm::vec3{ 0.5, -1, 1 });
-    DirectionalLight->Position = { -2.0f, 4.0f, -1.0f };
+    DirectionalLight->Transform.Translation = { -2.0f, 4.0f, -1.0f };
     DirectionalLight->Color = glm::vec3{ 1.0, 1.0, 1.0 };
 
     scene::CSpotLight* RedSpotLight = Renderer.CreateSpotLight(FDString{"RedSpotLight"}, nullptr, true);
-    RedSpotLight->Position = cube2.Transform.Translation + glm::vec3{ 0, 2, -1.5 };
-    RedSpotLight->Direction = glm::normalize(cube2.Transform.Translation - RedSpotLight->Position);
+    RedSpotLight->Transform.Translation = cube2.Transform.Translation + glm::vec3{ 0, 2, -1.5 };
+    RedSpotLight->Direction = glm::normalize(cube2.Transform.Translation - RedSpotLight->Transform.Translation);
     RedSpotLight->Color = { 1, 0, 0 };
     RedSpotLight->Constant = 1;
     RedSpotLight->Linear = 0.09;
@@ -285,14 +295,9 @@ int main(int argc, char** argv)
     RedSpotLight->InnerCutOffRad = glm::radians(30.0);
     RedSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CStaticMesh RedLightCube{ FDString{ "RedLightCube" }, nullptr,
-                                     UnitCubeVAO, &flatRedMaterial,           scene::EStaticMeshType::STATIONARY };
-    RedLightCube.Transform.Scale = glm::vec3{ 0.2 };
-    RedLightCube.Transform.Translation = RedSpotLight->Position;
-
     scene::CSpotLight* GreenSpotLight = Renderer.CreateSpotLight(FDString{"GreenSpotLight"}, nullptr,true);
-    GreenSpotLight->Position = cube.Transform.Translation + glm::vec3(0, 2, -2.5);
-    GreenSpotLight->Direction = glm::normalize(cube.Transform.Translation - GreenSpotLight->Position);
+    GreenSpotLight->Transform.Translation = cube.Transform.Translation + glm::vec3(0, 2, -2.5);
+    GreenSpotLight->Direction = glm::normalize(cube.Transform.Translation - GreenSpotLight->Transform.Translation);
     GreenSpotLight->Color = { 0, 1, 0 };
     GreenSpotLight->Constant = 1;
     GreenSpotLight->Linear = 0.09;
@@ -300,18 +305,8 @@ int main(int argc, char** argv)
     GreenSpotLight->InnerCutOffRad = glm::radians(30.0);
     GreenSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CStaticMesh GreenLightCube{ FDString{ "GreenLightCube" }, nullptr,
-                                       UnitCubeVAO, &flatGreenMaterial,           scene::EStaticMeshType::STATIONARY };
-    GreenLightCube.Transform.Translation = GreenSpotLight->Position;
-    GreenLightCube.Transform.Scale = glm::vec3{ 0.25 };
-
-    scene::CStaticMesh GreenLightCubeChild{ FDString{ "GreenLightCube" }, &GreenLightCube,
-                                            UnitCubeVAO, &flatGreenMaterial,           scene::EStaticMeshType::STATIONARY };
-    GreenLightCubeChild.Transform.Translation = { 0, 2, 0 };
-    GreenLightCubeChild.Transform.Scale = glm::vec3{ 0.15 };
-
     scene::CSpotLight* BlueSpotLight = Renderer.CreateSpotLight(FDString{"BlueSpotLight"}, nullptr,true);
-    BlueSpotLight->Position = { 0, 5, 0 };
+    BlueSpotLight->Transform.Translation = { 0, 5, 0 };
     BlueSpotLight->Direction = { 0, -1, 0 };
     BlueSpotLight->Color = { 0, 0, 1 };
     BlueSpotLight->Constant = 1;
@@ -321,28 +316,17 @@ int main(int argc, char** argv)
     BlueSpotLight->OuterCutOffRad = glm::radians(35.0);
     BlueSpotLight->LightUp = { -1, 0, 0 };
 
-    scene::CStaticMesh BlueLightCube{ FDString{ "BlueLightCube" }, nullptr,
-                                      UnitCubeVAO, &flatBlueMaterial,           scene::EStaticMeshType::STATIONARY };
-    BlueLightCube.Transform.Translation = BlueSpotLight->Position;
-    BlueLightCube.Transform.Scale = glm::vec3{ 0.25 };
-
     scene::CStaticMesh shadowCastingLightCube{
         FDString{ "ShadowCastingLightCube" }, nullptr, UnitCubeVAO, &flatWhiteMaterial, scene::EStaticMeshType::STATIONARY
     };
-    shadowCastingLightCube.Transform.Translation = DirectionalLight->Position;
+    shadowCastingLightCube.Transform.Translation = DirectionalLight->Transform.Translation;
 
     scene::CPointLight* RedPointLight = Renderer.CreatePointLight(FDString{"RedSpotLight"}, nullptr,true);
-    RedPointLight->Position = { 0, 0, 1.5 };
+    RedPointLight->Transform.Translation = { 0, 0, 1.5 };
     RedPointLight->Color = { 1, 0, 0 };
     RedPointLight->Constant = 1;
     RedPointLight->Linear = 0.007;
     RedPointLight->Quadratic = 0.017;
-
-    scene::CStaticMesh RedPointLightCube{
-        FDString{ "RedPointLightCube" }, nullptr, UnitCubeVAO, &flatRedMaterial, scene::EStaticMeshType::STATIONARY
-    };
-    RedPointLightCube.Transform.Translation = RedPointLight->Position;
-    RedPointLightCube.Transform.Scale = glm::vec3{ 0.25 };
 
     scene::CWorld DemoWorld;
     DemoWorld.Init();
@@ -352,19 +336,12 @@ int main(int argc, char** argv)
     DemoWorld.AddStaticMesh(&cube3);
     DemoWorld.AddStaticMesh(&gigaCube);
     // DemoWorld.AddStaticMesh(backPackRenderable);
-    DemoWorld.AddStaticMesh(&GreenLightCubeChild);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
     DemoWorld.AddLight(RedSpotLight);
     DemoWorld.AddLight(GreenSpotLight);
     DemoWorld.AddLight(BlueSpotLight);
     DemoWorld.AddLight(RedPointLight);
-
-    // sceneToRender.StaticGeometry.Add(&shadowCastingLightCube);
-    DemoWorld.AddStaticMesh(&RedLightCube);
-    DemoWorld.AddStaticMesh(&GreenLightCube);
-    DemoWorld.AddStaticMesh(&BlueLightCube);
-    DemoWorld.AddStaticMesh(&RedPointLightCube);
 
     FArray<FString> SkyboxFacesPaths{ 6 };
     SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/right.jpg") });
@@ -487,8 +464,7 @@ int main(int argc, char** argv)
                 cube.Transform.Rotation = glm::angleAxis(glm::radians(rotation), glm::normalize(glm::vec3{ 0.0, 1.0, 0.0 }));
             }
 
-            RedPointLight->Position.z = sin(now * 0.5) * 3.0;
-            RedPointLightCube.Transform.Translation = RedPointLight->Position;
+            RedPointLight->Transform.Translation.z = sin(now * 0.5) * 3.0;
         }
 
         // Render to off-screen framebuffer

@@ -3,8 +3,10 @@
 
 #include "scene/actors/static_mesh.hpp"
 #include "scene/actors/skybox.hpp"
+#include "scene/actors/lights.hpp"
 
 #include "stb_ds.h"
+#include "common/log.hpp"
 
 namespace lucid::scene
 {
@@ -23,7 +25,13 @@ namespace lucid::scene
         }
     }
 
-    void CWorld::AddLight(CLight* InLight) { arrput(Lights, InLight); }
+    void CWorld::AddLight(CLight* InLight)
+    {
+        if (AddActor(InLight))
+        {
+            arrput(Lights, InLight);
+        }
+    }
 
     void CWorld::SetSkybox(CSkybox* InSkybox)
     {
@@ -55,10 +63,12 @@ namespace lucid::scene
 
     u32 CWorld::AddActor(IActor* InActor)
     {
+        // If actor doesn't have an id yet or it's not in the map
         if (InActor->Id == 0 || hmgeti(ActorById, InActor->Id) == -1)
         {
             InActor->Id = NextActorId++;
             hmput(ActorById, InActor->Id, InActor);
+            LUCID_LOG(ELogLevel::INFO, "Actor '%s' added to the world", *InActor->Name);
             return InActor->Id;
         }
         return 0;

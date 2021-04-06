@@ -43,7 +43,6 @@ namespace lucid::scene
         virtual void SetupShader(gpu::CShader* InShader) const;
         virtual void SetupShadowMapShader(gpu::CShader* InShader) = 0;
 
-        glm::vec3   Position        { 0, 0, 0 };
         glm::vec3   Color           { 0, 0, 0 };
         u8          Quality         = 1;
 

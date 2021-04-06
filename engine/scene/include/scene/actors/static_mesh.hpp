@@ -23,16 +23,16 @@ namespace lucid::scene
                     CMaterial* InMaterial,
                     const EStaticMeshType& InType);
 
-        inline gpu::CVertexArray* GetVertexArray() const { return VertexArray; }
-        inline CMaterial* GetMaterial() const { return Material; }
+        inline gpu::CVertexArray*   GetVertexArray() const { return VertexArray; }
+        inline CMaterial*           GetMaterial() const { return Material; }
 
         inline void SetReverseNormals(const bool& InReverseNormals) { bReverseNormals = InReverseNormals; }
         inline bool GetReverseNormals() const { return bReverseNormals; }
 
       protected:
-        EStaticMeshType Type;
-        CMaterial* Material = nullptr;
-        gpu::CVertexArray* VertexArray = nullptr;
-        bool bReverseNormals = false;
+        EStaticMeshType     Type;
+        CMaterial*          Material = nullptr;
+        gpu::CVertexArray*  VertexArray = nullptr;
+        bool                bReverseNormals = false;
     };
 } // namespace lucid::scene

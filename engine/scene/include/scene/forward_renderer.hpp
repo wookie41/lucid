@@ -35,7 +35,8 @@ namespace lucid::scene
                         gpu::CShader*       InSSAOShader,
                         gpu::CShader*       InSimpleBlurShader,
                         gpu::CShader*       InSkyboxShader,
-                        gpu::CShader*       InHitMapShader,
+                        gpu::CShader*       InBillboardShader,
+                        gpu::CShader*       InFlatShader,
                         gpu::CVertexArray*  InScreenWideQuadVAO = nullptr,
                         gpu::CVertexArray*  InUnitCubeVAO = nullptr);
 
@@ -70,11 +71,14 @@ namespace lucid::scene
         void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
 #if DEVELOPMENT
+        void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
         void GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const;
 #endif
         
         u32 MaxNumOfDirectionalLights;
 
+        gpu::CShader* FlatShader;
+        
         /** VAO used when doing post-processing */
         gpu::CVertexArray*  ScreenWideQuadVAO;
 
@@ -87,6 +91,7 @@ namespace lucid::scene
         gpu::FPipelineState InitialLightLightpassPipelineState;
         gpu::FPipelineState LightpassPipelineState;
         gpu::FPipelineState SkyboxPipelineState;
+
 
         /** Shadow map generation shader */
         gpu::CShader* ShadowMapShader;
@@ -101,12 +106,8 @@ namespace lucid::scene
         /** SSAO Shader */
         gpu::CShader* SSAOShader;
 
-        /**
-         *  Shader that saves ids of the objects in the scene to a texture
-         *  so it can be later used for picking, used only for tools
-         */
-        gpu::CShader* HitMapShader;
-        
+        gpu::CShader* BillboardShader;
+
         u8 NumSSAOSamples = 64;
         float SSAOBias = 0.025;
         float SSAORadius = 0.5;
@@ -150,7 +151,24 @@ namespace lucid::scene
         /** Generated in the depth prepass so we can later use it when calculating SSAO and things like that (VS - View Space) */
         gpu::CTexture* CurrentFrameVSPositionMap;
 
-#if DEVELOPMENT        
+#if DEVELOPMENT
+    public:
+
+        /** Used to visualize light sources in the editor */
+        gpu::CTexture* LightBulbTexture;
+
+        glm::vec2 BillboardViewportSize { 0.1, 0.15 };
+        
+        /**
+        *  Shader that saves ids of the objects in the scene to a texture
+        *  so it can be later used for picking, used only for tools
+        */
+        gpu::CShader* HitMapShader = nullptr;
+
+    private:
+        
+        gpu::FPipelineState LightsBillboardsPipelineState;
+        
         /** Used to render ids of the objects in the scene so we can do nice mouse picking in the tools */ 
         gpu::CTexture*      HitMapTexture;
         gpu::CFramebuffer*  HitMapFramebuffer;

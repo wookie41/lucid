@@ -24,6 +24,9 @@
 
 namespace lucid::scene
 {
+    static const glm::mat4 IDENTITY_MATRIX { 1 };
+    static const glm::vec3 WORLD_UP { 0, 1, 0 };
+    
     static const u8 NO_LIGHT = 0;
     static const FString LIGHT_TYPE("uLight.Type");
 
@@ -39,6 +42,11 @@ namespace lucid::scene
     static const FString SIMPLE_BLUR_OFFSET_X("uOffsetX");
     static const FString SIMPLE_BLUR_OFFSET_Y("uOffsetY");
     static const FString SIMPLE_BLUR_TEXTURE("uTextureToBlur");
+
+    static const FString BILLBOARD_MATRIX("uBillboardMatrix");
+    static const FString BILLBOARD_VIEWPORT_SIZE("uBillboardViewportSize");
+    static const FString BILLBOARD_TEXTURE("uBillboardTexture");
+    static const FString BILLBOARD_WORLD_POS("uBillboardWorldPos");
 
     // Shader-wide uniforms
     static const FString AMBIENT_STRENGTH("uAmbientStrength");
@@ -56,11 +64,11 @@ namespace lucid::scene
 
     static const FString PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
 
+    static const FString FLAT_COLOR("uFlatColor");
 #if DEVELOPMENT
-    static const FString RENDERABLE_ID("uRenderableId");
+    static const FString ACTOR_ID("uActorId");
 #endif
 
-    
     ForwardRenderer::ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
                                      const u8& InNumSSAOSamples,
                                      gpu::CShader* InShadowMapShader,
@@ -69,13 +77,15 @@ namespace lucid::scene
                                      gpu::CShader* InSSAOShader,
                                      gpu::CShader* InSimpleBlurShader,
                                      gpu::CShader* InSkyboxShader,
-                                     gpu::CShader* InHitMapShader,
+                                     gpu::CShader* InBillboardShader,
+                                     gpu::CShader* InFlatShader,
                                      gpu::CVertexArray* InScreenWideQuadVAO,
                                      gpu::CVertexArray* InUnitCubeVAO)
     : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples),
       ShadowMapShader(InShadowMapShader), ShadowCubeMapShader(InShadowCubeMapShader), PrepassShader(InPrepassShader),
-      SSAOShader(InSSAOShader), SimpleBlurShader(InSimpleBlurShader), SkyboxShader(InSkyboxShader), HitMapShader(InHitMapShader),
-      ScreenWideQuadVAO(InScreenWideQuadVAO), UnitCubeVAO(InUnitCubeVAO)
+      SSAOShader(InSSAOShader), SimpleBlurShader(InSimpleBlurShader), SkyboxShader(InSkyboxShader),
+      BillboardShader(InBillboardShader), FlatShader(InFlatShader), ScreenWideQuadVAO(InScreenWideQuadVAO),
+      UnitCubeVAO(InUnitCubeVAO)
     {
     }
 
@@ -298,8 +308,22 @@ namespace lucid::scene
         SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
         SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
 
-        // HitMap generation
 #if DEVELOPMENT
+
+        LightsBillboardsPipelineState.ClearColorBufferColor = FColor{ 0 };
+        LightsBillboardsPipelineState.ClearDepthBufferValue = 0;
+        LightsBillboardsPipelineState.IsDepthTestEnabled = true;
+        LightsBillboardsPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
+        LightsBillboardsPipelineState.IsBlendingEnabled = true;
+        LightsBillboardsPipelineState.BlendFunctionSrc = gpu::EBlendFunction::SRC_ALPHA;
+        LightsBillboardsPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::SRC_ALPHA;
+        LightsBillboardsPipelineState.BlendFunctionDst = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
+        LightsBillboardsPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
+        LightsBillboardsPipelineState.IsCullingEnabled = false;
+        LightsBillboardsPipelineState.IsSRGBFramebufferEnabled = false;
+        LightsBillboardsPipelineState.IsDepthBufferReadOnly = false;
+
+        // HitMap generation
         HitMapTexture = gpu::CreateEmpty2DTexture(FramebufferSize.x,
                                                   FramebufferSize.y,
                                                   gpu::ETextureDataType::UNSIGNED_INT,
@@ -308,8 +332,8 @@ namespace lucid::scene
                                                   0,
                                                   FString{ "HitMapTexture" });
 
-
-        HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { FramebufferSize.x, FramebufferSize.y }, FString{ "HitMapRenderbuffer" });
+        HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(
+          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { FramebufferSize.x, FramebufferSize.y }, FString{ "HitMapRenderbuffer" });
 
         HitMapFramebuffer = gpu::CreateFramebuffer(FString{ "HitMapMapFramebuffer" });
         HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -327,7 +351,8 @@ namespace lucid::scene
 
         CachedHitMap.Width = FramebufferSize.x;
         CachedHitMap.Height = FramebufferSize.y;
-        CachedHitMap.CachedTextureData = (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
+        CachedHitMap.CachedTextureData = (u32*)malloc(
+          HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
         Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
 #endif
     }
@@ -357,6 +382,7 @@ namespace lucid::scene
         Prepass(InSceneToRender, InRenderView);
         LightingPass(InSceneToRender, InRenderView);
 #if DEVELOPMENT
+        DrawLightsBillboards(InSceneToRender, InRenderView);
         GenerateHitmap(InSceneToRender, InRenderView);
 #endif
     }
@@ -374,7 +400,7 @@ namespace lucid::scene
 
         for (int i = 0; i < arrlen(InSceneToRender->Lights); ++i)
         {
-            CLight* Light = InSceneToRender->Lights[i];            
+            CLight* Light = InSceneToRender->Lights[i];
 
             // @TODO This should happen only if light moves
             Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
@@ -490,7 +516,7 @@ namespace lucid::scene
         gpu::ConfigurePipelineState(LightpassPipelineState);
         for (int i = 1; i < arrlen(InScene->Lights); ++i)
         {
-            RenderLightContribution(InScene->Lights[i], InScene, InRenderView);            
+            RenderLightContribution(InScene->Lights[i], InScene, InRenderView);
         }
     }
 
@@ -588,6 +614,33 @@ namespace lucid::scene
         UnitCubeVAO->Draw();
     }
 
+    void ForwardRenderer::DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView)
+    {
+        if (!BillboardShader)
+        {
+            return;
+        }
+
+        gpu::ConfigurePipelineState(LightsBillboardsPipelineState);
+        LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+
+        BillboardShader->Use();
+        BillboardShader->SetMatrix(BILLBOARD_MATRIX, IDENTITY_MATRIX); // Keep it camera-oriented
+        BillboardShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
+        BillboardShader->UseTexture(BILLBOARD_TEXTURE, LightBulbTexture);
+        BillboardShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
+        BillboardShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
+        BillboardShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
+        ScreenWideQuadVAO->Bind();
+
+        for (int i = 0; i < arrlen(InScene->Lights); ++i)
+        {
+            CLight* Light = InScene->Lights[i];
+            BillboardShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
+            ScreenWideQuadVAO->Draw();
+        }
+    }
+
 #if DEVELOPMENT
     void ForwardRenderer::GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const
     {
@@ -598,7 +651,7 @@ namespace lucid::scene
 
         HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         HitMapFramebuffer->SetupDrawBuffers();
-        
+
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
 
         HitMapShader->Use();
@@ -609,10 +662,27 @@ namespace lucid::scene
         for (int i = 0; i < arrlen(InScene->StaticMeshes); ++i)
         {
             CStaticMesh* StaticMesh = InScene->StaticMeshes[i];
-            HitMapShader->SetUInt(RENDERABLE_ID, StaticMesh->Id);
+            HitMapShader->SetUInt(ACTOR_ID, StaticMesh->Id);
             HitMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
             StaticMesh->GetVertexArray()->Bind();
             StaticMesh->GetVertexArray()->Draw();
+        }
+
+        ScreenWideQuadVAO->Bind();
+
+        const glm::vec3 LightQuadScale { BillboardViewportSize, 0 };
+
+        // Render lights quads
+        for (int i = 0; i < arrlen(InScene->Lights); ++i)
+        {
+            CLight* Light = InScene->Lights[i];
+            
+            glm::mat4 ModelMatrix = glm::translate(IDENTITY_MATRIX, Light->Transform.Translation);
+            ModelMatrix = glm::scale(ModelMatrix, LightQuadScale);
+            HitMapShader->SetMatrix(MODEL_MATRIX, ModelMatrix);
+            HitMapShader->SetUInt(ACTOR_ID, Light->Id);
+
+            ScreenWideQuadVAO->Draw();
         }
 
         // Get the result
@@ -620,4 +690,4 @@ namespace lucid::scene
     }
 #endif
 
-} // namespace lucid::scene	
+} // namespace lucid::scene
