@@ -14,6 +14,8 @@ namespace lucid
         srand(time(NULL));
         InitSTB();
 
+        // @TODO Set default texture
+        
         if (gpu::Init({}) < 0)
         {
             return EEngineInitError::GPU_INIT_ERROR;

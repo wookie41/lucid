@@ -1,6 +1,7 @@
 // Generates code to write data to json files.
 
 #include "_common.h"
+#include "common/bytes.hpp"
 
 // Enums
 
@@ -181,5 +182,33 @@ rapidjson::Value MakeJSONValue(const TSTRING& value, rapidjson::Document::Alloca
 {
     rapidjson::Value ret;
     ret.SetString(&value[0], allocator);
+    return ret;
+}
+
+rapidjson::Value MakeJSONValue(const lucid::FBinaryData& value, rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value ret;
+    DFS_LOG("Writing binary data to json is not supported\n");
+    return ret;
+}
+
+rapidjson::Value MakeJSONValue(lucid::gpu::ETexturePixelFormat& value, rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value ret;
+    ret.SetUint(static_cast<uint8_t>(value));
+    return ret;
+}
+
+rapidjson::Value MakeJSONValue(lucid::gpu::ETextureDataType& value, rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value ret;
+    ret.SetUint(static_cast<uint8_t>(value));
+    return ret;
+}
+
+rapidjson::Value MakeJSONValue(lucid::gpu::ETextureDataFormat& value, rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value ret;
+    ret.SetUint(static_cast<uint8_t>(value));
     return ret;
 }

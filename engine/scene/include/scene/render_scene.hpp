@@ -3,13 +3,18 @@
 #include "common/collections.hpp"
 #include "common/strings.hpp"
 
+namespace lucid::resources
+{
+    class CTextureResource;
+}
+
 namespace lucid::scene
 {
     class CLight;
     class CStaticMesh;
     class CSkybox;
-    
-    CSkybox* CreateSkybox(const u32& RenderableId, const FArray<FString>& InSkyboxFacesPaths, const FANSIString& InName);
+
+    CSkybox* CreateSkybox(const u32& RenderableId, const resources::CTextureResource* FaceTextures[6], const FANSIString& InName);
 
     /*
      * The RenderScene contains things like objects to render, lights, fog volumes in a Renderer-implementation-agnostic format.
@@ -20,8 +25,8 @@ namespace lucid::scene
     {
         FRenderScene() = default;
 
-        CStaticMesh**   StaticMeshes    = nullptr;
-        CLight**        Lights          = nullptr;
-        CSkybox*        Skybox          = nullptr;
+        CStaticMesh** StaticMeshes = nullptr;
+        CLight** Lights = nullptr;
+        CSkybox* Skybox = nullptr;
     };
 } // namespace lucid::scene

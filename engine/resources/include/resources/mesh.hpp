@@ -17,10 +17,6 @@ namespace lucid::resources
         TANGENTS = 0x4
     };
 
-    // VertexData is only guaranteed to have positions
-    // to find out whether the mesh contains things like
-    // normals, uvs or bones data, check the MeshFeaturesFlags
-
     class CMeshResource : public CResource
     {
       public:

@@ -12,37 +12,48 @@ namespace lucid::resources
 
     CResourcesHolder<CTextureResource> TexturesHolder{};
 
-    CTextureResource* LoadTextureSTB(const FANSIString& InTexturePath,
-                                     const bool& InIsTransparent,
-                                     const gpu::ETextureDataType& InDataType,
-                                     gpu::ETextureDataFormat InDataFormat,
-                                     gpu::ETexturePixelFormat InPixelFormat,
-                                     const bool& InFlipY,
-                                     const bool& InSendToGPU,
-                                     const FANSIString& InName)
+    assets::FTextureAsset LoadTextureSTB(const FANSIString& InTexturePath,
+                                         const bool& InIsTransparent,
+                                         const gpu::ETextureDataType& InDataType,
+                                         gpu::ETextureDataFormat InDataFormat,
+                                         gpu::ETexturePixelFormat InPixelFormat,
+                                         const bool& InFlipY,
+                                         const bool& InSendToGPU,
+                                         const FANSIString& InName)
     {
 #ifndef NDEBUG
         real start = platform::GetCurrentTimeSeconds();
 #endif
-        int desiredChannels = InIsTransparent ? 4 : 3;
-        uint32_t channels;
+        int NumDesiredChannels = InIsTransparent ? 4 : 3;
+        uint32_t NumChannels;
         uint32_t Width, Height;
 
         stbi_set_flip_vertically_on_load(InFlipY);
 
-        stbi_uc* textureData = stbi_load(*InTexturePath, (int*)&Width, (int*)&Height, (int*)&channels, desiredChannels);
-        assert(channels == desiredChannels);
+        stbi_uc* TextureData = stbi_load(*InTexturePath, (int*)&Width, (int*)&Height, (int*)&NumChannels, NumDesiredChannels);
+        assert(NumChannels == NumDesiredChannels);
 
-        gpu::CTexture* textureHandle = nullptr;
-        if (InSendToGPU)
-        {
-            textureHandle = gpu::Create2DTexture(textureData, Width, Height, InDataType, InDataFormat, InPixelFormat, 0, InName);
-            assert(textureHandle);
-        }
+        // gpu::CTexture* textureHandle = nullptr;
+        // if (InSendToGPU)
+        // {
+        //     textureHandle = gpu::Create2DTexture(textureData, Width, Height, InDataType, InDataFormat, InPixelFormat, 0,
+        //     InName); assert(textureHandle);
+        // }
 
         LUCID_LOG(ELogLevel::INFO, "Loading texture %s took %f", *InTexturePath, platform::GetCurrentTimeSeconds() - start);
 
-        return new CTextureResource{ (void*)textureData, textureHandle, Width, Height, InDataFormat, InPixelFormat };
+        assets::FTextureAsset TextureAsset;
+        TextureAsset.Name = *InName;
+        TextureAsset.Type = assets::EAssetType::TEXTURE;
+        TextureAsset.Width = Width;
+        TextureAsset.Height = Height;
+        TextureAsset.DataType = InDataType;
+        TextureAsset.DataFormat = InDataFormat;
+        TextureAsset.PixelFormat = InPixelFormat;
+        TextureAsset.bSRGB = true;
+        TextureAsset.Data.Pointer = (char*)TextureData;
+        TextureAsset.Data.Size = Width * Height * NumChannels * GetSizeInBytes(InDataType);
+        return TextureAsset;
     }
 
     void InitTextures()
@@ -54,73 +65,48 @@ namespace lucid::resources
 
         texturesInitialized = true;
 
-        TexturesHolder.SetDefaultResource(LoadTextureSTB(FString{ LUCID_TEXT("assets/textures/awesomeface.png") },
-                                                         true,
-                                                         gpu::ETextureDataType::UNSIGNED_BYTE,
-                                                         gpu::ETextureDataFormat::SRGBA,
-                                                         gpu::ETexturePixelFormat::RGBA,
-                                                         true,
-                                                         true,
-                                                         FString{ "DefaultTexture" }));
+        // TexturesHolder.SetDefaultResource(LoadTextureSTB(FString{ LUCID_TEXT("assets/textures/awesomeface.png") },
+        //                                                  true,
+        //                                                  gpu::ETextureDataType::UNSIGNED_BYTE,
+        //                                                  gpu::ETextureDataFormat::SRGBA,
+        //                                                  gpu::ETexturePixelFormat::RGBA,
+        //                                                  true,
+        //                                                  true,
+        //                                                  FString{ "DefaultTexture" }));
     }
 
-    CTextureResource* LoadTexture(const schema::FTextureResource& InTextureDescription)
+    CTextureResource* LoadTexture(const assets::FTextureAsset& Asset)
     {
-        if (InTextureDescription.Format == schema::ETextureResourceFormat::UNKNOWN_TEXTURE_FORMAT)
-        {
-            LUCID_LOG(ELogLevel::WARN, "Unknown texture formatm won't load");
-            return nullptr;
-        }
-
-        FDString Path = CopyToString(InTextureDescription.Path.c_str(), InTextureDescription.Path.length());
-        FDString Name = CopyToString(InTextureDescription.Name.c_str(), InTextureDescription.Name.length());
-
-        CTextureResource* TextureResource = nullptr;
-
-        gpu::ETextureDataType TextureDataType;
-        switch (InTextureDescription.DataType)
-        {
-        case schema::ETextureResourceDataType::UNSIGNED_BYTE:
-            TextureDataType = gpu::ETextureDataType::UNSIGNED_BYTE;
-            break;
-        case schema::ETextureResourceDataType::FLOAT:
-            TextureDataType = gpu::ETextureDataType::FLOAT;
-            break;
-        }
-
-        switch (InTextureDescription.Format)
-        {
-        case schema::ETextureResourceFormat::PNG_TEXTURE_FORMAT:
-            TextureResource = LoadPNG(Path, InTextureDescription.GammaCorrect, TextureDataType, true, true, Name);
-            break;
-        case schema::ETextureResourceFormat::JPG_TEXTURE_FORMAT:
-            TextureResource = LoadJPEG(Path, InTextureDescription.GammaCorrect, TextureDataType, true, true, Name);
-            break;
-        }
-
-        Path.Free();
-        Name.Free();
-
-        return TextureResource;
+        gpu::CTexture* TextureHandle = gpu::Create2DTexture(Asset.Data.Pointer,
+                                                            Asset.Width,
+                                                            Asset.Height,
+                                                            Asset.DataType,
+                                                            Asset.DataFormat,
+                                                            Asset.PixelFormat,
+                                                            0,
+                                                            CopyToString(Asset.Name.c_str(), Asset.Name.length()));
+        assert(TextureHandle);
+        return new CTextureResource(Asset.Data.Pointer, TextureHandle, Asset.Width, Asset.Height, Asset.DataFormat, Asset.PixelFormat);
     }
 
-    CTextureResource* LoadJPEG(const FANSIString& InPath,
-                               const bool& InPerformGammaCorrection,
-                               const gpu::ETextureDataType& InDataType,
-                               const bool& InFlipY,
-                               const bool& InSendToGPU,
-                               const FANSIString& InName)
+    assets::FTextureAsset ImportJPGTexture(const FANSIString& InPath,
+                                            const bool& InPerformGammaCorrection,
+                                            const gpu::ETextureDataType& InDataType,
+                                            const bool& InFlipY,
+                                            const bool& InSendToGPU,
+                                            const FANSIString& InName)
     {
         return LoadTextureSTB(InPath,
-                              false,
-                              InDataType,
-                              InPerformGammaCorrection ? gpu::ETextureDataFormat::SRGB : gpu::ETextureDataFormat::RGB,
-                              gpu::ETexturePixelFormat::RGB,
-                              InFlipY,
-                              InSendToGPU,
-                              InName);
+                       false,
+                       InDataType,
+                       InPerformGammaCorrection ? gpu::ETextureDataFormat::SRGB : gpu::ETextureDataFormat::RGB,
+                       gpu::ETexturePixelFormat::RGB,
+                       InFlipY,
+                       InSendToGPU,
+                       InName);
     }
-    CTextureResource* LoadPNG(const FANSIString& InPath,
+
+    assets::FTextureAsset ImportPNGTexture(const FANSIString& InPath,
                               const bool& InPerformGammaCorrection,
                               const gpu::ETextureDataType& InDataType,
                               const bool& InFlipY,
@@ -162,5 +148,5 @@ namespace lucid::resources
             TextureHandle->Free();
             IsVideoMemoryFreed = true;
         }
-    }    
+    }
 } // namespace lucid::resources

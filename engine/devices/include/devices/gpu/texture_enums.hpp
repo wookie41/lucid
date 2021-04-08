@@ -40,7 +40,7 @@ namespace lucid::gpu
         REPEAT
     };
 
-    enum class ETextureDataFormat : u8
+    enum class ETextureDataFormat :  u8
     {
         R,
         R16F,
@@ -61,7 +61,7 @@ namespace lucid::gpu
         DEPTH_STENCIL
     };
 
-    enum class ETexturePixelFormat : u8
+    enum class ETexturePixelFormat :  u8
     {
         RED,
         RED_INTEGER,

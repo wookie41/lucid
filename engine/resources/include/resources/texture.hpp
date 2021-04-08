@@ -13,11 +13,11 @@ namespace lucid::resources
     {
       public:
         CTextureResource(void* Data,
-                        gpu::CTexture* Handle,
-                        const u32& W,
-                        const u32& H,
-                        gpu::ETextureDataFormat InDataFormat,
-                        gpu::ETexturePixelFormat InPixelFormat);
+                         gpu::CTexture* Handle,
+                         const u32& W,
+                         const u32& H,
+                         gpu::ETextureDataFormat InDataFormat,
+                         gpu::ETexturePixelFormat InPixelFormat);
 
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
@@ -30,21 +30,21 @@ namespace lucid::resources
         gpu::ETexturePixelFormat    PixelFormat;
     };
 
-    CTextureResource* LoadTexture(const schema::FTextureResource& InTextureDescription);
+    CTextureResource* LoadTexture(const assets::FTextureAsset& Asset);
 
-    CTextureResource* LoadJPEG(const FANSIString& InPath,
-                               const bool& InPerformGammaCorrection,
-                               const gpu::ETextureDataType& InDataType,
-                               const bool& InFlipY,
-                               const bool& InSendToGPU,
-                               const FANSIString& InName);
+    assets::FTextureAsset ImportJPGTexture(const FANSIString& InPath,
+                                           const bool& InPerformGammaCorrection,
+                                           const gpu::ETextureDataType& InDataType,
+                                           const bool& InFlipY,
+                                           const bool& InSendToGPU,
+                                           const FANSIString& InName);
 
-    CTextureResource* LoadPNG(const FANSIString& InPath,
-                              const bool& InPerformGammaCorrection,
-                              const gpu::ETextureDataType& InDataType,
-                              const bool& InFlipY,
-                              const bool& InSendToGPU
-                              ,const FANSIString& InName);
+    assets::FTextureAsset ImportPNGTexture(const FANSIString& InPath,
+                                            const bool& InPerformGammaCorrection,
+                                            const gpu::ETextureDataType& InDataType,
+                                            const bool& InFlipY,
+                                            const bool& InSendToGPU,
+                                            const FANSIString& InName);
 
     extern CResourcesHolder<CTextureResource> TexturesHolder;
 } // namespace lucid::resources

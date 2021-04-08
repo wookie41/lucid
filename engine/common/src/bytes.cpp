@@ -2,6 +2,8 @@
 
 namespace lucid
 {
+    FBinaryData EMPTY_BINARY_DATA;
+
     void* CopyBytes(const char* InToCopy, const u64& InCount, const u64& BufferSize)
     {
         assert(InToCopy);

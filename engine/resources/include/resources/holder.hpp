@@ -6,8 +6,10 @@
 #include <cassert>
 
 namespace lucid::resources
-{
-    // Interface that represents a resource whose data can be stored in main/video memory or both
+{    
+    /*
+     * Interface that represents a resource whose data can be stored in main/video memory or both
+     */
     class CResource
     {
       public:

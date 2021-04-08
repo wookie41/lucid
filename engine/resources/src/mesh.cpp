@@ -80,17 +80,17 @@ namespace lucid::resources
         gpu::CBuffer* ElementBuffer = nullptr;
     };
 
-    static MeshSize calculateMeshDataSize(aiNode* Node, const aiScene* Scene);
+    static MeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene);
 
-    static void loadAssimpNode(const FANSIString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData);
+    static void LoadAssimpNode(const FANSIString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData);
 
-    static void loadAssimpMesh(const FANSIString& DirectoryPath, aiMesh* mesh, const aiScene* scene, MeshCPUData& meshData);
+    static void LoadAssimpMesh(const FANSIString& DirectoryPath, aiMesh* mesh, const aiScene* scene, MeshCPUData& meshData);
 
     static u32 DetermineMeshFeatures(const aiScene* Root);
 
     MeshGPUData SendMeshToGPU(const u32& Features, const MeshCPUData& MeshData);
 
-    static CTextureResource* LoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
+    static CTextureResource* AssimpLoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
 
     CMeshResource* AssimpLoadMesh(const FANSIString& DirectoryPath, const FANSIString& MeshFileName)
     {
@@ -114,7 +114,7 @@ namespace lucid::resources
 
         // allocate main memory for the mesh
 
-        MeshSize MeshDataSize = calculateMeshDataSize(Root->mRootNode, Root);
+        MeshSize MeshDataSize = AssimpCalculateMeshDataSize(Root->mRootNode, Root);
 
         FMemBuffer VertexDataBuffer = CreateMemBuffer(MeshDataSize.VertexDataSize);
         FMemBuffer ElementDataBuffer = MeshDataSize.ElementDataSize > 0 ? CreateMemBuffer(MeshDataSize.ElementDataSize) : FMemBuffer{ nullptr, 0, 0 };
@@ -125,7 +125,7 @@ namespace lucid::resources
 
         start = platform::GetCurrentTimeSeconds();
 
-        loadAssimpNode(DirectoryPath, Root->mRootNode, Root, meshData);
+        LoadAssimpNode(DirectoryPath, Root->mRootNode, Root, meshData);
 
         LUCID_LOG(ELogLevel::INFO, "Vertex data  %u/%u, element data %u/%u", meshData.VertexBuffer.Length,
                   meshData.VertexBuffer.Capacity, meshData.ElementBuffer.Length, meshData.ElementBuffer.Capacity);
@@ -146,17 +146,17 @@ namespace lucid::resources
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            DiffuseMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE, false);
+            DiffuseMap = AssimpLoadMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE, false);
         }
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            SpecularMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, false);
+            SpecularMap = AssimpLoadMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, false);
         }
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            NormalMap = LoadMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, false);
+            NormalMap = AssimpLoadMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, false);
         }
 #ifndef NDEBUG
         LUCID_LOG(ELogLevel::INFO, "Loading textures %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
@@ -184,7 +184,7 @@ namespace lucid::resources
                                  meshData.ElementBuffer };
     }; // namespace lucid::resources
 
-    static MeshSize calculateMeshDataSize(aiNode* Node, const aiScene* Scene)
+    static MeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene)
     {
         MeshSize meshSize;
         for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
@@ -222,7 +222,7 @@ namespace lucid::resources
         // recursively calculate size of the children
         for (unsigned int idx = 0; idx < Node->mNumChildren; ++idx)
         {
-            MeshSize subMeshSize = calculateMeshDataSize(Node->mChildren[idx], Scene);
+            MeshSize subMeshSize = AssimpCalculateMeshDataSize(Node->mChildren[idx], Scene);
             meshSize.VertexDataSize += subMeshSize.VertexDataSize;
             meshSize.ElementDataSize += subMeshSize.ElementDataSize;
         }
@@ -252,7 +252,7 @@ namespace lucid::resources
         return meshFeatures;
     }
 
-    static void loadAssimpNode(const FANSIString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData)
+    static void LoadAssimpNode(const FANSIString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData)
     {
         // process each mesh located at the current node
         for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
@@ -260,16 +260,16 @@ namespace lucid::resources
             // the node object only contains indices to index the actual objects in the scene.
             // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
             aiMesh* mesh = Scene->mMeshes[Node->mMeshes[idx]];
-            loadAssimpMesh(DirectoryPath, mesh, Scene, meshData);
+            LoadAssimpMesh(DirectoryPath, mesh, Scene, meshData);
         }
         // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
         for (u32 idx = 0; idx < Node->mNumChildren; ++idx)
         {
-            loadAssimpNode(DirectoryPath, Node->mChildren[idx], Scene, meshData);
+            LoadAssimpNode(DirectoryPath, Node->mChildren[idx], Scene, meshData);
         }
     }
 
-    void loadAssimpMesh(const FANSIString& DirectoryPath, aiMesh* Mesh, const aiScene* Scene, MeshCPUData& MeshData)
+    void LoadAssimpMesh(const FANSIString& DirectoryPath, aiMesh* Mesh, const aiScene* Scene, MeshCPUData& MeshData)
     {
         uint32_t currentTotalElementCount = MeshData.VertexCount;
 
@@ -335,7 +335,7 @@ namespace lucid::resources
         }
     }
 
-    static CTextureResource* LoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
+    static CTextureResource* AssimpLoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
     {
         aiString TextureFileName;
         Material->GetTexture(TextureType, 0, &TextureFileName);
@@ -347,9 +347,12 @@ namespace lucid::resources
             return TexturesHolder.Get(*TexturePath);
         }
 
-        CTextureResource* Texture = IsPNGFormat ?
-            LoadPNG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString {"Temporary_name"}) :
-            LoadJPEG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString {"Temporary_name"});
+        // CTextureResource* Texture = IsPNGFormat ?
+            // LoadPNG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString {"Temporary_name"}) :
+            // LoadJPEG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString {"Temporary_name"});
+
+        CTextureResource* Texture = nullptr;
+            
         
         if (Texture == nullptr)
         {

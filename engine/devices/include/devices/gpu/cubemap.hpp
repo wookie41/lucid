@@ -2,6 +2,11 @@
 
 #include "devices/gpu/texture.hpp"
 
+namespace lucid::resources
+{
+    class CTextureResource;
+}
+
 namespace lucid::gpu
 {
     class CCubemap : public CTexture
@@ -33,7 +38,7 @@ namespace lucid::gpu
                             ETextureDataFormat InDataFormat,
                             ETexturePixelFormat InPixelFormat,
                             ETextureDataType DataType,
-                            const char* FacesData[6],
+                            const resources::CTextureResource* FacesData[6],
                             const FANSIString& InName);
 
 } // namespace lucid::gpu

@@ -1,6 +1,7 @@
 // Generates code to write binary data to memory and files
 
 #include "_common.h"
+#include "common/bytes.hpp"
 
 // Enums
 
@@ -148,4 +149,28 @@ void BinaryWrite(const TSTRING& value, TDYNAMICARRAY<char>& output)
     const char* src = &value[0];
     for (int i = 0; i <= len; ++i)
         dest[i] = src[i];
+}
+
+void BinaryWrite(const lucid::FBinaryData& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(value.Size, output);
+    size_t offset = TDYNAMICARRAY_SIZE(output);
+    TDYNAMICARRAY_RESIZE(output, offset + value.Size);
+    memcpy(&output[offset], value.Pointer, value.Size);
+}
+
+
+void BinaryWrite(const lucid::gpu::ETexturePixelFormat& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(static_cast<uint8_t>(value), output);
+}
+
+void BinaryWrite(const lucid::gpu::ETextureDataType& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(static_cast<uint8_t>(value), output);
+}
+
+void BinaryWrite(const lucid::gpu::ETextureDataFormat& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(static_cast<uint8_t>(value), output);
 }

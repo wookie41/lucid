@@ -1,6 +1,11 @@
 // Generates code to read binary data from memory and files
 
+#include <cstdlib>
+#include <cstring>
+
 #include "_common.h"
+#include "common/bytes.hpp"
+#include "devices/gpu/texture_enums.hpp"
 
 // Enums
 
@@ -221,6 +226,18 @@ bool BinaryRead(bool& value, const TDYNAMICARRAY<char>& data, size_t& offset)
     return true;
 }
 
+bool BinaryRead(lucid::FBinaryData& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    if (!BinaryRead(value.Size, data, offset))
+        return false;
+    offset += 1;
+
+    value.Pointer = (char*)malloc(value.Size);
+    memcpy(value.Pointer, &data[offset], value.Size);
+    offset += value.Size;
+    return true;
+}
+
 bool BinaryRead(TSTRING& value, const TDYNAMICARRAY<char>& data, size_t& offset)
 {
     // Yes, the strings are null terminated in the binary file
@@ -228,3 +245,37 @@ bool BinaryRead(TSTRING& value, const TDYNAMICARRAY<char>& data, size_t& offset)
     offset += strlen(&value[0]) + 1;
     return true;
 }
+
+bool BinaryRead(lucid::gpu::ETexturePixelFormat& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    int8_t int_value;
+    if(BinaryRead(int_value, data, offset))
+    {
+        value = static_cast<lucid::gpu::ETexturePixelFormat>(int_value);
+        return true;
+    }
+    return false;
+}
+
+bool BinaryRead(lucid::gpu::ETextureDataType& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    int8_t int_value;
+    if(BinaryRead(int_value, data, offset))
+    {
+        value = static_cast<lucid::gpu::ETextureDataType>(int_value);
+        return true;
+    }
+    return false;
+}
+
+bool BinaryRead(lucid::gpu::ETextureDataFormat& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    int8_t int_value;
+    if(BinaryRead(int_value, data, offset))
+    {
+        value = static_cast<lucid::gpu::ETextureDataFormat>(int_value);
+        return true;
+    }
+    return false;
+}
+

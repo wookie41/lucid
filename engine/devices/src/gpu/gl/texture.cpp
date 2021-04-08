@@ -1,4 +1,6 @@
 #include "devices/gpu/gl/texture.hpp"
+#include "resources/texture.hpp"
+
 #include "devices/gpu/gl/cubemap.hpp"
 #include "devices/gpu/gpu.hpp"
 
@@ -226,7 +228,7 @@ namespace lucid::gpu
                             ETextureDataFormat InDataFormat,
                             ETexturePixelFormat InPixelFormat,
                             ETextureDataType DataType,
-                            const char* FacesData[6],
+                            const resources::CTextureResource* FaceTextures[6],
                             const FANSIString& InName)
     {
         GLuint handle;
@@ -247,7 +249,7 @@ namespace lucid::gpu
                          0,
                          GLPixelFormat,
                          GLDataType,
-                         FacesData == nullptr ? nullptr : FacesData[i]);
+                         FaceTextures[i]->TextureData);
         }
 
         // Default sampling parameters
