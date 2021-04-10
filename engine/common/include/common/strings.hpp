@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bytes.hpp"
 #include "common/types.hpp"
+
 namespace lucid
 {
 
@@ -9,20 +9,20 @@ namespace lucid
     #define LUCID_TEXT(text) text
 
     /**
-     * Base ANSI string providing a common interface for ANSI string usage
+     * Base string providing a common interface for string usage
      */
-    struct FANSIString
+    struct FString
     {
-        explicit FANSIString(char* InCString, const u32& InLength = 0);
+        explicit FString(char* InCString, const u32& InLength = 0);
 
         char operator[](const u32& InIndex) const;
         const char* operator*() const { return CString; } 
 
-        inline bool operator==(const FANSIString& InRhs) const { return Hash == InRhs.Hash; };
+        inline bool operator==(const FString& InRhs) const { return Hash == InRhs.Hash; };
         inline u32 GetLength() const { return Length; }
         inline u64 GetHash() const { return Hash; }
 
-        virtual ~FANSIString() = default;
+        virtual ~FString() = default;
 
     protected:
         
@@ -36,11 +36,11 @@ namespace lucid
     /**
      * ANSI Null-terminated dynamic string - strings allocated at runtime that can be changed/freed
      */
-    struct FDString : public FANSIString
+    struct FDString : public FString
     {
         explicit FDString(char* InCString, const u32& InLength = 0);
         
-        void Append(const FANSIString& InString);
+        void Append(const FString& InString);
         void Append(const char* InString, const u64& InStringLength);
         
         void Free();
@@ -49,9 +49,9 @@ namespace lucid
     /**
      * ANSI Null-terminated static string - buffers, compile-time strings that don't get freed
      */
-    struct FString : public FANSIString
+    struct FSString : public FString
     {
-        explicit FString(char* InCString, const u32& InLength = 0);
+        explicit FSString(char* InCString, const u32& InLength = 0);
 
         FDString CopyToDynamicString() const;
     };
@@ -60,6 +60,6 @@ namespace lucid
 
     FDString SPrintf(const char* InFormat, ...);
     
-    extern FString EMPTY_STRING;
+    extern FSString EMPTY_STRING;
 } // namespace lucid
     

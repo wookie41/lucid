@@ -22,7 +22,7 @@ GLenum GL_DRAW_MODES[] = { GL_POINTS,
 
 namespace lucid::gpu
 {
-    CVertexArray* CreateVertexArray(const FANSIString& InName,
+    CVertexArray* CreateVertexArray(const FString& InName,
                                     FArray<FVertexAttribute>* VertexArrayAttributes,
                                     CBuffer* VertexBuffer,
                                     CBuffer* ElementBuffer,
@@ -107,7 +107,7 @@ namespace lucid::gpu
 
 #pragma GCC diagnostic pop
 
-    CGLVertexArray::CGLVertexArray(const FANSIString& InName,
+    CGLVertexArray::CGLVertexArray(const FString& InName,
                                    const GLuint& InGLVAOHandle,
                                    const EDrawMode& InDrawMode,
                                    const u32& InVertexCount,

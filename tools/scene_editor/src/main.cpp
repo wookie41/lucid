@@ -1,3 +1,5 @@
+#include <devices/gpu/texture_enums.hpp>
+
 #include "engine_init.hpp"
 #include "common/collections.hpp"
 
@@ -45,7 +47,7 @@ int main(int argc, char** argv)
     resources::InitTextures();
 
     // create window
-    platform::CWindow* window = platform::CreateWindow({"Lucid", 100, 100, 1280, 720, true});
+    platform::CWindow* window = platform::CreateNewWindow({"Lucid", 100, 100, 1280, 720, true});
     window->Prepare();
     window->Show();
 
@@ -57,43 +59,57 @@ int main(int argc, char** argv)
     // resources::CMeshResource* backPackMesh =
     // resources::AssimpLoadMesh(FString{ LUCID_TEXT("assets\\models\\backpack\\") }, FString{ LUCID_TEXT("backpack.obj") });
 
-    assets::FTextureAsset BrickWallTextureAsset;
-    ReadFromBinaryFile(BrickWallTextureAsset, "brickWallTextureAsset.asset");
-    resources::CTextureResource* BrickWallTextureResource = resources::LoadTexture(BrickWallTextureAsset);
+    FString BrickDiffuseTextureFilePath         { "assets/textures/BrickDiffuse.asset" };
+    FString BrickNormalTextureFilePath          { "assets/textures/BrickNormal.asset" };
+    FString WoodDiffuseTextureFilePath          { "assets/textures/WoodDiffuse.asset" };
+    FString BlankTextureFilePath                { "assets/textures/Blank.asset" };
+    FString ToyboxNormalTextureFilePath         { "assets/textures/ToyboxNormal.asset" };
+    FString ToyboxDisplacementTextureFilePath   { "assets/textures/ToyboxDisplacement.asset" };
+    FString LightBulbTextureFilePath            { "assets/textures/LightBulb.asset" };
 
-    assets::FTextureAsset BrickWallNormalMapTextureAsset;
-    ReadFromBinaryFile(BrickWallNormalMapTextureAsset, "brickWallNormalMapResource.asset");
-    resources::CTextureResource* BrickWallNormalMapResource = resources::LoadTexture(BrickWallNormalMapTextureAsset);
+    resources::CTextureResource* BrickDiffuseTextureResource = resources::LoadTexture(BrickDiffuseTextureFilePath);
+    BrickDiffuseTextureResource->LoadDataToMainMemorySynchronously();
+    BrickDiffuseTextureResource->LoadDataToVideoMemorySynchronously();
+    BrickDiffuseTextureResource->FreeMainMemory();
 
-    assets::FTextureAsset WoodDiffuseMapTextureAsset;
-    ReadFromBinaryFile(WoodDiffuseMapTextureAsset, "woodDiffuseMapResource.asset");
-    resources::CTextureResource* WoodTextureResource = resources::LoadTexture(WoodDiffuseMapTextureAsset);
+    resources::CTextureResource* BrickNormalTextureResource = resources::LoadTexture(BrickNormalTextureFilePath);
+    BrickNormalTextureResource->LoadDataToMainMemorySynchronously();
+    BrickNormalTextureResource->LoadDataToVideoMemorySynchronously();
+    BrickNormalTextureResource->FreeMainMemory();
+    
+    resources::CTextureResource* WoodDiffuseTextureResource = resources::LoadTexture(WoodDiffuseTextureFilePath);
+    WoodDiffuseTextureResource->LoadDataToMainMemorySynchronously();
+    WoodDiffuseTextureResource->LoadDataToVideoMemorySynchronously();
+    WoodDiffuseTextureResource->FreeMainMemory();
 
-    assets::FTextureAsset BlankTextureTextureAsset;
-    ReadFromBinaryFile(BlankTextureTextureAsset, "blankTextureResource.asset");
-    resources::CTextureResource* BlankTextureResource = resources::LoadTexture(BlankTextureTextureAsset);
-
-    assets::FTextureAsset ToyboxNormalMapTextureAsset;
-    ReadFromBinaryFile(ToyboxNormalMapTextureAsset, "toyboxNormalMapResource.asset");
-    resources::CTextureResource* ToyboxNormalMapResource = resources::LoadTexture(ToyboxNormalMapTextureAsset);
-
-    assets::FTextureAsset ToyBoxDisplacementMapTextureAsset;
-    ReadFromBinaryFile(ToyBoxDisplacementMapTextureAsset, "toyBoxDisplacementMapResource.asset");
-    resources::CTextureResource* ToyboxDisplacementMapTextureResource = resources::LoadTexture(ToyBoxDisplacementMapTextureAsset);
-
-    assets::FTextureAsset LightBulbTextureAsset;
-    ReadFromBinaryFile(LightBulbTextureAsset, "LightBulbTextureResource.asset");
-    resources::CTextureResource* LightBulbTextureResource = resources::LoadTexture(LightBulbTextureAsset);
-
-
+    resources::CTextureResource* BlankTextureResource = resources::LoadTexture(BlankTextureFilePath);
+    BlankTextureResource->LoadDataToMainMemorySynchronously();
+    BlankTextureResource->LoadDataToVideoMemorySynchronously();
+    BlankTextureResource->FreeMainMemory();
+    
+    resources::CTextureResource* ToyboxNormalTextureResource = resources::LoadTexture(ToyboxNormalTextureFilePath);
+    ToyboxNormalTextureResource->LoadDataToMainMemorySynchronously();
+    ToyboxNormalTextureResource->LoadDataToVideoMemorySynchronously();
+    ToyboxNormalTextureResource->FreeMainMemory();
+    
+    resources::CTextureResource* ToyboxDisplacementTextureResource = resources::LoadTexture(ToyboxDisplacementTextureFilePath);
+    ToyboxDisplacementTextureResource->LoadDataToMainMemorySynchronously();
+    ToyboxDisplacementTextureResource->LoadDataToVideoMemorySynchronously();
+    ToyboxDisplacementTextureResource->FreeMainMemory();
+    
+    resources::CTextureResource* LightBulbTextureResource = resources::LoadTexture(LightBulbTextureFilePath);
+    LightBulbTextureResource->LoadDataToMainMemorySynchronously();
+    LightBulbTextureResource->LoadDataToVideoMemorySynchronously();
+    LightBulbTextureResource->FreeMainMemory();
+    
     // backPackMesh->FreeMainMemory();
 
     // auto brickWallDiffuseMap = brickWallDiffuseMapResource->TextureHandle;
     // auto brickWallNormalMap = brickWallNormalMapResource->TextureHandle;
     // auto woodDiffuseMap = woodDiffuseMapResource->TextureHandle;
-
+    
     // Load and compile demo shaders
-
+    
     gpu::CShader* BlinnPhongShader =
         gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("BlinnPhong")},
                                            FString{LUCID_TEXT("shaders/glsl/fwd_blinn_phong.vert")},
@@ -119,7 +135,7 @@ int main(int argc, char** argv)
                                            FString{LUCID_TEXT("shaders/glsl/shadow_cubemap.vert")},
                                            FString{LUCID_TEXT("shaders/glsl/shadow_cubemap.frag")},
                                            FString{LUCID_TEXT("shaders/glsl/shadow_cubemap.geom")});
-
+    
     gpu::CShader* FlatShader = gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("FlatShadowMap")},
                                                                   FString{LUCID_TEXT("shaders/glsl/flat.vert")},
                                                                   FString{LUCID_TEXT("shaders/glsl/flat.frag")},
@@ -141,7 +157,7 @@ int main(int argc, char** argv)
                                                                             LUCID_TEXT("shaders/glsl/simple_blur.frag")
                                                                         },
                                                                         EMPTY_STRING);
-
+    
     gpu::CShader* HitmapShader = gpu::GShadersManager.CompileShader(FString{"HitMapShader"},
                                                                     FString{"shaders/glsl/hit_map.vert"}, FString{
                                                                         "shaders/glsl/hit_map.frag"
@@ -153,7 +169,7 @@ int main(int argc, char** argv)
                                                                        FString{"shaders/glsl/billboard.vert"}, FString{
                                                                            "shaders/glsl/billboard.frag"
                                                                        }, EMPTY_STRING);
-
+    
     // Prepare the scene
     gpu::FViewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
     
@@ -178,25 +194,25 @@ int main(int argc, char** argv)
     
     scene::CBlinnPhongMapsMaterial woodMaterial{ BlinnPhongMapsShader };
     woodMaterial.Shininess = 32;
-    woodMaterial.DiffuseMap = WoodTextureResource->TextureHandle;
+    woodMaterial.DiffuseMap = WoodDiffuseTextureResource->TextureHandle;
     woodMaterial.SpecularColor = glm::vec3{ 0.5 };
     woodMaterial.NormalMap = nullptr;
     woodMaterial.SpecularMap = nullptr;
     
     scene::CBlinnPhongMapsMaterial brickMaterial{ BlinnPhongMapsShader };
     brickMaterial.Shininess = 32;
-    brickMaterial.DiffuseMap = BrickWallTextureResource->TextureHandle;
+    brickMaterial.DiffuseMap = BrickDiffuseTextureResource->TextureHandle;
     brickMaterial.SpecularMap = nullptr;
     brickMaterial.DisplacementMap = nullptr;
-    brickMaterial.NormalMap = BrickWallNormalMapResource->TextureHandle;
+    brickMaterial.NormalMap = BrickNormalTextureResource->TextureHandle;
     brickMaterial.SpecularColor = glm::vec3{ 0.2 };
     
     scene::CBlinnPhongMapsMaterial toyboxMaterial{ BlinnPhongMapsShader };
     toyboxMaterial.Shininess = 32;
-    toyboxMaterial.DiffuseMap = WoodTextureResource->TextureHandle;
+    toyboxMaterial.DiffuseMap = WoodDiffuseTextureResource->TextureHandle;
     toyboxMaterial.SpecularMap = nullptr;
-    toyboxMaterial.NormalMap = ToyboxNormalMapResource->TextureHandle;
-    toyboxMaterial.DisplacementMap = ToyboxDisplacementMapTextureResource->TextureHandle;
+    toyboxMaterial.NormalMap = ToyboxNormalTextureResource->TextureHandle;
+    toyboxMaterial.DisplacementMap = ToyboxDisplacementTextureResource->TextureHandle;
     toyboxMaterial.SpecularColor = glm::vec3{ 0.2 };
     
     scene::CBlinnPhongMaterial flatBlinnPhongMaterial{ BlinnPhongShader };
@@ -442,7 +458,7 @@ int main(int argc, char** argv)
     
         // Blit the off-screen frame buffer to the window framebuffer
         window->GetFramebuffer()->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
+    gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
         gpu::EnableSRGBFramebuffer();
         gpu::BlitFramebuffer(Renderer.GetResultFramebuffer(),
                              window->GetFramebuffer(),
@@ -487,8 +503,8 @@ int main(int argc, char** argv)
             ImGui::End();
         }
         
-        window->ImgUiDrawFrame();
-        window->Swap();
+    window->ImgUiDrawFrame();
+    window->Swap();
     }
     
     window->Destroy();

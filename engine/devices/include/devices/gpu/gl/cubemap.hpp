@@ -10,7 +10,7 @@ namespace lucid::gpu
       public:
         explicit CGLCubemap(const GLuint& Handle,
                             const glm::ivec2& Size,
-                            const FANSIString& InName,
+                            const FString& InName,
                             const ETextureDataType InTextureDataType,
                             const ETexturePixelFormat InTexturePixelFormat);
 

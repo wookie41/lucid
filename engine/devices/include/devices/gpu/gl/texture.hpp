@@ -11,7 +11,7 @@ namespace lucid::gpu
         CGLTexture(const GLuint& InGLTextureID,
                   const GLenum& InGLTextureTarget,
                   const glm::ivec3& InTextureDimensions,
-                  const FANSIString& InName,
+                  const FString& InName,
                   const GLenum& InGLPixelFormat,
                   const GLenum& InGLTextureDataType,
                   const u64& InSizeInBytes,

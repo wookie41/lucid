@@ -1,6 +1,5 @@
 #include "platform/sdl/sdl_window.hpp"
 
-
 #include "common/log.hpp"
 
 #include "devices/gpu/gl/framebuffer.hpp"
@@ -14,7 +13,7 @@
 
 namespace lucid::platform
 {
-    CWindow* CreateWindow(const FWindowDefiniton& Definition)
+    CWindow* CreateNewWindow(const FWindowDefiniton& Definition)
     {
         if (Definition.sRGBFramebuffer)
         {

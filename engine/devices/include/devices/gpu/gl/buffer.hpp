@@ -8,7 +8,7 @@ namespace lucid::gpu
     class CGLBuffer : public CBuffer
     {
       public:
-        CGLBuffer(const GLuint& BufferHandle, const FBufferDescription& Description, const bool& IsImmutable, const FANSIString& InName);
+        CGLBuffer(const GLuint& BufferHandle, const FBufferDescription& Description, const bool& IsImmutable, const FString& InName);
 
         virtual uint32_t GetSize() const override;
 

@@ -43,7 +43,7 @@ namespace lucid::gpu
     {
       public:
 
-        explicit CVertexArray(const FANSIString& InName) : CGPUObject(InName) {}
+        explicit CVertexArray(const FString& InName) : CGPUObject(InName) {}
         
         virtual void Bind() = 0;
         virtual void Unbind() = 0;
@@ -69,7 +69,7 @@ namespace lucid::gpu
 
         virtual ~CVertexArray() = default;
     };
-    CVertexArray* CreateVertexArray(const FANSIString& InName,
+    CVertexArray* CreateVertexArray(const FString& InName,
                                     FArray<FVertexAttribute>* VertexArrayAttributes,
                                     CBuffer* VertexBuffer,
                                     CBuffer* ElementBuffer,

@@ -7,7 +7,7 @@
 
 namespace lucid::scene
 {
-    CSkybox* CreateSkybox(const u32& RenderableId, const resources::CTextureResource* FaceTextures[6], const FANSIString& InName)
+    CSkybox* CreateSkybox(const u32& RenderableId, const resources::CTextureResource* FaceTextures[6], const FString& InName)
     {
         gpu::CCubemap* SkyboxCubemap = gpu::CreateCubemap({FaceTextures[0]->Width, FaceTextures[1]->Height},
                                                           gpu::ETextureDataFormat::SRGB,

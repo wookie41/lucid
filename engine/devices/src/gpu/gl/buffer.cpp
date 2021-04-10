@@ -56,7 +56,7 @@ namespace lucid::gpu
     CGLBuffer::CGLBuffer(const GLuint& BufferHandle,
                          const FBufferDescription& Description,
                          const bool& IsImmutable,
-                         const FANSIString& InName)
+                         const FString& InName)
     : CBuffer(InName), glBufferHandle(BufferHandle), description(Description), isImmutable(IsImmutable)
     {
     }
@@ -192,7 +192,7 @@ namespace lucid::gpu
         glDeleteBuffers(1, &glBufferHandle);
     }
 
-    CBuffer* CreateBuffer(const FBufferDescription& Description, const EBufferUsage& Usage, const FANSIString& InName)
+    CBuffer* CreateBuffer(const FBufferDescription& Description, const EBufferUsage& Usage, const FString& InName)
     {
         GLuint bufferHandle;
 
@@ -206,7 +206,7 @@ namespace lucid::gpu
         return GLBuffer;
     };
 
-    CBuffer* CreateImmutableBuffer(const FBufferDescription& Description, const EImmutableBufferUsage& ImmutableBufferUsage, const FANSIString& InName, FGPUState* InGPUState)
+    CBuffer* CreateImmutableBuffer(const FBufferDescription& Description, const EImmutableBufferUsage& ImmutableBufferUsage, const FString& InName, FGPUState* InGPUState)
     {
         GLuint bufferHandle;
 

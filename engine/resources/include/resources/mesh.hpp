@@ -20,31 +20,31 @@ namespace lucid::resources
     class CMeshResource : public CResource
     {
       public:
-        CMeshResource(const u32& MeshFeaturesFlags,
-                     CTextureResource* MeshDiffuseMap,
-                     CTextureResource* MeshSpecularMap,
-                     CTextureResource* MeshNormalMap,
-                     gpu::CVertexArray* const MeshVAO,
-                     gpu::CBuffer* const MeshVertexBuffer,
-                     gpu::CBuffer* const MeshElementBuffer,
-                     const FMemBuffer& MeshVertexData,
-                     const FMemBuffer& MeshElementData);
+        CMeshResource(const UUID& InID,
+                         const FString& InName,
+                         const FString& InFilePath,
+                         const u64& InOffset,
+                         const u64& InDataSize);
 
+        virtual EResourceType GetType() const override { return MESH; };
+
+        virtual void LoadMetadata(FILE* ResourceFile) override;
+        virtual void LoadDataToMainMemorySynchronously() override;
+        virtual void LoadDataToVideoMemorySynchronously() override;
+
+        virtual void SaveSynchronously(FILE* ResourceFile) override;
+        
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
-        const u32 FeaturesFlag;
+        u32 FeaturesFlag;
 
-        CTextureResource* const DiffuseMap;
-        CTextureResource* const SpecularMap;
-        CTextureResource* const NormalMap;
+        gpu::CVertexArray*    VAO;
+        gpu::CBuffer*         VertexBuffer;
+        gpu::CBuffer*         ElementBuffer;
 
-        gpu::CVertexArray* const    VAO;
-        gpu::CBuffer* const         VertexBuffer;
-        gpu::CBuffer* const         ElementBuffer;
-
-        const FMemBuffer            VertexData;
-        const FMemBuffer            ElementData;
+        FMemBuffer            VertexData;
+        FMemBuffer            ElementData;
     };
 
     // Loads the mesh from the given directory, assumes to following things:
@@ -62,7 +62,7 @@ namespace lucid::resources
     // Diffuse and specular maps should be stored in JPEG, wheras normal maps
     // should be stored in PNG
 
-    CMeshResource* AssimpLoadMesh(const FANSIString& DirectoryPath, const FANSIString& MeshFileName);
+    CMeshResource* AssimpLoadMesh(const FString& DirectoryPath, const FString& MeshFileName);
 
     extern CResourcesHolder<CMeshResource> MeshesHolder;
 } // namespace lucid::resources

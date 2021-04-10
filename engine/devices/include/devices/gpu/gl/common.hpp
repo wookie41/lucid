@@ -42,7 +42,7 @@ namespace lucid
 
     EType ToLucidDataType(GLenum InGLType);
 
-    void SetGLObjectName(GLenum InIdentifier, GLuint InGLName, const FANSIString& InName);
+    void SetGLObjectName(GLenum InIdentifier, GLuint InGLName, const FString& InName);
 
 
     static GLenum GL_MIN_FILTERS_MAPPING[] = { GL_NEAREST,

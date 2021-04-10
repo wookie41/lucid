@@ -12,7 +12,7 @@ namespace lucid::gpu
         CGLRenderbuffer(const GLuint& GLRBOHandle,
                         const ERenderbufferFormat& InFormat,
                         const glm::ivec2& Size,
-                        const FANSIString& InName);
+                        const FString& InName);
 
         void SetObjectName() override;
 
@@ -70,7 +70,7 @@ namespace lucid::gpu
     class CGLFramebuffer : public CFramebuffer
     {
       public:
-        CGLFramebuffer(const GLuint& GLFBOHandle, const FANSIString& InName);
+        CGLFramebuffer(const GLuint& GLFBOHandle, const FString& InName);
 
         void SetObjectName() override;
 

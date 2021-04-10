@@ -1,9 +1,12 @@
 #pragma once
 
 #include "glm/vec4.hpp"
+#include "sole/sole.hpp"
 
 namespace lucid
 {
+    using UUID = sole::uuid;
+    
     using u8 = uint8_t;
     using u16 = uint16_t;
     using u32 = uint32_t;

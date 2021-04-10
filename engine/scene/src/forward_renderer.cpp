@@ -28,45 +28,45 @@ namespace lucid::scene
     static const glm::vec3 WORLD_UP { 0, 1, 0 };
     
     static const u8 NO_LIGHT = 0;
-    static const FString LIGHT_TYPE("uLight.Type");
+    static const FSString LIGHT_TYPE("uLight.Type");
 
-    static const FString VIEWPORT_SIZE("uViewportSize");
+    static const FSString VIEWPORT_SIZE("uViewportSize");
 
-    static const FString SSAO_POSITIONS_VS("uPositionsVS");
-    static const FString SSAO_NORMALS_VS("uNormalsVS");
-    static const FString SSAO_NOISE("uNoise");
-    static const FString SSAO_NOISE_SCALE("uNoiseScale");
-    static const FString SSAO_RADIUS("uRadius");
-    static const FString SSAO_BIAS("uBias");
+    static const FSString SSAO_POSITIONS_VS("uPositionsVS");
+    static const FSString SSAO_NORMALS_VS("uNormalsVS");
+    static const FSString SSAO_NOISE("uNoise");
+    static const FSString SSAO_NOISE_SCALE("uNoiseScale");
+    static const FSString SSAO_RADIUS("uRadius");
+    static const FSString SSAO_BIAS("uBias");
 
-    static const FString SIMPLE_BLUR_OFFSET_X("uOffsetX");
-    static const FString SIMPLE_BLUR_OFFSET_Y("uOffsetY");
-    static const FString SIMPLE_BLUR_TEXTURE("uTextureToBlur");
+    static const FSString SIMPLE_BLUR_OFFSET_X("uOffsetX");
+    static const FSString SIMPLE_BLUR_OFFSET_Y("uOffsetY");
+    static const FSString SIMPLE_BLUR_TEXTURE("uTextureToBlur");
 
-    static const FString BILLBOARD_MATRIX("uBillboardMatrix");
-    static const FString BILLBOARD_VIEWPORT_SIZE("uBillboardViewportSize");
-    static const FString BILLBOARD_TEXTURE("uBillboardTexture");
-    static const FString BILLBOARD_WORLD_POS("uBillboardWorldPos");
+    static const FSString BILLBOARD_MATRIX("uBillboardMatrix");
+    static const FSString BILLBOARD_VIEWPORT_SIZE("uBillboardViewportSize");
+    static const FSString BILLBOARD_TEXTURE("uBillboardTexture");
+    static const FSString BILLBOARD_WORLD_POS("uBillboardWorldPos");
 
     // Shader-wide uniforms
-    static const FString AMBIENT_STRENGTH("uAmbientStrength");
-    static const FString NUM_OF_PCF_SAMPLES("uNumSamplesPCF");
-    static const FString AMBIENT_OCCLUSION("uAmbientOcclusion");
+    static const FSString AMBIENT_STRENGTH("uAmbientStrength");
+    static const FSString NUM_OF_PCF_SAMPLES("uNumSamplesPCF");
+    static const FSString AMBIENT_OCCLUSION("uAmbientOcclusion");
 
-    static const FString VIEW_POSITION("uViewPos");
+    static const FSString VIEW_POSITION("uViewPos");
 
-    static const FString MODEL_MATRIX("uModel");
-    static const FString REVERSE_NORMALS("uReverseNormals");
-    static const FString VIEW_MATRIX("uView");
-    static const FString PROJECTION_MATRIX("uProjection");
+    static const FSString MODEL_MATRIX("uModel");
+    static const FSString REVERSE_NORMALS("uReverseNormals");
+    static const FSString VIEW_MATRIX("uView");
+    static const FSString PROJECTION_MATRIX("uProjection");
 
-    static const FString SKYBOX_CUBEMAP("uSkybox");
+    static const FSString SKYBOX_CUBEMAP("uSkybox");
 
-    static const FString PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
+    static const FSString PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
 
-    static const FString FLAT_COLOR("uFlatColor");
+    static const FSString FLAT_COLOR("uFlatColor");
 #if DEVELOPMENT
-    static const FString ACTOR_ID("uActorId");
+    static const FSString ACTOR_ID("uActorId");
 #endif
 
     ForwardRenderer::ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
@@ -152,15 +152,15 @@ namespace lucid::scene
         HitMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
 
         // Create the framebuffers
-        ShadowMapFramebuffer = gpu::CreateFramebuffer(FString{ "ShadowmapFramebuffer" });
-        PrepassFramebuffer = gpu::CreateFramebuffer(FString{ "PrepassFramebuffer" });
-        LightingPassFramebuffer = gpu::CreateFramebuffer(FString{ "LightingPassFramebuffer" });
-        SSAOFramebuffer = gpu::CreateFramebuffer(FString{ "SSAOFramebuffer" });
-        BlurFramebuffer = gpu::CreateFramebuffer(FString{ "BlueFramebuffer" });
+        ShadowMapFramebuffer = gpu::CreateFramebuffer(FSString{ "ShadowmapFramebuffer" });
+        PrepassFramebuffer = gpu::CreateFramebuffer(FSString{ "PrepassFramebuffer" });
+        LightingPassFramebuffer = gpu::CreateFramebuffer(FSString{ "LightingPassFramebuffer" });
+        SSAOFramebuffer = gpu::CreateFramebuffer(FSString{ "SSAOFramebuffer" });
+        BlurFramebuffer = gpu::CreateFramebuffer(FSString{ "BlueFramebuffer" });
 
         // Create a common depth-stencil attachment for both framebuffers
         DepthStencilRenderBuffer = gpu::CreateRenderbuffer(
-          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize, FString{ "LightingPassRenderbuffer" });
+          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize, FSString{ "LightingPassRenderbuffer" });
 
         // Create render targets in which we'll store some additional information during the depth prepass
         CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x,
@@ -169,14 +169,14 @@ namespace lucid::scene
                                                             gpu::ETextureDataFormat::RGB16F,
                                                             gpu::ETexturePixelFormat::RGB,
                                                             0,
-                                                            FString{ "CurrentFrameVSNormalMap" });
+                                                            FSString{ "CurrentFrameVSNormalMap" });
         CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x,
                                                               FramebufferSize.y,
                                                               gpu::ETextureDataType::FLOAT,
                                                               gpu::ETextureDataFormat::RGB16F,
                                                               gpu::ETexturePixelFormat::RGB,
                                                               0,
-                                                              FString{ "CurrentFrameVSPositionMap" });
+                                                              FSString{ "CurrentFrameVSPositionMap" });
 
         // Setup the prepass framebuffer
         PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -207,7 +207,7 @@ namespace lucid::scene
                                                gpu::ETextureDataFormat::R,
                                                gpu::ETexturePixelFormat::RED,
                                                0,
-                                               FString{ "SSAOResult" });
+                                               FSString{ "SSAOResult" });
         SSAOResult->Bind();
         SSAOResult->SetMinFilter(gpu::MinTextureFilter::NEAREST);
         SSAOResult->SetMagFilter(gpu::MagTextureFilter::NEAREST);
@@ -219,7 +219,7 @@ namespace lucid::scene
                                                 gpu::ETextureDataFormat::R,
                                                 gpu::ETexturePixelFormat::RED,
                                                 0,
-                                                FString{ "SSOBlurred" });
+                                                FSString{ "SSOBlurred" });
         SSAOBlurred->Bind();
         SSAOBlurred->SetMinFilter(gpu::MinTextureFilter::NEAREST);
         SSAOBlurred->SetMagFilter(gpu::MagTextureFilter::NEAREST);
@@ -241,7 +241,7 @@ namespace lucid::scene
                                                             gpu::ETextureDataFormat::RGBA,
                                                             gpu::ETexturePixelFormat::RGBA,
                                                             0,
-                                                            FString{ "LightingPassColorBuffer" });
+                                                            FSString{ "LightingPassColorBuffer" });
 
         // Setup the lighting pass framebuffer
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -301,7 +301,7 @@ namespace lucid::scene
                                          gpu::ETextureDataFormat::RG32F,
                                          gpu::ETexturePixelFormat::RG,
                                          0,
-                                         FString{ "SSAONoise" });
+                                         FSString{ "SSAONoise" });
         SSAONoise->Bind();
         SSAONoise->SetWrapSFilter(gpu::WrapTextureFilter::REPEAT);
         SSAONoise->SetWrapTFilter(gpu::WrapTextureFilter::REPEAT);
@@ -330,12 +330,12 @@ namespace lucid::scene
                                                   gpu::ETextureDataFormat::R32UI,
                                                   gpu::ETexturePixelFormat::RED_INTEGER,
                                                   0,
-                                                  FString{ "HitMapTexture" });
+                                                  FSString{ "HitMapTexture" });
 
         HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(
-          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { FramebufferSize.x, FramebufferSize.y }, FString{ "HitMapRenderbuffer" });
+          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { FramebufferSize.x, FramebufferSize.y }, FSString{ "HitMapRenderbuffer" });
 
-        HitMapFramebuffer = gpu::CreateFramebuffer(FString{ "HitMapMapFramebuffer" });
+        HitMapFramebuffer = gpu::CreateFramebuffer(FSString{ "HitMapMapFramebuffer" });
         HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         HitMapTexture->Bind();

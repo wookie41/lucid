@@ -9,32 +9,32 @@
 
 namespace lucid::scene
 {
-    static const FString LIGHT_TYPE("uLightType");
+    static const FSString LIGHT_TYPE("uLightType");
 
-    static const FString LIGHT_POSITION{ "uLightPosition" };
-    static const FString LIGHT_COLOR{ "uLightColor" };
+    static const FSString LIGHT_POSITION{ "uLightPosition" };
+    static const FSString LIGHT_COLOR{ "uLightColor" };
 
-    static const FString LIGHT_SPACE_MATRIX("uLightMatrix");
+    static const FSString LIGHT_SPACE_MATRIX("uLightMatrix");
     
-    static const FString LIGHT_NEAR_PLANE{ "uLightNearPlane" };
-    static const FString LIGHT_FAR_PLANE{ "uLightFarPlane" };
+    static const FSString LIGHT_NEAR_PLANE{ "uLightNearPlane" };
+    static const FSString LIGHT_FAR_PLANE{ "uLightFarPlane" };
     
-    static const FString LIGHT_SPACE_MATRIX_0{ "uLightMatrices[0]" };
-    static const FString LIGHT_SPACE_MATRIX_1{ "uLightMatrices[1]" };
-    static const FString LIGHT_SPACE_MATRIX_2{ "uLightMatrices[2]" };
-    static const FString LIGHT_SPACE_MATRIX_3{ "uLightMatrices[3]" };
-    static const FString LIGHT_SPACE_MATRIX_4{ "uLightMatrices[4]" };
-    static const FString LIGHT_SPACE_MATRIX_5{ "uLightMatrices[5]" };
+    static const FSString LIGHT_SPACE_MATRIX_0{ "uLightMatrices[0]" };
+    static const FSString LIGHT_SPACE_MATRIX_1{ "uLightMatrices[1]" };
+    static const FSString LIGHT_SPACE_MATRIX_2{ "uLightMatrices[2]" };
+    static const FSString LIGHT_SPACE_MATRIX_3{ "uLightMatrices[3]" };
+    static const FSString LIGHT_SPACE_MATRIX_4{ "uLightMatrices[4]" };
+    static const FSString LIGHT_SPACE_MATRIX_5{ "uLightMatrices[5]" };
 
-    static const FString LIGHT_DIRECTION("uLightDirection");
-    static const FString LIGHT_CONSTANT("uLightConstant");
-    static const FString LIGHT_LINEAR("uLightLinear");
-    static const FString LIGHT_QUADRATIC("uLightQuadratic");
-    static const FString LIGHT_INNER_CUT_OFF("uLightInnerCutOffCos");
-    static const FString LIGHT_OUTER_CUT_OFF("uLightOuterCutOffCos");
-    static const FString LIGHT_SHADOW_MAP("uLightShadowMap");
-    static const FString LIGHT_CASTS_SHADOWS("uLightCastsShadows");
-    static const FString LIGHT_SHADOW_CUBE("uLightShadowCube");
+    static const FSString LIGHT_DIRECTION("uLightDirection");
+    static const FSString LIGHT_CONSTANT("uLightConstant");
+    static const FSString LIGHT_LINEAR("uLightLinear");
+    static const FSString LIGHT_QUADRATIC("uLightQuadratic");
+    static const FSString LIGHT_INNER_CUT_OFF("uLightInnerCutOffCos");
+    static const FSString LIGHT_OUTER_CUT_OFF("uLightOuterCutOffCos");
+    static const FSString LIGHT_SHADOW_MAP("uLightShadowMap");
+    static const FSString LIGHT_CASTS_SHADOWS("uLightCastsShadows");
+    static const FSString LIGHT_SHADOW_CUBE("uLightShadowCube");
     
     inline glm::mat4 CreateLightSpaceMatrix(const glm::vec3& Position, const glm::vec3& LightUp, const LightSettings& MatrixSettings)
     {

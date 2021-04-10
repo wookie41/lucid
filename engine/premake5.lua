@@ -29,7 +29,8 @@ project "lucid_engine"
       "../libs/SDL2/include/SDL2",
       "../libs/assimp/include",
       "../libs/rapidjson",
-      "../libs/df_serialize" 
+      "../libs/df_serialize",
+      "../libs/sole/include"
    }
    
    libdirs { 
@@ -47,20 +48,15 @@ project "lucid_engine"
    files { 
       "../libs/stb/*",
       "devices/src/**.cpp",
-      "devices/include/**.hpp",
       "devices/include/**.tpp",
       "platform/src/**.cpp",
       "platform/include/**.hpp",
       "common/src/**.cpp",
-      "common/include/**.hpp",
       "common/include/**.tpp",
       "misc/src/**.cpp",
-      "misc/include/**.hpp",
       "scene/src/**.cpp",
-      "scene/include/**.hpp",
       "resources/src/**.cpp",
-      "resources/include/**.hpp",
-      "schemas/include/**.hpp",
+      "resources/include/**.tpp",
       "engine_init.cpp",
       "imgui/include/*.h",
       "imgui/src/*.cpp",

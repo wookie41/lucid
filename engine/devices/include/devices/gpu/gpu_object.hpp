@@ -7,7 +7,7 @@ namespace lucid::gpu
     class CGPUObject
     {
       public:
-        explicit CGPUObject(const FANSIString& InName) : Name(InName) {};
+        explicit CGPUObject(const FString& InName) : Name(InName) {};
 
         /* Sets the name on the GPU side */
         virtual void SetObjectName() = 0;
@@ -15,10 +15,10 @@ namespace lucid::gpu
         virtual void Free() = 0;
         virtual ~CGPUObject() = default;
 
-        inline const FANSIString& GetName() const { return Name; }
+        inline const FString& GetName() const { return Name; }
 
       protected:
-        const FANSIString& Name;
+        const FString& Name;
     };
 
 } // namespace lucid::gpu

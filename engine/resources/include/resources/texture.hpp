@@ -1,9 +1,15 @@
 #pragma once
 
-#include "devices/gpu/gpu.hpp"
-#include "resources/holder.hpp"
-#include "devices/gpu/texture.hpp"
-#include "schemas/types.hpp"
+#include "common/strings.hpp"
+#include "resources/resource.hpp"
+
+namespace lucid::gpu
+{
+    class CTexture;
+    enum class ETextureDataType :u8;
+    enum class ETextureDataFormat :u8;
+    enum class ETexturePixelFormat :u8;
+}
 
 namespace lucid::resources
 {
@@ -12,39 +18,49 @@ namespace lucid::resources
     class CTextureResource : public CResource
     {
       public:
-        CTextureResource(void* Data,
-                         gpu::CTexture* Handle,
-                         const u32& W,
-                         const u32& H,
-                         gpu::ETextureDataFormat InDataFormat,
-                         gpu::ETexturePixelFormat InPixelFormat);
+        CTextureResource(const UUID& InUUID,
+                         const FString& InName,
+                         const FString& InFilePath,
+                         const u64& InOffset,
+                         const u64& InDataSize);
+
+        virtual EResourceType GetType() const override { return TEXTURE; };
+
+        virtual void LoadMetadata(FILE* ResourceFile) override;
+        virtual void LoadDataToMainMemorySynchronously() override;
+        virtual void LoadDataToVideoMemorySynchronously() override;
+
+        virtual void SaveSynchronously(FILE* ResourceFile = nullptr) override;
 
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
-        void* const                 TextureData;
-        gpu::CTexture* const        TextureHandle;
-        const u32                   Width;
-        const u32                   Height;
-        gpu::ETextureDataFormat     DataFormat;
-        gpu::ETexturePixelFormat    PixelFormat;
+        void* TextureData = nullptr;
+        u8 bSRGB = 0;
+        gpu::CTexture* TextureHandle = nullptr;
+
+        u32 Width = 0;
+        u32 Height = 0;
+
+        gpu::ETextureDataType DataType;
+        gpu::ETextureDataFormat DataFormat;
+        gpu::ETexturePixelFormat PixelFormat;
     };
 
-    CTextureResource* LoadTexture(const assets::FTextureAsset& Asset);
+    CTextureResource* LoadTexture(const FString& FilePath);
 
-    assets::FTextureAsset ImportJPGTexture(const FANSIString& InPath,
-                                           const bool& InPerformGammaCorrection,
-                                           const gpu::ETextureDataType& InDataType,
-                                           const bool& InFlipY,
-                                           const bool& InSendToGPU,
-                                           const FANSIString& InName);
+    CTextureResource* ImportJPGTexture(const FString& InPath,
+                                       const bool& InPerformGammaCorrection,
+                                       const gpu::ETextureDataType& InDataType,
+                                       const bool& InFlipY,
+                                       const bool& InSendToGPU,
+                                       const FString& InName);
 
-    assets::FTextureAsset ImportPNGTexture(const FANSIString& InPath,
-                                            const bool& InPerformGammaCorrection,
-                                            const gpu::ETextureDataType& InDataType,
-                                            const bool& InFlipY,
-                                            const bool& InSendToGPU,
-                                            const FANSIString& InName);
+    CTextureResource* ImportPNGTexture(const FString& InPath,
+                                       const bool& InPerformGammaCorrection,
 
-    extern CResourcesHolder<CTextureResource> TexturesHolder;
+                                       const gpu::ETextureDataType& InDataType,
+                                       const bool& InFlipY,
+                                       const bool& InSendToGPU,
+                                       const FString& InName);
 } // namespace lucid::resources

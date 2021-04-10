@@ -40,7 +40,7 @@ namespace lucid::gpu
     class CRenderbuffer : public IFramebufferAttachment, public CGPUObject
     {
       public:
-        explicit CRenderbuffer(const FANSIString& InName) : CGPUObject(InName) {}
+        explicit CRenderbuffer(const FString& InName) : CGPUObject(InName) {}
 
         virtual void Bind() = 0;
 
@@ -60,7 +60,7 @@ namespace lucid::gpu
     class CFramebuffer : public CGPUObject
     {
       public:
-        explicit CFramebuffer(const FANSIString& InName) : CGPUObject(InName) {}
+        explicit CFramebuffer(const FString& InName) : CGPUObject(InName) {}
 
         virtual bool IsComplete() = 0;
 
@@ -85,8 +85,8 @@ namespace lucid::gpu
         //@TODO Attaching cubemap's faces as color attachments
     };
 
-    CFramebuffer* CreateFramebuffer(const FANSIString& InName);
-    CRenderbuffer* CreateRenderbuffer(const ERenderbufferFormat& Format, const glm::ivec2& Size, const FANSIString& InName);
+    CFramebuffer* CreateFramebuffer(const FString& InName);
+    CRenderbuffer* CreateRenderbuffer(const ERenderbufferFormat& Format, const glm::ivec2& Size, const FString& InName);
 
     void BlitFramebuffer(CFramebuffer* Source,
                          CFramebuffer* Destination,

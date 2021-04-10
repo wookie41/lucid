@@ -1,8 +1,8 @@
 #pragma once
+
 #include "common/collections.hpp"
 #include "common/bytes.hpp"
 
-#include <string.h>
 #include <stdlib.h>
 #include <cassert>
 

@@ -30,7 +30,7 @@ namespace lucid::gpu
 
 #ifndef NDEBUG
     static char _infoLog[1024];
-    void CheckCompileErrors(const FANSIString& ShaderName, const u32& Shader, const u8& Type, const char* ShaderTypeName)
+    void CheckCompileErrors(const FString& ShaderName, const u32& Shader, const u8& Type, const char* ShaderTypeName)
     {
         int success;
         if (Type != _GL_PROGRAM)
@@ -56,7 +56,7 @@ namespace lucid::gpu
     }
 #endif
 
-    void CompileShader(const FANSIString& ShaderName,
+    void CompileShader(const FString& ShaderName,
                        GLuint ShaderProgramID,
                        GLuint ShaderID,
                        const char* ShaderSource,
@@ -72,10 +72,10 @@ namespace lucid::gpu
     }
 
     CShader* CompileShaderProgram(
-        const FANSIString& InShaderName,
-        const FANSIString& InVertexShaderSource,
-        const FANSIString& InFragementShaderSource,
-        const FANSIString& InGeometryShaderSource,
+        const FString& InShaderName,
+        const FString& InVertexShaderSource,
+        const FString& InFragementShaderSource,
+        const FString& InGeometryShaderSource,
         const bool& InWarnMissingUniforms)
     {
         GLuint ShaderProgramID = glCreateProgram();
@@ -186,7 +186,7 @@ namespace lucid::gpu
                          FArray<FUniformVariable> UniformVariables,
                          FArray<FTextureBinding> TextureBindings,
                          const bool& WarnMissingUniforms,
-                         const FANSIString& InShaderName)
+                         const FString& InShaderName)
     : CShader(InShaderName), glShaderID(GLShaderID), uniformVariables(UniformVariables),
       TextureBindings(TextureBindings), warnMissingUniforms(WarnMissingUniforms)
 
@@ -213,7 +213,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetInt(const FANSIString& InUniformName, const i32& Value)
+    void CGLShader::SetInt(const FString& InUniformName, const i32& Value)
     {
         assert(GPUState->Shader == this);
         uint32 UniformId = GetIdForUniform(InUniformName);
@@ -224,7 +224,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetUInt(const FANSIString& InUniformName, const u32& Value)
+    void CGLShader::SetUInt(const FString& InUniformName, const u32& Value)
     {
         assert(GPUState->Shader == this);
         uint32 UniformId = GetIdForUniform(InUniformName);
@@ -236,7 +236,7 @@ namespace lucid::gpu
     }
 
     
-    void CGLShader::SetFloat(const FANSIString& InUniformName, const float& Value)
+    void CGLShader::SetFloat(const FString& InUniformName, const float& Value)
     {
         assert(GPUState->Shader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -247,7 +247,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetBool(const FANSIString& InUniformName, const bool& Value)
+    void CGLShader::SetBool(const FString& InUniformName, const bool& Value)
     {
         assert(GPUState->Shader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -258,7 +258,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::vec2& Value)
+    void CGLShader::SetVector(const FString& InUniformName, const glm::vec2& Value)
     {
         assert(GPUState->Shader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -269,7 +269,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::vec3& Value)
+    void CGLShader::SetVector(const FString& InUniformName, const glm::vec3& Value)
     {
         assert(GPUState->Shader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -280,7 +280,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::vec4& Value)
+    void CGLShader::SetVector(const FString& InUniformName, const glm::vec4& Value)
     {
         assert(GPUState->Shader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -291,7 +291,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::ivec2& Value)
+    void CGLShader::SetVector(const FString& InUniformName, const glm::ivec2& Value)
     {
         assert(GPUState->Shader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -302,7 +302,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::ivec3& Value)
+    void CGLShader::SetVector(const FString& InUniformName, const glm::ivec3& Value)
     {
         assert(GPUState->Shader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -313,7 +313,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetVector(const FANSIString& InUniformName, const glm::ivec4& Value)
+    void CGLShader::SetVector(const FString& InUniformName, const glm::ivec4& Value)
     {
         assert(GPUState->Shader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -324,7 +324,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::SetMatrix(const FANSIString& InUniformName, const glm::mat4& Value)
+    void CGLShader::SetMatrix(const FString& InUniformName, const glm::mat4& Value)
     {
         assert(GPUState->Shader == this);
         const u32 UniformId = GetIdForUniform(InUniformName);
@@ -335,7 +335,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLShader::UseTexture(const FANSIString& InUniformName, CTexture* TextureToUse)
+    void CGLShader::UseTexture(const FString& InUniformName, CTexture* TextureToUse)
     {
         assert(GPUState->Shader == this);
         const i32 UniformId = GetTextureId(InUniformName);
@@ -533,7 +533,7 @@ namespace lucid::gpu
         }
     }
 
-    u32 CGLShader::GetIdForUniform(const FANSIString& InUniformName) const
+    u32 CGLShader::GetIdForUniform(const FString& InUniformName) const
     {
         for (u32 idx = 0; idx < uniformVariables.GetLength(); ++idx)
         {
@@ -550,7 +550,7 @@ namespace lucid::gpu
         return uniformVariables.GetLength();
     };
 
-    u32 CGLShader::GetTextureId(const FANSIString& InUniformName) const
+    u32 CGLShader::GetTextureId(const FString& InUniformName) const
     {
         assert(GPUState->Shader == this);
 

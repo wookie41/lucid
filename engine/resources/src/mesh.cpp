@@ -15,21 +15,37 @@
 
 namespace lucid::resources
 {
-
-    CMeshResource::CMeshResource(const u32& MeshFeaturesFlags,
-                               CTextureResource* MeshDiffuseMap,
-                               CTextureResource* MeshSpecularMap,
-                               CTextureResource* MeshNormalMap,
-                               gpu::CVertexArray* const MeshVAO,
-                               gpu::CBuffer* const MeshVertexBuffer,
-                               gpu::CBuffer* const MeshElementBuffer,
-                               const FMemBuffer& MeshVertexData,
-                               const FMemBuffer& MeshElementData)
-    : FeaturesFlag(MeshFeaturesFlags), DiffuseMap(MeshDiffuseMap), SpecularMap(MeshSpecularMap), NormalMap(MeshNormalMap),
-      VAO(MeshVAO), VertexBuffer(MeshVertexBuffer), ElementBuffer(MeshElementBuffer), VertexData(MeshVertexData),
-      ElementData(MeshElementData)
+    CResourcesHolder<CTextureResource> TexturesHolder{};
+;
+    CMeshResource::CMeshResource(const UUID& InID,
+                         const FString& InName,
+                         const FString& InFilePath,
+                         const u64& InOffset,
+                         const u64& InDataSize)
+    : CResource(InID, InName, InFilePath, InOffset, InDataSize)
     {
     }
+
+    void CMeshResource::LoadMetadata(FILE* ResourceFile)
+    {
+        assert(0);
+    }
+
+    void CMeshResource::LoadDataToMainMemorySynchronously()
+    {
+        assert(0);
+    }
+
+    void CMeshResource::LoadDataToVideoMemorySynchronously()
+    {
+        assert(0);
+    }
+
+    void CMeshResource::SaveSynchronously(FILE* ResourceFile)
+    {
+        assert(0);
+    }
+
     void CMeshResource::FreeMainMemory()
     {
         if (!IsMainMemoryFreed)
@@ -82,17 +98,17 @@ namespace lucid::resources
 
     static MeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene);
 
-    static void LoadAssimpNode(const FANSIString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData);
+    static void LoadAssimpNode(const FString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData);
 
-    static void LoadAssimpMesh(const FANSIString& DirectoryPath, aiMesh* mesh, const aiScene* scene, MeshCPUData& meshData);
+    static void LoadAssimpMesh(const FString& DirectoryPath, aiMesh* mesh, const aiScene* scene, MeshCPUData& meshData);
 
     static u32 DetermineMeshFeatures(const aiScene* Root);
 
     MeshGPUData SendMeshToGPU(const u32& Features, const MeshCPUData& MeshData);
 
-    static CTextureResource* AssimpLoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
+    static CTextureResource* AssimpLoadMaterialTexture(const FString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
 
-    CMeshResource* AssimpLoadMesh(const FANSIString& DirectoryPath, const FANSIString& MeshFileName)
+    CMeshResource* AssimpLoadMesh(const FString& DirectoryPath, const FString& MeshFileName)
     {
         // read mesh file
         FDString MeshFilePath = CopyToString(*DirectoryPath, DirectoryPath.GetLength());
@@ -173,15 +189,8 @@ namespace lucid::resources
         LUCID_LOG(ELogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
 #endif
 
-        return new CMeshResource{ MeshFeatures,
-                                 DiffuseMap,
-                                 SpecularMap,
-                                 NormalMap,
-                                 meshGPUData.VAO,
-                                 meshGPUData.VertexBuffer,
-                                 meshGPUData.ElementBuffer,
-                                 meshData.VertexBuffer,
-                                 meshData.ElementBuffer };
+        // return new CMeshResource{ };
+        return nullptr;
     }; // namespace lucid::resources
 
     static MeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene)
@@ -252,7 +261,7 @@ namespace lucid::resources
         return meshFeatures;
     }
 
-    static void LoadAssimpNode(const FANSIString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData)
+    static void LoadAssimpNode(const FString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData)
     {
         // process each mesh located at the current node
         for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
@@ -269,7 +278,7 @@ namespace lucid::resources
         }
     }
 
-    void LoadAssimpMesh(const FANSIString& DirectoryPath, aiMesh* Mesh, const aiScene* Scene, MeshCPUData& MeshData)
+    void LoadAssimpMesh(const FString& DirectoryPath, aiMesh* Mesh, const aiScene* Scene, MeshCPUData& MeshData)
     {
         uint32_t currentTotalElementCount = MeshData.VertexCount;
 
@@ -335,7 +344,7 @@ namespace lucid::resources
         }
     }
 
-    static CTextureResource* AssimpLoadMaterialTexture(const FANSIString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
+    static CTextureResource* AssimpLoadMaterialTexture(const FString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
     {
         aiString TextureFileName;
         Material->GetTexture(TextureType, 0, &TextureFileName);
@@ -376,7 +385,7 @@ namespace lucid::resources
         bufferDescription.data = MeshData.VertexBuffer.Pointer;
         bufferDescription.size = MeshData.VertexBuffer.Length;
 
-        gpu::CBuffer* gpuVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FString{ "Temporary_Name" });
+        gpu::CBuffer* gpuVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FSString{ "Temporary_Name" });
         gpu::CBuffer* gpuElementBuffer = nullptr;
 
         // sending element to the gpu if it's present
@@ -385,7 +394,7 @@ namespace lucid::resources
             bufferDescription.data = MeshData.ElementBuffer.Pointer;
             bufferDescription.size = MeshData.ElementBuffer.Length;
 
-            gpuElementBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FString{ "Temporary_Name" });
+            gpuElementBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FSString{ "Temporary_Name" });
         }
 
         // prepare vertex array attributes
@@ -436,7 +445,7 @@ namespace lucid::resources
         if (Features & static_cast<uint32_t>(EMeshFeatures::UV))
             attributes.Add({ attributeIdx++, 2, EType::FLOAT, false, stride, uvOffset, 0 });
 
-        gpu::CVertexArray* vao = gpu::CreateVertexArray(FString {"Temporary_Name" }, &attributes, gpuVertexBuffer, gpuElementBuffer, gpu::EDrawMode::TRIANGLES,
+        gpu::CVertexArray* vao = gpu::CreateVertexArray(FSString {"Temporary_Name" }, &attributes, gpuVertexBuffer, gpuElementBuffer, gpu::EDrawMode::TRIANGLES,
                                                        MeshData.VertexCount, MeshData.ElementCount);
         attributes.Free();
 

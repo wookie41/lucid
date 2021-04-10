@@ -21,10 +21,10 @@ namespace lucid::gpu
     public:
 
         // @TODO Unicode paths support
-        CShader* CompileShader(const FANSIString& InShaderName,
-                              const FANSIString& InVertexShaderPath,
-                              const FANSIString& InFragementShaderPath,
-                              const FANSIString& InGeometryShaderPath,
+        CShader* CompileShader(const FString& InShaderName,
+                              const FString& InVertexShaderPath,
+                              const FString& InFragementShaderPath,
+                              const FString& InGeometryShaderPath,
                               const bool& ShouldStoreShader = true);
 
 #ifndef NDEBUG
@@ -37,7 +37,7 @@ namespace lucid::gpu
 
         FArray<FShaderInstanceInfo> CompiledShaders { 8, true };
 
-        const FString BaseShadersPath { "shaders/glsl/base" };
+        const FSString BaseShadersPath { "shaders/glsl/base" };
     };
 
     extern CShadersManager GShadersManager;

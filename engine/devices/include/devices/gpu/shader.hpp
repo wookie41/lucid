@@ -21,31 +21,31 @@ namespace lucid::gpu
 
         friend class ShaderManager;
 
-        explicit CShader(const FANSIString& InName) : CGPUObject(InName) {}
+        explicit CShader(const FString& InName) : CGPUObject(InName) {}
 
         virtual void Use() = 0;
         virtual void Disable() = 0;
 
         virtual void SetupBuffersBindings() = 0;
 
-        virtual u32 GetIdForUniform(const FANSIString& InUniformName) const = 0;
+        virtual u32 GetIdForUniform(const FString& InUniformName) const = 0;
 
-        virtual void SetInt(const FANSIString& InUniformName, const i32& Value) = 0;
-        virtual void SetUInt(const FANSIString& InUniformName, const u32& Value) = 0;
-        virtual void SetFloat(const FANSIString& InUniformName, const float& Value) = 0;
-        virtual void SetBool(const FANSIString& InUniformName, const bool& Value) = 0;
+        virtual void SetInt(const FString& InUniformName, const i32& Value) = 0;
+        virtual void SetUInt(const FString& InUniformName, const u32& Value) = 0;
+        virtual void SetFloat(const FString& InUniformName, const float& Value) = 0;
+        virtual void SetBool(const FString& InUniformName, const bool& Value) = 0;
 
-        virtual void SetVector(const FANSIString& InUniformName, const glm::vec2& Value) = 0;
-        virtual void SetVector(const FANSIString& InUniformName, const glm::vec3& Value) = 0;
-        virtual void SetVector(const FANSIString& InUniformName, const glm::vec4& Value) = 0;
+        virtual void SetVector(const FString& InUniformName, const glm::vec2& Value) = 0;
+        virtual void SetVector(const FString& InUniformName, const glm::vec3& Value) = 0;
+        virtual void SetVector(const FString& InUniformName, const glm::vec4& Value) = 0;
 
-        virtual void SetVector(const FANSIString& InUniformName, const glm::ivec2& Value) = 0;
-        virtual void SetVector(const FANSIString& InUniformName, const glm::ivec3& Value) = 0;
-        virtual void SetVector(const FANSIString& InUniformName, const glm::ivec4& Value) = 0;
+        virtual void SetVector(const FString& InUniformName, const glm::ivec2& Value) = 0;
+        virtual void SetVector(const FString& InUniformName, const glm::ivec3& Value) = 0;
+        virtual void SetVector(const FString& InUniformName, const glm::ivec4& Value) = 0;
 
-        virtual void SetMatrix(const FANSIString& InUniformName, const glm::mat4& Value) = 0;
+        virtual void SetMatrix(const FString& InUniformName, const glm::mat4& Value) = 0;
 
-        virtual void UseTexture(const FANSIString& InUniformName, CTexture* TextureToUse) = 0;
+        virtual void UseTexture(const FString& InUniformName, CTexture* TextureToUse) = 0;
         virtual void RestoreTextureBindings() = 0;
 
         virtual void AddBinding(BufferBinding* Binding) = 0;
@@ -61,10 +61,10 @@ namespace lucid::gpu
     };
 
     CShader* CompileShaderProgram(
-        const FANSIString& InShaderName,
-        const FANSIString& InVertexShaderSource,
-        const FANSIString& InFragementShaderSource,
-        const FANSIString& InGeometryShaderSource,
+        const FString& InShaderName,
+        const FString& InVertexShaderSource,
+        const FString& InFragementShaderSource,
+        const FString& InGeometryShaderSource,
         const bool& InWarnMissingUniforms);
 
 } // namespace lucid::gpu

@@ -41,7 +41,7 @@ namespace lucid::gpu
         }
     }
 
-    CFramebuffer* CreateFramebuffer(const FANSIString& InName)
+    CFramebuffer* CreateFramebuffer(const FString& InName)
     {
         GLuint fbo;
         glGenFramebuffers(1, &fbo);
@@ -51,7 +51,7 @@ namespace lucid::gpu
         return GLFramebuffer;
     }
 
-    CRenderbuffer* CreateRenderbuffer(const ERenderbufferFormat& Format, const glm::ivec2& Size, const FANSIString& InName)
+    CRenderbuffer* CreateRenderbuffer(const ERenderbufferFormat& Format, const glm::ivec2& Size, const FString& InName)
     {
         GLenum glRenderbufferType = RENDER_BUFFER_TYPE_MAPPING[static_cast<u8>(Format)];
 
@@ -70,7 +70,7 @@ namespace lucid::gpu
     //        OpenGL framebuffer       //
     /////////////////////////////////////
 
-    CGLFramebuffer::CGLFramebuffer(const GLuint& GLFBOHandle, const FANSIString& InName)
+    CGLFramebuffer::CGLFramebuffer(const GLuint& GLFBOHandle, const FString& InName)
     : CFramebuffer(InName), glFBOHandle(GLFBOHandle)
     {
     }
@@ -182,7 +182,7 @@ namespace lucid::gpu
     CGLRenderbuffer::CGLRenderbuffer(const GLuint& GLRBOHandle,
                                      const ERenderbufferFormat& InFormat,
                                      const glm::ivec2& Size,
-                                     const FANSIString& InName)
+                                     const FString& InName)
     : CRenderbuffer(InName), glRBOHandle(GLRBOHandle), Format(InFormat), size(Size)
     {
     }
@@ -228,7 +228,7 @@ namespace lucid::gpu
     /////////////////////////////////////
 
     CGLDefaultFramebuffer::CGLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight)
-    : CFramebuffer(FString{ "Default" })
+    : CFramebuffer(FSString{ "Default" })
     {
         WindowWidth = InWindowWidth;
         WindowHeight = InWindowHeight;

@@ -14,7 +14,7 @@ namespace lucid::scene
     class CStaticMesh;
     class CSkybox;
 
-    CSkybox* CreateSkybox(const u32& RenderableId, const resources::CTextureResource* FaceTextures[6], const FANSIString& InName);
+    CSkybox* CreateSkybox(const u32& RenderableId, const resources::CTextureResource* FaceTextures[6], const FString& InName);
 
     /*
      * The RenderScene contains things like objects to render, lights, fog volumes in a Renderer-implementation-agnostic format.

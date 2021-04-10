@@ -29,7 +29,8 @@ project "lucid_scene_editor"
       "../../libs/SDL2/include",
       "../../libs/glew/include",
       "../../libs/df_serialize",
-      "../../libs/rapidjson"
+      "../../libs/rapidjson",
+      "../../libs/sole/include"
    }
    
    libdirs { 

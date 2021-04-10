@@ -2,26 +2,13 @@
 
 #include "common/strings.hpp"
 #include "stb_ds.h"
+#include "resources/resource.hpp"
+
 #include <type_traits>
 #include <cassert>
 
 namespace lucid::resources
-{    
-    /*
-     * Interface that represents a resource whose data can be stored in main/video memory or both
-     */
-    class CResource
-    {
-      public:
-        virtual void FreeMainMemory() = 0;
-        virtual void FreeVideoMemory() = 0;
-        virtual ~CResource() = default;
-
-      protected:
-        bool IsVideoMemoryFreed = false;
-        bool IsMainMemoryFreed = false;
-    };
-
+{
     template <typename R, typename = std::enable_if<std::is_base_of<CResource, R>::value>>
     class CResourcesHolder
     {

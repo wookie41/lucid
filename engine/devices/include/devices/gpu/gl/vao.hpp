@@ -8,7 +8,7 @@ namespace lucid::gpu
     class CGLVertexArray : public CVertexArray
     {
       public:
-        CGLVertexArray(const FANSIString& InName,
+        CGLVertexArray(const FString& InName,
                        const GLuint& InGLVAOHandle,
                        const EDrawMode& InDrawMode,
                        const uint32_t& InVertexCount,

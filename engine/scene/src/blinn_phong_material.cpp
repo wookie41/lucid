@@ -9,9 +9,9 @@
 
 namespace lucid::scene
 {
-    static const FString SHININESS("uMaterialShininess");
-    static const FString DIFFUSE_COLOR("uMaterialDiffuseColor");
-    static const FString SPECULAR_COLOR("uMaterialSpecularColor");
+    static const FSString SHININESS("uMaterialShininess");
+    static const FSString DIFFUSE_COLOR("uMaterialDiffuseColor");
+    static const FSString SPECULAR_COLOR("uMaterialSpecularColor");
 
     CBlinnPhongMaterial::CBlinnPhongMaterial(gpu::CShader* InShader) : CMaterial(InShader) {}
 
@@ -24,13 +24,13 @@ namespace lucid::scene
 
     /* ---------------------------------------------------------------------------*/
 
-    static const FString DIFFUSE_MAP("uMaterialDiffuseMap");
-    static const FString SPECULAR_MAP("uMaterialSpecularMap");
-    static const FString NORMAL_MAP("uMaterialNormalMap");
-    static const FString HAS_SPECULAR_MAP("uMaterialHasSpecularMap");
-    static const FString HAS_NORMAL_MAP("uMaterialHasNormalMap");
-    static const FString HAS_DISPLACEMENT_MAP("uMaterialHasDisplacementMap");
-    static const FString DISPLACEMENT_MAP("uMaterialDisplacementMap");
+    static const FSString DIFFUSE_MAP("uMaterialDiffuseMap");
+    static const FSString SPECULAR_MAP("uMaterialSpecularMap");
+    static const FSString NORMAL_MAP("uMaterialNormalMap");
+    static const FSString HAS_SPECULAR_MAP("uMaterialHasSpecularMap");
+    static const FSString HAS_NORMAL_MAP("uMaterialHasNormalMap");
+    static const FSString HAS_DISPLACEMENT_MAP("uMaterialHasDisplacementMap");
+    static const FSString DISPLACEMENT_MAP("uMaterialDisplacementMap");
 
     CBlinnPhongMapsMaterial::CBlinnPhongMapsMaterial(gpu::CShader* InShader) : CMaterial(InShader) {}
 
@@ -59,7 +59,7 @@ namespace lucid::scene
         {
             Shader->SetBool(HAS_NORMAL_MAP, false);
         }
-        
+
         if (DisplacementMap != nullptr)
         {
             Shader->UseTexture(DISPLACEMENT_MAP, DisplacementMap);
@@ -71,44 +71,44 @@ namespace lucid::scene
         }
     };
 
-
-    CMaterial* CreateBlinnPhongMapsMaterial(const FANSIString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader)
-        {
-            gpu::CTexture* FallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
-
-            CBlinnPhongMapsMaterial* Material = new CBlinnPhongMapsMaterial(InShader);
-            Material->Shininess = 32;
-    
-            if (InMesh->DiffuseMap == nullptr)
-            {
-                LUCID_LOG(ELogLevel::INFO, "Mesh is missing a diffuse map");
-                Material->DiffuseMap = FallbackTexture;
-            }
-            else
-            {
-                Material->DiffuseMap = InMesh->DiffuseMap->TextureHandle;
-            }
-    
-            if (InMesh->SpecularMap == nullptr)
-            {
-                LUCID_LOG(ELogLevel::INFO, "Mesh is missing a specular map");
-                Material->SpecularMap = FallbackTexture;
-            }
-            else
-            {
-                Material->SpecularMap = InMesh->SpecularMap->TextureHandle;
-            }
-    
-            if (InMesh->NormalMap == nullptr)
-            {
-                LUCID_LOG(ELogLevel::INFO, "Mesh is missing a normal map");
-                Material->NormalMap = FallbackTexture;
-            }
-            else
-            {
-                Material->NormalMap = InMesh->NormalMap->TextureHandle;
-            }
-
-            return Material;
-        }
+    CMaterial* CreateBlinnPhongMapsMaterial(const FString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader)
+    {
+        // gpu::CTexture* FallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
+        //
+        // CBlinnPhongMapsMaterial* Material = new CBlinnPhongMapsMaterial(InShader);
+        // Material->Shininess = 32;
+        //
+        // if (InMesh->DiffuseMap == nullptr)
+        // {
+        //     LUCID_LOG(ELogLevel::INFO, "Mesh is missing a diffuse map");
+        //     Material->DiffuseMap = FallbackTexture;
+        // }
+        // else
+        // {
+        //     Material->DiffuseMap = InMesh->DiffuseMap->TextureHandle;
+        // }
+        //
+        // if (InMesh->SpecularMap == nullptr)
+        // {
+        //     LUCID_LOG(ELogLevel::INFO, "Mesh is missing a specular map");
+        //     Material->SpecularMap = FallbackTexture;
+        // }
+        // else
+        // {
+        //     Material->SpecularMap = InMesh->SpecularMap->TextureHandle;
+        // }
+        //
+        // if (InMesh->NormalMap == nullptr)
+        // {
+        //     LUCID_LOG(ELogLevel::INFO, "Mesh is missing a normal map");
+        //     Material->NormalMap = FallbackTexture;
+        // }
+        // else
+        // {
+        //     Material->NormalMap = InMesh->NormalMap->TextureHandle;
+        // }
+        //
+        // return Material;
+        return nullptr;
+    }
 } // namespace lucid::scene

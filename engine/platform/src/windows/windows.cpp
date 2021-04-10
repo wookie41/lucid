@@ -28,7 +28,7 @@ namespace lucid::platform
 
     HANDLE* DirectoryChangedHandles;
     
-    i8 AddDirectoryListener(const FANSIString& InDirectoryPath, DirectoryChangedListener InListener)
+    i8 AddDirectoryListener(const FString& InDirectoryPath, DirectoryChangedListener InListener)
     {
         // There is already an entry for this directory, let's just add a listener to it
         if(shgeti(HandleByDirectoryPath, *InDirectoryPath) != -1)
@@ -64,7 +64,7 @@ namespace lucid::platform
         return 0;
     }
 
-    void RemoveDirectoryListener(const FANSIString& InDirectoryPath, DirectoryChangedListener InListener)
+    void RemoveDirectoryListener(const FString& InDirectoryPath, DirectoryChangedListener InListener)
     {
         if(shgeti(HandleByDirectoryPath, *InDirectoryPath) == -1)
         {
@@ -124,7 +124,7 @@ namespace lucid::platform
         }
     }
 
-    i8 ExecuteCommand(const FANSIString& InCommand)
+    i8 ExecuteCommand(const FString& InCommand)
     {
         if(system(*InCommand) != 0)
         {

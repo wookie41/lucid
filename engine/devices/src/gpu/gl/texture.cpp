@@ -75,7 +75,7 @@ namespace lucid::gpu
                               const ETextureDataFormat& InDataFormat,
                               const ETexturePixelFormat& InPixelFormat,
                               const int32_t& MipMapLevel,
-                              const FANSIString& InName)
+                              const FString& InName)
     {
         const GLenum GLDataFormat = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
         const GLenum GLPixelFormat = TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
@@ -108,7 +108,7 @@ namespace lucid::gpu
                                    const ETextureDataFormat& InDataFormat,
                                    const ETexturePixelFormat& InPixelFormat,
                                    const int32_t& MipMapLevel,
-                                   const FANSIString& InName)
+                                   const FString& InName)
     {
         const GLenum GLDataFormat = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
         const GLenum GLPixelFormat = TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
@@ -138,7 +138,7 @@ namespace lucid::gpu
     CGLTexture::CGLTexture(const GLuint& InGLTextureID,
                            const GLenum& InGLTextureTarget,
                            const glm::ivec3& InTextureDimensions,
-                           const FANSIString& InName,
+                           const FString& InName,
                            const GLenum& InGLPixelFormat,
                            const GLenum& InGLTextureDataType,
                            const u64& InSizeInBytes,
@@ -229,7 +229,7 @@ namespace lucid::gpu
                             ETexturePixelFormat InPixelFormat,
                             ETextureDataType DataType,
                             const resources::CTextureResource* FaceTextures[6],
-                            const FANSIString& InName)
+                            const FString& InName)
     {
         GLuint handle;
         glGenTextures(1, &handle);
@@ -267,7 +267,7 @@ namespace lucid::gpu
 
     CGLCubemap::CGLCubemap(const GLuint& Handle,
                            const glm::ivec2& Size,
-                           const FANSIString& InName,
+                           const FString& InName,
                            const ETextureDataType InTextureDataType,
                            const ETexturePixelFormat InTexturePixelFormat)
     : CCubemap(InName, InTextureDataType, InTexturePixelFormat), glCubemapHandle(Handle), size(Size)

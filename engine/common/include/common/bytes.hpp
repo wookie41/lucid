@@ -11,9 +11,9 @@ namespace lucid
 
     struct FMemBuffer
     {
-        char* Pointer;
-        const u32 Capacity;
-        u32 Length = 0;
+        char*   Pointer;
+        u32     Capacity;
+        u32     Length = 0;
     };
 
     struct FBinaryData
@@ -22,8 +22,11 @@ namespace lucid
         {
             return Pointer != InRHS.Pointer;
         }
-        char*   Pointer = nullptr;
-        u64     Size = 0;
+        const char* FileName = nullptr;
+        u64         Size = 0;
+        u64         Offset = 0;         // Offset in the file at which the data is stored (including the CAsset header)
+        char*       Pointer = nullptr;
+
     };
 
     extern FBinaryData EMPTY_BINARY_DATA;

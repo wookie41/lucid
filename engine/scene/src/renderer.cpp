@@ -60,7 +60,7 @@ namespace lucid::scene
                                                                  gpu::ETexturePixelFormat::DEPTH_COMPONENT,
                                                                  gpu::ETextureDataType::FLOAT,
                                                                  nullptr,
-                                                                 FString{ "ShadowCubemap" });
+                                                                 FSString{ "ShadowCubemap" });
 
             auto* ShadowMap = new CShadowMap(arrlen(CreatedShadowMaps), ShadowMapTexture, DefaultShadowMapQuality);
             arrput(CreatedShadowMaps, ShadowMap);
@@ -72,7 +72,7 @@ namespace lucid::scene
                                                                     gpu::ETextureDataFormat::DEPTH_COMPONENT,
                                                                     gpu::ETexturePixelFormat::DEPTH_COMPONENT,
                                                                     0,
-                                                                    FString{ "ShadowMap" });
+                                                                    FSString{ "ShadowMap" });
 
         ShadowMapTexture->Bind();
         ShadowMapTexture->SetWrapSFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);

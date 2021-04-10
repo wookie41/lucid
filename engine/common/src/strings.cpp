@@ -1,7 +1,6 @@
 #include "common/strings.hpp"
+#include "common/bytes.hpp"
 
-#include "stdlib.h"
-#include <cassert>
 #include <cstdarg>
 #include <string.h>
 
@@ -9,19 +8,19 @@
 
 namespace lucid
 {
-    FString EMPTY_STRING { "" };
+    FSString EMPTY_STRING { "" };
 
     /**************************************
     *           Base ANSI String          *
     **************************************/
     
-    FANSIString::FANSIString(char* InCString, const u32& InLength)
+    FString::FString(char* InCString, const u32& InLength)
     {
         CString = InCString;
         UpdateLengthAndCalculateHash(InLength);
     }
 
-    void FANSIString::UpdateLengthAndCalculateHash(const u32& InLength)
+    void FString::UpdateLengthAndCalculateHash(const u32& InLength)
     {
         Length = InLength == 0 ?  strlen(CString) : InLength;
         Hash = 0;
@@ -36,10 +35,10 @@ namespace lucid
     *          Dynamic ANSI String        *
     **************************************/
 
-    FDString::FDString(char* InCString, const u32& InLength) : FANSIString(InCString, InLength) {}
+    FDString::FDString(char* InCString, const u32& InLength) : FString(InCString, InLength) {}
 
     
-    void FDString::Append(const FANSIString& InANSIString)
+    void FDString::Append(const FString& InANSIString)
     {
         Append(*InANSIString, InANSIString.GetLength());
     }
@@ -65,7 +64,7 @@ namespace lucid
     *          Static String            *
     **************************************/
 
-    FString::FString(char* InCString, const u32& InLength) : FANSIString(InCString, InLength) {}
+    FSString::FSString(char* InCString, const u32& InLength) : FString(InCString, InLength) {}
 
     FDString CopyToString(char const* InToCopy, const u32& InStringLength)
     {

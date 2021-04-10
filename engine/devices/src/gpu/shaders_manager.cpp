@@ -14,10 +14,10 @@ namespace lucid::gpu
 
     void ReloadShaders();
 
-    CShader* CShadersManager::CompileShader(const FANSIString& ShaderName,
-                                          const FANSIString& VertexShaderPath,
-                                          const FANSIString& FragmentShaderPath,
-                                          const FANSIString& GeometryShaderPath,
+    CShader* CShadersManager::CompileShader(const FString& ShaderName,
+                                          const FString& VertexShaderPath,
+                                          const FString& FragmentShaderPath,
+                                          const FString& GeometryShaderPath,
                                           const bool& ShouldStoreShader)
     {
         FDString VertexShaderSource = platform::ReadFile(VertexShaderPath, true);
@@ -95,7 +95,7 @@ namespace lucid::gpu
 
     void ReloadShaders()
     {
-        platform::ExecuteCommand(FString { LUCID_TEXT("sh tools\\scripts\\preprocess_shaders.sh") });
+        platform::ExecuteCommand(FSString { LUCID_TEXT("sh tools\\scripts\\preprocess_shaders.sh") });
 
         for (u32 i = 0; i < GShadersManager.CompiledShaders.GetLength(); ++i)
         {

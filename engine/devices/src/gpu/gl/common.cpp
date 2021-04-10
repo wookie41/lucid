@@ -30,7 +30,7 @@ namespace lucid
         return EType::UNSUPPORTED;
     }
 
-    void SetGLObjectName(GLenum InIdentifier, GLuint InGLName, const FANSIString& InName)
+    void SetGLObjectName(GLenum InIdentifier, GLuint InGLName, const FString& InName)
     {
         glObjectLabel(InIdentifier, InGLName, InName.GetLength(), *InName);
     }

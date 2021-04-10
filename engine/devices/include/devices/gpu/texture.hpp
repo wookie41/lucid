@@ -9,7 +9,7 @@ namespace lucid::gpu
     class CTexture : public IFramebufferAttachment, public CGPUObject
     {
       public:
-        CTexture(const FANSIString& InName,
+        CTexture(const FString& InName,
                  const ETextureDataType InTextureDataType,
                  const ETexturePixelFormat InTexturePixelFormat)
         : CGPUObject(InName), TextureDataType(InTextureDataType), TexturePixelFormat(InTexturePixelFormat)
@@ -47,7 +47,7 @@ namespace lucid::gpu
                               const ETextureDataFormat& InDataFormat,
                               const ETexturePixelFormat& InPixelFormat,
                               const int32_t& MipMapLevel,
-                              const FANSIString& InName);
+                              const FString& InName);
 
     CTexture* CreateEmpty2DTexture(const uint32_t& Width,
                                    const uint32_t& Height,
@@ -55,7 +55,7 @@ namespace lucid::gpu
                                    const ETextureDataFormat& InDataFormat,
                                    const ETexturePixelFormat& InPixelFormat,
                                    const int32_t& MipMapLevel,
-                                   const FANSIString& InName);
+                                   const FString& InName);
 
     u8 GetSizeInBytes(const gpu::ETextureDataType& InType);
     u8 GetNumChannels(const gpu::ETexturePixelFormat& InType);

@@ -12,7 +12,7 @@ namespace lucid::gpu
     class CCubemap : public CTexture
     {
       public:
-        explicit CCubemap(const FANSIString& InName,
+        explicit CCubemap(const FString& InName,
                           const ETextureDataType InTextureDataType,
                           const ETexturePixelFormat InTexturePixelFormat)
         : CTexture(InName, InTextureDataType, InTexturePixelFormat)
@@ -39,6 +39,6 @@ namespace lucid::gpu
                             ETexturePixelFormat InPixelFormat,
                             ETextureDataType DataType,
                             const resources::CTextureResource* FacesData[6],
-                            const FANSIString& InName);
+                            const FString& InName);
 
 } // namespace lucid::gpu

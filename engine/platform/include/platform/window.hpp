@@ -53,6 +53,6 @@ namespace lucid::platform
         gpu::FGPUState GPUStateForMyContext;
     };
 
-    CWindow* CreateWindow(const FWindowDefiniton& Definiton);
+    CWindow* CreateNewWindow(const FWindowDefiniton& Definiton);
 
 } // namespace lucid::platform

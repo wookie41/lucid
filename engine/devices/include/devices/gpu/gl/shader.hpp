@@ -29,7 +29,7 @@ namespace lucid::gpu
                  FArray<FUniformVariable> UniformVariables,
                  FArray<FTextureBinding> TextureBindings,
                  const bool& WarnMissingUniforms,
-                 const FANSIString& InName);
+                 const FString& InName);
 
         void SetObjectName() override;
         
@@ -39,22 +39,22 @@ namespace lucid::gpu
 
         virtual void Disable() override;
 
-        virtual void SetInt(const FANSIString& InUniformName, const i32& Value) override;
-        virtual void SetUInt(const FANSIString& InUniformName, const u32& Value) override;
-        virtual void SetFloat(const FANSIString& InUniformName, const float& Value) override;
-        virtual void SetBool(const  FANSIString& InUniformName, const bool& Value) override;
+        virtual void SetInt(const FString& InUniformName, const i32& Value) override;
+        virtual void SetUInt(const FString& InUniformName, const u32& Value) override;
+        virtual void SetFloat(const FString& InUniformName, const float& Value) override;
+        virtual void SetBool(const  FString& InUniformName, const bool& Value) override;
 
-        virtual void SetVector(const FANSIString& InUniformName, const glm::vec2& Value) override;
-        virtual void SetVector(const FANSIString& InUniformName, const glm::vec3& Value) override;
-        virtual void SetVector(const FANSIString& InUniformName, const glm::vec4& Value) override;
+        virtual void SetVector(const FString& InUniformName, const glm::vec2& Value) override;
+        virtual void SetVector(const FString& InUniformName, const glm::vec3& Value) override;
+        virtual void SetVector(const FString& InUniformName, const glm::vec4& Value) override;
 
-        virtual void SetVector(const FANSIString& InUniformName, const glm::ivec2& Value) override;
-        virtual void SetVector(const FANSIString& InUniformName, const glm::ivec3& Value) override;
-        virtual void SetVector(const FANSIString& InUniformName, const glm::ivec4& Value) override;
+        virtual void SetVector(const FString& InUniformName, const glm::ivec2& Value) override;
+        virtual void SetVector(const FString& InUniformName, const glm::ivec3& Value) override;
+        virtual void SetVector(const FString& InUniformName, const glm::ivec4& Value) override;
 
-        virtual void SetMatrix(const FANSIString& InUniformName, const glm::mat4& Value) override;
+        virtual void SetMatrix(const FString& InUniformName, const glm::mat4& Value) override;
 
-        virtual void UseTexture(const FANSIString& InUniformName, CTexture* TextureToUse) override;
+        virtual void UseTexture(const FString& InUniformName, CTexture* TextureToUse) override;
         
         virtual void RestoreTextureBindings() override;
         
@@ -63,8 +63,8 @@ namespace lucid::gpu
 #ifndef NDEBUG
         void ReloadShader(CShader* RecompiledShader) override;
 #endif
-        u32 GetIdForUniform(const FANSIString& InUniformName) const;
-        u32 GetTextureId(const FANSIString& InUniformName) const;
+        u32 GetIdForUniform(const FString& InUniformName) const;
+        u32 GetTextureId(const FString& InUniformName) const;
 
         virtual void Free() override;
         
