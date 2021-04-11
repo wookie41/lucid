@@ -11,9 +11,9 @@ namespace lucid
 
     struct FMemBuffer
     {
-        char*   Pointer;
-        u32     Capacity;
-        u32     Length = 0;
+        char*   Pointer     = nullptr;
+        u32     Capacity    = 0;
+        u32     Size        = 0;
     };
 
     struct FBinaryData

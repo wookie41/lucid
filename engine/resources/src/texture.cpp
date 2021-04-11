@@ -37,7 +37,7 @@ namespace lucid::resources
 
         assert(NumChannels == NumDesiredChannels);
 
-        auto* TextureResource = new CTextureResource(sole::uuid4(), InName, SPrintf("assets/textures/%s", *InName), 0, TextureSize);
+        auto* TextureResource = new CTextureResource(sole::uuid4(), InName, FString  { "" }, 0, TextureSize);
 
         TextureResource->bSRGB          = true;
         TextureResource->DataType       = InDataType;
@@ -131,6 +131,12 @@ namespace lucid::resources
 
     void CTextureResource::LoadDataToMainMemorySynchronously()
     {
+        // Check if we already loaded it
+        if (TextureData)
+        {
+            return;
+        }
+
         FILE* TextureFile;
         if (fopen_s(&TextureFile, *FilePath, "rb") != 0)
         {
@@ -143,10 +149,7 @@ namespace lucid::resources
         TextureData = malloc(DataSize);
 
         const u64 ReadBytes = fread_s(TextureData, DataSize, 1, DataSize, TextureFile);
-
-        LUCID_LOG(ELogLevel::WARN, "Expected %ul got %ul", ReadBytes, DataSize);
         assert(ReadBytes == DataSize);
-
         fclose(TextureFile);
     }
 
@@ -154,6 +157,12 @@ namespace lucid::resources
     {
         // For now we require for the data to be loaded in the main memory
         assert(TextureData);
+
+        // Check if we didn't already load it
+        if (TextureHandle)
+        {
+            return;
+        }
 
         TextureHandle = gpu::Create2DTexture(TextureData, Width, Height, DataType, DataFormat, PixelFormat, 0, Name);
         assert(TextureHandle);

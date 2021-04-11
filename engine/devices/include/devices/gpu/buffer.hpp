@@ -43,9 +43,9 @@ namespace lucid::gpu
 
     struct FBufferDescription
     {
-        uint32_t size = 0;
-        uint32_t offset = 0;
-        void* data = nullptr;
+        u32     Size = 0;
+        u32     Offset = 0;
+        void*   Data = nullptr;
     };
 
     class CBuffer : public CGPUObject

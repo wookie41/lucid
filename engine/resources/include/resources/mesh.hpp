@@ -10,13 +10,6 @@ namespace lucid::resources
 {
     class CTextureResource;
 
-    enum class EMeshFeatures : u32
-    {
-        UV = 0x1,
-        NORMALS = 0x2,
-        TANGENTS = 0x4
-    };
-
     class CMeshResource : public CResource
     {
       public:
@@ -37,18 +30,18 @@ namespace lucid::resources
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
-        u32 FeaturesFlag;
-
-        gpu::CVertexArray*    VAO;
-        gpu::CBuffer*         VertexBuffer;
-        gpu::CBuffer*         ElementBuffer;
+        u32 VertexCount     = 0;
+        u32 ElementCount    = 0;
+        
+        gpu::CVertexArray*    VAO           = nullptr;
+        gpu::CBuffer*         VertexBuffer  = nullptr;
+        gpu::CBuffer*         ElementBuffer = nullptr;
 
         FMemBuffer            VertexData;
         FMemBuffer            ElementData;
     };
 
     // Loads the mesh from the given directory, assumes to following things:
-    // - 'DirectoryPath' ends with '/'
     // - diffuse map is stored in file named 'diffuseMap'
     // - specular map is stored in file named 'specularMap'
     // - normal map is stored in file named 'normalMap'
@@ -62,7 +55,7 @@ namespace lucid::resources
     // Diffuse and specular maps should be stored in JPEG, wheras normal maps
     // should be stored in PNG
 
-    CMeshResource* AssimpLoadMesh(const FString& DirectoryPath, const FString& MeshFileName);
+    CMeshResource* ImportMesh(const FString& DirectoryPath, const FString& MeshFileName, const FString& MeshName);
 
-    extern CResourcesHolder<CMeshResource> MeshesHolder;
+    CMeshResource* LoadMesh(const FString& FilePath);    
 } // namespace lucid::resources

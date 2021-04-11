@@ -8,7 +8,7 @@ namespace lucid::gpu
     class CGLBuffer : public CBuffer
     {
       public:
-        CGLBuffer(const GLuint& BufferHandle, const FBufferDescription& Description, const bool& IsImmutable, const FString& InName);
+        CGLBuffer(const GLuint& InGLBufferHandle, const FBufferDescription& InBufferDescription, const bool& InbImmutable, const FString& InName);
 
         virtual uint32_t GetSize() const override;
 
@@ -29,9 +29,9 @@ namespace lucid::gpu
         virtual void Free() override;
 
       private:
-        EBufferBindPoint currentBindPoint = EBufferBindPoint::UNBOUND;
-        bool isImmutable;
-        GLuint glBufferHandle;
-        FBufferDescription description;
+        EBufferBindPoint    CurrentBindPoint = EBufferBindPoint::UNBOUND;
+        bool                bImmutable : 1;
+        GLuint              GLBufferHandle;
+        FBufferDescription  BufferDescription;
     };
 } // namespace lucid::gpu

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "mesh.hpp"
 #include "resources/resource.hpp"
 #include "resources/texture.hpp"
 
@@ -9,7 +10,7 @@ namespace lucid::resources
     R* LoadResource(FILE* ResourceFile, const FString& ResourceFilePath)
     {
         const u64 Offset = ftell(ResourceFile);
-        
+
         UUID ResourceUUID;
         EResourceType ResourceType;
         u64 ResourceDataSize;
@@ -32,20 +33,25 @@ namespace lucid::resources
         switch (ResourceType)
         {
         case TEXTURE:
-            {
-                LoadedResource = new CTextureResource{ ResourceUUID, FDString{ResourceName}, ResourceFilePath, Offset, ResourceDataSize };
-                break;
-            }
+        {
+            LoadedResource = new CTextureResource{ ResourceUUID, FDString{ ResourceName }, ResourceFilePath, Offset, ResourceDataSize };
+            break;
+        }
+        case MESH:
+        {
+            LoadedResource = new CMeshResource{ ResourceUUID, FDString{ ResourceName }, ResourceFilePath, Offset, ResourceDataSize };
+            break;
+        }
         default:
             assert(0);
         }
 
         assert(LoadedResource);
-        
+
         LoadedResource->LoadMetadata(ResourceFile);
 
         fclose(ResourceFile);
 
         return (R*)LoadedResource;
     }
-}
+} // namespace lucid::resources

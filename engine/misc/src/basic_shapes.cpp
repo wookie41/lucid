@@ -63,8 +63,8 @@ namespace lucid::misc
         gpu::FBufferDescription bufferDescription;
 
         // sending vertex data
-        bufferDescription.data = (void*)(BASIC_QUAD_VERTEX_DATA);
-        bufferDescription.size = sizeof(BASIC_QUAD_VERTEX_DATA);
+        bufferDescription.Data = (void*)(BASIC_QUAD_VERTEX_DATA);
+        bufferDescription.Size = sizeof(BASIC_QUAD_VERTEX_DATA);
 
         gpu::CBuffer* QuadVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FSString {"QuadVertexBuffer"});
 
@@ -84,8 +84,8 @@ namespace lucid::misc
         gpu::FBufferDescription bufferDescription;
 
         // sending vertex data
-        bufferDescription.data = (void*)(CUBE_VERTICES);
-        bufferDescription.size = sizeof(CUBE_VERTICES);
+        bufferDescription.Data = (void*)(CUBE_VERTICES);
+        bufferDescription.Size = sizeof(CUBE_VERTICES);
 
         gpu::CBuffer* VertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC,  FSString{ "CubeVertexBuffer"});
 

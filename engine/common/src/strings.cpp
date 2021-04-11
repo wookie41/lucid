@@ -52,9 +52,7 @@ namespace lucid
         ConcatBuffer[Length + InStringLength] = '\0';
         Free();
         CString = ConcatBuffer;
-        UpdateLengthAndCalculateHash(NewLength);
-
-        
+        UpdateLengthAndCalculateHash(NewLength);        
     }
 
 
@@ -68,9 +66,10 @@ namespace lucid
 
     FDString CopyToString(char const* InToCopy, const u32& InStringLength)
     {
-        char* CopiedString = (char*)CopyBytes(InToCopy, InStringLength, InStringLength + 1);
-        CopiedString[InStringLength] = '\0';
-        return FDString { CopiedString, InStringLength };
+        const u32 StrLength = InStringLength == 0 ? strlen(InToCopy) : InStringLength;
+        char* CopiedString = (char*)CopyBytes(InToCopy, StrLength, StrLength + 1);
+        CopiedString[StrLength] = '\0';
+        return FDString { CopiedString, StrLength };
     }
 
     FDString SPrintf(const char* InFormat, ...)

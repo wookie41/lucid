@@ -1,4 +1,6 @@
 #include <devices/gpu/texture_enums.hpp>
+#include <scene/material.hpp>
+
 
 #include "engine_init.hpp"
 #include "common/collections.hpp"
@@ -27,10 +29,10 @@
 #include "scene/world.hpp"
 
 #include "resources/texture.hpp"
+#include "resources/mesh.hpp"
 
 #include "glm/gtc/quaternion.hpp"
 
-#include "schemas/binary.hpp"
 
 using namespace lucid;
 
@@ -55,61 +57,7 @@ int main(int argc, char** argv)
     gpu::CVertexArray* QuadVAO = misc::CreateQuadVAO();
 
 
-    // Load textures used in the demo scene
-    // resources::CMeshResource* backPackMesh =
-    // resources::AssimpLoadMesh(FString{ LUCID_TEXT("assets\\models\\backpack\\") }, FString{ LUCID_TEXT("backpack.obj") });
-
-    FString BrickDiffuseTextureFilePath         { "assets/textures/BrickDiffuse.asset" };
-    FString BrickNormalTextureFilePath          { "assets/textures/BrickNormal.asset" };
-    FString WoodDiffuseTextureFilePath          { "assets/textures/WoodDiffuse.asset" };
-    FString BlankTextureFilePath                { "assets/textures/Blank.asset" };
-    FString ToyboxNormalTextureFilePath         { "assets/textures/ToyboxNormal.asset" };
-    FString ToyboxDisplacementTextureFilePath   { "assets/textures/ToyboxDisplacement.asset" };
-    FString LightBulbTextureFilePath            { "assets/textures/LightBulb.asset" };
-
-    resources::CTextureResource* BrickDiffuseTextureResource = resources::LoadTexture(BrickDiffuseTextureFilePath);
-    BrickDiffuseTextureResource->LoadDataToMainMemorySynchronously();
-    BrickDiffuseTextureResource->LoadDataToVideoMemorySynchronously();
-    BrickDiffuseTextureResource->FreeMainMemory();
-
-    resources::CTextureResource* BrickNormalTextureResource = resources::LoadTexture(BrickNormalTextureFilePath);
-    BrickNormalTextureResource->LoadDataToMainMemorySynchronously();
-    BrickNormalTextureResource->LoadDataToVideoMemorySynchronously();
-    BrickNormalTextureResource->FreeMainMemory();
-    
-    resources::CTextureResource* WoodDiffuseTextureResource = resources::LoadTexture(WoodDiffuseTextureFilePath);
-    WoodDiffuseTextureResource->LoadDataToMainMemorySynchronously();
-    WoodDiffuseTextureResource->LoadDataToVideoMemorySynchronously();
-    WoodDiffuseTextureResource->FreeMainMemory();
-
-    resources::CTextureResource* BlankTextureResource = resources::LoadTexture(BlankTextureFilePath);
-    BlankTextureResource->LoadDataToMainMemorySynchronously();
-    BlankTextureResource->LoadDataToVideoMemorySynchronously();
-    BlankTextureResource->FreeMainMemory();
-    
-    resources::CTextureResource* ToyboxNormalTextureResource = resources::LoadTexture(ToyboxNormalTextureFilePath);
-    ToyboxNormalTextureResource->LoadDataToMainMemorySynchronously();
-    ToyboxNormalTextureResource->LoadDataToVideoMemorySynchronously();
-    ToyboxNormalTextureResource->FreeMainMemory();
-    
-    resources::CTextureResource* ToyboxDisplacementTextureResource = resources::LoadTexture(ToyboxDisplacementTextureFilePath);
-    ToyboxDisplacementTextureResource->LoadDataToMainMemorySynchronously();
-    ToyboxDisplacementTextureResource->LoadDataToVideoMemorySynchronously();
-    ToyboxDisplacementTextureResource->FreeMainMemory();
-    
-    resources::CTextureResource* LightBulbTextureResource = resources::LoadTexture(LightBulbTextureFilePath);
-    LightBulbTextureResource->LoadDataToMainMemorySynchronously();
-    LightBulbTextureResource->LoadDataToVideoMemorySynchronously();
-    LightBulbTextureResource->FreeMainMemory();
-    
-    // backPackMesh->FreeMainMemory();
-
-    // auto brickWallDiffuseMap = brickWallDiffuseMapResource->TextureHandle;
-    // auto brickWallNormalMap = brickWallNormalMapResource->TextureHandle;
-    // auto woodDiffuseMap = woodDiffuseMapResource->TextureHandle;
-    
     // Load and compile demo shaders
-    
     gpu::CShader* BlinnPhongShader =
         gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("BlinnPhong")},
                                            FString{LUCID_TEXT("shaders/glsl/fwd_blinn_phong.vert")},
@@ -170,6 +118,84 @@ int main(int argc, char** argv)
                                                                            "shaders/glsl/billboard.frag"
                                                                        }, EMPTY_STRING);
     
+    // Load textures and meshes used in the demo scene
+
+    FString BrickDiffuseTextureFilePath         { "assets/textures/BrickDiffuse.asset" };
+    FString BrickNormalTextureFilePath          { "assets/textures/BrickNormal.asset" };
+    FString WoodDiffuseTextureFilePath          { "assets/textures/WoodDiffuse.asset" };
+    FString BlankTextureFilePath                { "assets/textures/Blank.asset" };
+    FString ToyboxNormalTextureFilePath         { "assets/textures/ToyboxNormal.asset" };
+    FString ToyboxDisplacementTextureFilePath   { "assets/textures/ToyboxDisplacement.asset" };
+    FString LightBulbTextureFilePath            { "assets/textures/LightBulb.asset" };
+    
+    FString BackpackMeshFilePath                { "assets/meshes/BackpackMesh.asset" };
+    FString BackpackMeshDiffuseTexturePath      { "assets/textures/Backpack_TextureDiffuse.asset" };
+    FString BackpackMeshNormalTexturePath       { "assets/textures/Backpack_TextureNormal.asset" };
+    FString BackpackMeshSpecularTexturePath     { "assets/textures/Backpack_TextureSpecular.asset" };
+
+    resources::CTextureResource* BrickDiffuseTextureResource = resources::LoadTexture(BrickDiffuseTextureFilePath);
+    BrickDiffuseTextureResource->LoadDataToMainMemorySynchronously();
+    BrickDiffuseTextureResource->LoadDataToVideoMemorySynchronously();
+    BrickDiffuseTextureResource->FreeMainMemory();
+
+    resources::CTextureResource* BrickNormalTextureResource = resources::LoadTexture(BrickNormalTextureFilePath);
+    BrickNormalTextureResource->LoadDataToMainMemorySynchronously();
+    BrickNormalTextureResource->LoadDataToVideoMemorySynchronously();
+    BrickNormalTextureResource->FreeMainMemory();
+    
+    resources::CTextureResource* WoodDiffuseTextureResource = resources::LoadTexture(WoodDiffuseTextureFilePath);
+    WoodDiffuseTextureResource->LoadDataToMainMemorySynchronously();
+    WoodDiffuseTextureResource->LoadDataToVideoMemorySynchronously();
+    WoodDiffuseTextureResource->FreeMainMemory();
+
+    resources::CTextureResource* BlankTextureResource = resources::LoadTexture(BlankTextureFilePath);
+    BlankTextureResource->LoadDataToMainMemorySynchronously();
+    BlankTextureResource->LoadDataToVideoMemorySynchronously();
+    BlankTextureResource->FreeMainMemory();
+    
+    resources::CTextureResource* ToyboxNormalTextureResource = resources::LoadTexture(ToyboxNormalTextureFilePath);
+    ToyboxNormalTextureResource->LoadDataToMainMemorySynchronously();
+    ToyboxNormalTextureResource->LoadDataToVideoMemorySynchronously();
+    ToyboxNormalTextureResource->FreeMainMemory();
+    
+    resources::CTextureResource* ToyboxDisplacementTextureResource = resources::LoadTexture(ToyboxDisplacementTextureFilePath);
+    ToyboxDisplacementTextureResource->LoadDataToMainMemorySynchronously();
+    ToyboxDisplacementTextureResource->LoadDataToVideoMemorySynchronously();
+    ToyboxDisplacementTextureResource->FreeMainMemory();
+    
+    resources::CTextureResource* LightBulbTextureResource = resources::LoadTexture(LightBulbTextureFilePath);
+    LightBulbTextureResource->LoadDataToMainMemorySynchronously();
+    LightBulbTextureResource->LoadDataToVideoMemorySynchronously();
+    LightBulbTextureResource->FreeMainMemory();
+
+    resources::CMeshResource* BackpackMeshResource = resources::LoadMesh(BackpackMeshFilePath);
+    BackpackMeshResource->LoadDataToMainMemorySynchronously();
+    BackpackMeshResource->LoadDataToVideoMemorySynchronously();
+    BackpackMeshResource->FreeMainMemory();
+
+    resources::CTextureResource* BackpackMeshDiffuseTexture = resources::LoadTexture(BackpackMeshDiffuseTexturePath);
+    BackpackMeshDiffuseTexture->LoadDataToMainMemorySynchronously();
+    BackpackMeshDiffuseTexture->LoadDataToVideoMemorySynchronously();
+    BackpackMeshDiffuseTexture->FreeMainMemory();
+
+    resources::CTextureResource* BackpackMeshNormalTexture = resources::LoadTexture(BackpackMeshNormalTexturePath);
+    BackpackMeshNormalTexture->LoadDataToMainMemorySynchronously();
+    BackpackMeshNormalTexture->LoadDataToVideoMemorySynchronously();
+    BackpackMeshNormalTexture->FreeMainMemory();
+
+    resources::CTextureResource* BackpackMeshSpecularTexture = resources::LoadTexture(BackpackMeshSpecularTexturePath);
+    BackpackMeshSpecularTexture->LoadDataToMainMemorySynchronously();
+    BackpackMeshSpecularTexture->LoadDataToVideoMemorySynchronously();
+    BackpackMeshSpecularTexture->FreeMainMemory();
+
+    scene::CBlinnPhongMapsMaterial* BackpackMaterial = new scene::CBlinnPhongMapsMaterial { BlinnPhongMapsShader };
+    BackpackMaterial->Shininess     = 32;
+    BackpackMaterial->DiffuseMap    = BackpackMeshDiffuseTexture->TextureHandle;
+    BackpackMaterial->NormalMap     = BackpackMeshNormalTexture->TextureHandle;
+    BackpackMaterial->SpecularMap   = BackpackMeshSpecularTexture->TextureHandle;
+
+    auto* BackpackStaticMesh = new scene::CStaticMesh { CopyToString("Backpack"), nullptr, BackpackMeshResource->VAO, BackpackMaterial, scene::EStaticMeshType::STATIONARY };
+
     // Prepare the scene
     gpu::FViewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
     
@@ -321,7 +347,7 @@ int main(int argc, char** argv)
     DemoWorld.AddStaticMesh(&cube2);
     DemoWorld.AddStaticMesh(&cube3);
     DemoWorld.AddStaticMesh(&gigaCube);
-    // DemoWorld.AddStaticMesh(backPackRenderable);
+    DemoWorld.AddStaticMesh(BackpackStaticMesh);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
     
     DemoWorld.AddLight(RedSpotLight);

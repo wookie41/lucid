@@ -56,7 +56,7 @@ namespace lucid
         FDString CopyToDynamicString() const;
     };
     
-    FDString CopyToString(char const* InToCopy, const u32& InStringLength);
+    FDString CopyToString(char const* InToCopy, const u32& InStringLength = 0);
 
     FDString SPrintf(const char* InFormat, ...);
     

@@ -1,5 +1,8 @@
 #include "resources/mesh.hpp"
 
+#include <scene/actors/actor.hpp>
+
+
 #include "common/log.hpp"
 #include "common/bytes.hpp"
 
@@ -9,41 +12,132 @@
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include "devices/gpu/buffer.hpp"
-#include "devices/gpu/gpu.hpp"
 #include "resources/texture.hpp"
 #include "platform/util.hpp"
+#include "devices/gpu/texture_enums.hpp"
 
 namespace lucid::resources
 {
     CResourcesHolder<CTextureResource> TexturesHolder{};
-;
+    ;
+
     CMeshResource::CMeshResource(const UUID& InID,
-                         const FString& InName,
-                         const FString& InFilePath,
-                         const u64& InOffset,
-                         const u64& InDataSize)
-    : CResource(InID, InName, InFilePath, InOffset, InDataSize)
+                                 const FString& InName,
+                                 const FString& InFilePath,
+                                 const u64& InOffset,
+                                 const u64& InDataSize)
+        : CResource(InID, InName, InFilePath, InOffset, InDataSize)
     {
     }
 
     void CMeshResource::LoadMetadata(FILE* ResourceFile)
     {
-        assert(0);
+        // Read the size of vertex and element data
+        fread_s(&VertexData.Capacity, sizeof(VertexData.Capacity), sizeof(VertexData.Capacity), 1, ResourceFile);
+        fread_s(&ElementData.Capacity, sizeof(ElementData.Capacity), sizeof(ElementData.Capacity), 1, ResourceFile);
+        fread_s(&VertexCount, sizeof(VertexCount), sizeof(VertexCount), 1, ResourceFile);
+        fread_s(&ElementCount, sizeof(ElementCount), sizeof(ElementCount), 1, ResourceFile);
     }
 
     void CMeshResource::LoadDataToMainMemorySynchronously()
     {
-        assert(0);
+        FILE* MeshFile;
+        if (fopen_s(&MeshFile, *FilePath, "rb") != 0)
+        {
+            LUCID_LOG(ELogLevel::WARN, "Failed to open file %s", *FilePath);
+            return;
+        }
+
+        // Position the file pointer to the beginning of mesh data
+        fseek(MeshFile,Offset + RESOURCE_FILE_HEADER_SIZE + Name.GetLength() + sizeof(VertexData.Capacity) + sizeof(ElementData.Capacity) + sizeof(VertexCount) + sizeof(ElementCount), SEEK_SET);
+
+        // Read vertex data
+        VertexData.Pointer = (char*)malloc(VertexData.Capacity);
+        u64 NumElementsRead = fread_s(VertexData.Pointer, VertexData.Capacity, VertexData.Capacity, 1, MeshFile);
+        assert(NumElementsRead == 1);
+        VertexData.Size = VertexData.Capacity;
+
+        // Read element data
+        if (ElementData.Capacity > 0)
+        {
+            ElementData.Pointer = (char*)malloc(ElementData.Capacity);
+            NumElementsRead = fread_s(ElementData.Pointer, ElementData.Capacity, ElementData.Capacity, 1, MeshFile);
+            assert(NumElementsRead == 1);
+            ElementData.Size = ElementData.Capacity;
+        }
+
+        // Close the file
+        fclose(MeshFile);
     }
 
     void CMeshResource::LoadDataToVideoMemorySynchronously()
     {
-        assert(0);
+        assert(VertexData.Pointer);
+        // Check if we didn't load it already
+        if (VertexBuffer)
+        {
+            return;
+        }
+
+        gpu::FBufferDescription GPUBufferDescription;
+
+        // Sending vertex data to the gpu
+        GPUBufferDescription.Data = VertexData.Pointer;
+        GPUBufferDescription.Size = VertexData.Size;
+
+        VertexBuffer = gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC,
+                                         SPrintf("%s_VertexBuffer", *Name));
+        assert(VertexBuffer);
+
+        // Sending element to the gpu if it's present
+        if (ElementData.Pointer)
+        {
+            GPUBufferDescription.Data = ElementData.Pointer;
+            GPUBufferDescription.Size = ElementData.Size;
+
+            ElementBuffer = gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC,
+                                              SPrintf("%s_ElementBuffer", *Name));
+            assert(ElementBuffer);
+        }
+
+        FArray<gpu::FVertexAttribute> MeshAttributes(4);
+
+        // Position
+        MeshAttributes.Add({ 0, 3, EType::FLOAT, false, sizeof(float) * 11, 0, 0});
+        // Normal
+        MeshAttributes.Add({ 1, 3, EType::FLOAT, false, sizeof(float) * 11, sizeof(float) * 3, 0});
+        // Tangent
+        MeshAttributes.Add({ 2, 3, EType::FLOAT, false, sizeof(float) * 11, sizeof(float) * 6, 0});
+        // UV
+        MeshAttributes.Add({ 3, 2, EType::FLOAT, false, sizeof(float) * 11, sizeof(float) * 9, 0});
+
+        VAO = gpu::CreateVertexArray(SPrintf("%s_VAO", *Name), &MeshAttributes, VertexBuffer, ElementBuffer, gpu::EDrawMode::TRIANGLES, VertexCount, ElementCount);
+        assert(VAO);
+
+        MeshAttributes.Free();
     }
 
     void CMeshResource::SaveSynchronously(FILE* ResourceFile)
     {
-        assert(0);
+        assert(VertexData.Pointer);
+
+        // Write header
+        SaveHeader(ResourceFile);
+
+        // Save size of vertex and element buffer
+        fwrite(&VertexData.Capacity, sizeof(VertexData.Capacity), 1, ResourceFile);
+        fwrite(&ElementData.Capacity, sizeof(ElementData.Capacity), 1, ResourceFile);
+        fwrite(&VertexCount, sizeof(VertexCount), 1, ResourceFile);
+        fwrite(&ElementCount, sizeof(ElementCount), 1, ResourceFile);
+
+        // Save vertex data
+        fwrite(VertexData.Pointer, VertexData.Size, 1, ResourceFile);
+
+        // Save element data if present
+        if (ElementData.Pointer)
+        {
+            fwrite(ElementData.Pointer, ElementData.Size, 1, ResourceFile);
+        }
     }
 
     void CMeshResource::FreeMainMemory()
@@ -69,19 +163,23 @@ namespace lucid::resources
 
     CResourcesHolder<CMeshResource> MeshesHolder;
 
-    static Assimp::Importer assimpImporter;
+    static Assimp::Importer AssimpImporter;
 
-    static const constexpr u32 ASSIMP_DEFAULT_FLAGS = aiProcess_Triangulate | aiProcess_GenSmoothNormals |
-                                                           aiProcess_FlipUVs | aiProcess_CalcTangentSpace |
-                                                           aiProcess_OptimizeMeshes;
+    static const constexpr u32 ASSIMP_DEFAULT_FLAGS = aiProcess_Triangulate |
+            aiProcess_GenSmoothNormals |
+            aiProcess_FlipUVs |
+            aiProcess_CalcTangentSpace |
+            aiProcess_OptimizeMeshes;
 
-    struct MeshSize
+    /* Helper structure used when importing the mesh */
+    struct FMeshSize
     {
         u32 VertexDataSize = 0;
         u32 ElementDataSize = 0;
     };
 
-    struct MeshCPUData
+    /* Helper structure used when importing the mesh */
+    struct FMeshMainMemoryBuffers
     {
         FMemBuffer VertexBuffer;
         FMemBuffer ElementBuffer;
@@ -89,179 +187,135 @@ namespace lucid::resources
         u32 ElementCount = 0;
     };
 
-    struct MeshGPUData
+    static FMeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene);
+
+    static void LoadAssimpNode(const FString& DirectoryPath, aiNode* Node, const aiScene* Scene, FMeshMainMemoryBuffers& MeshData);
+    static void LoadAssimpMesh(const FString& DirectoryPath, aiMesh* mesh, const aiScene* scene, FMeshMainMemoryBuffers& MeshData);
+    
+    static CTextureResource* AssimpImportMaterialTexture(const FString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, const FString& MeshName, const FString& TextureTypeName);
+
+    CMeshResource* ImportMesh(const FString& DirectoryPath, const FString& MeshFileName, const FString& MeshName)
     {
-        gpu::CVertexArray* VAO = nullptr;
-        gpu::CBuffer* VertexBuffer = nullptr;
-        gpu::CBuffer* ElementBuffer = nullptr;
-    };
+        // Read mesh file
+        FDString MeshFilePath = SPrintf("%s/%s", *DirectoryPath, *MeshFileName);
 
-    static MeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene);
-
-    static void LoadAssimpNode(const FString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData);
-
-    static void LoadAssimpMesh(const FString& DirectoryPath, aiMesh* mesh, const aiScene* scene, MeshCPUData& meshData);
-
-    static u32 DetermineMeshFeatures(const aiScene* Root);
-
-    MeshGPUData SendMeshToGPU(const u32& Features, const MeshCPUData& MeshData);
-
-    static CTextureResource* AssimpLoadMaterialTexture(const FString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat);
-
-    CMeshResource* AssimpLoadMesh(const FString& DirectoryPath, const FString& MeshFileName)
-    {
-        // read mesh file
-        FDString MeshFilePath = CopyToString(*DirectoryPath, DirectoryPath.GetLength());
-        MeshFilePath.Append(MeshFileName);
-        
 #ifndef NDEBUG
-        auto start = platform::GetCurrentTimeSeconds();
+        real StartTime = platform::GetCurrentTimeSeconds();
 #endif
-        const aiScene* Root = assimpImporter.ReadFile(*MeshFilePath, ASSIMP_DEFAULT_FLAGS);
 
-        LUCID_LOG(ELogLevel::INFO, "Reading mesh with assimp %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
+        const aiScene* Root = AssimpImporter.ReadFile(*MeshFilePath, ASSIMP_DEFAULT_FLAGS);
+
+        LUCID_LOG(ELogLevel::INFO, "Reading mesh with assimp %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - StartTime);
 
         if (!Root || Root->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !Root->mRootNode)
         {
-            LUCID_LOG(ELogLevel::WARN, "Assimp failed to load model %s", assimpImporter.GetErrorString())
+            LUCID_LOG(ELogLevel::WARN, "Assimp failed to load model %s", AssimpImporter.GetErrorString())
             MeshFilePath.Free();
             return nullptr;
         }
 
-        // allocate main memory for the mesh
+        // Allocate main memory needed for the mesh
+        const FMeshSize MeshDataSize = AssimpCalculateMeshDataSize(Root->mRootNode, Root);
 
-        MeshSize MeshDataSize = AssimpCalculateMeshDataSize(Root->mRootNode, Root);
+        const FMemBuffer VertexDataBuffer = CreateMemBuffer(MeshDataSize.VertexDataSize);
+        const FMemBuffer ElementDataBuffer = MeshDataSize.ElementDataSize > 0
+                                                 ? CreateMemBuffer(MeshDataSize.ElementDataSize)
+                                                 : FMemBuffer{nullptr, 0, 0};
 
-        FMemBuffer VertexDataBuffer = CreateMemBuffer(MeshDataSize.VertexDataSize);
-        FMemBuffer ElementDataBuffer = MeshDataSize.ElementDataSize > 0 ? CreateMemBuffer(MeshDataSize.ElementDataSize) : FMemBuffer{ nullptr, 0, 0 };
+        FMeshMainMemoryBuffers MainMemoryBuffers{VertexDataBuffer, ElementDataBuffer, 0, 0};
 
-        MeshCPUData meshData{ VertexDataBuffer, ElementDataBuffer, 0, 0 };
+        // Load the assimp nodes recursively
 
-        // load the assimp node //
+        StartTime = platform::GetCurrentTimeSeconds();
 
-        start = platform::GetCurrentTimeSeconds();
+        LoadAssimpNode(DirectoryPath, Root->mRootNode, Root, MainMemoryBuffers);
 
-        LoadAssimpNode(DirectoryPath, Root->mRootNode, Root, meshData);
-
-        LUCID_LOG(ELogLevel::INFO, "Vertex data  %u/%u, element data %u/%u", meshData.VertexBuffer.Length,
-                  meshData.VertexBuffer.Capacity, meshData.ElementBuffer.Length, meshData.ElementBuffer.Capacity);
+        LUCID_LOG(ELogLevel::INFO, "Vertex data  %u/%u, element data %u/%u", MainMemoryBuffers.VertexBuffer.Size,
+                  MainMemoryBuffers .VertexBuffer.Capacity, MainMemoryBuffers.ElementBuffer.Size,
+                  MainMemoryBuffers.ElementBuffer.Capacity);
 
 #ifndef NDEBUG
-        LUCID_LOG(ELogLevel::INFO, "Loading mesh %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
+        LUCID_LOG(ELogLevel::INFO, "Loading mesh %s took %f", *MeshFileName,
+                  platform::GetCurrentTimeSeconds() - StartTime);
 #endif
-        u32 MeshFeatures = DetermineMeshFeatures(Root);
 
-        // load the material //
-        aiMaterial* Material = Root->mMaterials[1]; // we require the texture atlases to be stored in the root node
+        // Load textures
+        aiMaterial* Material = Root->mMaterials[1];
 
-        CTextureResource* DiffuseMap = nullptr;
-        CTextureResource* SpecularMap = nullptr;
-        CTextureResource* NormalMap = nullptr;
-
-        start = platform::GetCurrentTimeSeconds();
+        StartTime = platform::GetCurrentTimeSeconds();
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            DiffuseMap = AssimpLoadMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE, false);
+            AssimpImportMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE,  MeshName, FString { "Diffuse" } );
         }
 
-        if (Material->GetTextureCount(aiTextureType_DIFFUSE))
+        if (Material->GetTextureCount(aiTextureType_SPECULAR))
         {
-            SpecularMap = AssimpLoadMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, false);
+            AssimpImportMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, MeshName, FString { "Specular" } );
         }
 
-        if (Material->GetTextureCount(aiTextureType_DIFFUSE))
+        if (Material->GetTextureCount(aiTextureType_HEIGHT))
         {
-            NormalMap = AssimpLoadMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, false);
+            AssimpImportMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, MeshName, FString { "Normal" } );
         }
+
 #ifndef NDEBUG
-        LUCID_LOG(ELogLevel::INFO, "Loading textures %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
+        LUCID_LOG(ELogLevel::INFO, "Loading textures %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - StartTime);
 #endif
+        
         MeshFilePath.Free();
 
-        // send the data to the gpu
-        start = platform::GetCurrentTimeSeconds();
-
-        MeshGPUData meshGPUData = SendMeshToGPU(MeshFeatures, meshData);
-
 #ifndef NDEBUG
 
-        LUCID_LOG(ELogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - start);
+        LUCID_LOG(ELogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshFileName,
+                  platform::GetCurrentTimeSeconds() - StartTime);
 #endif
 
-        // return new CMeshResource{ };
-        return nullptr;
+        auto* ImportedMesh = new CMeshResource { sole::uuid4(), MeshName, FString { "" }, 0, MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize };
+
+        ImportedMesh->VertexData = MainMemoryBuffers.VertexBuffer;
+        ImportedMesh->ElementData = MainMemoryBuffers.ElementBuffer;
+
+        ImportedMesh->VertexCount = MainMemoryBuffers.VertexCount;
+        ImportedMesh->ElementCount = MainMemoryBuffers.ElementCount;
+
+        return ImportedMesh;
     }; // namespace lucid::resources
 
-    static MeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene)
+    static FMeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene)
     {
-        MeshSize meshSize;
+        FMeshSize MeshSize;
         for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
         {
-            aiMesh* mesh = Scene->mMeshes[Node->mMeshes[idx]];
+            aiMesh* MeshNode = Scene->mMeshes[Node->mMeshes[idx]];
             u32 vertexSize = 0;
 
-            vertexSize += sizeof(glm::vec3); // position
+            //Position
+            vertexSize += sizeof(glm::vec3);
+            // Normals
+            vertexSize += sizeof(glm::vec3);
+            // Tangents
+            vertexSize += sizeof(glm::vec3);
+            // UV
+            vertexSize += sizeof(glm::vec2);
 
-            // @Caution this might break when there is some weird mesh 
-            // that doesnt have all of the vertex properties on all of the vertices
-            // this should really happend, but it's worth to have it mind and 
-            // just make it safer in the future, when when have tools that
-            // convert the meshes to engine's internal representation
-
-            if (mesh->HasNormals())
-            {
-                vertexSize += sizeof(glm::vec3);
-            }
-
-            if (mesh->HasTangentsAndBitangents())
-            {
-                vertexSize += sizeof(glm::vec3);
-            }
-
-            if (mesh->HasTangentsAndBitangents())
-            {
-                vertexSize += sizeof(glm::vec2);
-            }
-
-            meshSize.VertexDataSize += mesh->mNumVertices * vertexSize;
-            meshSize.ElementDataSize += (mesh->mNumFaces * 3 * sizeof(u32));
+            MeshSize.VertexDataSize += MeshNode->mNumVertices * vertexSize;
+            MeshSize.ElementDataSize += (MeshNode->mNumFaces * 3 * sizeof(u32));
         }
 
-        // recursively calculate size of the children
+        // Recursively calculate size of the children
         for (unsigned int idx = 0; idx < Node->mNumChildren; ++idx)
         {
-            MeshSize subMeshSize = AssimpCalculateMeshDataSize(Node->mChildren[idx], Scene);
-            meshSize.VertexDataSize += subMeshSize.VertexDataSize;
-            meshSize.ElementDataSize += subMeshSize.ElementDataSize;
+            const FMeshSize SubMeshSize = AssimpCalculateMeshDataSize(Node->mChildren[idx], Scene);
+            MeshSize.VertexDataSize += SubMeshSize.VertexDataSize;
+            MeshSize.ElementDataSize += SubMeshSize.ElementDataSize;
         }
 
-        return meshSize;
+        return MeshSize;
     }
 
-    static u32 DetermineMeshFeatures(const aiScene* Root)
-    {
-        u32 meshFeatures = 0;
-
-        if (Root->mMeshes[0]->HasTextureCoords(0))
-        {
-            meshFeatures |= static_cast<u32>(EMeshFeatures::UV);
-        }
-
-        if (Root->mMeshes[0]->HasNormals())
-        {
-            meshFeatures |= static_cast<u32>(EMeshFeatures::NORMALS);
-        }
-
-        if (Root->mMeshes[0]->HasTangentsAndBitangents())
-        {
-            meshFeatures |= static_cast<u32>(EMeshFeatures::TANGENTS);
-        }
-
-        return meshFeatures;
-    }
-
-    static void LoadAssimpNode(const FString& DirectoryPath, aiNode* Node, const aiScene* Scene, MeshCPUData& meshData)
+    static void LoadAssimpNode(const FString& DirectoryPath, aiNode* Node, const aiScene* Scene,
+                               FMeshMainMemoryBuffers& MeshData)
     {
         // process each mesh located at the current node
         for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
@@ -269,187 +323,127 @@ namespace lucid::resources
             // the node object only contains indices to index the actual objects in the scene.
             // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
             aiMesh* mesh = Scene->mMeshes[Node->mMeshes[idx]];
-            LoadAssimpMesh(DirectoryPath, mesh, Scene, meshData);
+            LoadAssimpMesh(DirectoryPath, mesh, Scene, MeshData);
         }
         // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
         for (u32 idx = 0; idx < Node->mNumChildren; ++idx)
         {
-            LoadAssimpNode(DirectoryPath, Node->mChildren[idx], Scene, meshData);
+            LoadAssimpNode(DirectoryPath, Node->mChildren[idx], Scene, MeshData);
         }
     }
 
-    void LoadAssimpMesh(const FString& DirectoryPath, aiMesh* Mesh, const aiScene* Scene, MeshCPUData& MeshData)
+    void LoadAssimpMesh(const FString& DirectoryPath, aiMesh* Mesh, const aiScene* Scene,
+                        FMeshMainMemoryBuffers& MeshData)
     {
         uint32_t currentTotalElementCount = MeshData.VertexCount;
 
         MeshData.VertexCount += Mesh->mNumVertices;
         for (uint32_t i = 0; i < Mesh->mNumVertices; ++i)
         {
+            glm::vec3* VertexDataPointer = (glm::vec3*)(MeshData.VertexBuffer.Pointer + MeshData.VertexBuffer.Size);
 
-            glm::vec3* vertexPtr = (glm::vec3*)(MeshData.VertexBuffer.Pointer + MeshData.VertexBuffer.Length);
-            // positions
-            vertexPtr->x = Mesh->mVertices[i].x;
-            vertexPtr->y = Mesh->mVertices[i].y;
-            vertexPtr->z = Mesh->mVertices[i].z;
-            vertexPtr += 1;
+            // Position
+            VertexDataPointer->x = Mesh->mVertices[i].x;
+            VertexDataPointer->y = Mesh->mVertices[i].y;
+            VertexDataPointer->z = Mesh->mVertices[i].z;
+            VertexDataPointer += 1;
 
-            MeshData.VertexBuffer.Length += sizeof(glm::vec3);
+            MeshData.VertexBuffer.Size += sizeof(glm::vec3);
 
-            if (Mesh->HasNormals())
-            {
-                // load normals
-                vertexPtr->x = Mesh->mNormals[i].x;
-                vertexPtr->y = Mesh->mNormals[i].y;
-                vertexPtr->z = Mesh->mNormals[i].z;
-                vertexPtr += 1;
-                MeshData.VertexBuffer.Length += sizeof(glm::vec3);
-            }
+            // Normal
+            VertexDataPointer->x = Mesh->mNormals[i].x;
+            VertexDataPointer->y = Mesh->mNormals[i].y;
+            VertexDataPointer->z = Mesh->mNormals[i].z;
+            VertexDataPointer += 1;
+            MeshData.VertexBuffer.Size += sizeof(glm::vec3);
 
-            if (Mesh->HasTangentsAndBitangents())
-            {
-                // load tangents
-                vertexPtr->x = Mesh->mTangents[i].x;
-                vertexPtr->y = Mesh->mTangents[i].y;
-                vertexPtr->z = Mesh->mTangents[i].z;
+            // Tangents
+            VertexDataPointer->x = Mesh->mTangents[i].x;
+            VertexDataPointer->y = Mesh->mTangents[i].y;
+            VertexDataPointer->z = Mesh->mTangents[i].z;
 
-                vertexPtr += 1;
-                MeshData.VertexBuffer.Length += sizeof(glm::vec3);
-            }
+            VertexDataPointer += 1;
+            MeshData.VertexBuffer.Size += sizeof(glm::vec3);
 
-            if (Mesh->HasTextureCoords(0))
-            {
-                glm::vec2* texPtr = (glm::vec2*)vertexPtr;
+            // UV 
+            glm::vec2* texPtr = (glm::vec2*)VertexDataPointer;
 
-                texPtr->x = Mesh->mTextureCoords[0][i].x;
-                texPtr->y = Mesh->mTextureCoords[0][i].y;
-                vertexPtr = (glm::vec3*)(texPtr + 1);
-                MeshData.VertexBuffer.Length += sizeof(glm::vec2);
-            }
+            texPtr->x = Mesh->mTextureCoords[0][i].x;
+            texPtr->y = Mesh->mTextureCoords[0][i].y;
+            VertexDataPointer = (glm::vec3*)(texPtr + 1);
+            MeshData.VertexBuffer.Size += sizeof(glm::vec2);
         }
 
-        // now wak through each of the mesh's faces (a face in a mesh its triangle) and retrieve the corresponding vertex indices.
+        // Now wak through each of the mesh's faces (a face in a mesh it's triangle) and retrieve the corresponding vertex indices.
         for (unsigned int idx = 0; idx < Mesh->mNumFaces; ++idx)
         {
-            aiFace* face = Mesh->mFaces + idx;
-            // copy the face's indicies to the element buffer
-            uint32_t* elementPtr = (uint32_t*)(MeshData.ElementBuffer.Pointer + MeshData.ElementBuffer.Length);
-            const uint32_t faceDataSize = 3 * sizeof(uint32_t);
+            aiFace* Face = Mesh->mFaces + idx;
 
-            elementPtr[0] = (currentTotalElementCount + face->mIndices[0]);
-            elementPtr[1] = (currentTotalElementCount + face->mIndices[1]);
-            elementPtr[2] = (currentTotalElementCount + face->mIndices[2]);
+            // Copy the face's indices to the element buffer
+            u32*            ElementPtr = (uint32_t*)(MeshData.ElementBuffer.Pointer + MeshData.ElementBuffer.Size);
+            const uint32_t  FaceDataSize = 3 * sizeof(uint32_t);
+
+            ElementPtr[0] = (currentTotalElementCount + Face->mIndices[0]);
+            ElementPtr[1] = (currentTotalElementCount + Face->mIndices[1]);
+            ElementPtr[2] = (currentTotalElementCount + Face->mIndices[2]);
 
             MeshData.ElementCount += 3;
-            MeshData.ElementBuffer.Length += faceDataSize;
+            MeshData.ElementBuffer.Size += FaceDataSize;
         }
     }
 
-    static CTextureResource* AssimpLoadMaterialTexture(const FString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, bool IsPNGFormat)
+    static CTextureResource* AssimpImportMaterialTexture(const FString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, const FString& MeshName, const FString& TextureTypeName)
     {
+        // Import the texture
         aiString TextureFileName;
         Material->GetTexture(TextureType, 0, &TextureFileName);
-        FDString TexturePath = CopyToString(*DirectoryPath, DirectoryPath.GetLength());
-        TexturePath.Append(TextureFileName.C_Str(), TextureFileName.length);
+
+        FDString TexturePath = SPrintf("%s/%s", *DirectoryPath, TextureFileName.C_Str());
         
         if (TexturesHolder.Contains(*TexturePath))
         {
             return TexturesHolder.Get(*TexturePath);
         }
 
-        // CTextureResource* Texture = IsPNGFormat ?
-            // LoadPNG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString {"Temporary_name"}) :
-            // LoadJPEG(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, FString {"Temporary_name"});
+        CTextureResource* Texture = ImportJPGTexture(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, false, SPrintf("%s_%s", *MeshName, *TextureTypeName));
 
-        CTextureResource* Texture = nullptr;
-            
-        
         if (Texture == nullptr)
         {
+            LUCID_LOG(ELogLevel::WARN, "Failed to load %s texture of mesh %s", TextureTypeName, MeshName)
             Texture = TexturesHolder.GetDefaultResource();
-        }
-        else
-        {
-            TexturesHolder.Add(*TexturePath, Texture);
         }
 
         TexturePath.Free();
 
+        // Save to a texture asset
+
+        FDString    TextureFilePath = SPrintf("assets/textures/%s_Texture%s.asset", *MeshName, *TextureTypeName);
+        FILE*       TextureFile = fopen(*TextureFilePath, "wb");
+        if (TextureFile == nullptr)
+        {
+            LUCID_LOG(ELogLevel::WARN, "Failed to save save imported %d texture of mesh %s - failed to open the file", *TextureTypeName, *MeshName);
+            return nullptr;
+        }
+
+        Texture->SaveSynchronously(TextureFile);
+        fclose(TextureFile);
+        TextureFilePath.Free();
+        
         return Texture;
     }
 
-    MeshGPUData SendMeshToGPU(const uint32_t& Features, const MeshCPUData& MeshData)
+    CMeshResource* LoadMesh(const FString& FilePath)
     {
-        gpu::FBufferDescription bufferDescription;
-
-        // sending vertex data to the gpu
-        bufferDescription.data = MeshData.VertexBuffer.Pointer;
-        bufferDescription.size = MeshData.VertexBuffer.Length;
-
-        gpu::CBuffer* gpuVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FSString{ "Temporary_Name" });
-        gpu::CBuffer* gpuElementBuffer = nullptr;
-
-        // sending element to the gpu if it's present
-        if (MeshData.ElementBuffer.Pointer)
+        FILE* MeshFile;
+        if(fopen_s(&MeshFile, *FilePath, "rb") != 0)
         {
-            bufferDescription.data = MeshData.ElementBuffer.Pointer;
-            bufferDescription.size = MeshData.ElementBuffer.Length;
-
-            gpuElementBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FSString{ "Temporary_Name" });
+            LUCID_LOG(ELogLevel::ERR, "Failed to mesh texture from file %s", *FilePath);
+            return nullptr;
         }
-
-        // prepare vertex array attributes
-
-        // position is always present
-        u8 numOfAttribues = 1;
-        u8 stride = sizeof(glm::vec3);
-
-        uint32_t currentOffset = sizeof(glm::vec3);
-        uint32_t normalsOffset = 0;
-        uint32_t tangentsOffset = 0;
-        uint32_t uvOffset = 0;
-
-        if (Features & static_cast<uint32_t>(EMeshFeatures::NORMALS))
-        {
-            numOfAttribues += 1;
-            stride += sizeof(glm::vec3);
-            normalsOffset = currentOffset;
-            currentOffset += sizeof(glm::vec3);
-        }
-
-        if (Features & static_cast<uint32_t>(EMeshFeatures::TANGENTS))
-        {
-            numOfAttribues += 1;
-            stride += sizeof(glm::vec3);
-            tangentsOffset = currentOffset;
-            currentOffset += sizeof(glm::vec3);
-        }
-
-        if (Features & static_cast<uint32_t>(EMeshFeatures::UV))
-        {
-            numOfAttribues += 1;
-            stride += sizeof(glm::vec2);
-            uvOffset = currentOffset;
-            currentOffset += sizeof(glm::vec2);
-        }
-
-        FArray<gpu::FVertexAttribute> attributes(numOfAttribues);
-        attributes.Add({ 0, 3, EType::FLOAT, false, stride, 0, 0 });
-
-        uint32_t attributeIdx = 1;
-        if (Features & static_cast<uint32_t>(EMeshFeatures::NORMALS))
-            attributes.Add({ attributeIdx++, 3, EType::FLOAT, false, stride, normalsOffset, 0 });
-
-        if (Features & static_cast<uint32_t>(EMeshFeatures::TANGENTS))
-            attributes.Add({ attributeIdx++, 3, EType::FLOAT, false, stride, tangentsOffset, 0 });
-
-        if (Features & static_cast<uint32_t>(EMeshFeatures::UV))
-            attributes.Add({ attributeIdx++, 2, EType::FLOAT, false, stride, uvOffset, 0 });
-
-        gpu::CVertexArray* vao = gpu::CreateVertexArray(FSString {"Temporary_Name" }, &attributes, gpuVertexBuffer, gpuElementBuffer, gpu::EDrawMode::TRIANGLES,
-                                                       MeshData.VertexCount, MeshData.ElementCount);
-        attributes.Free();
-
-        return MeshGPUData{ vao, gpuVertexBuffer, gpuElementBuffer };
+        
+        CMeshResource* MeshResource = resources::LoadResource<resources::CMeshResource>(MeshFile, FilePath);
+        fclose(MeshFile);
+        return MeshResource;
     }
 
 } // namespace lucid::resources
