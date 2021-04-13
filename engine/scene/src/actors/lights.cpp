@@ -128,8 +128,10 @@ namespace lucid::scene
     
     void CPointLight::UpdateLightSpaceMatrix(const LightSettings& LightSettings)
     {
-        const glm::vec2 ShadowMapSize = ShadowMap->GetShadowMapTexture()->GetSize();
-        glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.f), ShadowMapSize.x / ShadowMapSize.y, NearPlane, FarPlane);
+        const float ShadowMapWidth = (float)ShadowMap->GetShadowMapTexture()->GetWidth();
+        const float ShadowMapHeight = (float)ShadowMap->GetShadowMapTexture()->GetHeight();
+        
+        glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.f), ShadowMapWidth / ShadowMapHeight, NearPlane, FarPlane);
 
         LightSpaceMatrices[0] =
           projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });

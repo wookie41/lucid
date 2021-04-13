@@ -450,7 +450,7 @@ namespace lucid::scene
         PrepassShader->Use();
         SetupRendererWideUniforms(PrepassShader, InRenderView);
 
-        const glm::vec2 NoiseTextureSize = { SSAONoise->GetSize().x, SSAONoise->GetSize().y };
+        const glm::vec2 NoiseTextureSize = { SSAONoise->GetWidth(), SSAONoise->GetHeight() };
         const glm::vec2 ViewportSize = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
         const glm::vec2 NoiseScale = ViewportSize / NoiseTextureSize;
 
@@ -606,7 +606,7 @@ namespace lucid::scene
 
         SkyboxShader->Use();
 
-        SkyboxShader->UseTexture(SKYBOX_CUBEMAP, InSkybox->GetCubemap());
+        SkyboxShader->UseTexture(SKYBOX_CUBEMAP, InSkybox->SkyboxCubemap);
         SkyboxShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
         SkyboxShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
 
@@ -706,7 +706,7 @@ namespace lucid::scene
         }
 
         // Get the result
-        HitMapFramebuffer->ReadPixels(CachedHitMap.CachedTextureData);
+        HitMapFramebuffer->ReadPixels(0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), CachedHitMap.CachedTextureData);
     }
 #endif
 

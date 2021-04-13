@@ -10,14 +10,19 @@ namespace lucid::gpu
     {
       public:
         CTexture(const FString& InName,
+                 const u32& InWidth,
+                 const u32& InHeight,
                  const ETextureDataType InTextureDataType,
                  const ETexturePixelFormat InTexturePixelFormat)
-        : CGPUObject(InName), TextureDataType(InTextureDataType), TexturePixelFormat(InTexturePixelFormat)
+        : CGPUObject(InName), TextureDataType(InTextureDataType), TexturePixelFormat(InTexturePixelFormat), Width(InWidth),
+          Height(InHeight)
         {
         }
 
         virtual void Bind() = 0;
-        virtual glm::ivec3 GetDimensions() const = 0;
+
+        inline u32 GetWidth() const { return Width; }
+        inline u32 GetHeight() const { return Height; }
 
         virtual void SetMinFilter(const MinTextureFilter& Filter) = 0;
         virtual void SetMagFilter(const MagTextureFilter& Filter) = 0;
@@ -36,6 +41,8 @@ namespace lucid::gpu
         virtual ~CTexture() = default;
 
       protected:
+        const u32 Width;
+        const u32 Height;
         const ETextureDataType TextureDataType;
         const ETexturePixelFormat TexturePixelFormat;
     };

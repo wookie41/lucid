@@ -10,7 +10,8 @@ namespace lucid::gpu
       public:
         CGLTexture(const GLuint& InGLTextureID,
                   const GLenum& InGLTextureTarget,
-                  const glm::ivec3& InTextureDimensions,
+                  const u32& InWidth,
+                  const u32& InHeight,
                   const FString& InName,
                   const GLenum& InGLPixelFormat,
                   const GLenum& InGLTextureDataType,
@@ -20,13 +21,8 @@ namespace lucid::gpu
 
     public:
 
-        // Texture methods //
-
+        /** Texture methods */
         virtual void SetObjectName() override;
-
-        virtual glm::ivec3 GetDimensions() const override;
-
-        virtual glm::ivec2 GetSize() const override { return { Dimensions.x, Dimensions.y }; }
 
         virtual void Bind() override;
 
@@ -57,11 +53,10 @@ namespace lucid::gpu
 
       private:
 
-        glm::ivec3 Dimensions;
-        const GLenum GLTextureTarget;
-        const GLuint GLTextureHandle;
-        const GLenum GLPixelFormat;
-        const GLenum GLTextureDataType;
-        u64 SizeInBytes;
+        const GLenum    GLTextureTarget;
+        const GLuint    GLTextureHandle;
+        const GLenum    GLPixelFormat;
+        const GLenum    GLTextureDataType;
+        const u64       SizeInBytes;
     };
 } // namespace lucid::gpu

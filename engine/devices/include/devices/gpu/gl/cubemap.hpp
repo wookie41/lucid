@@ -9,15 +9,15 @@ namespace lucid::gpu
     {
       public:
         explicit CGLCubemap(const GLuint& Handle,
-                            const glm::ivec2& Size,
+                            const u32& InWidth,
+                            const u32& InHeight,
                             const FString& InName,
                             const ETextureDataType InTextureDataType,
                             const ETexturePixelFormat InTexturePixelFormat);
 
         virtual void SetObjectName() override;
 
-        // Framebuffer attachment interface
-        virtual glm::ivec2 GetSize() const override;
+        /** Framebuffer attachment interface */
 
         virtual void AttachAsColor(const u8& Index) override;
         virtual void AttachAsStencil() override;
@@ -28,11 +28,8 @@ namespace lucid::gpu
 
         virtual void AttachAsColor(const u8& Index, EFace InFace) override;
 
-        ////////////////////////////////////
 
-        // Texture interface
-
-        virtual glm::ivec3 GetDimensions() const override;
+        /** Texture interface */
 
         virtual void Bind() override;
         virtual void Free() override;
@@ -45,11 +42,8 @@ namespace lucid::gpu
 
         virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) override;
 
-        ////////////////////////
-
       private:
         GLuint glCubemapHandle;
-        const glm::ivec2 size;
     };
 
 } // namespace lucid::gpu

@@ -12,12 +12,11 @@ namespace lucid::gpu
     class CCubemap : public CTexture
     {
       public:
-        explicit CCubemap(const FString& InName,
-                          const ETextureDataType InTextureDataType,
-                          const ETexturePixelFormat InTexturePixelFormat)
-        : CTexture(InName, InTextureDataType, InTexturePixelFormat)
-        {
-        }
+        CCubemap(const FString& InName,
+                 const u32& InWidth,
+                 const u32& InHeight,
+                 const ETextureDataType InTextureDataType,
+                 const ETexturePixelFormat InTexturePixelFormat);
 
         enum class EFace : u8
         {
@@ -34,11 +33,12 @@ namespace lucid::gpu
         virtual ~CCubemap() = default;
     };
 
-    CCubemap* CreateCubemap(const glm::ivec2& Size,
+    CCubemap* CreateCubemap(const u32& Width,
+                            const u32& Height,
                             ETextureDataFormat InDataFormat,
                             ETexturePixelFormat InPixelFormat,
                             ETextureDataType DataType,
-                            const resources::CTextureResource* FacesData[6],
+                            const void* FaceTexturesData[6],
                             const FString& InName);
 
 } // namespace lucid::gpu

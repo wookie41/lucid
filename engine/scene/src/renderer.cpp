@@ -55,7 +55,8 @@ namespace lucid::scene
     {
         if (InLightType == ELightType::POINT)
         {
-            gpu::CTexture* ShadowMapTexture = gpu::CreateCubemap(ShadowMapSizeByQuality[DefaultShadowMapQuality],
+            gpu::CTexture* ShadowMapTexture = gpu::CreateCubemap(ShadowMapSizeByQuality[DefaultShadowMapQuality].x,
+                                                                ShadowMapSizeByQuality[DefaultShadowMapQuality].y,
                                                                  gpu::ETextureDataFormat::DEPTH_COMPONENT,
                                                                  gpu::ETexturePixelFormat::DEPTH_COMPONENT,
                                                                  gpu::ETextureDataType::FLOAT,

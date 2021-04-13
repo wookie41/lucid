@@ -5,24 +5,27 @@
 namespace lucid::gpu
 {
     class CCubemap;
+    class CTexture;
 }; // namespace lucid::gpu
-
 
 namespace lucid::scene
 {
     class CSkybox : public IActor
     {
-    public:
-        explicit CSkybox(const FDString& InName, const IActor* InParent, gpu::CCubemap* InSkyboxCubemap)
-        : IActor(InName, InParent), SkyboxCubemap(InSkyboxCubemap)
-        {
-            ActorType = EActorType::SKYBOX;
-        }
+      public:
+        CSkybox(const FDString& InName,
+                const IActor* InParent,
+                gpu::CCubemap* InSkyboxCubemap,
+                const u32& InWidth,
+                const u32& InHeight);
 
-        gpu::CCubemap* GetCubemap() const { return SkyboxCubemap; }
 
-    private:
+        u32 Width, Height;
         gpu::CCubemap* SkyboxCubemap = nullptr;
     };
 
-}
+    CSkybox* CreateSkybox(const void* FaceTexturesDAta[6],
+                          const u32& InWidth,
+                          const u32& InHeight,
+                          const FString& InName);
+} // namespace lucid::scene

@@ -24,7 +24,7 @@ namespace lucid::gpu
       public:
         virtual void Bind() = 0;
 
-        virtual glm::ivec2 GetSize() const = 0;
+        // virtual glm::ivec2 GetSize() const = 0;
 
         virtual void AttachAsColor(const u8& Index) = 0;
         virtual void AttachAsStencil() = 0;
@@ -64,8 +64,6 @@ namespace lucid::gpu
 
         virtual bool IsComplete() = 0;
 
-        virtual glm::ivec2 GetColorAttachmentSize(const u8& Idx = 0) const = 0;
-
         virtual void SetupDrawBuffers() = 0;
         virtual void DisableReadWriteBuffers() = 0;
 
@@ -77,7 +75,7 @@ namespace lucid::gpu
         virtual void SetupDepthStencilAttachment(IFramebufferAttachment* AttachmentToUse) = 0;
 
         /** Reads pixels of the first attachment to he specified location */
-        virtual void ReadPixels(void* Pixels) = 0;
+        virtual void ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels) = 0;
 
         virtual void Free() = 0;
 

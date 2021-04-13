@@ -158,13 +158,13 @@ namespace lucid::gpu
         AttachmentToUse->AttachAsStencilDepth();
     }
 
-    void CGLFramebuffer::ReadPixels(void* Pixels)
+    void CGLFramebuffer::ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels)
     {
         assert(GPUState->Framebuffer == this);
-        glReadPixels(0,
-                     0,
-                     colorAttachments[0]->GetSize().x,
-                     colorAttachments[0]->GetSize().y,
+        glReadPixels(InX,
+                     InY,
+                     InWidth,
+                     InHeight,
                      TO_GL_TEXTURE_PIXEL_FORMAT(colorAttachments[0]->GetAttachmentPixelFormat()),
                      TO_GL_TEXTURE_DATA_TYPE(colorAttachments[0]->GetAttachmentDataType()),
                      Pixels);
@@ -236,8 +236,6 @@ namespace lucid::gpu
 
     void CGLDefaultFramebuffer::SetObjectName() { SetGLObjectName(GL_FRAMEBUFFER, 0, Name); }
 
-    glm::ivec2 CGLDefaultFramebuffer::GetColorAttachmentSize(const u8& Idx) const { return { WindowWidth, WindowHeight }; }
-
     void CGLDefaultFramebuffer::SetupDrawBuffers()
     {
         static const GLenum DefaultColorAttachment = GL_COLOR_ATTACHMENT0;
@@ -268,13 +266,13 @@ namespace lucid::gpu
 
     void CGLDefaultFramebuffer::SetupDepthStencilAttachment(IFramebufferAttachment* AttachmentToUse) { assert(0); }
 
-    void CGLDefaultFramebuffer::ReadPixels(void* Pixels)
+    void CGLDefaultFramebuffer::ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels)
     {
         assert(GPUState->Framebuffer == this);
-        glReadPixels(0,
-             0,
-             WindowWidth,
-             WindowHeight,
+        glReadPixels(InX,
+             InY,
+             InWidth,
+             InHeight,
              GL_RGBA,
              GL_UNSIGNED_INT_8_8_8_8,
              Pixels);

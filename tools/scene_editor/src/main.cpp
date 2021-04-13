@@ -27,6 +27,7 @@
 #include "scene/actors/lights.hpp"
 #include "scene/flat_material.hpp"
 #include "scene/world.hpp"
+#include "scene/actors/skybox.hpp"
 
 #include "resources/texture.hpp"
 #include "resources/mesh.hpp"
@@ -117,7 +118,8 @@ int main(int argc, char** argv)
                                                                        FString{"shaders/glsl/billboard.vert"}, FString{
                                                                            "shaders/glsl/billboard.frag"
                                                                        }, EMPTY_STRING);
-    
+
+
     // Load textures and meshes used in the demo scene
 
     FString BrickDiffuseTextureFilePath         { "assets/textures/BrickDiffuse.asset" };
@@ -127,11 +129,6 @@ int main(int argc, char** argv)
     FString ToyboxNormalTextureFilePath         { "assets/textures/ToyboxNormal.asset" };
     FString ToyboxDisplacementTextureFilePath   { "assets/textures/ToyboxDisplacement.asset" };
     FString LightBulbTextureFilePath            { "assets/textures/LightBulb.asset" };
-    
-    FString BackpackMeshFilePath                { "assets/meshes/BackpackMesh.asset" };
-    FString BackpackMeshDiffuseTexturePath      { "assets/textures/Backpack_TextureDiffuse.asset" };
-    FString BackpackMeshNormalTexturePath       { "assets/textures/Backpack_TextureNormal.asset" };
-    FString BackpackMeshSpecularTexturePath     { "assets/textures/Backpack_TextureSpecular.asset" };
 
     resources::CTextureResource* BrickDiffuseTextureResource = resources::LoadTexture(BrickDiffuseTextureFilePath);
     BrickDiffuseTextureResource->LoadDataToMainMemorySynchronously();
@@ -168,6 +165,11 @@ int main(int argc, char** argv)
     LightBulbTextureResource->LoadDataToVideoMemorySynchronously();
     LightBulbTextureResource->FreeMainMemory();
 
+    FString BackpackMeshFilePath                { "assets/meshes/BackpackMesh.asset" };
+    FString BackpackMeshDiffuseTexturePath      { "assets/textures/Backpack_TextureDiffuse.asset" };
+    FString BackpackMeshNormalTexturePath       { "assets/textures/Backpack_TextureNormal.asset" };
+    FString BackpackMeshSpecularTexturePath     { "assets/textures/Backpack_TextureSpecular.asset" };
+    
     resources::CMeshResource* BackpackMeshResource = resources::LoadMesh(BackpackMeshFilePath);
     BackpackMeshResource->LoadDataToMainMemorySynchronously();
     BackpackMeshResource->LoadDataToVideoMemorySynchronously();
@@ -195,6 +197,49 @@ int main(int argc, char** argv)
     BackpackMaterial->SpecularMap   = BackpackMeshSpecularTexture->TextureHandle;
 
     auto* BackpackStaticMesh = new scene::CStaticMesh { CopyToString("Backpack"), nullptr, BackpackMeshResource->VAO, BackpackMaterial, scene::EStaticMeshType::STATIONARY };
+    
+    FString SkyboxRightTextureFilePath  { "assets/textures/SkyboxRight.asset" };
+    FString SkyboxLeftTextureFilePath   { "assets/textures/SkyboxLeft.asset" };
+    FString SkyboxTopTextureFilePath    { "assets/textures/SkyboxTop.asset" };
+    FString SkyboxBottomTextureFilePath { "assets/textures/SkyboxBottom.asset" };
+    FString SkyboxFrontTextureFilePath  { "assets/textures/SkyboxFront.asset" };
+    FString SkyboxBackTextureFilePath   { "assets/textures/SkyboxBack.asset" };
+
+    resources::CTextureResource* SkyboxRightTexture = resources::LoadTexture(SkyboxRightTextureFilePath);
+    SkyboxRightTexture->LoadDataToMainMemorySynchronously();
+
+    resources::CTextureResource* SkyboxLeftTexture = resources::LoadTexture(SkyboxLeftTextureFilePath);
+    SkyboxLeftTexture->LoadDataToMainMemorySynchronously();
+
+    resources::CTextureResource* SkyboxTopTexture = resources::LoadTexture(SkyboxTopTextureFilePath);
+    SkyboxTopTexture->LoadDataToMainMemorySynchronously();
+
+    resources::CTextureResource* SkyboxBottomTexture = resources::LoadTexture(SkyboxBottomTextureFilePath);
+    SkyboxBottomTexture->LoadDataToMainMemorySynchronously();
+
+    resources::CTextureResource* SkyboxFrontTexture = resources::LoadTexture(SkyboxFrontTextureFilePath);
+    SkyboxFrontTexture->LoadDataToMainMemorySynchronously();
+
+    resources::CTextureResource* SkyboxBackTexture = resources::LoadTexture(SkyboxBackTextureFilePath);
+    SkyboxBackTexture->LoadDataToMainMemorySynchronously();
+
+    const void* SkyboxFacesData[6] {
+        SkyboxRightTexture->TextureData,
+        SkyboxLeftTexture->TextureData,
+        SkyboxTopTexture->TextureData,
+        SkyboxBottomTexture->TextureData,
+        SkyboxFrontTexture->TextureData,
+        SkyboxBackTexture->TextureData
+    };
+    
+    scene::CSkybox* Skybox = scene::CreateSkybox(SkyboxFacesData, SkyboxLeftTexture->Width, SkyboxLeftTexture->Height, FString{ "Skybox" });
+
+    SkyboxRightTexture->FreeMainMemory();
+    SkyboxLeftTexture->FreeMainMemory();
+    SkyboxTopTexture->FreeMainMemory();
+    SkyboxBottomTexture->FreeMainMemory();
+    SkyboxFrontTexture->FreeMainMemory();
+    SkyboxBackTexture->FreeMainMemory();
 
     // Prepare the scene
     gpu::FViewport windowViewport{ 0, 0, window->GetWidth(), window->GetHeight() };
@@ -333,12 +378,12 @@ int main(int argc, char** argv)
     };
     shadowCastingLightCube.Transform.Translation = DirectionalLight->Transform.Translation;
     
-    // scene::CPointLight* RedPointLight = Renderer.CreatePointLight(FDString{"RedSpotLight"}, nullptr,true);
-    // RedPointLight->Transform.Translation = { 0, 0, 1.5 };
-    // RedPointLight->Color = { 1, 0, 0 };
-    // RedPointLight->Constant = 1;
-    // RedPointLight->Linear = 0.007;
-    // RedPointLight->Quadratic = 0.017;
+    scene::CPointLight* RedPointLight = Renderer.CreatePointLight(FDString{"RedSpotLight"}, nullptr,true);
+    RedPointLight->Transform.Translation = { 0, 0, 1.5 };
+    RedPointLight->Color = { 1, 0, 0 };
+    RedPointLight->Constant = 1;
+    RedPointLight->Linear = 0.007;
+    RedPointLight->Quadratic = 0.017;
     
     scene::CWorld DemoWorld;
     DemoWorld.Init();
@@ -348,24 +393,14 @@ int main(int argc, char** argv)
     DemoWorld.AddStaticMesh(&cube3);
     DemoWorld.AddStaticMesh(&gigaCube);
     DemoWorld.AddStaticMesh(BackpackStaticMesh);
+    DemoWorld.SetSkybox(Skybox);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
     
     DemoWorld.AddLight(RedSpotLight);
     DemoWorld.AddLight(GreenSpotLight);
     DemoWorld.AddLight(BlueSpotLight);
-    // DemoWorld.AddLight(RedPointLight);
-    
-    // FArray<FString> SkyboxFacesPaths{ 6 };
-    // SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/right.jpg") });
-    // SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/left.jpg") });
-    // SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/top.jpg") });
-    // SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/bottom.jpg") });
-    // SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/front.jpg") });
-    // SkyboxFacesPaths.Add(FString{ LUCID_TEXT("assets/skybox/back.jpg") });
-    //
-    // scene::CSkybox* skybox = scene::CreateSkybox(13, SkyboxFacesPaths, FString{ "Skybox" });
-    // DemoWorld.SetSkybox(skybox);
-    
+    DemoWorld.AddLight(RedPointLight);
+        
     gpu::SetClearColor(BlackColor);
     
     bool isRunning = true;
