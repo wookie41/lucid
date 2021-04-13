@@ -22,7 +22,8 @@ namespace lucid::resources
                          const FString& InName,
                          const FString& InFilePath,
                          const u64& InOffset,
-                         const u64& InDataSize);
+                         const u64& InDataSize,
+                         const u32& InAssetSerializationVersion);
 
         virtual EResourceType GetType() const override { return TEXTURE; };
 

@@ -10,7 +10,6 @@
 
 namespace lucid::gpu
 {
-
     // Texture
     static GLuint CreateGLTexture(const TextureType& TextureType,
                                   const GLint& MipMapLevel,

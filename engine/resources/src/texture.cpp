@@ -4,13 +4,14 @@
 #include "common/log.hpp"
 #include "platform/util.hpp"
 #include "devices/gpu/texture.hpp"
+#include "resources/serialization_versions.hpp"
 
 #include <cassert>
 
 namespace lucid::resources
 {
-#define TEXTURE_RESOURCE_METADATA_SIZE (sizeof(u8) + sizeof(u32) + sizeof(u32) + sizeof(gpu::ETextureDataFormat) + sizeof(gpu::ETextureDataType) + sizeof(gpu::ETexturePixelFormat) )
-
+    #define TEXTURE_RESOURCE_METADATA_SIZE (sizeof(u8) + sizeof(u32) + sizeof(u32) + sizeof(gpu::ETextureDataFormat) + sizeof(gpu::ETextureDataType) + sizeof(gpu::ETexturePixelFormat) )
+    
     static bool texturesInitialized;
 
     CTextureResource* LoadTextureSTB(const FString& InTexturePath,
@@ -37,7 +38,7 @@ namespace lucid::resources
 
         assert(NumChannels == NumDesiredChannels);
 
-        auto* TextureResource = new CTextureResource(sole::uuid4(), InName, FString  { "" }, 0, TextureSize);
+        auto* TextureResource = new CTextureResource(sole::uuid4(), InName, FString  { "" }, 0, TextureSize, TEXTURE_SERIALIZATION_VERSION);
 
         TextureResource->bSRGB          = true;
         TextureResource->DataType       = InDataType;
@@ -114,8 +115,9 @@ namespace lucid::resources
                                        const FString& InName,
                                        const FString& InFilePath,
                                        const u64& InOffset,
-                                       const u64& InDataSize)
-    : CResource(InID, InName, InFilePath, InOffset, InDataSize)
+                                       const u64& InDataSize,
+                                       const u32& InAssetSerializationVersion)
+    : CResource(InID, InName, InFilePath, InOffset, InDataSize, InAssetSerializationVersion)
     {
     }
 
@@ -171,6 +173,9 @@ namespace lucid::resources
     void CTextureResource::SaveSynchronously(FILE* ResourceFile)
     {
         assert(TextureData);
+
+        // Set version of serialization code
+        AssetSerializationVersion = TEXTURE_SERIALIZATION_VERSION;
 
         // Write header
         SaveHeader(ResourceFile);

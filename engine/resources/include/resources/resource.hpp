@@ -6,7 +6,8 @@ namespace lucid::resources
 {
     #define RESOURCE_NAME_LENGTH_SIZE (sizeof(u32))
     #define RESOURCE_DATA_SIZE_SIZE (sizeof(u64))
-    #define RESOURCE_FILE_HEADER_SIZE (sizeof(lucid::UUID) + sizeof(EResourceType) +  RESOURCE_DATA_SIZE_SIZE + RESOURCE_NAME_LENGTH_SIZE)
+    #define RESOURCE_SERIALIZATION_VERSION_SIZE (sizeof(u32))
+    #define RESOURCE_FILE_HEADER_SIZE (sizeof(lucid::UUID) + sizeof(EResourceType) + RESOURCE_SERIALIZATION_VERSION_SIZE + RESOURCE_DATA_SIZE_SIZE + RESOURCE_NAME_LENGTH_SIZE)
 
     enum EResourceType : u8
     {
@@ -19,7 +20,7 @@ namespace lucid::resources
     {
     public:
 
-        CResource(const UUID& InID, const FString& InName, const FString& InFilePath, const u64& InOffset, const u64& InDataSize);
+        CResource(const UUID& InID, const FString& InName, const FString& InFilePath, const u64& InOffset, const u64& InDataSize, const u32& InAssetSerializationVersion);
 
         virtual EResourceType GetType() const = 0;
 
@@ -59,7 +60,9 @@ namespace lucid::resources
         
         /** Size of the resource data in bytes, e.x. image data excluding the metadata like UUID, type etc */
         u64                 DataSize; 
-        
+
+        u32                 AssetSerializationVersion = -1;
+       
         bool                IsVideoMemoryFreed = false;
         bool                IsMainMemoryFreed = false;
     };

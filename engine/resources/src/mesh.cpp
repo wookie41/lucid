@@ -15,9 +15,11 @@
 #include "resources/texture.hpp"
 #include "platform/util.hpp"
 #include "devices/gpu/texture_enums.hpp"
+#include "resources/serialization_versions.hpp"
 
 namespace lucid::resources
 {
+    
     CResourcesHolder<CTextureResource> TexturesHolder{};
     ;
 
@@ -25,8 +27,9 @@ namespace lucid::resources
                                  const FString& InName,
                                  const FString& InFilePath,
                                  const u64& InOffset,
-                                 const u64& InDataSize)
-        : CResource(InID, InName, InFilePath, InOffset, InDataSize)
+                                 const u64& InDataSize,
+                                 const u32& InAssetSerializationVersion)
+        : CResource(InID, InName, InFilePath, InOffset, InDataSize, InAssetSerializationVersion)
     {
     }
 
@@ -120,6 +123,9 @@ namespace lucid::resources
     void CMeshResource::SaveSynchronously(FILE* ResourceFile)
     {
         assert(VertexData.Pointer);
+
+        // Set version of serialization code
+        AssetSerializationVersion = MESH_SERIALIZATION_VERSION;
 
         // Write header
         SaveHeader(ResourceFile);
@@ -271,7 +277,7 @@ namespace lucid::resources
                   platform::GetCurrentTimeSeconds() - StartTime);
 #endif
 
-        auto* ImportedMesh = new CMeshResource { sole::uuid4(), MeshName, FString { "" }, 0, MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize };
+        auto* ImportedMesh = new CMeshResource { sole::uuid4(), MeshName, FString { "" }, 0, MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize, MESH_SERIALIZATION_VERSION };
 
         ImportedMesh->VertexData = MainMemoryBuffers.VertexBuffer;
         ImportedMesh->ElementData = MainMemoryBuffers.ElementBuffer;
