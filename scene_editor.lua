@@ -1,8 +1,3 @@
--- premake5.lua
-workspace "lucid_scene_editor"
-   configurations { "Debug", "Release" }
-   platforms { "Win32", "Win64", "Linux"}
-
 project "lucid_scene_editor"
    kind "ConsoleApp"
    language "C++"
@@ -12,32 +7,32 @@ project "lucid_scene_editor"
    includedirs { "." }
 
    includedirs {
-      "../../engine",  
-      "../../engine/platform/include", 
-      "../../engine/devices/include", 
-      "../../engine/common/include", 
-      "../../engine/misc/include", 
-      "../../engine/scene/include",
-      "../../engine/resources/include", 
-      "../../engine/schemas/include", 
-      "../../libs/stb" 
+      "engine",  
+      "engine/platform/include", 
+      "engine/devices/include", 
+      "engine/common/include", 
+      "engine/misc/include", 
+      "engine/scene/include",
+      "engine/resources/include", 
+      "engine/schemas/include", 
+      "libs/stb" 
    }
 
    includedirs {
-      "include", 
-      "../../libs/glm", 
-      "../../libs/SDL2/include",
-      "../../libs/glew/include",
-      "../../libs/df_serialize",
-      "../../libs/rapidjson",
-      "../../libs/sole/include"
+      "tools/scene_editor/include", 
+      "libs/glm", 
+      "libs/SDL2/include",
+      "libs/glew/include",
+      "libs/df_serialize",
+      "libs/rapidjson",
+      "libs/sole/include"
    }
    
    libdirs { 
-      "../../engine/bin/Debug",
-      "../../libs/glew/lib/x64", 
-      "../../libs/SDL2/lib/x64",
-      "../../libs/assimp/lib/x64" 
+      "engine/bin/Debug",
+      "libs/glew/lib/x64", 
+      "libs/SDL2/lib/x64",
+      "libs/assimp/lib/x64" 
    }
 
    links { 
@@ -48,7 +43,7 @@ project "lucid_scene_editor"
    }
 
    files {
-      "src/*.cpp"
+      "tools/scene_editor/src/*.cpp"
    }
 
    filter "platforms:Win64"
@@ -91,5 +86,5 @@ project "lucid_scene_editor"
 
 -- TODO include only in development
    includedirs {
-        "../../engine/imgui/include"
+        "engine/imgui/include"
    }
