@@ -1,4 +1,4 @@
-#include "resources/mesh.hpp"
+#include "resources/mesh_resource.hpp"
 
 #include <scene/actors/actor.hpp>
 
@@ -12,7 +12,7 @@
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include "devices/gpu/buffer.hpp"
-#include "resources/texture.hpp"
+#include "resources/texture_resource.hpp"
 #include "platform/util.hpp"
 #include "devices/gpu/texture_enums.hpp"
 #include "resources/serialization_versions.hpp"

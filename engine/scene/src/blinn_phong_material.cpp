@@ -4,8 +4,8 @@
 
 #include "common/log.hpp"
 
-#include "resources/mesh.hpp"
-#include "resources/texture.hpp"
+#include "resources/mesh_resource.hpp"
+#include "resources/texture_resource.hpp"
 
 namespace lucid::scene
 {

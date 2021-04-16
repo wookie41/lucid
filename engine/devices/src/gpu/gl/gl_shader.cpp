@@ -1,4 +1,4 @@
-#include "devices/gpu/gl/shader.hpp"
+#include "devices/gpu/gl/gl_shader.hpp"
 
 #include "common/collections.hpp"
 #include "devices/gpu/buffer.hpp"
@@ -6,7 +6,7 @@
 #include "devices/gpu/gpu.hpp"
 #include "common/log.hpp"
 #include "stb.h"
-#include "devices/gpu/gl/common.hpp"
+#include "devices/gpu/gl/gl_common.hpp"
 
 #ifndef NDEBUG
 #include <stdio.h>

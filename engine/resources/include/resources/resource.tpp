@@ -2,10 +2,9 @@
 
 #include <common/log.hpp>
 
-#include "mesh.hpp"
 #include "resources/resource.hpp"
-#include "resources/texture.hpp"
-#include "resources/serialization_versions.hpp"
+#include "resources/mesh_resource.hpp"
+#include "resources/texture_resource.hpp"
 
 namespace lucid::resources
 {

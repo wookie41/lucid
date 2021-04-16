@@ -1,9 +1,9 @@
-#include "devices/gpu/gl/buffer.hpp"
+#include "devices/gpu/gl/gl_buffer.hpp"
 #include "devices/gpu/gpu.hpp"
 
 #include <cassert>
 
-#include "devices/gpu/gl/common.hpp"
+#include "devices/gpu/gl/gl_common.hpp"
 
 #define NO_COHERENT_OR_PERSISTENT_BIT_SET(FLAGS) \
     (((FLAGS & (u16)EBufferAccessPolicy::BUFFER_COHERENT) | (FLAGS & (u16)EBufferAccessPolicy::BUFFER_PERSISTENT)) == 0)

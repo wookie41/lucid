@@ -1,6 +1,6 @@
 #pragma once
 
-#include "resources/holder.hpp"
+#include "resources/resources_holder.hpp"
 #include "common/bytes.hpp"
 
 #include "devices/gpu/vao.hpp"

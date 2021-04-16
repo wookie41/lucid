@@ -1,4 +1,4 @@
-#include "resources/texture.hpp"
+#include "resources/texture_resource.hpp"
 
 #include "stb_image.h"
 #include "common/log.hpp"

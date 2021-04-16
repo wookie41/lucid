@@ -1,7 +1,7 @@
 ﻿#include "resources/resource.hpp"
 
 #include "common/log.hpp"
-#include "resources/texture.hpp"
+#include "resources/texture_resource.hpp"
 
 namespace lucid::resources
 {

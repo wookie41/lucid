@@ -29,11 +29,10 @@
 #include "scene/world.hpp"
 #include "scene/actors/skybox.hpp"
 
-#include "resources/texture.hpp"
-#include "resources/mesh.hpp"
+#include "resources/texture_resource.hpp"
+#include "resources/mesh_resource.hpp"
 
 #include "glm/gtc/quaternion.hpp"
-
 
 using namespace lucid;
 

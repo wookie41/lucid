@@ -5,7 +5,6 @@
 #include "stb_init.hpp"
 #include "devices/gpu/init.hpp"
 #include "devices/gpu/shaders_manager.hpp"
-#include "resources/texture.hpp"
 
 namespace lucid
 {

@@ -1,6 +1,6 @@
 ﻿#include "scene/actors/skybox.hpp"
 #include "devices/gpu/cubemap.hpp"
-#include "resources/texture.hpp"
+#include "resources/texture_resource.hpp"
 
 namespace lucid::scene
 {

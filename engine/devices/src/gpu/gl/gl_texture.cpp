@@ -1,12 +1,12 @@
-#include "devices/gpu/gl/texture.hpp"
-#include "resources/texture.hpp"
+#include "devices/gpu/gl/gl_texture.hpp"
+#include "resources/texture_resource.hpp"
 
-#include "devices/gpu/gl/cubemap.hpp"
+#include "devices/gpu/gl/gl_cubemap.hpp"
 #include "devices/gpu/gpu.hpp"
 
 #include <cassert>
 
-#include "devices/gpu/gl/common.hpp"
+#include "devices/gpu/gl/gl_common.hpp"
 
 namespace lucid::gpu
 {

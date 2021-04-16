@@ -1,4 +1,4 @@
-﻿#include "devices/gpu/gl/common.hpp"
+﻿#include "devices/gpu/gl/gl_common.hpp"
 
 namespace lucid
 {

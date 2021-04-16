@@ -20,7 +20,7 @@
 #include "misc/basic_shapes.hpp"
 #include "misc/math.hpp"
 
-#include "resources/holder.hpp"
+#include "resources/resources_holder.hpp"
 
 namespace lucid::scene
 {

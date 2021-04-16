@@ -1,10 +1,10 @@
-#include "devices/gpu/gl/framebuffer.hpp"
+#include "devices/gpu/gl/gl_framebuffer.hpp"
 
 #include "common/log.hpp"
 #include "devices/gpu/texture.hpp"
 #include "GL/glew.h"
 #include "devices/gpu/gpu.hpp"
-#include "devices/gpu/gl/common.hpp"
+#include "devices/gpu/gl/gl_common.hpp"
 
 namespace lucid::gpu
 {

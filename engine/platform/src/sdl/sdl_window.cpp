@@ -2,7 +2,7 @@
 
 #include "common/log.hpp"
 
-#include "devices/gpu/gl/framebuffer.hpp"
+#include "devices/gpu/gl/gl_framebuffer.hpp"
 #include "devices/gpu/gpu.hpp"
 
 #include "SDL2/SDL.h"
