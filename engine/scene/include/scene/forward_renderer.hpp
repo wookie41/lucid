@@ -28,17 +28,7 @@ namespace lucid::scene
       public:
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
         ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
-                        const u8& InNumSSAOSamples,
-                        gpu::CShader*       InShadowMapShader,
-                        gpu::CShader*       InShadowCubeMapShader,
-                        gpu::CShader*       InPrepassShader,
-                        gpu::CShader*       InSSAOShader,
-                        gpu::CShader*       InSimpleBlurShader,
-                        gpu::CShader*       InSkyboxShader,
-                        gpu::CShader*       InBillboardShader,
-                        gpu::CShader*       InFlatShader,
-                        gpu::CVertexArray*  InScreenWideQuadVAO = nullptr,
-                        gpu::CVertexArray*  InUnitCubeVAO = nullptr);
+                        const u8& InNumSSAOSamples);
 
         virtual void Setup() override;
         virtual void Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView) override;
@@ -80,10 +70,10 @@ namespace lucid::scene
         gpu::CShader* FlatShader;
         
         /** VAO used when doing post-processing */
-        gpu::CVertexArray*  ScreenWideQuadVAO;
+        gpu::CVertexArray*  ScreenWideQuadVAO = nullptr;
 
         /** VAO used when rendering skybox */
-        gpu::CVertexArray*  UnitCubeVAO;
+        gpu::CVertexArray*  UnitCubeVAO = nullptr;
         
         /** Preconfigured pipeline states */
         gpu::FPipelineState ShadowMapGenerationPipelineState;

@@ -13,12 +13,12 @@ namespace lucid::gpu
         virtual void SetObjectName() = 0;
         
         virtual void Free() = 0;
-        virtual ~CGPUObject() = default;
+        virtual ~CGPUObject();
 
         inline const FString& GetName() const { return Name; }
 
       protected:
-        const FString& Name;
+        FString Name;
     };
 
 } // namespace lucid::gpu

@@ -8,17 +8,14 @@
 
 // Reading JSON
 #include "MakeJSONReadHeader.h"
-#include "schemas/resources.hpp"
-#include "schemas/scene.hpp"
+#include "schemas/schemas.hpp"
 #include "MakeJSONReadFooter.h"
 
 // Equality testing (used by json writing to not write default values)
 #include "MakeEqualityTests.h"
-#include "schemas/resources.hpp"
-#include "schemas/scene.hpp"
+#include "schemas/schemas.hpp"
 
 // Writing JSON
 #include "MakeJSONWriteHeader.h"
-#include "schemas/resources.hpp"
-#include "schemas/scene.hpp"
+#include "schemas/schemas.hpp"
 #include "MakeJSONWriteFooter.h"

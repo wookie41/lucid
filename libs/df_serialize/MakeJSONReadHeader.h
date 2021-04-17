@@ -3,6 +3,8 @@
 // RapidJSON Website: https://rapidjson.org/
 // RapidJSON Github:  https://github.com/Tencent/rapidjson/
 
+#include <common/strings.hpp>
+
 #include "_common.h"
 #include "common/bytes.hpp"
 #include "devices/gpu/texture_enums.hpp"
@@ -289,50 +291,17 @@ bool JSONRead(TSTRING& value, T& document)
     return true;
 }
 
-template <typename T>
-bool JSONRead(lucid::FBinaryData& value, T& document)
-{
-    DFS_LOG("Reading binary data from json is not supported\n");
-    return false;
-}
 
 template <typename T>
-bool JSONRead(lucid::gpu::ETextureDataFormat& value, T& document)
+bool JSONRead(lucid::FDString& value, T& document)
 {
-    if (!document.IsUInt())
+    if (!document.IsString())
     {
-        DFS_LOG("Trying to read an int64 but it wasn't an int64\n");
+        DFS_LOG("Trying to read a string but it wasn't a string\n");
         return false;
     }
 
-    value = static_cast<lucid::gpu::ETextureDataFormat>(document.GetUInt());
+    value = lucid::CopyToString(document.GetString());
     return true;
 }
 
-
-template <typename T>
-bool JSONRead(lucid::gpu::ETexturePixelFormat& value, T& document)
-{
-    if (!document.IsUInt())
-    {
-        DFS_LOG("Trying to read an int64 but it wasn't an int64\n");
-        return false;
-    }
-
-    value = static_cast<lucid::gpu::ETexturePixelFormat>(document.GetUInt());
-    return true;
-}
-
-
-template <typename T>
-bool JSONRead(lucid::gpu::ETextureDataType& value, T& document)
-{
-    if (!document.IsUInt())
-    {
-        DFS_LOG("Trying to read an int64 but it wasn't an int64\n");
-        return false;
-    }
-
-    value = static_cast<lucid::gpu::ETextureDataType>(document.GetUInt());
-    return true;
-}

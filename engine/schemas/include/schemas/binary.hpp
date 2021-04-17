@@ -2,12 +2,10 @@
 
 // Binary Reading
 #include "MakeBinaryReadHeader.h"
-#include "schemas/resources.hpp"
-#include "schemas/scene.hpp"
+#include "schemas/schemas.hpp"
 #include "MakeBinaryReadFooter.h"
 
 // Binary Writing
 #include "MakeBinaryWriteHeader.h"
-#include "schemas/resources.hpp"
-#include "schemas/scene.hpp"
+#include "schemas/schemas.hpp"
 #include "MakeBinaryWriteFooter.h"

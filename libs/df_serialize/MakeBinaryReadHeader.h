@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <common/strings.hpp>
+
 
 #include "_common.h"
 #include "common/bytes.hpp"
@@ -279,3 +281,10 @@ bool BinaryRead(lucid::gpu::ETextureDataFormat& value, const TDYNAMICARRAY<char>
     return false;
 }
 
+bool BinaryRead(lucid::FDString& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    // Yes, the strings are null terminated in the binary file
+    value = lucid::CopyToString((const char*)&data[offset]);
+    offset += value.GetLength() + 1;
+    return true;
+}

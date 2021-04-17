@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <cassert>
 
+#include "stb_ds.h"
+
 namespace lucid
 {
     template <typename T>
@@ -131,6 +133,68 @@ namespace lucid
             delete current;
             current = tmp;
         }
+    }
+
+    template <typename K, typename V>
+    void FHashMap<K, V>::Add(const K& Key, const V& Value)
+    {
+        hmput(HashMap, Key, Value);
+    }
+    
+    template <typename K, typename V>
+    V& FHashMap<K, V>::Get(const K& Key)
+    {
+        return hmget(HashMap, Key);
+    }
+
+    template <typename K, typename V>
+    bool FHashMap<K, V>::Contains(const K& Key)
+    {
+        return hmgeti(HashMap, Key) != -1;
+    }
+
+    template <typename K, typename V>
+    u32 FHashMap<K, V>::GetLength()
+    {
+        return hmlen(HashMap);
+    }   
+
+    template <typename K, typename V>
+    V& FHashMap<K, V>::Get(const u64& EntryNum)
+    {
+        assert(EntryNum < GetLength());
+        return HashMap[EntryNum].value;
+    }
+
+    template <typename V>
+    void FStringHashMap<V>::Add(const char* Key, const V& Value)
+    {
+        shput(HashMap, Key, Value);
+    }
+    
+    template <typename V>
+    V& FStringHashMap<V>::Get(const char* Key)
+    {
+        return shget(HashMap, Key);
+    }
+
+    template <typename V>
+    bool FStringHashMap<V>::Contains(const char* Key)
+    {
+        return shgeti(HashMap, Key) != -1;
+    }
+
+    template <typename V>
+    u32 FStringHashMap<V>::GetLength()
+    {
+        return hmlen(HashMap);
+    }   
+
+    template <typename V>
+    V& FStringHashMap<V>::Get(const u64& EntryNum)
+    {
+        assert(EntryNum < GetLength());
+        return HashMap[EntryNum].value;
     }
 
 } // namespace lucid

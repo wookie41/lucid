@@ -22,7 +22,7 @@ namespace lucid
 
     void FString::UpdateLengthAndCalculateHash(const u32& InLength)
     {
-        Length = InLength == 0 ?  strlen(CString) : InLength;
+        Length = InLength == 0 ? strlen(CString) : InLength;
         Hash = 0;
 
         for (u64 Idx = 0; Idx < Length; ++Idx)
@@ -30,14 +30,18 @@ namespace lucid
             Hash = 37 * Hash + CString[Idx];   
         }
     }
-    
+
+    char* FString::GetBytesCopy() const
+    {
+        return (char*)CopyBytes(CString, Length + 1);
+    }
+
     /**************************************
     *          Dynamic ANSI String        *
     **************************************/
 
     FDString::FDString(char* InCString, const u32& InLength) : FString(InCString, InLength) {}
 
-    
     void FDString::Append(const FString& InANSIString)
     {
         Append(*InANSIString, InANSIString.GetLength());
@@ -55,9 +59,24 @@ namespace lucid
         UpdateLengthAndCalculateHash(NewLength);        
     }
 
+    void FDString::operator=(const FDString& InRHS)
+    {
+        CString = InRHS.CString;
+        Length = InRHS.Length;
+        Hash = InRHS.Hash;
+    }
 
     void FDString::Free() { free(CString); }
 
+    void FDString::Resize(const u32& NewLength)
+    {
+        char* NewStr = (char*)CopyBytes(CString, Length, NewLength + 1);
+        free(CString);
+        CString = NewStr;
+        UpdateLengthAndCalculateHash(NewLength);
+        CString[NewLength] = 0;
+    }
+    
     /**************************************
     *          Static String            *
     **************************************/

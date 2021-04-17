@@ -5,7 +5,7 @@
 
 namespace lucid::platform
 {    
-    FDString ReadFile(const FString& FilePath, const bool& NullTerminate);
+    FDString ReadFile(const char* FilePath, const bool& NullTerminate);
     
     /**
      * Adds a listener that is called when files in the directory or the directory itself changes.

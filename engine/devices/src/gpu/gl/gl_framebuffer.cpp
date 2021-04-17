@@ -228,7 +228,7 @@ namespace lucid::gpu
     /////////////////////////////////////
 
     CGLDefaultFramebuffer::CGLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight)
-    : CFramebuffer(FSString{ "Default" })
+    : CFramebuffer(CopyToString("Default"))
     {
         WindowWidth = InWindowWidth;
         WindowHeight = InWindowHeight;

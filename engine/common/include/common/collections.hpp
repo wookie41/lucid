@@ -53,6 +53,47 @@ namespace lucid
         FLinkedListItem<T> Head;
         FLinkedListItem<T>* Tail;
     };
+
+    template <typename K, typename V>
+    struct FHashMap
+    {
+    public:
+
+        void        Add(const K& Key, const V& Value);
+        V&          Get(const K& Key);
+        V&          Get(const u64& EntryNum);
+        bool        Contains(const K& Key);
+        u32         GetLength();
+
+    private:
+        
+        struct
+        {
+            K   key;
+            V   value;
+        }* HashMap = NULL;
+    };
+
+    template <typename V>
+    struct FStringHashMap
+    {
+    public:
+
+        void        Add(const char* Key, const V& Value);
+        V&          Get(const char* Key);
+        V&          Get(const u64& EntryNum);
+        bool        Contains(const char* Key);
+        u32         GetLength();
+    private:
+        
+        struct
+        {
+            char*   key;
+            V       value;
+        }* HashMap = NULL;
+    };
+
+    
 } // namespace lucid
 
 #include "common/collections.tpp"

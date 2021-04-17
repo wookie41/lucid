@@ -185,30 +185,11 @@ rapidjson::Value MakeJSONValue(const TSTRING& value, rapidjson::Document::Alloca
     return ret;
 }
 
-rapidjson::Value MakeJSONValue(const lucid::FBinaryData& value, rapidjson::Document::AllocatorType& allocator)
+
+rapidjson::Value MakeJSONValue(const lucid::FDString& value, rapidjson::Document::AllocatorType& allocator)
 {
     rapidjson::Value ret;
-    DFS_LOG("Writing binary data to json is not supported\n");
+    ret.SetString(*value, allocator);
     return ret;
 }
 
-rapidjson::Value MakeJSONValue(lucid::gpu::ETexturePixelFormat& value, rapidjson::Document::AllocatorType& allocator)
-{
-    rapidjson::Value ret;
-    ret.SetUint(static_cast<uint8_t>(value));
-    return ret;
-}
-
-rapidjson::Value MakeJSONValue(lucid::gpu::ETextureDataType& value, rapidjson::Document::AllocatorType& allocator)
-{
-    rapidjson::Value ret;
-    ret.SetUint(static_cast<uint8_t>(value));
-    return ret;
-}
-
-rapidjson::Value MakeJSONValue(lucid::gpu::ETextureDataFormat& value, rapidjson::Document::AllocatorType& allocator)
-{
-    rapidjson::Value ret;
-    ret.SetUint(static_cast<uint8_t>(value));
-    return ret;
-}

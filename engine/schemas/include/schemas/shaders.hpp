@@ -1,0 +1,13 @@
+﻿STRUCT_BEGIN(lucid, FShaderInfo, "Description of the shader program - what shaders make it up")
+    STRUCT_FIELD(lucid::FDString, Name, "", "Name of the shader")
+    STRUCT_FIELD(lucid::FDString, VertexShaderSourcePath, "", "Path to the vertex shader source")
+    STRUCT_FIELD(lucid::FDString, FragmentShaderSourcePath, "", "Path to the fragment shader source")
+    STRUCT_FIELD(lucid::FDString, GeometryShaderSourcePath, "", "Path to the geometry shader source")
+    STRUCT_FIELD(lucid::FDString, VertexShaderBinaryDataPath, "", "Path to the vertex shader cached binary data")
+    STRUCT_FIELD(lucid::FDString, FragmentShaderBinaryDataPath, "", "Path to the fragment shader cached binary data")
+    STRUCT_FIELD(lucid::FDString, GeometryShaderBinaryDataPath, "", "Path to the geometry shader cached binary data")
+STRUCT_END()
+
+STRUCT_BEGIN(lucid, FShadersDataBase, "Description of the shader program - what shaders make it up")
+    STRUCT_DYNAMIC_ARRAY(FShaderInfo, Shaders, {}, "Array of the shader")
+STRUCT_END()

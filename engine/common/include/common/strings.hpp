@@ -13,14 +13,18 @@ namespace lucid
      */
     struct FString
     {
-        explicit FString(char* InCString, const u32& InLength = 0);
+    public:
+        FString(char* InCString, const u32& InLength = 0);
 
         char operator[](const u32& InIndex) const;
         const char* operator*() const { return CString; } 
 
+        char* GetBytesCopy() const;
         inline bool operator==(const FString& InRhs) const { return Hash == InRhs.Hash; };
+        inline bool operator!=(const FString& InRhs) const { return Hash != InRhs.Hash; };
         inline u32 GetLength() const { return Length; }
         inline u64 GetHash() const { return Hash; }
+        virtual void Free() {}
 
         virtual ~FString() = default;
 
@@ -38,12 +42,16 @@ namespace lucid
      */
     struct FDString : public FString
     {
-        explicit FDString(char* InCString, const u32& InLength = 0);
+        FDString(char* InCString = nullptr, const u32& InLength = 0);
         
         void Append(const FString& InString);
         void Append(const char* InString, const u64& InStringLength);
+
+        void operator=(const FDString& InRHS);
+
+        void Resize(const u32& NewLength);
         
-        void Free();
+        virtual void Free() override;
     };
 
     /**
@@ -52,7 +60,6 @@ namespace lucid
     struct FSString : public FString
     {
         explicit FSString(char* InCString, const u32& InLength = 0);
-
         FDString CopyToDynamicString() const;
     };
     

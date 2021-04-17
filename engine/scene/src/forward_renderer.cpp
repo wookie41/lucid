@@ -1,5 +1,8 @@
 #include "scene/forward_renderer.hpp"
 
+#include <devices/gpu/shaders_manager.hpp>
+
+
 #include "common/log.hpp"
 #include "common/collections.hpp"
 
@@ -69,37 +72,33 @@ namespace lucid::scene
     static const FSString ACTOR_ID("uActorId");
 #endif
 
-    ForwardRenderer::ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
-                                     const u8& InNumSSAOSamples,
-                                     gpu::CShader* InShadowMapShader,
-                                     gpu::CShader* InShadowCubeMapShader,
-                                     gpu::CShader* InPrepassShader,
-                                     gpu::CShader* InSSAOShader,
-                                     gpu::CShader* InSimpleBlurShader,
-                                     gpu::CShader* InSkyboxShader,
-                                     gpu::CShader* InBillboardShader,
-                                     gpu::CShader* InFlatShader,
-                                     gpu::CVertexArray* InScreenWideQuadVAO,
-                                     gpu::CVertexArray* InUnitCubeVAO)
-    : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples),
-      ShadowMapShader(InShadowMapShader), ShadowCubeMapShader(InShadowCubeMapShader), PrepassShader(InPrepassShader),
-      SSAOShader(InSSAOShader), SimpleBlurShader(InSimpleBlurShader), SkyboxShader(InSkyboxShader),
-      BillboardShader(InBillboardShader), FlatShader(InFlatShader), ScreenWideQuadVAO(InScreenWideQuadVAO),
-      UnitCubeVAO(InUnitCubeVAO)
+    ForwardRenderer::ForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples)
+    : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples)
     {
     }
 
     void ForwardRenderer::Setup()
     {
-        if (!ScreenWideQuadVAO)
+        if (ScreenWideQuadVAO == nullptr)
         {
             ScreenWideQuadVAO = misc::CreateQuadVAO();
         }
 
-        if (!UnitCubeVAO)
+        if (UnitCubeVAO == nullptr)
         {
             UnitCubeVAO = misc::CreateCubeVAO();
         }
+
+        HitMapShader = gpu::GShadersManager.GetShaderByName("Hitmap");
+        BillboardHitMapShader = gpu::GShadersManager.GetShaderByName("BillboardHitmap");
+        ShadowMapShader = gpu::GShadersManager.GetShaderByName("ShadowMap");
+        ShadowCubeMapShader = gpu::GShadersManager.GetShaderByName("ShadowCubemap");
+        PrepassShader = gpu::GShadersManager.GetShaderByName("ForwardPrepass");
+        SSAOShader = gpu::GShadersManager.GetShaderByName("SSAO");
+        SimpleBlurShader = gpu::GShadersManager.GetShaderByName("SimpleBlur");
+        SkyboxShader = gpu::GShadersManager.GetShaderByName("Skybox");
+        BillboardShader = gpu::GShadersManager.GetShaderByName("Billboard");
+        FlatShader = gpu::GShadersManager.GetShaderByName("Flat");
 
         // Prepare pipeline states
         ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor{ 0 };

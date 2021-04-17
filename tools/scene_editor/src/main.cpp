@@ -33,12 +33,12 @@
 #include "resources/mesh_resource.hpp"
 
 #include "glm/gtc/quaternion.hpp"
+#include "schemas/types.hpp"
+#include "schemas/json.hpp"
 
-using namespace lucid;
 
 #include "imgui.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+using namespace lucid;
 
 int main(int argc, char** argv)
 {
@@ -56,69 +56,11 @@ int main(int argc, char** argv)
     gpu::CVertexArray* UnitCubeVAO = misc::CreateCubeVAO();
     gpu::CVertexArray* QuadVAO = misc::CreateQuadVAO();
 
+    FShadersDataBase ShadersDatabase;
+    ReadFromJSONFile(ShadersDatabase, "assets/shaders/shaders_database.json");
 
-    // Load and compile demo shaders
-    gpu::CShader* BlinnPhongShader =
-        gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("BlinnPhong")},
-                                           FString{LUCID_TEXT("shaders/glsl/fwd_blinn_phong.vert")},
-                                           FString{LUCID_TEXT("shaders/glsl/fwd_blinn_phong.frag")},
-                                           EMPTY_STRING);
-    gpu::CShader* BlinnPhongMapsShader =
-        gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("BlinnPhongMaps")},
-                                           FString{LUCID_TEXT("shaders/glsl/fwd_blinn_phong_maps.vert")},
-                                           FString{LUCID_TEXT("shaders/glsl/fwd_blinn_phong_maps.frag")},
-                                           EMPTY_STRING);
-    gpu::CShader* SkyboxShader = gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("Skybox")},
-                                                                    FString{LUCID_TEXT("shaders/glsl/skybox.vert")},
-                                                                    FString{LUCID_TEXT("shaders/glsl/skybox.frag")},
-                                                                    EMPTY_STRING);
-    gpu::CShader* ShadowMapShader = gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("ShadowMap")},
-                                                                       FString{
-                                                                           LUCID_TEXT("shaders/glsl/shadow_map.vert")
-                                                                       },
-                                                                       FString{LUCID_TEXT("shaders/glsl/empty.frag")},
-                                                                       EMPTY_STRING);
-    gpu::CShader* ShadowCubemapShader =
-        gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("CubeShadowMap")},
-                                           FString{LUCID_TEXT("shaders/glsl/shadow_cubemap.vert")},
-                                           FString{LUCID_TEXT("shaders/glsl/shadow_cubemap.frag")},
-                                           FString{LUCID_TEXT("shaders/glsl/shadow_cubemap.geom")});
+    gpu::GShadersManager.LoadShadersDatabase(ShadersDatabase);
     
-    gpu::CShader* FlatShader = gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("FlatShadowMap")},
-                                                                  FString{LUCID_TEXT("shaders/glsl/flat.vert")},
-                                                                  FString{LUCID_TEXT("shaders/glsl/flat.frag")},
-                                                                  EMPTY_STRING);
-    gpu::CShader* ForwardPrepassShader =
-        gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("ForwardPrepass")},
-                                           FString{LUCID_TEXT("shaders/glsl/forward_prepass.vert")},
-                                           FString{LUCID_TEXT("shaders/glsl/forward_prepass.frag")},
-                                           EMPTY_STRING);
-    gpu::CShader* SSAOShader = gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("SSAO")},
-                                                                  FString{LUCID_TEXT("shaders/glsl/ssao.vert")},
-                                                                  FString{LUCID_TEXT("shaders/glsl/ssao.frag")},
-                                                                  EMPTY_STRING);
-    gpu::CShader* SimpleBlurShader = gpu::GShadersManager.CompileShader(FString{LUCID_TEXT("Simple blur")},
-                                                                        FString{
-                                                                            LUCID_TEXT("shaders/glsl/simple_blur.vert")
-                                                                        },
-                                                                        FString{
-                                                                            LUCID_TEXT("shaders/glsl/simple_blur.frag")
-                                                                        },
-                                                                        EMPTY_STRING);
-    
-    gpu::CShader* HitmapShader = gpu::GShadersManager.CompileShader(FString{"HitMapShader"},
-                                                                    FString{"shaders/glsl/hit_map.vert"}, FString{
-                                                                        "shaders/glsl/hit_map.frag"
-                                                                    }, EMPTY_STRING);
-    gpu::CShader* BillboardHitmapShader = gpu::GShadersManager.CompileShader(
-        FString{"HitMapShader"}, FString{"shaders/glsl/billboard_hitmap.vert"}, FString{"shaders/glsl/hit_map.frag"},
-        EMPTY_STRING);
-    gpu::CShader* BillboardShader = gpu::GShadersManager.CompileShader(FString{"BillboardShader"},
-                                                                       FString{"shaders/glsl/billboard.vert"}, FString{
-                                                                           "shaders/glsl/billboard.frag"
-                                                                       }, EMPTY_STRING);
-
-
     // Load textures and meshes used in the demo scene
 
     FString BrickDiffuseTextureFilePath         { "assets/textures/BrickDiffuse.asset" };
@@ -189,7 +131,7 @@ int main(int argc, char** argv)
     BackpackMeshSpecularTexture->LoadDataToVideoMemorySynchronously();
     BackpackMeshSpecularTexture->FreeMainMemory();
 
-    scene::CBlinnPhongMapsMaterial* BackpackMaterial = new scene::CBlinnPhongMapsMaterial { BlinnPhongMapsShader };
+    scene::CBlinnPhongMapsMaterial* BackpackMaterial = new scene::CBlinnPhongMapsMaterial { gpu::GShadersManager.GetShaderByName("BlinnPhongMaps") };
     BackpackMaterial->Shininess     = 32;
     BackpackMaterial->DiffuseMap    = BackpackMeshDiffuseTexture->TextureHandle;
     BackpackMaterial->NormalMap     = BackpackMeshNormalTexture->TextureHandle;
@@ -250,26 +192,22 @@ int main(int argc, char** argv)
     PerspectiveCamera.UpdateCameraVectors();
     PerspectiveCamera.Right = window->GetWidth();
     PerspectiveCamera.Top = window->GetHeight();
-    scene::ForwardRenderer Renderer{
-        32,           64,           ShadowMapShader, ShadowCubemapShader, ForwardPrepassShader, SSAOShader, SimpleBlurShader,
-        SkyboxShader, BillboardShader, FlatShader
-    };
-    Renderer.HitMapShader = HitmapShader;
-    Renderer.BillboardHitMapShader = BillboardHitmapShader;
+
+    scene::ForwardRenderer Renderer { 32, 4 };
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
     Renderer.FramebufferSize = { window->GetWidth(), window->GetHeight() };
     Renderer.LightBulbTexture = LightBulbTextureResource->TextureHandle;
     Renderer.Setup();
     
-    scene::CBlinnPhongMapsMaterial woodMaterial{ BlinnPhongMapsShader };
+    scene::CBlinnPhongMapsMaterial woodMaterial { gpu::GShadersManager.GetShaderByName("BlinnPhongMaps") };
     woodMaterial.Shininess = 32;
     woodMaterial.DiffuseMap = WoodDiffuseTextureResource->TextureHandle;
     woodMaterial.SpecularColor = glm::vec3{ 0.5 };
     woodMaterial.NormalMap = nullptr;
     woodMaterial.SpecularMap = nullptr;
     
-    scene::CBlinnPhongMapsMaterial brickMaterial{ BlinnPhongMapsShader };
+    scene::CBlinnPhongMapsMaterial brickMaterial { gpu::GShadersManager.GetShaderByName("BlinnPhongMaps") };
     brickMaterial.Shininess = 32;
     brickMaterial.DiffuseMap = BrickDiffuseTextureResource->TextureHandle;
     brickMaterial.SpecularMap = nullptr;
@@ -277,7 +215,7 @@ int main(int argc, char** argv)
     brickMaterial.NormalMap = BrickNormalTextureResource->TextureHandle;
     brickMaterial.SpecularColor = glm::vec3{ 0.2 };
     
-    scene::CBlinnPhongMapsMaterial toyboxMaterial{ BlinnPhongMapsShader };
+    scene::CBlinnPhongMapsMaterial toyboxMaterial{ gpu::GShadersManager.GetShaderByName("BlinnPhongMaps") };
     toyboxMaterial.Shininess = 32;
     toyboxMaterial.DiffuseMap = WoodDiffuseTextureResource->TextureHandle;
     toyboxMaterial.SpecularMap = nullptr;
@@ -285,7 +223,7 @@ int main(int argc, char** argv)
     toyboxMaterial.DisplacementMap = ToyboxDisplacementTextureResource->TextureHandle;
     toyboxMaterial.SpecularColor = glm::vec3{ 0.2 };
     
-    scene::CBlinnPhongMaterial flatBlinnPhongMaterial{ BlinnPhongShader };
+    scene::CBlinnPhongMaterial flatBlinnPhongMaterial{ gpu::GShadersManager.GetShaderByName("BlinnPhong") };
     flatBlinnPhongMaterial.DiffuseColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.Shininess = 32;
@@ -324,16 +262,16 @@ int main(int argc, char** argv)
     // BlinnPhongMapsShader); backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
     // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
     
-    scene::FlatMaterial flatWhiteMaterial{ FlatShader };
+    scene::FlatMaterial flatWhiteMaterial{ gpu::GShadersManager.GetShaderByName("Flat") };
     flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
     
-    scene::FlatMaterial flatRedMaterial{ FlatShader };
+    scene::FlatMaterial flatRedMaterial{ gpu::GShadersManager.GetShaderByName("Flat") };
     flatRedMaterial.Color = { 1.0, 0.0, 0.0, 1.0 };
     
-    scene::FlatMaterial flatGreenMaterial{ FlatShader };
+    scene::FlatMaterial flatGreenMaterial{ gpu::GShadersManager.GetShaderByName("Flat") };
     flatGreenMaterial.Color = { 0.0, 1.0, 0.0, 1.0 };
     
-    scene::FlatMaterial flatBlueMaterial{ FlatShader };
+    scene::FlatMaterial flatBlueMaterial{ gpu::GShadersManager.GetShaderByName("Flat") };
     flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
     
     scene::CDirectionalLight* DirectionalLight = Renderer.CreateDirectionalLight(FDString{"DirectionalLight"}, nullptr, true);

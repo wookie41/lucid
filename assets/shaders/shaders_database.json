@@ -1,0 +1,65 @@
+{
+    "Shaders": [
+        {
+            "Name": "BlinnPhong",
+            "VertexShaderSourcePath": "shaders/glsl/fwd_blinn_phong.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/fwd_blinn_phong.frag"
+        },
+        {
+            "Name": "BlinnPhongMaps",
+            "VertexShaderSourcePath": "shaders/glsl/fwd_blinn_phong_maps.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/fwd_blinn_phong_maps.frag"
+        },
+        {
+            "Name": "Skybox",
+            "VertexShaderSourcePath": "shaders/glsl/skybox.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/skybox.frag"
+        },
+        {
+            "Name": "ShadowMap",
+            "VertexShaderSourcePath": "shaders/glsl/shadow_map.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/empty.frag"
+        },
+        {
+            "Name": "ShadowCubemap",
+            "VertexShaderSourcePath": "shaders/glsl/shadow_cubemap.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/shadow_cubemap.frag",
+            "GeometryShaderSourcePath": "shaders/glsl/shadow_cubemap.geom"
+        },
+        {
+            "Name": "Flat",
+            "VertexShaderSourcePath": "shaders/glsl/flat.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/flat.frag"
+        },
+        {
+            "Name": "ForwardPrepass",
+            "VertexShaderSourcePath": "shaders/glsl/forward_prepass.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/forward_prepass.frag"
+        },
+        {
+            "Name": "SSAO",
+            "VertexShaderSourcePath": "shaders/glsl/ssao.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/ssao.frag"
+        },
+        {
+            "Name": "SimpleBlur",
+            "VertexShaderSourcePath": "shaders/glsl/simple_blur.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/simple_blur.frag"
+        },
+        {
+            "Name": "Hitmap",
+            "VertexShaderSourcePath": "shaders/glsl/hit_map.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/hit_map.frag"
+        },
+        {
+            "Name": "BillboardHitmap",
+            "VertexShaderSourcePath": "shaders/glsl/billboard_hitmap.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/hit_map.frag"
+        },
+        {
+            "Name": "Billboard",
+            "VertexShaderSourcePath": "shaders/glsl/billboard.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/billboard.frag"
+        }
+    ]
+}
