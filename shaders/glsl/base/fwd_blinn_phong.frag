@@ -43,5 +43,5 @@ void main()
     }
 
     vec3 fragColor = (uMaterialDiffuseColor *  lightCntrb.Diffuse) + (uMaterialSpecularColor * lightCntrb.Specular);
-    oFragColor = vec4((ambient * lightCntrb.Attenuation) + (fragColor * shadowFactor), 0);
+    oFragColor = vec4((ambient * lightCntrb.Attenuation) + (fragColor * shadowFactor), 1);
 }

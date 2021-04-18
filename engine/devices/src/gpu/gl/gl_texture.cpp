@@ -1,12 +1,16 @@
 #include "devices/gpu/gl/gl_texture.hpp"
-#include "resources/texture_resource.hpp"
-
 #include "devices/gpu/gl/gl_cubemap.hpp"
 #include "devices/gpu/gpu.hpp"
+#include "devices/gpu/gl/gl_common.hpp"
+
+#include "resources/texture_resource.hpp"
 
 #include <cassert>
 
-#include "devices/gpu/gl/gl_common.hpp"
+#if DEVELOPMENT
+#include "imgui.h"
+#include "imgui_internal.h"
+#endif
 
 namespace lucid::gpu
 {
@@ -218,6 +222,11 @@ namespace lucid::gpu
     void CGLTexture::AttachAsStencilDepth()
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, GLTextureHandle, 0);
+    }
+
+    void CGLTexture::ImGuiDrawToImage(const ImVec2& InImageSize) const
+    {
+        ImGui::Image((ImTextureID)GLTextureHandle, InImageSize, { 0, 1 }, { 1, 0 }, ImColor { 255, 255, 255, 255});
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////

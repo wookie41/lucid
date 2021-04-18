@@ -322,4 +322,10 @@ namespace lucid::gpu
                           bufferToBlit,
                           GL_LINEAR);
     }
+
+    void CGLFramebuffer::ImGuiDrawToImage(const ImVec2& InImageSize) const
+    {
+        colorAttachments[0]->Bind();
+        colorAttachments[0]->ImGuiDrawToImage(InImageSize);
+    }
 } // namespace lucid::gpu

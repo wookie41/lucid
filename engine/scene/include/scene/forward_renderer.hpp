@@ -23,11 +23,11 @@ namespace lucid::scene
     // this mean that the same object might be rendered multiple times if it's affected
     // by multiple light.
 
-    class ForwardRenderer : public CRenderer
+    class CForwardRenderer : public CRenderer
     {
       public:
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
-        ForwardRenderer(const u32& InMaxNumOfDirectionalLights,
+        CForwardRenderer(const u32& InMaxNumOfDirectionalLights,
                         const u8& InNumSSAOSamples);
 
         virtual void Setup() override;
@@ -36,7 +36,7 @@ namespace lucid::scene
 
         virtual gpu::CFramebuffer* GetResultFramebuffer() override { return LightingPassFramebuffer; }
 
-        virtual ~ForwardRenderer() = default;
+        virtual ~CForwardRenderer() = default;
 
         /** Renderer properties, have to be set before the first Setup() call */
         float       AmbientStrength = 0.1;

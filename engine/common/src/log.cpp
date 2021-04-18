@@ -14,6 +14,9 @@ namespace lucid
     // dummy, temporary solution
     static char msgBuff[1024];
 
+    //  static ExampleAppLog my_log;
+    //  my_log.AddLog("Hello %d world\n", 123);
+    //  my_log.Draw("title");
     void Log(const ELogLevel& InLevel, const char* InFile, const u32& InLine, const char* InFormat, ...)
     {
         va_list args;

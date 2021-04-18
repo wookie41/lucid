@@ -6,6 +6,11 @@
 #include "glm/glm.hpp"
 #include "devices/gpu/texture_enums.hpp"
 
+#if DEVELOPMENT
+#include "imgui.h"
+#endif
+
+
 namespace lucid::gpu
 {
     // we should query the GPU for it
@@ -35,6 +40,10 @@ namespace lucid::gpu
         virtual ETexturePixelFormat  GetAttachmentPixelFormat() const = 0;
 
         virtual ~IFramebufferAttachment() = default;
+
+#if DEVELOPMENT
+        virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const = 0;
+#endif  
     };
 
     class CRenderbuffer : public IFramebufferAttachment, public CGPUObject
@@ -48,6 +57,14 @@ namespace lucid::gpu
         virtual ETexturePixelFormat  GetAttachmentPixelFormat() const override { assert(0); return ETexturePixelFormat::RED_INTEGER; }; //not supported
 
         virtual ~CRenderbuffer() = default;
+
+#if DEVELOPMENT
+        virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const override
+        {
+            // noop
+        };
+#endif  
+        
     };
 
     enum class EFramebufferBindMode : u8
@@ -80,6 +97,11 @@ namespace lucid::gpu
         virtual void Free() = 0;
 
         virtual ~CFramebuffer() = default;
+
+#if DEVELOPMENT
+        virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const = 0;
+#endif
+        
         //@TODO Attaching cubemap's faces as color attachments
     };
 

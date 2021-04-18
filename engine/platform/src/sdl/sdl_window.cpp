@@ -1,5 +1,8 @@
 #include "platform/sdl/sdl_window.hpp"
 
+#include <devices/gpu/framebuffer.hpp>
+
+
 #include "common/log.hpp"
 
 #include "devices/gpu/gl/gl_framebuffer.hpp"
@@ -19,8 +22,12 @@ namespace lucid::platform
         {
             SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
         }
-        SDL_Window* window = SDL_CreateWindow(Definition.title, Definition.x, Definition.y, Definition.width, Definition.height,
-                                              SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+        Uint32 WindowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
+        if (Definition.bHidden)
+        {
+            WindowFlags |= SDL_WINDOW_HIDDEN;
+        }
+        SDL_Window* window = SDL_CreateWindow(Definition.title, Definition.x, Definition.y, Definition.width, Definition.height, WindowFlags);
         if (window == nullptr)
         {
             LUCID_LOG(ELogLevel::ERR, "[SDL] Failed to create a new window: %s", SDL_GetError());
@@ -65,6 +72,12 @@ namespace lucid::platform
     }
 
     void SDLWindow::Swap() { SDL_GL_SwapWindow(MySDLWindow); }
+
+    void SDLWindow::Clear()
+    {
+        WindowFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
+    }
 
     void SDLWindow::Prepare()
     {

@@ -4,6 +4,10 @@
 #include "devices/gpu/gpu.hpp"
 #include "platform/window.hpp"
 
+#if DEVELOPMENT
+#include "imgui.h"
+#endif
+
 struct SDL_Window;
 typedef void* SDL_GLContext;
 
@@ -16,8 +20,9 @@ namespace lucid::platform
 
         virtual void Init() override;
 
-        virtual void Swap() override;
         virtual void Prepare() override;
+        virtual void Swap() override;
+        virtual void Clear() override;
 
         virtual u16 GetWidth() const override;
         virtual u16 GetHeight() const override;

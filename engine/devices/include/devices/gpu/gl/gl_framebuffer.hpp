@@ -1,8 +1,13 @@
 #pragma once
 
+#include "imgui.h"
 #include "devices/gpu/framebuffer.hpp"
 #include "GL/glew.h"
 #include "common/collections.hpp"
+
+#if DEVELOPMENT
+#include "imgui.h"
+#endif
 
 namespace lucid::gpu
 {
@@ -58,6 +63,13 @@ namespace lucid::gpu
 
         virtual ~CGLDefaultFramebuffer() = default;
 
+#if DEVELOPMENT
+      virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const override
+      {
+        // noop
+      };
+#endif
+    
       private:
         u16 WindowWidth;
         u16 WindowHeight;
@@ -88,6 +100,10 @@ namespace lucid::gpu
 
         virtual ~CGLFramebuffer() = default;
 
+#if DEVELOPMENT
+      virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const override;
+#endif
+    
       private:
         GLuint glFBOHandle;
         IFramebufferAttachment* colorAttachments[MAX_COLOR_ATTACHMENTS] = { nullptr };

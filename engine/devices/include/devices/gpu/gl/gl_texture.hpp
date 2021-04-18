@@ -3,6 +3,10 @@
 #include "devices/gpu/texture.hpp"
 #include "GL/glew.h"
 
+#if DEVELOPMENT
+#include "imgui.h"
+#endif
+
 namespace lucid::gpu
 {
     class CGLTexture : public CTexture
@@ -46,10 +50,15 @@ namespace lucid::gpu
         virtual void AttachAsDepth() override;
         virtual void AttachAsStencilDepth() override;
 
+#if DEVELOPMENT
+        virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const override;
+#endif  
+        
         ///////////////////////////
 
         virtual void Free() override;
         virtual ~CGLTexture() = default;
+
 
       private:
 

@@ -10,6 +10,7 @@ namespace lucid::platform
         u16 x, y;
         u16 width, height;
         bool sRGBFramebuffer;
+        bool bHidden;
     };
 
     class CWindow
@@ -19,8 +20,9 @@ namespace lucid::platform
 
         virtual void Init() = 0;
         
-        virtual void Swap() = 0;
         virtual void Prepare() = 0;
+        virtual void Swap() = 0;
+        virtual void Clear() = 0;
 
         virtual u16 GetWidth() const = 0;
         virtual u16 GetHeight() const = 0;

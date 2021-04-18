@@ -8,8 +8,9 @@ namespace lucid::gpu
     // Buffers functions
     void ClearBuffers(const EGPUBuffer& BuffersToClear)
     {
-        static GLbitfield buffersBits[] = { GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_ACCUM_BUFFER_BIT,
-                                            GL_STENCIL_BUFFER_BIT };
+        static GLbitfield buffersBits[] = {
+            GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_ACCUM_BUFFER_BIT, GL_STENCIL_BUFFER_BIT
+        };
 
         GLbitfield glBuffersBitField = 0;
         if (BuffersToClear & EGPUBuffer::COLOR)
@@ -50,15 +51,9 @@ namespace lucid::gpu
 
     void DisableDepthTest() { glDisable(GL_DEPTH_TEST); }
 
-    void SetReadOnlyDepthBuffer(const bool& InReadOnly)
-    {
-        glDepthMask(!InReadOnly);
-    }
-    
-    void SetDepthTestFunction(const EDepthTestFunction& Function)
-    {
-        glDepthFunc(GL_DEPTH_FUNCTIONS[static_cast<u8>(Function)]);
-    }
+    void SetReadOnlyDepthBuffer(const bool& InReadOnly) { glDepthMask(!InReadOnly); }
+
+    void SetDepthTestFunction(const EDepthTestFunction& Function) { glDepthFunc(GL_DEPTH_FUNCTIONS[static_cast<u8>(Function)]); }
 
     ////////////////////////////////////////////////////////////
 
@@ -99,8 +94,8 @@ namespace lucid::gpu
                                   const EBlendFunction& DstAlphaFunction)
 
     {
-        glBlendFuncSeparate(TO_GL_BLEND(SrcFunction), TO_GL_BLEND(DstFunction), TO_GL_BLEND(SrcAlphaFunction),
-                            TO_GL_BLEND(DstAlphaFunction));
+        glBlendFuncSeparate(
+          TO_GL_BLEND(SrcFunction), TO_GL_BLEND(DstFunction), TO_GL_BLEND(SrcAlphaFunction), TO_GL_BLEND(DstAlphaFunction));
     }
 
     void EnableBlending() { glEnable(GL_BLEND); }
@@ -112,21 +107,12 @@ namespace lucid::gpu
     ///////////// Culling //////////////////////
 
     static const GLenum CULL_MODE_MAPPING[]{ GL_FRONT, GL_BACK, GL_FRONT_AND_BACK };
-    
-    void EnableCullFace()
-    {
-        glEnable(GL_CULL_FACE);
-    }
 
-    void DisableCullFace()
-    {
-        glDisable(GL_CULL_FACE);
-    }
+    void EnableCullFace() { glEnable(GL_CULL_FACE); }
 
-    void SetCullMode(ECullMode Mode)
-    {
-        glCullFace(CULL_MODE_MAPPING[static_cast<u8>(Mode)]);
-    }
+    void DisableCullFace() { glDisable(GL_CULL_FACE); }
+
+    void SetCullMode(ECullMode Mode) { glCullFace(CULL_MODE_MAPPING[static_cast<u8>(Mode)]); }
 
     // SRGB
 
@@ -163,34 +149,24 @@ namespace lucid::gpu
                 DisableDepthTest();
             }
         }
-        else if (InPipelineState.IsDepthTestEnabled && GPUState->PipelineState.DepthTestFunction != InPipelineState.DepthTestFunction)
+        else if (InPipelineState.IsDepthTestEnabled &&
+                 GPUState->PipelineState.DepthTestFunction != InPipelineState.DepthTestFunction)
         {
             SetDepthTestFunction(InPipelineState.DepthTestFunction);
         }
 
         // Alpha testing
-        if (GPUState->PipelineState.IsBlendingEnabled != InPipelineState.IsBlendingEnabled)
-        {
-            if (InPipelineState.IsBlendingEnabled)
-            {
-                EnableBlending();
-                SetBlendFunctionSeparate(
-                InPipelineState.BlendFunctionSrc, InPipelineState.BlendFunctionDst,
-                InPipelineState.BlendFunctionAlphaSrc, InPipelineState.BlendFunctionAlphaDst
-                );
-            }
-            else
-            {
-                DisableBlending();
-            }
-        }
-        else if (InPipelineState.IsBlendingEnabled)
+        if (InPipelineState.IsBlendingEnabled)
         {
             EnableBlending();
-            SetBlendFunctionSeparate(
-            InPipelineState.BlendFunctionSrc, InPipelineState.BlendFunctionDst,
-            InPipelineState.BlendFunctionAlphaSrc, InPipelineState.BlendFunctionAlphaDst
-            );
+            SetBlendFunctionSeparate(InPipelineState.BlendFunctionSrc,
+                                     InPipelineState.BlendFunctionDst,
+                                     InPipelineState.BlendFunctionAlphaSrc,
+                                     InPipelineState.BlendFunctionAlphaDst);
+        }
+        else
+        {
+            DisableBlending();
         }
 
         // Culling
@@ -215,7 +191,7 @@ namespace lucid::gpu
         // sRGB framebuffer support
         if (GPUState->PipelineState.IsSRGBFramebufferEnabled != InPipelineState.IsSRGBFramebufferEnabled)
         {
-            if (InPipelineState.IsCullingEnabled)
+            if (InPipelineState.IsSRGBFramebufferEnabled)
             {
                 EnableSRGBFramebuffer();
             }
@@ -235,7 +211,7 @@ namespace lucid::gpu
         {
             SetViewport(InPipelineState.Viewport);
         }
-        
+
         GPUState->PipelineState = InPipelineState;
     }
 } // namespace lucid::gpu

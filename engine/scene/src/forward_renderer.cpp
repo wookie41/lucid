@@ -72,12 +72,12 @@ namespace lucid::scene
     static const FSString ACTOR_ID("uActorId");
 #endif
 
-    ForwardRenderer::ForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples)
+    CForwardRenderer::CForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples)
     : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples)
     {
     }
 
-    void ForwardRenderer::Setup()
+    void CForwardRenderer::Setup()
     {
         if (ScreenWideQuadVAO == nullptr)
         {
@@ -118,7 +118,7 @@ namespace lucid::scene
         // @TODO
         // PrepassPipelineState.IsCullingEnabled = false;
         // PrepassPipelineState.CullMode = gpu::ECullMode::BACK;
-        PrepassPipelineState.IsSRGBFramebufferEnabled = true;
+        PrepassPipelineState.IsSRGBFramebufferEnabled = false;
         PrepassPipelineState.IsDepthBufferReadOnly = false;
         PrepassPipelineState.ClearDepthBufferValue = 0.f;
 
@@ -244,8 +244,10 @@ namespace lucid::scene
 
         // Setup the lighting pass framebuffer
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-
+        
         LightingPassColorBuffer->Bind();
+        LightingPassColorBuffer->SetMinFilter(gpu::MinTextureFilter::NEAREST);
+        LightingPassColorBuffer->SetMagFilter(gpu::MagTextureFilter::NEAREST);
         LightingPassFramebuffer->SetupColorAttachment(0, LightingPassColorBuffer);
 
         DepthStencilRenderBuffer->Bind();
@@ -356,7 +358,7 @@ namespace lucid::scene
 #endif
     }
 
-    void ForwardRenderer::Cleanup()
+    void CForwardRenderer::Cleanup()
     {
         if (CurrentFrameVSNormalMap)
         {
@@ -371,7 +373,7 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView)
+    void CForwardRenderer::Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
 
@@ -386,7 +388,7 @@ namespace lucid::scene
 #endif
     }
 
-    void ForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender)
+    void CForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender)
     {
         // Prepare the pipeline state
         gpu::ConfigurePipelineState(ShadowMapGenerationPipelineState);
@@ -438,7 +440,7 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
+    void CForwardRenderer::Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         // Render the scene
         gpu::ConfigurePipelineState(PrepassPipelineState);
@@ -487,7 +489,7 @@ namespace lucid::scene
         ScreenWideQuadVAO->Draw();
     }
 
-    void ForwardRenderer::LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
+    void CForwardRenderer::LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
         gpu::ConfigurePipelineState(InitialLightLightpassPipelineState);
 
@@ -501,7 +503,7 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView)
+    void CForwardRenderer::RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
         if (arrlen(InScene->Lights) == 0)
         {
@@ -519,8 +521,7 @@ namespace lucid::scene
         }
     }
 
-    void
-    ForwardRenderer::RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView)
+    void CForwardRenderer::RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView)
     {
         gpu::CShader* LastUsedShader = nullptr;
         for (int i = 0; i < arrlen(InScene->StaticMeshes); ++i)
@@ -542,7 +543,7 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView)
+    void CForwardRenderer::RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
         gpu::CShader* LastUserShader = nullptr;
 
@@ -569,13 +570,13 @@ namespace lucid::scene
         }
     }
 
-    void ForwardRenderer::BindAndClearFramebuffer(gpu::CFramebuffer* InFramebuffer)
+    void CForwardRenderer::BindAndClearFramebuffer(gpu::CFramebuffer* InFramebuffer)
     {
         InFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
     }
 
-    void ForwardRenderer::SetupRendererWideUniforms(gpu::CShader* InShader, const FRenderView* InRenderView)
+    void CForwardRenderer::SetupRendererWideUniforms(gpu::CShader* InShader, const FRenderView* InRenderView)
     {
         InShader->SetFloat(AMBIENT_STRENGTH, AmbientStrength);
         InShader->SetInt(NUM_OF_PCF_SAMPLES, NumSamplesPCF);
@@ -587,7 +588,7 @@ namespace lucid::scene
         InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
     }
 
-    void ForwardRenderer::RenderStaticMesh(gpu::CShader* Shader, const CStaticMesh* InStaticMesh)
+    void CForwardRenderer::RenderStaticMesh(gpu::CShader* Shader, const CStaticMesh* InStaticMesh)
     {
         const glm::mat4 ModelMatrix = InStaticMesh->CalculateModelMatrix();
         Shader->SetMatrix(MODEL_MATRIX, ModelMatrix);
@@ -599,7 +600,7 @@ namespace lucid::scene
         InStaticMesh->GetVertexArray()->Draw();
     }
 
-    inline void ForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
+    inline void CForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
     {
         gpu::ConfigurePipelineState(SkyboxPipelineState);
 
@@ -613,7 +614,7 @@ namespace lucid::scene
         UnitCubeVAO->Draw();
     }
 
-    void ForwardRenderer::DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView)
+    void CForwardRenderer::DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
         if (!BillboardShader)
         {
@@ -649,7 +650,7 @@ namespace lucid::scene
     }
 
 #if DEVELOPMENT
-    void ForwardRenderer::GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const
+    void CForwardRenderer::GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const
     {
         // We do it in a separate pass just for simplicity
         // It might not be the most efficient way to do it, but that way we avoid the need to maintain two
