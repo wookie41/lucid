@@ -68,6 +68,10 @@ namespace lucid::scene
     static const FSString PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
 
     static const FSString FLAT_COLOR("uFlatColor");
+
+    static const FSString GAMMA("uGamma");
+    static const FSString SCENE_TEXTURE("uSceneTexture");
+    
 #if DEVELOPMENT
     static const FSString ACTOR_ID("uActorId");
 #endif
@@ -99,7 +103,8 @@ namespace lucid::scene
         SkyboxShader = gpu::GShadersManager.GetShaderByName("Skybox");
         BillboardShader = gpu::GShadersManager.GetShaderByName("Billboard");
         FlatShader = gpu::GShadersManager.GetShaderByName("Flat");
-
+        GammaCorrectionShader = gpu::GShadersManager.GetShaderByName("GammaCorrection");
+        
         // Prepare pipeline states
         ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor{ 0 };
         ShadowMapGenerationPipelineState.ClearDepthBufferValue = 0;
@@ -134,7 +139,7 @@ namespace lucid::scene
         InitialLightLightpassPipelineState.IsCullingEnabled = false;
         // InitialLightLightpassPipelineState.IsCullingEnabled = true;
         // InitialLightLightpassPipelineState.CullMode = gpu::ECullMode::BACK;
-        InitialLightLightpassPipelineState.IsSRGBFramebufferEnabled = true;
+        InitialLightLightpassPipelineState.IsSRGBFramebufferEnabled = false;
         InitialLightLightpassPipelineState.IsDepthBufferReadOnly = true;
         InitialLightLightpassPipelineState.ClearDepthBufferValue = 0.f;
 
@@ -149,28 +154,37 @@ namespace lucid::scene
         HitMapGenerationPipelineState = SkyboxPipelineState;
         HitMapGenerationPipelineState.IsDepthBufferReadOnly = false;
         HitMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
-
+        
+        GammaCorrectionPipelineState.ClearColorBufferColor = FColor{ 0 };
+        GammaCorrectionPipelineState.ClearDepthBufferValue = 0;
+        GammaCorrectionPipelineState.IsDepthTestEnabled = false;
+        GammaCorrectionPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
+        GammaCorrectionPipelineState.IsBlendingEnabled = false;
+        GammaCorrectionPipelineState.IsCullingEnabled = false;
+        GammaCorrectionPipelineState.IsSRGBFramebufferEnabled = false;
+        GammaCorrectionPipelineState.IsDepthBufferReadOnly = true;
+        
         // Create the framebuffers
         ShadowMapFramebuffer = gpu::CreateFramebuffer(FSString{ "ShadowmapFramebuffer" });
         PrepassFramebuffer = gpu::CreateFramebuffer(FSString{ "PrepassFramebuffer" });
         LightingPassFramebuffer = gpu::CreateFramebuffer(FSString{ "LightingPassFramebuffer" });
         SSAOFramebuffer = gpu::CreateFramebuffer(FSString{ "SSAOFramebuffer" });
         BlurFramebuffer = gpu::CreateFramebuffer(FSString{ "BlueFramebuffer" });
+        FrameResultFramebuffer = gpu::CreateFramebuffer(FSString{ "FameResultFramebuffer" });
 
         // Create a common depth-stencil attachment for both framebuffers
-        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(
-          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, FramebufferSize, FSString{ "LightingPassRenderbuffer" });
+        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
 
         // Create render targets in which we'll store some additional information during the depth prepass
-        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(FramebufferSize.x,
-                                                            FramebufferSize.y,
+        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                                            ResultResolution.y,
                                                             gpu::ETextureDataType::FLOAT,
                                                             gpu::ETextureDataFormat::RGB16F,
                                                             gpu::ETexturePixelFormat::RGB,
                                                             0,
                                                             FSString{ "CurrentFrameVSNormalMap" });
-        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(FramebufferSize.x,
-                                                              FramebufferSize.y,
+        CurrentFrameVSPositionMap = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                                              ResultResolution.y,
                                                               gpu::ETextureDataType::FLOAT,
                                                               gpu::ETextureDataFormat::RGB16F,
                                                               gpu::ETexturePixelFormat::RGB,
@@ -200,8 +214,8 @@ namespace lucid::scene
         }
 
         // Create texture to store SSO result
-        SSAOResult = gpu::CreateEmpty2DTexture(FramebufferSize.x,
-                                               FramebufferSize.y,
+        SSAOResult = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                               ResultResolution.y,
                                                gpu::ETextureDataType::FLOAT,
                                                gpu::ETextureDataFormat::R,
                                                gpu::ETexturePixelFormat::RED,
@@ -212,8 +226,8 @@ namespace lucid::scene
         SSAOResult->SetMagFilter(gpu::MagTextureFilter::NEAREST);
 
         // Create texture for the blurred SSAO result
-        SSAOBlurred = gpu::CreateEmpty2DTexture(FramebufferSize.x,
-                                                FramebufferSize.y,
+        SSAOBlurred = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                                ResultResolution.y,
                                                 gpu::ETextureDataType::FLOAT,
                                                 gpu::ETextureDataFormat::R,
                                                 gpu::ETexturePixelFormat::RED,
@@ -234,8 +248,8 @@ namespace lucid::scene
         }
 
         // Create color attachment for the lighting pass framebuffer
-        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(FramebufferSize.x,
-                                                            FramebufferSize.y,
+        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                                            ResultResolution.y,
                                                             gpu::ETextureDataType::FLOAT,
                                                             gpu::ETextureDataFormat::RGBA,
                                                             gpu::ETexturePixelFormat::RGBA,
@@ -309,6 +323,21 @@ namespace lucid::scene
         SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
         SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
 
+        // Setup the framebuffer which will hold the final result
+        FrameResultTexture = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                                            ResultResolution.y,
+                                                            gpu::ETextureDataType::FLOAT,
+                                                            gpu::ETextureDataFormat::RGBA,
+                                                            gpu::ETexturePixelFormat::RGBA,
+                                                            0,
+                                                            FSString{ "FrameResult" });
+        FrameResultTexture->Bind();
+        FrameResultTexture->SetMinFilter(gpu::MinTextureFilter::NEAREST);
+        FrameResultTexture->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+
+        FrameResultFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        FrameResultFramebuffer->SetupColorAttachment(0, FrameResultTexture);
+
 #if DEVELOPMENT
 
         LightsBillboardsPipelineState.ClearColorBufferColor = FColor{ 0 };
@@ -325,8 +354,8 @@ namespace lucid::scene
         LightsBillboardsPipelineState.IsDepthBufferReadOnly = false;
 
         // HitMap generation
-        HitMapTexture = gpu::CreateEmpty2DTexture(FramebufferSize.x,
-                                                  FramebufferSize.y,
+        HitMapTexture = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                                  ResultResolution.y,
                                                   gpu::ETextureDataType::UNSIGNED_INT,
                                                   gpu::ETextureDataFormat::R32UI,
                                                   gpu::ETexturePixelFormat::RED_INTEGER,
@@ -334,7 +363,7 @@ namespace lucid::scene
                                                   FSString{ "HitMapTexture" });
 
         HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(
-          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { FramebufferSize.x, FramebufferSize.y }, FSString{ "HitMapRenderbuffer" });
+          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { ResultResolution.x, ResultResolution.y }, FSString{ "HitMapRenderbuffer" });
 
         HitMapFramebuffer = gpu::CreateFramebuffer(FSString{ "HitMapMapFramebuffer" });
         HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -350,10 +379,9 @@ namespace lucid::scene
 
         HitMapFramebuffer->IsComplete();
 
-        CachedHitMap.Width = FramebufferSize.x;
-        CachedHitMap.Height = FramebufferSize.y;
-        CachedHitMap.CachedTextureData = (u32*)malloc(
-          HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
+        CachedHitMap.Width = ResultResolution.x;
+        CachedHitMap.Height = ResultResolution.y;
+        CachedHitMap.CachedTextureData = (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
         Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
 #endif
     }
@@ -382,10 +410,12 @@ namespace lucid::scene
         GenerateShadowMaps(InSceneToRender);
         Prepass(InSceneToRender, InRenderView);
         LightingPass(InSceneToRender, InRenderView);
+
 #if DEVELOPMENT
         DrawLightsBillboards(InSceneToRender, InRenderView);
         GenerateHitmap(InSceneToRender, InRenderView);
 #endif
+        DoGammaCorrection(LightingPassColorBuffer);
     }
 
     void CForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender)
@@ -709,5 +739,18 @@ namespace lucid::scene
         HitMapFramebuffer->ReadPixels(0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), CachedHitMap.CachedTextureData);
     }
 #endif
+
+
+    void CForwardRenderer::DoGammaCorrection(gpu::CTexture* InTexture)
+    {
+        BindAndClearFramebuffer(FrameResultFramebuffer);
+
+        GammaCorrectionShader->Use();
+        GammaCorrectionShader->SetFloat(GAMMA, Gamma);
+        GammaCorrectionShader->UseTexture(SCENE_TEXTURE, InTexture);
+
+        ScreenWideQuadVAO->Bind();
+        ScreenWideQuadVAO->Draw();
+    }
 
 } // namespace lucid::scene

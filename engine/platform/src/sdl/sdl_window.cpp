@@ -27,7 +27,7 @@ namespace lucid::platform
         {
             WindowFlags |= SDL_WINDOW_HIDDEN;
         }
-        SDL_Window* window = SDL_CreateWindow(Definition.title, Definition.x, Definition.y, Definition.width, Definition.height, WindowFlags);
+        SDL_Window* window = SDL_CreateWindow(Definition.title, Definition.X, Definition.Y, Definition.Width, Definition.Height, WindowFlags);
         if (window == nullptr)
         {
             LUCID_LOG(ELogLevel::ERR, "[SDL] Failed to create a new window: %s", SDL_GetError());
@@ -51,7 +51,7 @@ namespace lucid::platform
         gpu::DisableBlending();
         gpu::DisableCullFace();
         
-        auto* NewWindow = new SDLWindow(window, context, Definition.width, Definition.height);
+        auto* NewWindow = new SDLWindow(window, context, Definition.Width, Definition.Height);
         NewWindow->Init();
         return NewWindow;
     }

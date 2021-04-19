@@ -34,14 +34,14 @@ namespace lucid::scene
         virtual void Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView) override;
         virtual void Cleanup() override;
 
-        virtual gpu::CFramebuffer* GetResultFramebuffer() override { return LightingPassFramebuffer; }
+        virtual gpu::CFramebuffer* GetResultFramebuffer() override { return FrameResultFramebuffer; }
 
         virtual ~CForwardRenderer() = default;
 
         /** Renderer properties, have to be set before the first Setup() call */
         float       AmbientStrength = 0.1;
         int         NumSamplesPCF   = 5;
-        glm::ivec2  FramebufferSize;
+        glm::uvec2  ResultResolution;
 
       private:
 
@@ -60,12 +60,15 @@ namespace lucid::scene
 
         void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
+        void DoGammaCorrection(gpu::CTexture* InTexture);
+
 #if DEVELOPMENT
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
         void GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const;
 #endif
         
         u32 MaxNumOfDirectionalLights;
+        float Gamma = 2.2;
 
         gpu::CShader* FlatShader;
         
@@ -81,22 +84,15 @@ namespace lucid::scene
         gpu::FPipelineState InitialLightLightpassPipelineState;
         gpu::FPipelineState LightpassPipelineState;
         gpu::FPipelineState SkyboxPipelineState;
+        gpu::FPipelineState GammaCorrectionPipelineState;
 
-
-        /** Shadow map generation shader */
         gpu::CShader* ShadowMapShader;
         gpu::CShader* ShadowCubeMapShader;
-        
-        /** Skybox Shader */
         gpu::CShader* SkyboxShader;
-
-        /** Prepass Shader */
         gpu::CShader* PrepassShader;
-
-        /** SSAO Shader */
         gpu::CShader* SSAOShader;
-
         gpu::CShader* BillboardShader;
+        gpu::CShader* GammaCorrectionShader;
 
         u8 NumSSAOSamples = 64;
         float SSAOBias = 0.025;
@@ -141,6 +137,10 @@ namespace lucid::scene
         /** Generated in the depth prepass so we can later use it when calculating SSAO and things like that (VS - View Space) */
         gpu::CTexture* CurrentFrameVSPositionMap;
 
+        /** Holds the final frame after post-processing, tone-mapping and gamma correction */
+        gpu::CFramebuffer*  FrameResultFramebuffer;
+        gpu::CTexture*      FrameResultTexture;
+        
 #if DEVELOPMENT
     public:
 

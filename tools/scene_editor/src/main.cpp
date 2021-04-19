@@ -36,11 +36,7 @@
 #include "schemas/json.hpp"
 
 #include "imgui.h"
-#include "imgui.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_opengl3.h"
 #include "imgui_internal.h"
-
 
 using namespace lucid;
 
@@ -52,31 +48,43 @@ constexpr char MAIN_DOCKSPACE[] = "MainDockSpace";
 
 struct FSceneEditorState
 {
-    platform::CWindow* Window;
-    ImGuiContext* ImGuiContext;
-    ImGuiWindow*  ImSceneWindow;
+    platform::CWindow*  Window;
+    ImGuiContext*       ImGuiContext;
+    ImGuiWindow*        ImSceneWindow;
 
     ImGuiID MainDockId = 0;
     ImGuiID SceneDockId = 0;
-    
-    u16     EditorWindowWidth = 1920;
-    u16     EditorWindowHeight = 1080;
+
+    u16     EditorWindowWidth = 1280;
+    u16     EditorWindowHeight = 720;
     float   EditorWindowAspectRatio = 1280.f / 720.f;
 
-    float SceneWindowWidth;
-    float SceneWindowHeight;
-    
+    /** These are updated when drawing ui */
+    float   SceneWindowWidth;
+    float   SceneWindowHeight;
+    ImVec2  SceneWindowPos;
+
     /** User interface stuff */
     bool bIsAnyUIWidgetActive = false;
     bool bIsAnyUIWidgetFocused = false;
 
-    scene::CWorld* World = nullptr;
-    scene::CRenderer* Renderer = nullptr; // @TODO this should be an engine variable
+    scene::CWorld*      World = nullptr;
+    scene::CRenderer*   Renderer = nullptr; // @TODO this should be an engine variable
+
+    scene::IActor*  CurrentlyDraggedActor = nullptr;
+    float           DistanceToCurrentlyDraggedActor = 0;
+
+    scene::CCamera  PerspectiveCamera { scene::ECameraMode::PERSPECTIVE };
+    scene::CCamera* CurrentCamera = nullptr;
+
 } GSceneEditorState;
 
 void InitializeSceneEditor();
-void UIUpdateState();
 
+void HandleCameraMovement(const float& DeltaTime);
+void HandleActorDrag();
+
+void UIUpdateState();
 void UISetupDockspace();
 void UIDrawSceneWindow();
 void UIDrawAssetBrowserWindow();
@@ -100,7 +108,6 @@ int main(int argc, char** argv)
     gpu::GShadersManager.LoadShadersDatabase(ShadersDatabase);
 
     // Load textures and meshes used in the demo scene
-
 
     FString BrickDiffuseTextureFilePath{ "assets/textures/BrickDiffuse.asset" };
     FString BrickNormalTextureFilePath{ "assets/textures/BrickNormal.asset" };
@@ -220,21 +227,20 @@ int main(int argc, char** argv)
     SkyboxFrontTexture->FreeMainMemory();
     SkyboxBackTexture->FreeMainMemory();
 
-    // Prepare the scene
-    gpu::FViewport WindowViewport { 0, 0, GSceneEditorState.EditorWindowWidth, GSceneEditorState.EditorWindowHeight };
+    // Configure the camera
+    GSceneEditorState.PerspectiveCamera.AspectRatio = GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
+    GSceneEditorState.PerspectiveCamera.Position = { 0, 0, 3 };
+    GSceneEditorState.PerspectiveCamera.Yaw = -90.f;
+    GSceneEditorState.PerspectiveCamera.UpdateCameraVectors();
+    GSceneEditorState.PerspectiveCamera.Right = 1920;
+    GSceneEditorState.PerspectiveCamera.Top = 1080;
+    GSceneEditorState.CurrentCamera = &GSceneEditorState.PerspectiveCamera;
 
-    scene::CCamera PerspectiveCamera{ scene::ECameraMode::PERSPECTIVE };
-    PerspectiveCamera.AspectRatio = GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
-    PerspectiveCamera.Position = { 0, 0, 3 };
-    PerspectiveCamera.Yaw = -90.f;
-    PerspectiveCamera.UpdateCameraVectors();
-    PerspectiveCamera.Right = 1920;
-    PerspectiveCamera.Top = 1080;
-
+    // Setup the renderer
     scene::CForwardRenderer Renderer{ 32, 4 };
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
-    Renderer.FramebufferSize = { 1920, 1080 };
+    Renderer.ResultResolution = { 1920, 1080 };
     Renderer.LightBulbTexture = LightBulbTextureResource->TextureHandle;
     Renderer.Setup();
 
@@ -381,24 +387,20 @@ int main(int argc, char** argv)
 
     gpu::SetClearColor(BlackColor);
 
-
     GSceneEditorState.World = &DemoWorld;
     GSceneEditorState.Renderer = &Renderer;
-    
-    bool isRunning = true;
-    float rotation = 0;
+
+    bool IsRunning = true;
 
     real now = platform::GetCurrentTimeSeconds();
     real last = 0;
     real dt = 0;
 
     scene::FRenderView RenderView;
-    RenderView.Camera = &PerspectiveCamera;
-    RenderView.Viewport = WindowViewport;
+    RenderView.Camera = GSceneEditorState.CurrentCamera; // @TODO is this needed???
+    RenderView.Viewport = { 0, 0, Renderer.ResultResolution.x, Renderer.ResultResolution.y };
 
-    scene::IActor* CurrentlyDraggedActor = nullptr;
-    float DistanceToActor = 0;
-    while (isRunning)
+    while (IsRunning)
     {
         platform::Update();
         last = now;
@@ -406,92 +408,21 @@ int main(int argc, char** argv)
         dt += now - last;
         ReadEvents(GSceneEditorState.Window);
 
+        if (WasKeyPressed(SDLK_ESCAPE))
+        {
+            IsRunning = false;
+            break;
+        }
+
         while (dt > platform::SimulationStep)
         {
             dt -= platform::SimulationStep;
-            if (WasKeyPressed(SDLK_ESCAPE))
-            {
-                isRunning = false;
-                break;
-            }
-
-            if (IsKeyPressed(SDLK_w))
-            {
-                PerspectiveCamera.MoveForward(platform::SimulationStep);
-            }
-
-            if (IsKeyPressed(SDLK_s))
-            {
-                PerspectiveCamera.MoveBackward(platform::SimulationStep);
-            }
-
-            if (IsKeyPressed(SDLK_a))
-            {
-                PerspectiveCamera.MoveLeft(platform::SimulationStep);
-            }
-
-            if (IsKeyPressed(SDLK_d))
-            {
-                PerspectiveCamera.MoveRight(platform::SimulationStep);
-            }
-
-            auto mousePos = GetMousePostion();
-            if (IsMouseButtonPressed(RIGHT) && !CurrentlyDraggedActor)
-            {
-                PerspectiveCamera.AddRotation(-mousePos.DeltaX * 17.5 * dt, mousePos.DeltaY * 17.5 * dt);
-                CurrentlyDraggedActor = nullptr;
-            }
-            else if (CurrentlyDraggedActor)
-            {
-                if (IsMouseButtonPressed(LEFT))
-                {
-                    glm::vec4 ActorPosView = PerspectiveCamera.GetViewMatrix() * glm::vec4{ CurrentlyDraggedActor->Transform.Translation, 1 };
-
-                    const glm::vec2 MouseRayNDC = 2.f * glm::vec2{
-                        GetMousePostion().X / GSceneEditorState.SceneWindowWidth,
-                        1 - (GetMousePostion().Y / GSceneEditorState.SceneWindowHeight) } - 1.f;
-
-                    const glm::vec4 MouseRayClip { MouseRayNDC, -1, 1 };
-                    const glm::vec4 MouseRayView = glm::inverse(PerspectiveCamera.GetProjectionMatrix()) * MouseRayClip;
-
-                    ActorPosView.x = -MouseRayView.x * DistanceToActor;
-                    ActorPosView.y = -MouseRayView.y * DistanceToActor;
-
-                    CurrentlyDraggedActor->Transform.Translation =
-                      (glm::inverse(PerspectiveCamera.GetViewMatrix()) * ActorPosView);
-                }
-                else
-                {
-                    CurrentlyDraggedActor = nullptr;
-                }
-            }
-            else if (IsMouseButtonPressed(LEFT) &&
-                     (!GSceneEditorState.bIsAnyUIWidgetActive && !GSceneEditorState.bIsAnyUIWidgetFocused))
-            {
-                const scene::FHitMap& CachedHitMap = Renderer.GetCachedHitMap();
-                scene::IActor* ClickedActor = DemoWorld.GetActorById(CachedHitMap.GetIdAtMousePositon(GetMousePostion()));
-
-                if (ClickedActor != nullptr && ClickedActor->GetActorType() != scene::EActorType::SKYBOX)
-                {
-                    glm::vec4 ActorPosView =
-                      PerspectiveCamera.GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
-                    DistanceToActor = ActorPosView.z;
-                    CurrentlyDraggedActor = ClickedActor;
-                }
-            }
-
-            if (IsKeyPressed(SDLK_r))
-            {
-                rotation += 0.5f;
-                cube.Transform.Rotation = glm::angleAxis(glm::radians(rotation), glm::normalize(glm::vec3{ 0.0, 1.0, 0.0 }));
-            }
-
-            // RedPointLight->Transform.Translation.z = sin(now * 0.5) * 3.0;
+            HandleCameraMovement(dt);
         }
 
         // Render the scene to off-screen framebuffer
         GSceneEditorState.Window->Prepare();
-        Renderer.Render(DemoWorld.MakeRenderScene(&PerspectiveCamera), &RenderView);
+        Renderer.Render(DemoWorld.MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
 
         GSceneEditorState.Window->ImgUiStartNewFrame();
         {
@@ -502,25 +433,15 @@ int main(int argc, char** argv)
             UIUpdateState();
         }
 
+        HandleActorDrag();
+        
         GSceneEditorState.Window->Clear();
         GSceneEditorState.Window->ImgUiDrawFrame();
-        GSceneEditorState.Window->Swap();   
+        GSceneEditorState.Window->Swap();
 
+        // Allow ImGui viewports to update
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
-        
-        // Blit the off-screen frame buffer to the window framebuffer
-        // GSceneEditorState.EditorWindow->GetFramebuffer()->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        // gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
-        // gpu::EnableSRGBFramebuffer();
-        // gpu::BlitFramebuffer(Renderer.GetResultFramebuffer(),
-                             // GSceneEditorState.EditorWindow->GetFramebuffer(),
-                             // true,
-                             // false,
-                             // false,
-                             // { 0, 0, Renderer.FramebufferSize.x, Renderer.FramebufferSize.y },
-                             // { 0, 0, GSceneEditorState.EditorWindow->GetWidth(), GSceneEditorState.EditorWindow->GetHeight() });
-
     }
 
     gpu::Shutdown();
@@ -529,22 +450,22 @@ int main(int argc, char** argv)
 
 void InitializeSceneEditor()
 {
-    // Create a hidden window so we can have a GL Context to render to
-    platform::FWindowDefiniton HiddenWindow;
-    HiddenWindow.title = "Lucid Editor";
-    HiddenWindow.x = 100;
-    HiddenWindow.y = 100;
-    HiddenWindow.width = 1920;
-    HiddenWindow.height = 1080;
-    HiddenWindow.sRGBFramebuffer = true;
-    HiddenWindow.bHidden = false;
-    
-    GSceneEditorState.Window = platform::CreateNewWindow(HiddenWindow);
+    // Create the window for the editor
+    platform::FWindowDefiniton EditorWindow;
+    EditorWindow.title = "Lucid Editor";
+    EditorWindow.X = 100;
+    EditorWindow.Y = 100;
+    EditorWindow.Width = GSceneEditorState.EditorWindowWidth;
+    EditorWindow.Height = GSceneEditorState.EditorWindowHeight;
+    EditorWindow.sRGBFramebuffer = true;
+    EditorWindow.bHidden = false;
+
+    GSceneEditorState.Window = platform::CreateNewWindow(EditorWindow);
     GSceneEditorState.Window->Prepare();
-    
+
     // Setup ImGui
     IMGUI_CHECKVERSION();
-    
+
     GSceneEditorState.ImGuiContext = ImGui::CreateContext();
 
     // Configure ImGui
@@ -568,7 +489,7 @@ void InitializeSceneEditor()
 
             // Create the dockspace
             ImGui::DockSpace(GSceneEditorState.MainDockId, ImVec2(0.0f, 0.0f));
-            ImGui::DockBuilderSetNodeSize(GSceneEditorState.MainDockId, ImVec2((float) GSceneEditorState.EditorWindowWidth, (float) GSceneEditorState.EditorWindowHeight));
+            ImGui::DockBuilderSetNodeSize(GSceneEditorState.MainDockId, { (float)GSceneEditorState.EditorWindowWidth, (float)GSceneEditorState.EditorWindowHeight });
 
             // Split the dockspace
             ImGuiID AssetBrowserWindowDockId;
@@ -580,13 +501,12 @@ void InitializeSceneEditor()
 
             // Submit the layout
             ImGui::DockBuilderFinish(GSceneEditorState.MainDockId);
-            
+
             ImGui::Begin(SCENE_VIEWPORT);
             {
                 GSceneEditorState.ImSceneWindow = ImGui::GetCurrentWindow();
             };
             ImGui::End();
-            
         }
         ImGui::End();
     }
@@ -595,12 +515,96 @@ void InitializeSceneEditor()
     ImGui::RenderPlatformWindowsDefault();
 }
 
+void HandleCameraMovement(const float& DeltaTime)
+{
+    const FMousePosition MousePos = GetMousePostion();
+    if (IsKeyPressed(SDLK_w))
+    {
+        GSceneEditorState.CurrentCamera->MoveForward(platform::SimulationStep);
+    }
+
+    if (IsKeyPressed(SDLK_s))
+    {
+        GSceneEditorState.CurrentCamera->MoveBackward(platform::SimulationStep);
+    }
+
+    if (IsKeyPressed(SDLK_a))
+    {
+        GSceneEditorState.CurrentCamera->MoveLeft(platform::SimulationStep);
+    }
+
+    if (IsKeyPressed(SDLK_d))
+    {
+        GSceneEditorState.CurrentCamera->MoveRight(platform::SimulationStep);
+    }
+
+    if (IsMouseButtonPressed(RIGHT) && !GSceneEditorState.CurrentlyDraggedActor)
+    {
+        GSceneEditorState.CurrentCamera->AddRotation(-MousePos.DeltaX * 17.5 * DeltaTime, MousePos.DeltaY * 17.5 * DeltaTime);
+    }
+}
+
+void HandleActorDrag()
+{
+    const ImVec2 MousePositionAbs = ImGui::GetMousePos();
+    const ImVec2 SceneWindowPos = GSceneEditorState.SceneWindowPos;
+    const ImVec2 MousePosRelative = { MousePositionAbs.x - SceneWindowPos.x, MousePositionAbs.y - SceneWindowPos.y };
+
+    if (GSceneEditorState.CurrentlyDraggedActor)
+    {
+        if (IsMouseButtonPressed(LEFT))
+        {
+            // Actor pos from world to view space
+            glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
+
+            // Get the mouse ray in view space from mouse pos
+            const glm::vec2 MouseRayNDC = 2.f * glm::vec2{ MousePosRelative.x / GSceneEditorState.SceneWindowWidth,
+                                                           1 - (MousePosRelative.y / GSceneEditorState.SceneWindowHeight) } - 1.f;
+
+            const glm::vec4 MouseRayClip { MouseRayNDC, -1, 1 };
+            const glm::vec4 MouseRayView = glm::inverse(GSceneEditorState.CurrentCamera->GetProjectionMatrix()) * MouseRayClip;
+
+            // Calculate actor's position to match mouse view space x/y pos, preserving z
+            ActorPosView.x = -MouseRayView.x * GSceneEditorState.DistanceToCurrentlyDraggedActor;
+            ActorPosView.y = -MouseRayView.y * GSceneEditorState.DistanceToCurrentlyDraggedActor;
+
+            // Update actor's position
+            GSceneEditorState.CurrentlyDraggedActor->Transform.Translation = (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
+        }
+        else
+        {
+            GSceneEditorState.CurrentlyDraggedActor = nullptr;
+        }
+    }
+    else if (IsMouseButtonPressed(LEFT) && (!GSceneEditorState.bIsAnyUIWidgetActive && !GSceneEditorState.bIsAnyUIWidgetFocused))
+    {
+        // Check if've hit something based on the hit map generated by the renderer
+        const scene::FHitMap& CachedHitMap = GSceneEditorState.Renderer->GetCachedHitMap();
+
+        // Adjust mouse postion based on hitmap texture size
+        const float RatioX = MousePosRelative.x/GSceneEditorState.SceneWindowWidth;
+        const float RatioY = MousePosRelative.y/GSceneEditorState.SceneWindowHeight;
+        
+        const glm::vec2 AdjustedMousePos = { ((float)CachedHitMap.Width) * RatioX, ((float)CachedHitMap.Height) * RatioY };
+        
+        scene::IActor* ClickedActor = GSceneEditorState.World->GetActorById(CachedHitMap.GetIdAtMousePositon(AdjustedMousePos));
+
+        // Ignore skyboxes
+        if (ClickedActor != nullptr && ClickedActor->GetActorType() != scene::EActorType::SKYBOX)
+        {
+            // Remember the actor that we hit and how far from the camera it was on the z axis
+            glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
+            GSceneEditorState.DistanceToCurrentlyDraggedActor = ActorPosView.z;
+            GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
+        }
+    }
+}
+
 void UIUpdateState()
 {
     // Update flags based on current UI state
-    GSceneEditorState.bIsAnyUIWidgetActive = ImGui::IsAnyItemHovered();
+    GSceneEditorState.bIsAnyUIWidgetActive = ImGui::IsAnyItemActive();
     GSceneEditorState.bIsAnyUIWidgetFocused = ImGui::IsAnyItemFocused();
-
     // GSceneEditorState.EditorWindow->ImgUiStartNewFrame();
 
     // ImGui::Begin();
@@ -614,9 +618,10 @@ void UISetupDockspace()
 {
     // Create the dockspace window which will occupy the whole editor window
     ImGuiWindowFlags DockspaceWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    DockspaceWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    DockspaceWindowFlags |=
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     DockspaceWindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-    
+
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
@@ -626,7 +631,7 @@ void UISetupDockspace()
 
     ImGui::Begin(DOCKSPACE_WINDOW, nullptr, DockspaceWindowFlags);
     ImGui::PopStyleVar(2);
-    
+
     ImGui::DockSpace(GSceneEditorState.MainDockId, ImVec2(0.0f, 0.0f));
     ImGui::End();
 }
@@ -635,22 +640,34 @@ void UIDrawSceneWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
     ImGui::Begin(SCENE_VIEWPORT, nullptr, WindowFlags);
     {
-        GSceneEditorState.SceneWindowWidth = ImGui::GetContentRegionAvail().x; 
-        GSceneEditorState.SceneWindowHeight = ImGui::GetContentRegionAvail().y; 
-        GSceneEditorState.Renderer->GetResultFramebuffer()->ImGuiDrawToImage({GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight});
+        // Update scene editor state so it can be used later in the frame
+        const ImVec2 SceneWindowPos = ImGui::GetWindowPos();
+        const ImVec2 WindowContentMin = ImGui::GetWindowContentRegionMin();
+        const ImVec2 WindowContentMax = ImGui::GetWindowContentRegionMax();
+        
+        GSceneEditorState.SceneWindowWidth = WindowContentMax.x - WindowContentMin.x;
+        GSceneEditorState.SceneWindowHeight = WindowContentMax.y - WindowContentMin.y;
+
+        // This gets the position of the content area, excluding title bars and etc.
+        GSceneEditorState.SceneWindowPos = WindowContentMin;
+        GSceneEditorState.SceneWindowPos.x += SceneWindowPos.x;
+        GSceneEditorState.SceneWindowPos.y += SceneWindowPos.y;
+
+        // Draw the rendered scene into an image
+        GSceneEditorState.Renderer->GetResultFramebuffer()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
     }
+    ImGui::PopStyleVar(1);
     ImGui::End();
 }
 
 void UIDrawAssetBrowserWindow()
 {
-    ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;;
-
+    ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
     ImGui::Begin(ASSET_BROWSER, nullptr, WindowFlags);
     {
     }
     ImGui::End();
-    
 }

@@ -60,6 +60,11 @@
             "Name": "Billboard",
             "VertexShaderSourcePath": "shaders/glsl/billboard.vert",
             "FragmentShaderSourcePath": "shaders/glsl/billboard.frag"
+        },
+        {
+            "Name": "GammaCorrection",
+            "VertexShaderSourcePath": "shaders/glsl/pass.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/gamma_correction.frag"
         }
     ]
 }

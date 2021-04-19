@@ -226,7 +226,7 @@ namespace lucid::gpu
 
     void CGLTexture::ImGuiDrawToImage(const ImVec2& InImageSize) const
     {
-        ImGui::Image((ImTextureID)GLTextureHandle, InImageSize, { 0, 1 }, { 1, 0 }, ImColor { 255, 255, 255, 255});
+        ImGui::Image((ImTextureID)GLTextureHandle, InImageSize, { 0, 1 }, { 1, 0 });
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -7,8 +7,8 @@ namespace lucid::platform
     struct FWindowDefiniton
     {
         char const* title;
-        u16 x, y;
-        u16 width, height;
+        u16 X, Y;
+        u16 Width, Height;
         bool sRGBFramebuffer;
         bool bHidden;
     };
