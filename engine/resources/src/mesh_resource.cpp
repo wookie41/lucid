@@ -20,9 +20,6 @@
 namespace lucid::resources
 {
     
-    CResourcesHolder<CTextureResource> TexturesHolder{};
-    ;
-
     CMeshResource::CMeshResource(const UUID& InID,
                                  const FString& InName,
                                  const FString& InFilePath,

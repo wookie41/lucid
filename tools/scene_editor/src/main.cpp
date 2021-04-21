@@ -1,7 +1,8 @@
+#include <filesystem>
 #include <devices/gpu/texture_enums.hpp>
 #include <scene/material.hpp>
 
-#include "engine_init.hpp"
+#include "engine.hpp"
 #include "common/collections.hpp"
 
 #include "devices/gpu/framebuffer.hpp"
@@ -37,6 +38,7 @@
 
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "imfilebrowser.h"
 
 using namespace lucid;
 
@@ -44,37 +46,45 @@ constexpr char EDITOR_WINDOW[] = "Lucid Editor";
 constexpr char DOCKSPACE_WINDOW[] = "Dockspace";
 constexpr char SCENE_VIEWPORT[] = "Scene";
 constexpr char ASSET_BROWSER[] = "Asset browser";
+constexpr char SCENE_HIERARCHY[] = "Scene hierarchy";
 constexpr char MAIN_DOCKSPACE[] = "MainDockSpace";
 
 struct FSceneEditorState
 {
-    platform::CWindow*  Window;
-    ImGuiContext*       ImGuiContext;
-    ImGuiWindow*        ImSceneWindow;
+    platform::CWindow* Window;
+    ImGuiContext* ImGuiContext;
+    ImGuiWindow* ImSceneWindow;
 
     ImGuiID MainDockId = 0;
     ImGuiID SceneDockId = 0;
 
-    u16     EditorWindowWidth = 1280;
-    u16     EditorWindowHeight = 720;
-    float   EditorWindowAspectRatio = 1280.f / 720.f;
+    u16 EditorWindowWidth = 1280;
+    u16 EditorWindowHeight = 720;
+    float EditorWindowAspectRatio = 1280.f / 720.f;
 
     /** These are updated when drawing ui */
-    float   SceneWindowWidth;
-    float   SceneWindowHeight;
-    ImVec2  SceneWindowPos;
+    float SceneWindowWidth;
+    float SceneWindowHeight;
+    ImVec2 SceneWindowPos;
 
     /** User interface stuff */
     bool bIsAnyUIWidgetHovered = false;
+    bool bIsFileDialogOpen = false;
 
-    scene::CWorld*      World = nullptr;
-    scene::CRenderer*   Renderer = nullptr; // @TODO this should be an engine variable
+    scene::CWorld* World = nullptr;
+    scene::CRenderer* Renderer = nullptr; // @TODO this should be an engine variable
 
-    scene::IActor*  CurrentlyDraggedActor = nullptr;
-    float           DistanceToCurrentlyDraggedActor = 0;
+    scene::IActor* CurrentlyDraggedActor = nullptr;
+    float DistanceToCurrentlyDraggedActor = 0;
 
-    scene::CCamera  PerspectiveCamera { scene::ECameraMode::PERSPECTIVE };
+    scene::CCamera PerspectiveCamera{ scene::ECameraMode::PERSPECTIVE };
     scene::CCamera* CurrentCamera = nullptr;
+
+    bool bShowFileDialog = false;
+    ImGui::FileBrowser FileDialog;
+    void (*OnFileSelected)(const std::filesystem::path&);
+
+    char AssetsBaseDir[] = "assets/";
 
 } GSceneEditorState;
 
@@ -83,10 +93,14 @@ void InitializeSceneEditor();
 void HandleCameraMovement(const float& DeltaTime);
 void HandleActorDrag();
 
-void UIUpdateState();
 void UISetupDockspace();
 void UIDrawSceneWindow();
 void UIDrawAssetBrowserWindow();
+void UIDrawSceneHierarchyWindow();
+void UIDrawFileDialog();
+
+void ImportTexture(const std::filesystem::path& SelectedFilePath);
+void ImportMesh(const std::filesystem::path& SelectedFilePath);
 
 int main(int argc, char** argv)
 {
@@ -227,7 +241,8 @@ int main(int argc, char** argv)
     SkyboxBackTexture->FreeMainMemory();
 
     // Configure the camera
-    GSceneEditorState.PerspectiveCamera.AspectRatio = GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
+    GSceneEditorState.PerspectiveCamera.AspectRatio =
+      GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
     GSceneEditorState.PerspectiveCamera.Position = { 0, 0, 3 };
     GSceneEditorState.PerspectiveCamera.Yaw = -90.f;
     GSceneEditorState.PerspectiveCamera.UpdateCameraVectors();
@@ -429,8 +444,10 @@ int main(int argc, char** argv)
             ImGui::ShowDemoWindow();
             UIDrawSceneWindow();
             UIDrawAssetBrowserWindow();
+            UIDrawSceneHierarchyWindow();
+            UIDrawFileDialog();
         }
-        
+
         GSceneEditorState.Window->Clear();
         GSceneEditorState.Window->ImgUiDrawFrame();
         GSceneEditorState.Window->Swap();
@@ -438,8 +455,6 @@ int main(int argc, char** argv)
         // Allow ImGui viewports to update
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
-
-        UIUpdateState();
 
         HandleActorDrag();
     }
@@ -473,7 +488,7 @@ void InitializeSceneEditor()
     ImGuiIO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     ImGuiIO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     ImGuiIO.ConfigWindowsMoveFromTitleBarOnly = true;
-    
+
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
@@ -491,15 +506,23 @@ void InitializeSceneEditor()
 
             // Create the dockspace
             ImGui::DockSpace(GSceneEditorState.MainDockId, ImVec2(0.0f, 0.0f));
-            ImGui::DockBuilderSetNodeSize(GSceneEditorState.MainDockId, { (float)GSceneEditorState.EditorWindowWidth, (float)GSceneEditorState.EditorWindowHeight });
+            ImGui::DockBuilderSetNodeSize(
+              GSceneEditorState.MainDockId,
+              { (float)GSceneEditorState.EditorWindowWidth, (float)GSceneEditorState.EditorWindowHeight });
 
             // Split the dockspace
             ImGuiID AssetBrowserWindowDockId;
-            ImGuiID SceneWindowDockId = ImGui::DockBuilderSplitNode(GSceneEditorState.MainDockId, ImGuiDir_Left, 0.8f, nullptr, &AssetBrowserWindowDockId);
+            ImGuiID SceneHierarchyDockId;
+            ImGuiID SceneWindowDockId;
+            SceneWindowDockId =
+              ImGui::DockBuilderSplitNode(GSceneEditorState.MainDockId, ImGuiDir_Left, 0.75f, nullptr, &SceneHierarchyDockId);
+            SceneWindowDockId =
+              ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Up, 0.7f, nullptr, &AssetBrowserWindowDockId);
 
             // Attach windows to dockspaces
             ImGui::DockBuilderDockWindow(SCENE_VIEWPORT, SceneWindowDockId);
             ImGui::DockBuilderDockWindow(ASSET_BROWSER, AssetBrowserWindowDockId);
+            ImGui::DockBuilderDockWindow(SCENE_HIERARCHY, SceneHierarchyDockId);
 
             // Submit the layout
             ImGui::DockBuilderFinish(GSceneEditorState.MainDockId);
@@ -553,8 +576,8 @@ void HandleActorDrag()
     const ImVec2 MousePosRelative = { MousePositionAbs.x - SceneWindowPos.x, MousePositionAbs.y - SceneWindowPos.y };
 
     // Check if we're outside the scene window
-    if (MousePosRelative.x < 0 || MousePosRelative.x > GSceneEditorState.SceneWindowWidth ||
-        MousePositionAbs.y < 0 || MousePosRelative.y > GSceneEditorState.SceneWindowHeight)
+    if (MousePosRelative.x < 0 || MousePosRelative.x > GSceneEditorState.SceneWindowWidth || MousePositionAbs.y < 0 ||
+        MousePosRelative.y > GSceneEditorState.SceneWindowHeight)
     {
         // Drop the current actor if we're outside
         if (GSceneEditorState.CurrentlyDraggedActor)
@@ -565,8 +588,7 @@ void HandleActorDrag()
     }
 
     // Check if the scene window is not obscured by some other widget
-    if(ImGui::GetFocusID() != GSceneEditorState.ImSceneWindow->ID
-        && ImGui::GetFocusID() != GSceneEditorState.SceneDockId)
+    if (ImGui::GetFocusID() != GSceneEditorState.ImSceneWindow->ID && ImGui::GetFocusID() != GSceneEditorState.SceneDockId)
     {
         return;
     }
@@ -576,13 +598,15 @@ void HandleActorDrag()
         if (IsMouseButtonPressed(LEFT))
         {
             // Actor pos from world to view space
-            glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
+            glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() *
+                                     glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
 
             // Get the mouse ray in view space from mouse pos
             const glm::vec2 MouseRayNDC = 2.f * glm::vec2{ MousePosRelative.x / GSceneEditorState.SceneWindowWidth,
-                                                           1 - (MousePosRelative.y / GSceneEditorState.SceneWindowHeight) } - 1.f;
+                                                           1 - (MousePosRelative.y / GSceneEditorState.SceneWindowHeight) } -
+                                          1.f;
 
-            const glm::vec4 MouseRayClip { MouseRayNDC, -1, 1 };
+            const glm::vec4 MouseRayClip{ MouseRayNDC, -1, 1 };
             const glm::vec4 MouseRayView = glm::inverse(GSceneEditorState.CurrentCamera->GetProjectionMatrix()) * MouseRayClip;
 
             // Calculate actor's position to match mouse view space x/y pos, preserving z
@@ -590,7 +614,8 @@ void HandleActorDrag()
             ActorPosView.y = -MouseRayView.y * GSceneEditorState.DistanceToCurrentlyDraggedActor;
 
             // Update actor's position
-            GSceneEditorState.CurrentlyDraggedActor->Transform.Translation = (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
+            GSceneEditorState.CurrentlyDraggedActor->Transform.Translation =
+              (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
         }
         else
         {
@@ -603,28 +628,23 @@ void HandleActorDrag()
         const scene::FHitMap& CachedHitMap = GSceneEditorState.Renderer->GetCachedHitMap();
 
         // Adjust mouse postion based on hitmap texture size
-        const float RatioX = MousePosRelative.x/GSceneEditorState.SceneWindowWidth;
-        const float RatioY = MousePosRelative.y/GSceneEditorState.SceneWindowHeight;
-        
+        const float RatioX = MousePosRelative.x / GSceneEditorState.SceneWindowWidth;
+        const float RatioY = MousePosRelative.y / GSceneEditorState.SceneWindowHeight;
+
         const glm::vec2 AdjustedMousePos = { ((float)CachedHitMap.Width) * RatioX, ((float)CachedHitMap.Height) * RatioY };
-        
+
         scene::IActor* ClickedActor = GSceneEditorState.World->GetActorById(CachedHitMap.GetIdAtMousePositon(AdjustedMousePos));
 
         // Ignore skyboxes
         if (ClickedActor != nullptr && ClickedActor->GetActorType() != scene::EActorType::SKYBOX)
         {
             // Remember the actor that we hit and how far from the camera it was on the z axis
-            glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
+            glm::vec4 ActorPosView =
+              GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
             GSceneEditorState.DistanceToCurrentlyDraggedActor = ActorPosView.z;
             GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
         }
     }
-}
-
-void UIUpdateState()
-{
-    // Update flags based on current UI state
-    GSceneEditorState.bIsAnyUIWidgetHovered = ImGui::IsAnyItemActive();
 }
 
 void UISetupDockspace()
@@ -660,7 +680,7 @@ void UIDrawSceneWindow()
         const ImVec2 SceneWindowPos = ImGui::GetWindowPos();
         const ImVec2 WindowContentMin = ImGui::GetWindowContentRegionMin();
         const ImVec2 WindowContentMax = ImGui::GetWindowContentRegionMax();
-        
+
         GSceneEditorState.SceneWindowWidth = WindowContentMax.x - WindowContentMin.x;
         GSceneEditorState.SceneWindowHeight = WindowContentMax.y - WindowContentMin.y;
 
@@ -670,7 +690,8 @@ void UIDrawSceneWindow()
         GSceneEditorState.SceneWindowPos.y += SceneWindowPos.y;
 
         // Draw the rendered scene into an image
-        GSceneEditorState.Renderer->GetResultFramebuffer()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
+        GSceneEditorState.Renderer->GetResultFramebuffer()->ImGuiDrawToImage(
+          { GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
     }
     ImGui::PopStyleVar(1);
     ImGui::End();
@@ -678,9 +699,74 @@ void UIDrawSceneWindow()
 
 void UIDrawAssetBrowserWindow()
 {
-    ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
+    ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_MenuBar;
     ImGui::Begin(ASSET_BROWSER, nullptr, WindowFlags);
+    {
+        // Menu bar
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                // Asset import
+                if (ImGui::BeginMenu("Import asset"))
+                {
+                    if (ImGui::MenuItem("Mesh"))
+                    {
+                        GSceneEditorState.FileDialog.SetTitle("Select a mesh file");
+                        GSceneEditorState.FileDialog.SetTypeFilters({ ".obj", ".fbx" });
+                        GSceneEditorState.bShowFileDialog = true;
+                        GSceneEditorState.OnFileSelected = &ImportMesh;
+                        GSceneEditorState.FileDialog.Open();
+                    }
+
+                    if (ImGui::MenuItem("Texture"))
+                    {
+                        GSceneEditorState.FileDialog.SetTitle("Select a texture file");
+                        GSceneEditorState.FileDialog.SetTypeFilters({ ".png", ".jpg", ".jpeg" });
+                        GSceneEditorState.OnFileSelected = &ImportTexture;
+                        GSceneEditorState.bShowFileDialog = true;
+                        GSceneEditorState.FileDialog.Open();
+                    }
+
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenu();
+            }
+        }
+        ImGui::EndMenuBar();
+    }
+    ImGui::End();
+}
+
+void UIDrawSceneHierarchyWindow()
+{
+    ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
+    ImGui::Begin(SCENE_HIERARCHY, nullptr, WindowFlags);
     {
     }
     ImGui::End();
+}
+
+void UIDrawFileDialog()
+{
+    if (GSceneEditorState.bShowFileDialog)
+    {
+        if (GSceneEditorState.FileDialog.HasSelected())
+        {
+            GSceneEditorState.OnFileSelected(GSceneEditorState.FileDialog.GetSelected());
+            GSceneEditorState.bShowFileDialog = false;
+        }
+        else
+        {
+            GSceneEditorState.FileDialog.Display();            
+        }
+    }
+}
+
+void ImportTexture(const std::filesystem::path& SelectedFilePath)
+{
+}
+
+void ImportMesh(const std::filesystem::path& SelectedFilePath)
+{
 }
