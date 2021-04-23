@@ -9,11 +9,19 @@
 
 namespace lucid::resources
 {
+    
     template <typename R, typename = std::enable_if<std::is_base_of<CResource, R>::value>>
     class CResourcesHolder
     {
+        using FResourcesHashMap = struct
+        {
+            char* key;
+            R* value;
+        };
+
       public:
-        // DefaultResource is returned if the holder doesn't contain the resource
+        
+        /** DefaultResource is returned if the holder doesn't contain the resource */
         CResourcesHolder(R* DefaultResource = nullptr) : defaultResource(DefaultResource) {}
 
         inline void SetDefaultResource(R* Resource) { defaultResource = Resource; };
@@ -21,52 +29,50 @@ namespace lucid::resources
 
         void Add(char const* ResourceName, R* Resource)
         {
-            assert(shgeti(resourcesHashMap, ResourceName) == -1);
-            shput(resourcesHashMap, ResourceName, Resource);
+            assert(shgeti(ResourcesHashMap, ResourceName) == -1);
+            shput(ResourcesHashMap, ResourceName, Resource);
         }
 
-        // returns nullptr if the resource doesn't exist
+        /** Returns the default resource if the resource doesn't exist */
         R* Get(char const* ResourceName)
         {
-            int resourceIndex = shgeti(resourcesHashMap, ResourceName);
+            int resourceIndex = shgeti(ResourcesHashMap, ResourceName);
             if (resourceIndex == -1)
             {
                 return defaultResource;
             }
-            return shget(resourcesHashMap, ResourceName);
+            return shget(ResourcesHashMap, ResourceName);
         }
 
-        // Removes the loaded resource and calls FreeResource() on it
+        /** Removes the loaded resource and calls FreeMainMemory() and FreeVideoMemory() on it */
         void Free(char const* ResourceName)
         {
-            if (shgeti(resourcesHashMap, ResourceName) != -1)
+            if (shgeti(ResourcesHashMap, ResourceName) != -1)
             {
-                R* res = shget(resourcesHashMap, ResourceName);
+                R* res = shget(ResourcesHashMap, ResourceName);
                 res->FreeMainMemory();
                 res->FreeVideoMemroy();
-                shdel(resourcesHashMap, ResourceName);
+                shdel(ResourcesHashMap, ResourceName);
             }
         }
 
-        bool Contains(char const* ResourceName) { return shgeti(resourcesHashMap, ResourceName) != -1; }
+        bool Contains(char const* ResourceName) { return shgeti(ResourcesHashMap, ResourceName) != -1; }
 
-        // Calls FreeResource() on all loaded resources and empties the holder
+        /** Calls FreeResource() on all loaded resources and empties the holder */
         void FreeAll()
         {
-            for (u32 idx = 0; idx < shlen(resourcesHashMap); ++idx)
+            for (u32 idx = 0; idx < shlen(ResourcesHashMap); ++idx)
             {
-                resourcesHashMap[idx]->FreeMainMemory();
-                resourcesHashMap[idx]->FreeVideoMemory();
+                ResourcesHashMap[idx]->FreeMainMemory();
+                ResourcesHashMap[idx]->FreeVideoMemory();
             }
-            shfree(resourcesHashMap);
+            shfree(ResourcesHashMap);
         }
 
+        inline FResourcesHashMap* GetResourcesHashMap() const { return ResourcesHashMap; }
+    
       private:
         R* defaultResource = nullptr;
-        struct
-        {
-            char* key;
-            R* value;
-        }* resourcesHashMap = NULL;
+        FResourcesHashMap* ResourcesHashMap = NULL;
     };
 } // namespace lucid::resources

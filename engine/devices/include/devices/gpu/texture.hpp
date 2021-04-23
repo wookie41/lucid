@@ -40,6 +40,12 @@ namespace lucid::gpu
 
         virtual ~CTexture() = default;
 
+#if DEVELOPMENT
+      virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const = 0;
+      virtual bool ImGuiImageButton(const ImVec2& InImageSize) const = 0;
+#endif  
+      
+
       protected:
         const u32 Width;
         const u32 Height;

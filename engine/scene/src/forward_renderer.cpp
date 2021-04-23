@@ -1,6 +1,8 @@
 #include "scene/forward_renderer.hpp"
 
 #include <devices/gpu/shaders_manager.hpp>
+#include <engine/engine.hpp>
+
 
 
 #include "common/log.hpp"
@@ -91,19 +93,19 @@ namespace lucid::scene
         if (UnitCubeVAO == nullptr)
         {
             UnitCubeVAO = misc::CreateCubeVAO();
-        }
+        }   
 
-        HitMapShader = gpu::GShadersManager.GetShaderByName("Hitmap");
-        BillboardHitMapShader = gpu::GShadersManager.GetShaderByName("BillboardHitmap");
-        ShadowMapShader = gpu::GShadersManager.GetShaderByName("ShadowMap");
-        ShadowCubeMapShader = gpu::GShadersManager.GetShaderByName("ShadowCubemap");
-        PrepassShader = gpu::GShadersManager.GetShaderByName("ForwardPrepass");
-        SSAOShader = gpu::GShadersManager.GetShaderByName("SSAO");
-        SimpleBlurShader = gpu::GShadersManager.GetShaderByName("SimpleBlur");
-        SkyboxShader = gpu::GShadersManager.GetShaderByName("Skybox");
-        BillboardShader = gpu::GShadersManager.GetShaderByName("Billboard");
-        FlatShader = gpu::GShadersManager.GetShaderByName("Flat");
-        GammaCorrectionShader = gpu::GShadersManager.GetShaderByName("GammaCorrection");
+        HitMapShader = GEngine.GetShadersManager().GetShaderByName("Hitmap");
+        BillboardHitMapShader = GEngine.GetShadersManager().GetShaderByName("BillboardHitmap");
+        ShadowMapShader = GEngine.GetShadersManager().GetShaderByName("ShadowMap");
+        ShadowCubeMapShader = GEngine.GetShadersManager().GetShaderByName("ShadowCubemap");
+        PrepassShader = GEngine.GetShadersManager().GetShaderByName("ForwardPrepass");
+        SSAOShader = GEngine.GetShadersManager().GetShaderByName("SSAO");
+        SimpleBlurShader = GEngine.GetShadersManager().GetShaderByName("SimpleBlur");
+        SkyboxShader = GEngine.GetShadersManager().GetShaderByName("Skybox");
+        BillboardShader = GEngine.GetShadersManager().GetShaderByName("Billboard");
+        FlatShader = GEngine.GetShadersManager().GetShaderByName("Flat");
+        GammaCorrectionShader = GEngine.GetShadersManager().GetShaderByName("GammaCorrection");
         
         // Prepare pipeline states
         ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor{ 0 };
@@ -344,9 +346,9 @@ namespace lucid::scene
         LightsBillboardsPipelineState.ClearDepthBufferValue = 0;
         LightsBillboardsPipelineState.IsDepthTestEnabled = true;
         LightsBillboardsPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
-        LightsBillboardsPipelineState.IsBlendingEnabled = true;
+        LightsBillboardsPipelineState.IsBlendingEnabled = true; 
         LightsBillboardsPipelineState.BlendFunctionSrc = gpu::EBlendFunction::SRC_ALPHA;
-        LightsBillboardsPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::SRC_ALPHA;
+        LightsBillboardsPipelineState.BlendFunctionAlphaSrc = gpu::EBlendFunction::SRC_ALPHA;
         LightsBillboardsPipelineState.BlendFunctionDst = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
         LightsBillboardsPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
         LightsBillboardsPipelineState.IsCullingEnabled = false;

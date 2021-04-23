@@ -1,9 +1,4 @@
-#include <filesystem>
-#include <devices/gpu/texture_enums.hpp>
-#include <scene/material.hpp>
-
 #include "engine.hpp"
-#include "common/collections.hpp"
 
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/init.hpp"
@@ -33,8 +28,6 @@
 #include "resources/mesh_resource.hpp"
 
 #include "glm/gtc/quaternion.hpp"
-#include "schemas/types.hpp"
-#include "schemas/json.hpp"
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -45,7 +38,7 @@ using namespace lucid;
 constexpr char EDITOR_WINDOW[] = "Lucid Editor";
 constexpr char DOCKSPACE_WINDOW[] = "Dockspace";
 constexpr char SCENE_VIEWPORT[] = "Scene";
-constexpr char ASSET_BROWSER[] = "Asset browser";
+constexpr char RESOURCES_BROWSER[] = "Resources browser";
 constexpr char SCENE_HIERARCHY[] = "Scene hierarchy";
 constexpr char MAIN_DOCKSPACE[] = "MainDockSpace";
 
@@ -84,8 +77,6 @@ struct FSceneEditorState
     ImGui::FileBrowser FileDialog;
     void (*OnFileSelected)(const std::filesystem::path&);
 
-    char AssetsBaseDir[] = "assets/";
-
 } GSceneEditorState;
 
 void InitializeSceneEditor();
@@ -95,7 +86,7 @@ void HandleActorDrag();
 
 void UISetupDockspace();
 void UIDrawSceneWindow();
-void UIDrawAssetBrowserWindow();
+void UIDrawResourceBrowserWindow();
 void UIDrawSceneHierarchyWindow();
 void UIDrawFileDialog();
 
@@ -104,142 +95,32 @@ void ImportMesh(const std::filesystem::path& SelectedFilePath);
 
 int main(int argc, char** argv)
 {
-    FEngineConfig EngineConfig;
-    EngineConfig.bHotReloadShaders = true;
-
-    InitEngine(EngineConfig);
-    resources::InitTextures();
-
     InitializeSceneEditor();
 
     gpu::CVertexArray* UnitCubeVAO = misc::CreateCubeVAO();
     gpu::CVertexArray* QuadVAO = misc::CreateQuadVAO();
 
-    FShadersDataBase ShadersDatabase;
-    ReadFromJSONFile(ShadersDatabase, "assets/shaders/shaders_database.json");
-
-    gpu::GShadersManager.LoadShadersDatabase(ShadersDatabase);
-
     // Load textures and meshes used in the demo scene
 
-    FString BrickDiffuseTextureFilePath{ "assets/textures/BrickDiffuse.asset" };
-    FString BrickNormalTextureFilePath{ "assets/textures/BrickNormal.asset" };
-    FString WoodDiffuseTextureFilePath{ "assets/textures/WoodDiffuse.asset" };
-    FString BlankTextureFilePath{ "assets/textures/Blank.asset" };
-    FString ToyboxNormalTextureFilePath{ "assets/textures/ToyboxNormal.asset" };
-    FString ToyboxDisplacementTextureFilePath{ "assets/textures/ToyboxDisplacement.asset" };
-    FString LightBulbTextureFilePath{ "assets/textures/LightBulb.asset" };
-
-    resources::CTextureResource* BrickDiffuseTextureResource = resources::LoadTexture(BrickDiffuseTextureFilePath);
-    BrickDiffuseTextureResource->LoadDataToMainMemorySynchronously();
-    BrickDiffuseTextureResource->LoadDataToVideoMemorySynchronously();
-    BrickDiffuseTextureResource->FreeMainMemory();
-
-    resources::CTextureResource* BrickNormalTextureResource = resources::LoadTexture(BrickNormalTextureFilePath);
-    BrickNormalTextureResource->LoadDataToMainMemorySynchronously();
-    BrickNormalTextureResource->LoadDataToVideoMemorySynchronously();
-    BrickNormalTextureResource->FreeMainMemory();
-
-    resources::CTextureResource* WoodDiffuseTextureResource = resources::LoadTexture(WoodDiffuseTextureFilePath);
-    WoodDiffuseTextureResource->LoadDataToMainMemorySynchronously();
-    WoodDiffuseTextureResource->LoadDataToVideoMemorySynchronously();
-    WoodDiffuseTextureResource->FreeMainMemory();
-
-    resources::CTextureResource* BlankTextureResource = resources::LoadTexture(BlankTextureFilePath);
-    BlankTextureResource->LoadDataToMainMemorySynchronously();
-    BlankTextureResource->LoadDataToVideoMemorySynchronously();
-    BlankTextureResource->FreeMainMemory();
-
-    resources::CTextureResource* ToyboxNormalTextureResource = resources::LoadTexture(ToyboxNormalTextureFilePath);
-    ToyboxNormalTextureResource->LoadDataToMainMemorySynchronously();
-    ToyboxNormalTextureResource->LoadDataToVideoMemorySynchronously();
-    ToyboxNormalTextureResource->FreeMainMemory();
-
-    resources::CTextureResource* ToyboxDisplacementTextureResource = resources::LoadTexture(ToyboxDisplacementTextureFilePath);
-    ToyboxDisplacementTextureResource->LoadDataToMainMemorySynchronously();
-    ToyboxDisplacementTextureResource->LoadDataToVideoMemorySynchronously();
-    ToyboxDisplacementTextureResource->FreeMainMemory();
-
-    resources::CTextureResource* LightBulbTextureResource = resources::LoadTexture(LightBulbTextureFilePath);
-    LightBulbTextureResource->LoadDataToMainMemorySynchronously();
-    LightBulbTextureResource->LoadDataToVideoMemorySynchronously();
-    LightBulbTextureResource->FreeMainMemory();
-
-    FString BackpackMeshFilePath{ "assets/meshes/BackpackMesh.asset" };
-    FString BackpackMeshDiffuseTexturePath{ "assets/textures/Backpack_TextureDiffuse.asset" };
-    FString BackpackMeshNormalTexturePath{ "assets/textures/Backpack_TextureNormal.asset" };
-    FString BackpackMeshSpecularTexturePath{ "assets/textures/Backpack_TextureSpecular.asset" };
-
-    resources::CMeshResource* BackpackMeshResource = resources::LoadMesh(BackpackMeshFilePath);
-    BackpackMeshResource->LoadDataToMainMemorySynchronously();
-    BackpackMeshResource->LoadDataToVideoMemorySynchronously();
-    BackpackMeshResource->FreeMainMemory();
-
-    resources::CTextureResource* BackpackMeshDiffuseTexture = resources::LoadTexture(BackpackMeshDiffuseTexturePath);
-    BackpackMeshDiffuseTexture->LoadDataToMainMemorySynchronously();
-    BackpackMeshDiffuseTexture->LoadDataToVideoMemorySynchronously();
-    BackpackMeshDiffuseTexture->FreeMainMemory();
-
-    resources::CTextureResource* BackpackMeshNormalTexture = resources::LoadTexture(BackpackMeshNormalTexturePath);
-    BackpackMeshNormalTexture->LoadDataToMainMemorySynchronously();
-    BackpackMeshNormalTexture->LoadDataToVideoMemorySynchronously();
-    BackpackMeshNormalTexture->FreeMainMemory();
-
-    resources::CTextureResource* BackpackMeshSpecularTexture = resources::LoadTexture(BackpackMeshSpecularTexturePath);
-    BackpackMeshSpecularTexture->LoadDataToMainMemorySynchronously();
-    BackpackMeshSpecularTexture->LoadDataToVideoMemorySynchronously();
-    BackpackMeshSpecularTexture->FreeMainMemory();
-
-    scene::CBlinnPhongMapsMaterial* BackpackMaterial =
-      new scene::CBlinnPhongMapsMaterial{ gpu::GShadersManager.GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial* BackpackMaterial = new scene::CBlinnPhongMapsMaterial { GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     BackpackMaterial->Shininess = 32;
-    BackpackMaterial->DiffuseMap = BackpackMeshDiffuseTexture->TextureHandle;
-    BackpackMaterial->NormalMap = BackpackMeshNormalTexture->TextureHandle;
-    BackpackMaterial->SpecularMap = BackpackMeshSpecularTexture->TextureHandle;
+    BackpackMaterial->DiffuseMap = GEngine.GetTexturesHolder().Get("Backpack_TextureDiffuse")->TextureHandle;
+    BackpackMaterial->NormalMap = GEngine.GetTexturesHolder().Get("Backpack_TextureNormal")->TextureHandle;
+    BackpackMaterial->SpecularMap = GEngine.GetTexturesHolder().Get("Backpack_TextureSpecular")->TextureHandle;
 
-    auto* BackpackStaticMesh = new scene::CStaticMesh{
-        CopyToString("Backpack"), nullptr, BackpackMeshResource->VAO, BackpackMaterial, scene::EStaticMeshType::STATIONARY
-    };
+    auto* BackpackStaticMesh = new scene::CStaticMesh{ CopyToString("Backpack"),
+                                                       nullptr,
+                                                       GEngine.GetMeshesHolder().Get("BackpackMesh")->VAO,
+                                                       BackpackMaterial,
+                                                       scene::EStaticMeshType::STATIONARY };
 
-    FString SkyboxRightTextureFilePath{ "assets/textures/SkyboxRight.asset" };
-    FString SkyboxLeftTextureFilePath{ "assets/textures/SkyboxLeft.asset" };
-    FString SkyboxTopTextureFilePath{ "assets/textures/SkyboxTop.asset" };
-    FString SkyboxBottomTextureFilePath{ "assets/textures/SkyboxBottom.asset" };
-    FString SkyboxFrontTextureFilePath{ "assets/textures/SkyboxFront.asset" };
-    FString SkyboxBackTextureFilePath{ "assets/textures/SkyboxBack.asset" };
 
-    resources::CTextureResource* SkyboxRightTexture = resources::LoadTexture(SkyboxRightTextureFilePath);
-    SkyboxRightTexture->LoadDataToMainMemorySynchronously();
-
-    resources::CTextureResource* SkyboxLeftTexture = resources::LoadTexture(SkyboxLeftTextureFilePath);
-    SkyboxLeftTexture->LoadDataToMainMemorySynchronously();
-
-    resources::CTextureResource* SkyboxTopTexture = resources::LoadTexture(SkyboxTopTextureFilePath);
-    SkyboxTopTexture->LoadDataToMainMemorySynchronously();
-
-    resources::CTextureResource* SkyboxBottomTexture = resources::LoadTexture(SkyboxBottomTextureFilePath);
-    SkyboxBottomTexture->LoadDataToMainMemorySynchronously();
-
-    resources::CTextureResource* SkyboxFrontTexture = resources::LoadTexture(SkyboxFrontTextureFilePath);
-    SkyboxFrontTexture->LoadDataToMainMemorySynchronously();
-
-    resources::CTextureResource* SkyboxBackTexture = resources::LoadTexture(SkyboxBackTextureFilePath);
-    SkyboxBackTexture->LoadDataToMainMemorySynchronously();
-
-    const void* SkyboxFacesData[6]{ SkyboxRightTexture->TextureData, SkyboxLeftTexture->TextureData,
-                                    SkyboxTopTexture->TextureData,   SkyboxBottomTexture->TextureData,
-                                    SkyboxFrontTexture->TextureData, SkyboxBackTexture->TextureData };
+    const void* SkyboxFacesData[6]{ GEngine.GetTexturesHolder().Get("SkyboxRight")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxLeft")->TextureData,
+                                    GEngine.GetTexturesHolder().Get("SkyboxTop")->TextureData,   GEngine.GetTexturesHolder().Get("SkyboxBottom")->TextureData,
+                                    GEngine.GetTexturesHolder().Get("SkyboxFront")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxBack")->TextureData };
 
     scene::CSkybox* Skybox =
-      scene::CreateSkybox(SkyboxFacesData, SkyboxLeftTexture->Width, SkyboxLeftTexture->Height, FString{ "Skybox" });
-
-    SkyboxRightTexture->FreeMainMemory();
-    SkyboxLeftTexture->FreeMainMemory();
-    SkyboxTopTexture->FreeMainMemory();
-    SkyboxBottomTexture->FreeMainMemory();
-    SkyboxFrontTexture->FreeMainMemory();
-    SkyboxBackTexture->FreeMainMemory();
-
+      scene::CreateSkybox(SkyboxFacesData, GEngine.GetTexturesHolder().Get("SkyboxRight")->Width, GEngine.GetTexturesHolder().Get("SkyboxRight")->Height, FString{ "Skybox" });
     // Configure the camera
     GSceneEditorState.PerspectiveCamera.AspectRatio =
       GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
@@ -255,33 +136,33 @@ int main(int argc, char** argv)
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
     Renderer.ResultResolution = { 1920, 1080 };
-    Renderer.LightBulbTexture = LightBulbTextureResource->TextureHandle;
+    Renderer.LightBulbTexture = GEngine.GetTexturesHolder().Get("LightBulb")->TextureHandle;
     Renderer.Setup();
 
-    scene::CBlinnPhongMapsMaterial woodMaterial{ gpu::GShadersManager.GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial woodMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     woodMaterial.Shininess = 32;
-    woodMaterial.DiffuseMap = WoodDiffuseTextureResource->TextureHandle;
+    woodMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
     woodMaterial.SpecularColor = glm::vec3{ 0.5 };
     woodMaterial.NormalMap = nullptr;
     woodMaterial.SpecularMap = nullptr;
 
-    scene::CBlinnPhongMapsMaterial brickMaterial{ gpu::GShadersManager.GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial brickMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     brickMaterial.Shininess = 32;
-    brickMaterial.DiffuseMap = BrickDiffuseTextureResource->TextureHandle;
+    brickMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("BrickDiffuse")->TextureHandle;
     brickMaterial.SpecularMap = nullptr;
     brickMaterial.DisplacementMap = nullptr;
-    brickMaterial.NormalMap = BrickNormalTextureResource->TextureHandle;
+    brickMaterial.NormalMap = GEngine.GetTexturesHolder().Get("BrickNormal")->TextureHandle;
     brickMaterial.SpecularColor = glm::vec3{ 0.2 };
 
-    scene::CBlinnPhongMapsMaterial toyboxMaterial{ gpu::GShadersManager.GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial toyboxMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     toyboxMaterial.Shininess = 32;
-    toyboxMaterial.DiffuseMap = WoodDiffuseTextureResource->TextureHandle;
+    toyboxMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
     toyboxMaterial.SpecularMap = nullptr;
-    toyboxMaterial.NormalMap = ToyboxNormalTextureResource->TextureHandle;
-    toyboxMaterial.DisplacementMap = ToyboxDisplacementTextureResource->TextureHandle;
+    toyboxMaterial.NormalMap = GEngine.GetTexturesHolder().Get("ToyboxNormal")->TextureHandle;
+    toyboxMaterial.DisplacementMap = GEngine.GetTexturesHolder().Get("ToyboxDisplacement")->TextureHandle;
     toyboxMaterial.SpecularColor = glm::vec3{ 0.2 };
 
-    scene::CBlinnPhongMaterial flatBlinnPhongMaterial{ gpu::GShadersManager.GetShaderByName("BlinnPhong") };
+    scene::CBlinnPhongMaterial flatBlinnPhongMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhong") };
     flatBlinnPhongMaterial.DiffuseColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.Shininess = 32;
@@ -323,16 +204,16 @@ int main(int argc, char** argv)
     // BlinnPhongMapsShader); backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
     // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
-    scene::FlatMaterial flatWhiteMaterial{ gpu::GShadersManager.GetShaderByName("Flat") };
+    scene::FlatMaterial flatWhiteMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
     flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
 
-    scene::FlatMaterial flatRedMaterial{ gpu::GShadersManager.GetShaderByName("Flat") };
+    scene::FlatMaterial flatRedMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
     flatRedMaterial.Color = { 1.0, 0.0, 0.0, 1.0 };
 
-    scene::FlatMaterial flatGreenMaterial{ gpu::GShadersManager.GetShaderByName("Flat") };
+    scene::FlatMaterial flatGreenMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
     flatGreenMaterial.Color = { 0.0, 1.0, 0.0, 1.0 };
 
-    scene::FlatMaterial flatBlueMaterial{ gpu::GShadersManager.GetShaderByName("Flat") };
+    scene::FlatMaterial flatBlueMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
     flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
 
     scene::CDirectionalLight* DirectionalLight = Renderer.CreateDirectionalLight(FDString{ "DirectionalLight" }, nullptr, true);
@@ -443,7 +324,7 @@ int main(int argc, char** argv)
             UISetupDockspace();
             ImGui::ShowDemoWindow();
             UIDrawSceneWindow();
-            UIDrawAssetBrowserWindow();
+            UIDrawResourceBrowserWindow();
             UIDrawSceneHierarchyWindow();
             UIDrawFileDialog();
         }
@@ -466,6 +347,13 @@ int main(int argc, char** argv)
 void InitializeSceneEditor()
 {
     // Create the window for the editor
+
+    FEngineConfig EngineConfig;
+    EngineConfig.bHotReloadShaders = true;
+
+    GEngine.InitEngine(EngineConfig);
+
+    
     platform::FWindowDefiniton EditorWindow;
     EditorWindow.title = "Lucid Editor";
     EditorWindow.X = 100;
@@ -478,6 +366,8 @@ void InitializeSceneEditor()
     GSceneEditorState.Window = platform::CreateNewWindow(EditorWindow);
     GSceneEditorState.Window->Prepare();
 
+    GEngine.LoadResources();
+    
     // Setup ImGui
     IMGUI_CHECKVERSION();
 
@@ -511,17 +401,17 @@ void InitializeSceneEditor()
               { (float)GSceneEditorState.EditorWindowWidth, (float)GSceneEditorState.EditorWindowHeight });
 
             // Split the dockspace
-            ImGuiID AssetBrowserWindowDockId;
+            ImGuiID ResourceBrowserWindowDockId;
             ImGuiID SceneHierarchyDockId;
             ImGuiID SceneWindowDockId;
             SceneWindowDockId =
               ImGui::DockBuilderSplitNode(GSceneEditorState.MainDockId, ImGuiDir_Left, 0.75f, nullptr, &SceneHierarchyDockId);
             SceneWindowDockId =
-              ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Up, 0.7f, nullptr, &AssetBrowserWindowDockId);
+              ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Up, 0.7f, nullptr, &ResourceBrowserWindowDockId);
 
             // Attach windows to dockspaces
             ImGui::DockBuilderDockWindow(SCENE_VIEWPORT, SceneWindowDockId);
-            ImGui::DockBuilderDockWindow(ASSET_BROWSER, AssetBrowserWindowDockId);
+            ImGui::DockBuilderDockWindow(RESOURCES_BROWSER, ResourceBrowserWindowDockId);
             ImGui::DockBuilderDockWindow(SCENE_HIERARCHY, SceneHierarchyDockId);
 
             // Submit the layout
@@ -697,18 +587,18 @@ void UIDrawSceneWindow()
     ImGui::End();
 }
 
-void UIDrawAssetBrowserWindow()
+void UIDrawResourceBrowserWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_MenuBar;
-    ImGui::Begin(ASSET_BROWSER, nullptr, WindowFlags);
+    ImGui::Begin(RESOURCES_BROWSER, nullptr, WindowFlags);
     {
         // Menu bar
         if (ImGui::BeginMenuBar())
         {
             if (ImGui::BeginMenu("File"))
             {
-                // Asset import
-                if (ImGui::BeginMenu("Import asset"))
+                // Resource import
+                if (ImGui::BeginMenu("Import resource"))
                 {
                     if (ImGui::MenuItem("Mesh"))
                     {
@@ -734,6 +624,62 @@ void UIDrawAssetBrowserWindow()
             }
         }
         ImGui::EndMenuBar();
+
+        // Resources browser
+        ImGui::BeginChild("Scrolling");
+        {
+            const int    ResourceItemsPerRow = 8;
+            const float  ResourceItemWidth = ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow;
+            const ImVec2 ResourceItemSize { ResourceItemWidth, ResourceItemWidth };
+            
+            int CurrentRowItemsCount = 0;
+
+            // Draw texture resource items
+            ImGui::Text("Textures:");
+            for (int i = 0; i < shlen(GEngine.GetTexturesHolder().GetResourcesHashMap()); ++i)
+            {
+                const resources::CTextureResource* TextureResource = GEngine.GetTexturesHolder().GetResourcesHashMap()[i].value;
+                if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
+                {
+                    CurrentRowItemsCount = 0;
+                }
+                else if (CurrentRowItemsCount > 0)
+                {
+                    ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount, 0);
+                }
+
+                if (TextureResource && TextureResource->TextureHandle)
+                {
+                    TextureResource->TextureHandle->ImGuiImageButton(ResourceItemSize);
+                    ++CurrentRowItemsCount;
+                }
+            }
+
+            ImGui::Spacing();
+            
+            // Draw meshes resource items
+            CurrentRowItemsCount = 0;
+            ImGui::Text("Meshes:");
+
+            for (int i = 0; i < shlen(GEngine.GetMeshesHolder().GetResourcesHashMap()); ++i)
+            {
+                const resources::CMeshResource* MeshResource = GEngine.GetMeshesHolder().GetResourcesHashMap()[i].value;
+                if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
+                {
+                    CurrentRowItemsCount = 0;
+                }
+                else if (CurrentRowItemsCount > 0)
+                {
+                    ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount, 0);
+                }
+
+                if (MeshResource)
+                {
+                    ImGui::ColorButton("test", {1, 1, 1, 1}, ImGuiColorEditFlags_None, ResourceItemSize);
+                }
+            }
+        }
+        ImGui::EndChild();
     }
     ImGui::End();
 }
@@ -758,15 +704,11 @@ void UIDrawFileDialog()
         }
         else
         {
-            GSceneEditorState.FileDialog.Display();            
+            GSceneEditorState.FileDialog.Display();
         }
     }
 }
 
-void ImportTexture(const std::filesystem::path& SelectedFilePath)
-{
-}
+void ImportTexture(const std::filesystem::path& SelectedFilePath) {}
 
-void ImportMesh(const std::filesystem::path& SelectedFilePath)
-{
-}
+void ImportMesh(const std::filesystem::path& SelectedFilePath) {}

@@ -31,10 +31,8 @@ namespace lucid::gpu
         virtual void AttachAsColor(const u8& Index, EFace InFace) = 0;
 
 #if DEVELOPMENT
-        virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const
-        {
-            // noop
-        }
+        virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const;
+        virtual bool ImGuiImageButton(const ImVec2& InImageSize) const;
 #endif
         virtual ~CCubemap() = default;
     };

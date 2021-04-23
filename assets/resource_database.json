@@ -1,0 +1,73 @@
+{
+    "Entries": [
+        {
+            "Name": "BrickDiffuse",
+            "Path": "assets/textures/BrickDiffuse.asset"
+        },
+        {
+            "Name": "BrickNormal",
+            "Path": "assets/textures/BrickNormal.asset"
+        },
+        {
+            "Name": "WoodDiffuse",
+            "Path": "assets/textures/WoodDiffuse.asset"
+        },
+        {
+            "Name": "Blank",
+            "Path": "assets/textures/Blank.asset"
+        },
+        {
+            "Name": "ToyboxNormal",
+            "Path": "assets/textures/ToyboxNormal.asset"
+        },
+        {
+            "Name": "ToyboxDisplacement",
+            "Path": "assets/textures/ToyboxDisplacement.asset"
+        },
+        {
+            "Name": "LightBulb",
+            "Path": "assets/textures/LightBulb.asset"
+        },
+        {
+            "Name": "BackpackMesh",
+            "Path": "assets/meshes/BackpackMesh.asset",
+            "Type": 1
+        },
+        {
+            "Name": "Backpack_TextureDiffuse",
+            "Path": "assets/textures/Backpack_TextureDiffuse.asset"
+        },
+        {
+            "Name": "Backpack_TextureNormal",
+            "Path": "assets/textures/Backpack_TextureNormal.asset"
+        },
+        {
+            "Name": "Backpack_TextureSpecular",
+            "Path": "assets/textures/Backpack_TextureSpecular.asset"
+        },
+        {
+            "Name": "SkyboxRight",
+            "Path": "assets/textures/SkyboxRight.asset"
+        },
+        {
+            "Name": "SkyboxLeft",
+            "Path": "assets/textures/SkyboxLeft.asset"
+        },
+        {
+            "Name": "SkyboxTop",
+            "Path": "assets/textures/SkyboxTop.asset"
+        },
+        {
+            "Name": "SkyboxBottom",
+            "Path": "assets/textures/SkyboxBottom.asset"
+        },
+        {
+            "Name": "SkyboxFront",
+            "Path": "assets/textures/SkyboxFront.asset"
+        },
+        {
+            "Name": "SkyboxBack",
+            "Path": "assets/textures/SkyboxBack.asset"
+        }
+    ]
+}

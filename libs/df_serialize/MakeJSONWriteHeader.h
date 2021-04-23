@@ -1,5 +1,7 @@
 // Generates code to write data to json files.
 
+#include <resources/resource.hpp>
+
 #include "_common.h"
 #include "common/bytes.hpp"
 
@@ -190,6 +192,13 @@ rapidjson::Value MakeJSONValue(const lucid::FDString& value, rapidjson::Document
 {
     rapidjson::Value ret;
     ret.SetString(*value, allocator);
+    return ret;
+}
+
+rapidjson::Value MakeJSONValue(const lucid::resources::EResourceType& value, rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value ret;
+    ret.SetInt(static_cast<uint8_t>(value));
     return ret;
 }
 

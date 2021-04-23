@@ -4,6 +4,8 @@
 // RapidJSON Github:  https://github.com/Tencent/rapidjson/
 
 #include <common/strings.hpp>
+#include <resources/resource.hpp>
+
 
 #include "_common.h"
 #include "common/bytes.hpp"
@@ -302,6 +304,21 @@ bool JSONRead(lucid::FDString& value, T& document)
     }
 
     value = lucid::CopyToString(document.GetString());
+    return true;
+}
+
+
+
+template <typename T>
+bool JSONRead(lucid::resources::EResourceType& value, T& document)
+{
+    if (!document.IsInt())
+    {
+        DFS_LOG("Trying to read a string but it wasn't a string\n");
+        return false;
+    }
+
+    value = static_cast<lucid::resources::EResourceType>(document.GetInt());
     return true;
 }
 

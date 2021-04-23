@@ -8,6 +8,9 @@
 
 namespace lucid
 {
+    using TexturesHolder = resources::CResourcesHolder<resources::CTextureResource>;
+    using MeshesHolder = resources::CResourcesHolder<resources::CMeshResource>;
+    
     enum class EEngineInitError : u8
     {
         NONE,
@@ -25,16 +28,23 @@ namespace lucid
     public:
 
         EEngineInitError InitEngine(const FEngineConfig& InEngineConfig);
+        void             LoadResources();
         
-        inline resources::CResourcesHolder<resources::CTextureResource>& GetTexturesHolder() const { return TexturesHolder; } 
-        inline resources::CResourcesHolder<resources::CTextureResource>& GetMeshesHolder() const { return TexturesHolder; } 
+        inline FResourceDatabase&   GetResourceDatabase()   { return ResourceDatabase; }
+        inline TexturesHolder&      GetTexturesHolder() { return TexturesHolder; } 
+        inline MeshesHolder&        GetMeshesHolder()   { return MeshesHolder; }
+
+        inline gpu::CShadersManager& GetShadersManager() { return ShadersManager; }
 
     protected:
 
         gpu::CShadersManager ShadersManager;
-        
-        resources::CResourcesHolder<resources::CTextureResource> TexturesHolder;
-        resources::CResourcesHolder<resources::CTextureResource> MeshesHolder;
+
+        FResourceDatabase ResourceDatabase;
+
+        MeshesHolder    MeshesHolder;
+        TexturesHolder  TexturesHolder;
+
     };
 
     extern CEngine GEngine;

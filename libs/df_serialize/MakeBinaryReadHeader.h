@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <common/strings.hpp>
+#include <resources/resource.hpp>
+
 
 
 #include "_common.h"
@@ -270,12 +272,12 @@ bool BinaryRead(lucid::gpu::ETextureDataType& value, const TDYNAMICARRAY<char>& 
     return false;
 }
 
-bool BinaryRead(lucid::gpu::ETextureDataFormat& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+bool BinaryRead(lucid::resources::EResourceType& value, const TDYNAMICARRAY<char>& data, size_t& offset)
 {
     int8_t int_value;
     if(BinaryRead(int_value, data, offset))
     {
-        value = static_cast<lucid::gpu::ETextureDataFormat>(int_value);
+        value = static_cast<lucid::resources::EResourceType>(int_value);
         return true;
     }
     return false;
@@ -287,4 +289,16 @@ bool BinaryRead(lucid::FDString& value, const TDYNAMICARRAY<char>& data, size_t&
     value = lucid::CopyToString((const char*)&data[offset]);
     offset += value.GetLength() + 1;
     return true;
+}
+
+
+bool BinaryRead(lucid::gpu::ETextureDataFormat& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    int8_t int_value;
+    if(BinaryRead(int_value, data, offset))
+    {
+        value = static_cast<lucid::gpu::ETextureDataFormat>(int_value);
+        return true;
+    }
+    return false;
 }

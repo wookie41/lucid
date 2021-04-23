@@ -1,6 +1,8 @@
 // Generates code to write binary data to memory and files
 
 #include <common/strings.hpp>
+#include <resources/resource.hpp>
+
 
 #include "_common.h"
 #include "common/bytes.hpp"
@@ -163,4 +165,10 @@ void BinaryWrite(const lucid::FDString& value, TDYNAMICARRAY<char>& output)
     const char* src = *value;
     for (int i = 0; i <= len; ++i)
         dest[i] = src[i];
+}
+
+
+void BinaryWrite(lucid::resources::EResourceType& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(static_cast<uint8_t>(value), output);
 }

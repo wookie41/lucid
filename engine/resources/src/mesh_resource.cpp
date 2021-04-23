@@ -1,5 +1,9 @@
 #include "resources/mesh_resource.hpp"
 
+
+
+#include <filesystem>
+#include <engine/engine.hpp>
 #include <scene/actors/actor.hpp>
 
 
@@ -192,28 +196,24 @@ namespace lucid::resources
 
     static FMeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene);
 
-    static void LoadAssimpNode(const FString& DirectoryPath, aiNode* Node, const aiScene* Scene, FMeshMainMemoryBuffers& MeshData);
-    static void LoadAssimpMesh(const FString& DirectoryPath, aiMesh* mesh, const aiScene* scene, FMeshMainMemoryBuffers& MeshData);
+    static void LoadAssimpNode(aiNode* Node, const aiScene* Scene, FMeshMainMemoryBuffers& MeshData);
+    static void LoadAssimpMesh(aiMesh* mesh, const aiScene* scene, FMeshMainMemoryBuffers& MeshData);
     
-    static CTextureResource* AssimpImportMaterialTexture(const FString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, const FString& MeshName, const FString& TextureTypeName);
+    static CTextureResource* AssimpImportMaterialTexture(const FString& ModelFileDir, aiMaterial* Material, aiTextureType TextureType, const FString& MeshName, const FString& TextureTypeName);
 
-    CMeshResource* ImportMesh(const FString& DirectoryPath, const FString& MeshFileName, const FString& MeshName)
+    CMeshResource* ImportMesh(const FString& InMeshFilePath, const FString& MeshName)
     {
-        // Read mesh file
-        FDString MeshFilePath = SPrintf("%s/%s", *DirectoryPath, *MeshFileName);
-
 #ifndef NDEBUG
         real StartTime = platform::GetCurrentTimeSeconds();
 #endif
 
-        const aiScene* Root = AssimpImporter.ReadFile(*MeshFilePath, ASSIMP_DEFAULT_FLAGS);
+        const aiScene* Root = AssimpImporter.ReadFile(*InMeshFilePath, ASSIMP_DEFAULT_FLAGS);
 
-        LUCID_LOG(ELogLevel::INFO, "Reading mesh with assimp %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - StartTime);
+        LUCID_LOG(ELogLevel::INFO, "Reading mesh with assimp %s took %f", *InMeshFilePath, platform::GetCurrentTimeSeconds() - StartTime);
 
         if (!Root || Root->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !Root->mRootNode)
         {
             LUCID_LOG(ELogLevel::WARN, "Assimp failed to load model %s", AssimpImporter.GetErrorString())
-            MeshFilePath.Free();
             return nullptr;
         }
 
@@ -231,47 +231,41 @@ namespace lucid::resources
 
         StartTime = platform::GetCurrentTimeSeconds();
 
-        LoadAssimpNode(DirectoryPath, Root->mRootNode, Root, MainMemoryBuffers);
-
-        LUCID_LOG(ELogLevel::INFO, "Vertex data  %u/%u, element data %u/%u", MainMemoryBuffers.VertexBuffer.Size,
-                  MainMemoryBuffers .VertexBuffer.Capacity, MainMemoryBuffers.ElementBuffer.Size,
-                  MainMemoryBuffers.ElementBuffer.Capacity);
-
-#ifndef NDEBUG
-        LUCID_LOG(ELogLevel::INFO, "Loading mesh %s took %f", *MeshFileName,
-                  platform::GetCurrentTimeSeconds() - StartTime);
-#endif
+        LoadAssimpNode(Root->mRootNode, Root, MainMemoryBuffers);
 
         // Load textures
         aiMaterial* Material = Root->mMaterials[1];
+        std::filesystem::path MeshFilePath { *InMeshFilePath };
+
+
+        FDString MeshFileDirPath;
+        if(MeshFilePath.has_parent_path())
+        {
+            MeshFileDirPath = CopyToString(MeshFilePath.parent_path().string().c_str()); // @TODO .string().c_str() once we support wchars
+        }
 
         StartTime = platform::GetCurrentTimeSeconds();
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
         {
-            AssimpImportMaterialTexture(DirectoryPath, Material, aiTextureType_DIFFUSE,  MeshName, FString { "Diffuse" } );
+            AssimpImportMaterialTexture(MeshFileDirPath, Material, aiTextureType_DIFFUSE,  MeshName, FString { "Diffuse" } );
         }
 
         if (Material->GetTextureCount(aiTextureType_SPECULAR))
         {
-            AssimpImportMaterialTexture(DirectoryPath, Material, aiTextureType_SPECULAR, MeshName, FString { "Specular" } );
+            AssimpImportMaterialTexture(MeshFileDirPath, Material, aiTextureType_SPECULAR, MeshName, FString { "Specular" } );
         }
 
         if (Material->GetTextureCount(aiTextureType_HEIGHT))
         {
-            AssimpImportMaterialTexture(DirectoryPath, Material, aiTextureType_HEIGHT, MeshName, FString { "Normal" } );
+            AssimpImportMaterialTexture(MeshFileDirPath, Material, aiTextureType_HEIGHT, MeshName, FString { "Normal" } );
         }
 
-#ifndef NDEBUG
-        LUCID_LOG(ELogLevel::INFO, "Loading textures %s took %f", *MeshFileName, platform::GetCurrentTimeSeconds() - StartTime);
-#endif
-        
-        MeshFilePath.Free();
+        MeshFileDirPath.Free();
 
 #ifndef NDEBUG
-
-        LUCID_LOG(ELogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshFileName,
-                  platform::GetCurrentTimeSeconds() - StartTime);
+        LUCID_LOG(ELogLevel::INFO, "Loading textures of mesh %s took %f", *MeshName, platform::GetCurrentTimeSeconds() - StartTime);
+        LUCID_LOG(ELogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshName,platform::GetCurrentTimeSeconds() - StartTime);
 #endif
 
         auto* ImportedMesh = new CMeshResource { sole::uuid4(), MeshName, FString { "" }, 0, MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize, MESH_SERIALIZATION_VERSION };
@@ -317,8 +311,7 @@ namespace lucid::resources
         return MeshSize;
     }
 
-    static void LoadAssimpNode(const FString& DirectoryPath, aiNode* Node, const aiScene* Scene,
-                               FMeshMainMemoryBuffers& MeshData)
+    static void LoadAssimpNode(aiNode* Node, const aiScene* Scene, FMeshMainMemoryBuffers& MeshData)
     {
         // process each mesh located at the current node
         for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
@@ -326,17 +319,16 @@ namespace lucid::resources
             // the node object only contains indices to index the actual objects in the scene.
             // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
             aiMesh* mesh = Scene->mMeshes[Node->mMeshes[idx]];
-            LoadAssimpMesh(DirectoryPath, mesh, Scene, MeshData);
+            LoadAssimpMesh(mesh, Scene, MeshData);
         }
         // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
         for (u32 idx = 0; idx < Node->mNumChildren; ++idx)
         {
-            LoadAssimpNode(DirectoryPath, Node->mChildren[idx], Scene, MeshData);
+            LoadAssimpNode(Node->mChildren[idx], Scene, MeshData);
         }
     }
 
-    void LoadAssimpMesh(const FString& DirectoryPath, aiMesh* Mesh, const aiScene* Scene,
-                        FMeshMainMemoryBuffers& MeshData)
+    void LoadAssimpMesh(aiMesh* Mesh, const aiScene* Scene, FMeshMainMemoryBuffers& MeshData)
     {
         uint32_t currentTotalElementCount = MeshData.VertexCount;
 
@@ -395,42 +387,43 @@ namespace lucid::resources
         }
     }
 
-    static CTextureResource* AssimpImportMaterialTexture(const FString& DirectoryPath, aiMaterial* Material, aiTextureType TextureType, const FString& MeshName, const FString& TextureTypeName)
+    static CTextureResource* AssimpImportMaterialTexture(const FString& InMeshDirPath, aiMaterial* Material, aiTextureType TextureType, const FString& MeshName, const FString& TextureTypeName)
     {
         // Import the texture
-        aiString TextureFileName;
-        Material->GetTexture(TextureType, 0, &TextureFileName);
+        aiString TextureFilePath;
+        Material->GetTexture(TextureType, 0, &TextureFilePath);
 
-        FDString TexturePath = SPrintf("%s/%s", *DirectoryPath, TextureFileName.C_Str());
-        
-        if (TexturesHolder.Contains(*TexturePath))
-        {
-            return TexturesHolder.Get(*TexturePath);
-        }
+        FDString TexturePath = SPrintf("%s/%s", *InMeshDirPath, TextureFilePath.C_Str());
+        FDString TextureName = SPrintf("%s_Texture%s", *MeshName, *TextureTypeName);
 
         CTextureResource* Texture = ImportJPGTexture(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, false, SPrintf("%s_%s", *MeshName, *TextureTypeName));
-
+        TexturePath.Free();
+        
         if (Texture == nullptr)
         {
+            TextureName.Free();
             LUCID_LOG(ELogLevel::WARN, "Failed to load %s texture of mesh %s", TextureTypeName, MeshName)
-            Texture = TexturesHolder.GetDefaultResource();
+            return GEngine.GetTexturesHolder().GetDefaultResource();
         }
 
-        TexturePath.Free();
+        // Save to a texture resource
+        FDString    TextureResourceFilePath =   SPrintf("assets/textures/%s.asset", *TextureName);
+        FILE*       TextureResourceFile =       fopen(*TextureResourceFilePath, "wb");
 
-        // Save to a texture asset
-
-        FDString    TextureFilePath = SPrintf("assets/textures/%s_Texture%s.asset", *MeshName, *TextureTypeName);
-        FILE*       TextureFile = fopen(*TextureFilePath, "wb");
-        if (TextureFile == nullptr)
+        if (TextureResourceFile == nullptr)
         {
+            TextureResourceFilePath.Free();
+            TextureName.Free();
+
             LUCID_LOG(ELogLevel::WARN, "Failed to save save imported %d texture of mesh %s - failed to open the file", *TextureTypeName, *MeshName);
-            return nullptr;
+            return GEngine.GetTexturesHolder().GetDefaultResource();
         }
 
-        Texture->SaveSynchronously(TextureFile);
-        fclose(TextureFile);
-        TextureFilePath.Free();
+        Texture->SaveSynchronously(TextureResourceFile);
+        fclose(TextureResourceFile);
+
+        TextureResourceFilePath.Free();
+        TextureName.Free();
         
         return Texture;
     }

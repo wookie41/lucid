@@ -32,6 +32,4 @@ namespace lucid::gpu
 
         const FSString BaseShadersPath { "shaders/glsl/base" };
     };
-
-    extern CShadersManager GShadersManager;
 }

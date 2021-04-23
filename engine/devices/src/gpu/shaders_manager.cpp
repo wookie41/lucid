@@ -1,13 +1,14 @@
 ﻿#include "devices/gpu/shaders_manager.hpp"
 
+#include <engine/engine.hpp>
+
+
 #include "common/log.hpp"
 #include "devices/gpu/shader.hpp"
 #include "platform/fs.hpp"
 #include "platform/platform.hpp"
 namespace lucid::gpu
 {
-    CShadersManager GShadersManager;
-
     void ReloadShaders();
 
     CShader* CShadersManager::CompileShader(const FShaderInfo& ShaderInfo, const bool& ShouldStoreShader)
@@ -83,12 +84,12 @@ namespace lucid::gpu
     {
         platform::ExecuteCommand(FSString { LUCID_TEXT("sh tools\\scripts\\preprocess_shaders.sh") });
 
-        for (u64 i = 0; i < GShadersManager.ShaderInfoByName.GetLength(); ++i)
+        for (u64 i = 0; i < GEngine.GetShadersManager().ShaderInfoByName.GetLength(); ++i)
         {
-            const FShaderInfo& ShaderInfo = GShadersManager.ShaderInfoByName.Get(i);
-            CShader* ShaderToReload = GShadersManager.CompiledShadersByName.Get(i);
+            const FShaderInfo& ShaderInfo = GEngine.GetShadersManager().ShaderInfoByName.Get(i);
+            CShader* ShaderToReload = GEngine.GetShadersManager().CompiledShadersByName.Get(i);
             
-            CShader* RecompiledShader = GShadersManager.CompileShader( ShaderInfo, false);
+            CShader* RecompiledShader = GEngine.GetShadersManager().CompileShader( ShaderInfo, false);
             if (RecompiledShader)
             {
                 ShaderToReload->ReloadShader(RecompiledShader);

@@ -53,7 +53,6 @@ namespace lucid::gpu
             return -1;
         }
 
-
         SDL_GL_MakeCurrent(window, context);
 
         GLenum GLEWInitResult = glewInit();

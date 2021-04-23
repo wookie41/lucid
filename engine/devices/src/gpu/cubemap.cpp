@@ -9,4 +9,16 @@ namespace lucid::gpu
                        const ETexturePixelFormat InTexturePixelFormat) : CTexture(InName, InWidth, InHeight, InTextureDataType, InTexturePixelFormat)
     {
     }
+    
+    void CCubemap::ImGuiDrawToImage(const ImVec2& InImageSize) const
+    {
+        // noop
+    }
+
+     bool CCubemap::ImGuiImageButton(const ImVec2& InImageSize) const
+    {
+        // noop
+        return false;
+    }
+
 }

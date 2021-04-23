@@ -229,6 +229,11 @@ namespace lucid::gpu
         ImGui::Image((ImTextureID)GLTextureHandle, InImageSize, { 0, 1 }, { 1, 0 });
     }
 
+    bool CGLTexture::ImGuiImageButton(const ImVec2& InImageSize) const
+    {
+        return ImGui::ImageButton((ImTextureID)GLTextureHandle, InImageSize, {0, 1}, {1, 0}, 1);
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Cubemap

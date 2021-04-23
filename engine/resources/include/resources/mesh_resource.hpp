@@ -42,21 +42,11 @@ namespace lucid::resources
         FMemBuffer            ElementData;
     };
 
-    // Loads the mesh from the given directory, assumes to following things:
-    // - diffuse map is stored in file named 'diffuseMap'
-    // - specular map is stored in file named 'specularMap'
-    // - normal map is stored in file named 'normalMap'
-
-    // The loader doesn't support sub-mesh hierarchies, it flattens them and
-    // loads in a single EBO and VBO it also requries the textures to be packed
-    // by type, by that I mean
-    // - single diffuse texture atlas
-    // - single specular texture atlas
-    // - single normal texture atlas
-    // Diffuse and specular maps should be stored in JPEG, wheras normal maps
-    // should be stored in PNG
-
-    CMeshResource* ImportMesh(const FString& DirectoryPath, const FString& MeshFileName, const FString& MeshName);
+    /**
+     *  Loads the mesh from the given directory, requires that
+     *  textures are stored in the same directory as the model file
+     */
+    CMeshResource* ImportMesh(const FString& MeshFilePath, const FString& MeshName);
 
     CMeshResource* LoadMesh(const FString& FilePath);    
 } // namespace lucid::resources

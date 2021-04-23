@@ -52,6 +52,7 @@ namespace lucid::gpu
 
 #if DEVELOPMENT
         virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const override;
+        virtual bool ImGuiImageButton(const ImVec2& InImageSize) const override;
 #endif  
         
         ///////////////////////////
