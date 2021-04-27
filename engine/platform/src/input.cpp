@@ -81,6 +81,9 @@ namespace lucid
                 case SDL_WINDOWEVENT_FOCUS_GAINED:
                     ActiveWindow->OnFocusGained();
                     break;
+                case SDL_WINDOWEVENT_RESIZED:
+                    ActiveWindow->OnResize(event.window.data1, event.window.data2);
+                    break;
                 }
 
                 continue;

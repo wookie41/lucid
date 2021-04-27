@@ -65,6 +65,11 @@
             "Name": "GammaCorrection",
             "VertexShaderSourcePath": "shaders/glsl/pass.vert",
             "FragmentShaderSourcePath": "shaders/glsl/gamma_correction.frag"
+        },
+        {
+            "Name": "MeshThumb",
+            "VertexShaderSourcePath": "shaders/glsl/mesh_thumb.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/mesh_thumb.frag"
         }
     ]
 }

@@ -24,15 +24,20 @@ namespace lucid::platform
         virtual void Swap() override;
         virtual void Clear() override;
 
+        virtual glm::vec2 GetPosition() const override;
+        
         virtual u16 GetWidth() const override;
         virtual u16 GetHeight() const override;
+        
         virtual float GetAspectRatio() const override;
+
         virtual gpu::CFramebuffer* GetFramebuffer() const override;
 
         virtual void Show() override;
         virtual void Hide() override;
 
         virtual void OnFocusGained() override;
+        virtual void OnResize(const u16& InWidth, const u16& InHeight) override;
 
 
 #if DEVELOPMENT
@@ -51,7 +56,7 @@ namespace lucid::platform
     private:
 
         float AspectRatio;
-        u16 Width, Height;
+        u32 Width, Height;
         SDL_Window* MySDLWindow;
         SDL_GLContext MyGLContext;
         gpu::CFramebuffer* WindowFramebuffer;

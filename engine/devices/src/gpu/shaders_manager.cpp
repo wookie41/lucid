@@ -1,12 +1,11 @@
 ﻿#include "devices/gpu/shaders_manager.hpp"
 
-#include <engine/engine.hpp>
-
-
+#include "engine/engine.hpp"
 #include "common/log.hpp"
 #include "devices/gpu/shader.hpp"
 #include "platform/fs.hpp"
 #include "platform/platform.hpp"
+
 namespace lucid::gpu
 {
     void ReloadShaders();

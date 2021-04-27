@@ -43,6 +43,8 @@ namespace lucid::resources
         virtual void FreeMainMemory() = 0;
         virtual void FreeVideoMemory() = 0;
 
+        inline FString& GetName() { return Name; }
+        
         virtual ~CResource() = default;
 
     protected:

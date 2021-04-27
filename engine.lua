@@ -52,6 +52,7 @@ project "lucid_engine"
       "engine/scene/src/**.cpp",
       "engine/resources/src/**.cpp",
       "engine/resources/include/**.tpp",
+      "engine/schemas/src/**.cpp",
       "engine/*.cpp",
       "engine/imgui/include/*.h",
       "engine/imgui/src/*.cpp",

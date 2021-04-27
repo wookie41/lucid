@@ -68,6 +68,11 @@
         {
             "Name": "SkyboxBack",
             "Path": "assets/textures/SkyboxBack.asset"
+        },
+        {
+            "Name": "Cyborg",
+            "Path": "assets/meshes/Cyborg.asset",
+            "Type": 1
         }
     ]
 }

@@ -24,9 +24,13 @@ namespace lucid::platform
         virtual void Swap() = 0;
         virtual void Clear() = 0;
 
+        virtual glm::vec2 GetPosition() const = 0;
+
         virtual u16 GetWidth() const = 0;
         virtual u16 GetHeight() const = 0;
+        
         virtual float GetAspectRatio() const = 0;
+
         virtual gpu::CFramebuffer* GetFramebuffer() const = 0;
         
         virtual void Show() = 0;
@@ -37,7 +41,7 @@ namespace lucid::platform
         // Events callbacks
         
         virtual void OnFocusGained() = 0;
-
+        virtual void OnResize(const u16& InWidth, const u16& InHeight) = 0;
         gpu::FGPUState* GetGPUState() { return &GPUStateForMyContext; };
         
         virtual ~CWindow() = default;

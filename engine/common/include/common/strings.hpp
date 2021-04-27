@@ -49,6 +49,7 @@ namespace lucid
 
         void operator=(const FDString& InRHS);
 
+        FDString GetCopy() const;
         void Resize(const u32& NewLength);
         
         virtual void Free() override;

@@ -1,9 +1,12 @@
-﻿#include "engine.hpp"
+﻿#include "engine/engine.hpp"
 
 #include "stb_init.hpp"
 #include "devices/gpu/init.hpp"
 #include "devices/gpu/shaders_manager.hpp"
-#include "schemas/types.hpp"
+#include "misc/actor_thumbs.hpp"
+
+#define LUCID_SCHEMAS_IMPLEMENTATION
+#include "schemas/binary.hpp"
 #include "schemas/json.hpp"
 
 namespace lucid
@@ -34,6 +37,9 @@ namespace lucid
         FShadersDataBase ShadersDatabase;
         ReadFromJSONFile(ShadersDatabase, "assets/shaders/shaders_database.json");
         ShadersManager.LoadShadersDatabase(ShadersDatabase);
+
+        ThumbsGenerator = new CActorThumbsGenerator;
+        ThumbsGenerator->Setup();
         
         // Read resource database
         ReadFromJSONFile(ResourceDatabase, "assets/resource_database.json");
@@ -48,6 +54,7 @@ namespace lucid
                     {
                         LoadedMesh->LoadDataToMainMemorySynchronously();
                         LoadedMesh->LoadDataToVideoMemorySynchronously();
+                        LoadedMesh->Thumb = ThumbsGenerator->GenerateMeshThumb(256, 256, LoadedMesh);
                         GEngine.GetMeshesHolder().Add(*Entry.Name, LoadedMesh);
                     }
                     break;

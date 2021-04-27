@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include "common/strings.hpp"
-#include "schemas/types.hpp"
 #include "common/collections.hpp"
+#include "schemas/types.hpp"
 
 namespace lucid::gpu
 {
@@ -11,7 +11,7 @@ namespace lucid::gpu
 
     class CShadersManager
     {
-    public:
+    public: 
 
         void LoadShadersDatabase(const FShadersDataBase& InShadersDatabase);
 

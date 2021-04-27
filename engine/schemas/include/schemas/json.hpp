@@ -12,10 +12,18 @@
 #include "MakeJSONReadFooter.h"
 
 // Equality testing (used by json writing to not write default values)
-#include "MakeEqualityTests.h"
+#ifdef LUCID_SCHEMAS_IMPLEMENTATION
+    #include "MakeEqualityTests.h"
+#else
+    #include "MakeEqualityTestsFWD.h"
+#endif
 #include "schemas/schemas.hpp"
 
 // Writing JSON
-#include "MakeJSONWriteHeader.h"
+#ifdef LUCID_SCHEMAS_IMPLEMENTATION
+    #include "MakeJSONWriteHeader.h"
+#else
+    #include "MakeJSONWriteHeaderFWD.h"
+#endif
 #include "schemas/schemas.hpp"
 #include "MakeJSONWriteFooter.h"

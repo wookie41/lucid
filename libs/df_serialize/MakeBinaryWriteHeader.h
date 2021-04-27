@@ -168,7 +168,7 @@ void BinaryWrite(const lucid::FDString& value, TDYNAMICARRAY<char>& output)
 }
 
 
-void BinaryWrite(lucid::resources::EResourceType& value, TDYNAMICARRAY<char>& output)
+void BinaryWrite(const lucid::resources::EResourceType& value, TDYNAMICARRAY<char>& output)
 {
     BinaryWrite(static_cast<uint8_t>(value), output);
 }

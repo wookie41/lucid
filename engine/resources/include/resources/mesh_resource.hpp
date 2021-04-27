@@ -38,8 +38,17 @@ namespace lucid::resources
         gpu::CBuffer*         VertexBuffer  = nullptr;
         gpu::CBuffer*         ElementBuffer = nullptr;
 
+        float MinPosX = 0, MaxPosX = 0;
+        float MinPosY = 0, MaxPosY = 0;
+        float MinPosZ = 0, MaxPosZ = 0;
+        
         FMemBuffer            VertexData;
         FMemBuffer            ElementData;
+
+#if DEVELOPMENT
+        /** Thumb texture used to show the mesh in asset browser */
+        gpu::CTexture*  Thumb;
+#endif
     };
 
     /**

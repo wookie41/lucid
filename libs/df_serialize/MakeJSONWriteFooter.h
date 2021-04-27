@@ -1,3 +1,5 @@
+#ifdef LUCID_SCHEMAS_IMPLEMENTATION
+
 bool WriteTextFile(const char* fileName, const TSTRING& data)
 {
     FILE* file = nullptr;
@@ -8,7 +10,9 @@ bool WriteTextFile(const char* fileName, const TSTRING& data)
     fclose(file);
     return true;
 }
-
+#else
+extern bool WriteTextFile(const char* fileName, const TSTRING& data);
+#endif
 // Write a structure to a JSON string
 template<typename TROOT>
 void WriteToJSONBuffer(TROOT& root, TSTRING& data, bool minimize = false)

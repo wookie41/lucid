@@ -1,16 +1,22 @@
 ﻿#pragma once
 
 #include "common/types.hpp"
-#include "devices/gpu/shaders_manager.hpp"
+
+#include "resources/resource.hpp"
 #include "resources/resources_holder.hpp"
 #include "resources/texture_resource.hpp"
 #include "resources/mesh_resource.hpp"
+#include "devices/gpu/shaders_manager.hpp"
+
+#include "schemas/types.hpp"
 
 namespace lucid
 {
     using TexturesHolder = resources::CResourcesHolder<resources::CTextureResource>;
     using MeshesHolder = resources::CResourcesHolder<resources::CMeshResource>;
-    
+
+    class CActorThumbsGenerator;
+
     enum class EEngineInitError : u8
     {
         NONE,
@@ -44,6 +50,11 @@ namespace lucid
 
         MeshesHolder    MeshesHolder;
         TexturesHolder  TexturesHolder;
+
+#if DEVELOPMENT
+    public:
+        CActorThumbsGenerator* ThumbsGenerator;
+#endif
 
     };
 

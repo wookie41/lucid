@@ -41,6 +41,16 @@ namespace lucid::resources
         fread_s(&ElementData.Capacity, sizeof(ElementData.Capacity), sizeof(ElementData.Capacity), 1, ResourceFile);
         fread_s(&VertexCount, sizeof(VertexCount), sizeof(VertexCount), 1, ResourceFile);
         fread_s(&ElementCount, sizeof(ElementCount), sizeof(ElementCount), 1, ResourceFile);
+
+        if (AssetSerializationVersion > 0)
+        {
+            fread_s(&MinPosX, sizeof(MinPosX), sizeof(MinPosX), 1, ResourceFile);
+            fread_s(&MaxPosX, sizeof(MaxPosX), sizeof(MaxPosX), 1, ResourceFile);
+            fread_s(&MinPosY, sizeof(MinPosY), sizeof(MinPosY), 1, ResourceFile);
+            fread_s(&MaxPosY, sizeof(MaxPosY), sizeof(MaxPosY), 1, ResourceFile);
+            fread_s(&MinPosZ, sizeof(MinPosZ), sizeof(MinPosZ), 1, ResourceFile);
+            fread_s(&MaxPosZ, sizeof(MaxPosZ), sizeof(MaxPosZ), 1, ResourceFile);
+        }
     }
 
     void CMeshResource::LoadDataToMainMemorySynchronously()
@@ -53,7 +63,12 @@ namespace lucid::resources
         }
 
         // Position the file pointer to the beginning of mesh data
-        fseek(MeshFile,Offset + RESOURCE_FILE_HEADER_SIZE + Name.GetLength() + sizeof(VertexData.Capacity) + sizeof(ElementData.Capacity) + sizeof(VertexCount) + sizeof(ElementCount), SEEK_SET);
+        u32 VertexDataOffset = Offset + RESOURCE_FILE_HEADER_SIZE + Name.GetLength() + sizeof(VertexData.Capacity) + sizeof(ElementData.Capacity) + sizeof(VertexCount) + sizeof(ElementCount);
+        if (AssetSerializationVersion > 0)
+        {
+            VertexDataOffset += sizeof(float) * 6;
+        }
+        fseek(MeshFile, VertexDataOffset, SEEK_SET);
 
         // Read vertex data
         VertexData.Pointer = (char*)malloc(VertexData.Capacity);
@@ -137,6 +152,13 @@ namespace lucid::resources
         fwrite(&VertexCount, sizeof(VertexCount), 1, ResourceFile);
         fwrite(&ElementCount, sizeof(ElementCount), 1, ResourceFile);
 
+        fwrite(&MinPosX, sizeof(MinPosX), 1, ResourceFile);
+        fwrite(&MaxPosX, sizeof(MaxPosX), 1, ResourceFile);
+        fwrite(&MinPosY, sizeof(MinPosY), 1, ResourceFile);
+        fwrite(&MaxPosY, sizeof(MaxPosY), 1, ResourceFile);
+        fwrite(&MinPosZ, sizeof(MinPosZ), 1, ResourceFile);
+        fwrite(&MaxPosZ, sizeof(MaxPosZ), 1, ResourceFile);
+
         // Save vertex data
         fwrite(VertexData.Pointer, VertexData.Size, 1, ResourceFile);
 
@@ -186,18 +208,21 @@ namespace lucid::resources
     };
 
     /* Helper structure used when importing the mesh */
-    struct FMeshMainMemoryBuffers
+    struct FMeshInfoHelper
     {
         FMemBuffer VertexBuffer;
         FMemBuffer ElementBuffer;
         u32 VertexCount = 0;
         u32 ElementCount = 0;
+        float MinX, MaxX;
+        float MinY, MaxY;
+        float MinZ, MaxZ;
     };
 
     static FMeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene);
 
-    static void LoadAssimpNode(aiNode* Node, const aiScene* Scene, FMeshMainMemoryBuffers& MeshData);
-    static void LoadAssimpMesh(aiMesh* mesh, const aiScene* scene, FMeshMainMemoryBuffers& MeshData);
+    static void LoadAssimpNode(aiNode* Node, const aiScene* Scene, FMeshInfoHelper& MeshData);
+    static void LoadAssimpMesh(aiMesh* mesh, const aiScene* scene, FMeshInfoHelper& MeshData);
     
     static CTextureResource* AssimpImportMaterialTexture(const FString& ModelFileDir, aiMaterial* Material, aiTextureType TextureType, const FString& MeshName, const FString& TextureTypeName);
 
@@ -225,25 +250,23 @@ namespace lucid::resources
                                                  ? CreateMemBuffer(MeshDataSize.ElementDataSize)
                                                  : FMemBuffer{nullptr, 0, 0};
 
-        FMeshMainMemoryBuffers MainMemoryBuffers{VertexDataBuffer, ElementDataBuffer, 0, 0};
+        FMeshInfoHelper MeshInfoHelper{VertexDataBuffer, ElementDataBuffer, 0, 0};
 
         // Load the assimp nodes recursively
 
         StartTime = platform::GetCurrentTimeSeconds();
 
-        LoadAssimpNode(Root->mRootNode, Root, MainMemoryBuffers);
+        MeshInfoHelper.MinX = MeshInfoHelper.MinY = MeshInfoHelper.MinZ = FLT_MAX;
+        MeshInfoHelper.MaxX = MeshInfoHelper.MaxY = MeshInfoHelper.MaxZ = 0;
+
+        LoadAssimpNode(Root->mRootNode, Root, MeshInfoHelper);
 
         // Load textures
         aiMaterial* Material = Root->mMaterials[1];
         std::filesystem::path MeshFilePath { *InMeshFilePath };
 
 
-        FDString MeshFileDirPath;
-        if(MeshFilePath.has_parent_path())
-        {
-            MeshFileDirPath = CopyToString(MeshFilePath.parent_path().string().c_str()); // @TODO .string().c_str() once we support wchars
-        }
-
+        FDString MeshFileDirPath = CopyToString(MeshFilePath.parent_path().string().c_str()); // @TODO .string().c_str() once we support wchars
         StartTime = platform::GetCurrentTimeSeconds();
 
         if (Material->GetTextureCount(aiTextureType_DIFFUSE))
@@ -270,12 +293,21 @@ namespace lucid::resources
 
         auto* ImportedMesh = new CMeshResource { sole::uuid4(), MeshName, FString { "" }, 0, MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize, MESH_SERIALIZATION_VERSION };
 
-        ImportedMesh->VertexData = MainMemoryBuffers.VertexBuffer;
-        ImportedMesh->ElementData = MainMemoryBuffers.ElementBuffer;
+        ImportedMesh->VertexData = MeshInfoHelper.VertexBuffer;
+        ImportedMesh->ElementData = MeshInfoHelper.ElementBuffer;
 
-        ImportedMesh->VertexCount = MainMemoryBuffers.VertexCount;
-        ImportedMesh->ElementCount = MainMemoryBuffers.ElementCount;
+        ImportedMesh->VertexCount = MeshInfoHelper.VertexCount;
+        ImportedMesh->ElementCount = MeshInfoHelper.ElementCount;
 
+        ImportedMesh->MinPosX = MeshInfoHelper.MinX;
+        ImportedMesh->MaxPosX = MeshInfoHelper.MaxX;
+
+        ImportedMesh->MinPosY = MeshInfoHelper.MinY;
+        ImportedMesh->MaxPosY = MeshInfoHelper.MaxY;
+
+        ImportedMesh->MinPosZ = MeshInfoHelper.MinZ;
+        ImportedMesh->MaxPosZ = MeshInfoHelper.MaxZ;        
+        
         return ImportedMesh;
     }; // namespace lucid::resources
 
@@ -311,7 +343,7 @@ namespace lucid::resources
         return MeshSize;
     }
 
-    static void LoadAssimpNode(aiNode* Node, const aiScene* Scene, FMeshMainMemoryBuffers& MeshData)
+    static void LoadAssimpNode(aiNode* Node, const aiScene* Scene, FMeshInfoHelper& MeshData)
     {
         // process each mesh located at the current node
         for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
@@ -328,9 +360,9 @@ namespace lucid::resources
         }
     }
 
-    void LoadAssimpMesh(aiMesh* Mesh, const aiScene* Scene, FMeshMainMemoryBuffers& MeshData)
+    void LoadAssimpMesh(aiMesh* Mesh, const aiScene* Scene, FMeshInfoHelper& MeshData)
     {
-        uint32_t currentTotalElementCount = MeshData.VertexCount;
+        uint32_t CurrentTotalElementCount = MeshData.VertexCount;
 
         MeshData.VertexCount += Mesh->mNumVertices;
         for (uint32_t i = 0; i < Mesh->mNumVertices; ++i)
@@ -341,6 +373,17 @@ namespace lucid::resources
             VertexDataPointer->x = Mesh->mVertices[i].x;
             VertexDataPointer->y = Mesh->mVertices[i].y;
             VertexDataPointer->z = Mesh->mVertices[i].z;
+
+            MeshData.MinX = VertexDataPointer->x < MeshData.MinX ? VertexDataPointer->x : MeshData.MinX;  
+            MeshData.MaxX = VertexDataPointer->x > MeshData.MaxX ? VertexDataPointer->x : MeshData.MaxX;
+            
+            MeshData.MinY = VertexDataPointer->y < MeshData.MinY ? VertexDataPointer->y : MeshData.MinY;  
+            MeshData.MaxY = VertexDataPointer->y > MeshData.MaxY ? VertexDataPointer->y : MeshData.MaxY;
+
+            MeshData.MinZ = VertexDataPointer->z < MeshData.MinZ ? VertexDataPointer->z : MeshData.MinZ;  
+            MeshData.MaxZ = VertexDataPointer->z > MeshData.MaxZ ? VertexDataPointer->z : MeshData.MaxZ;
+
+            
             VertexDataPointer += 1;
 
             MeshData.VertexBuffer.Size += sizeof(glm::vec3);
@@ -378,9 +421,9 @@ namespace lucid::resources
             u32*            ElementPtr = (uint32_t*)(MeshData.ElementBuffer.Pointer + MeshData.ElementBuffer.Size);
             const uint32_t  FaceDataSize = 3 * sizeof(uint32_t);
 
-            ElementPtr[0] = (currentTotalElementCount + Face->mIndices[0]);
-            ElementPtr[1] = (currentTotalElementCount + Face->mIndices[1]);
-            ElementPtr[2] = (currentTotalElementCount + Face->mIndices[2]);
+            ElementPtr[0] = (CurrentTotalElementCount + Face->mIndices[0]);
+            ElementPtr[1] = (CurrentTotalElementCount + Face->mIndices[1]);
+            ElementPtr[2] = (CurrentTotalElementCount + Face->mIndices[2]);
 
             MeshData.ElementCount += 3;
             MeshData.ElementBuffer.Size += FaceDataSize;

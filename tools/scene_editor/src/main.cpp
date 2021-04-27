@@ -1,4 +1,4 @@
-#include "engine.hpp"
+#include "engine/engine.hpp"
 
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/init.hpp"
@@ -33,6 +33,9 @@
 #include "imgui_internal.h"
 #include "imfilebrowser.h"
 
+#include "schemas/json.hpp"
+#include "misc/actor_thumbs.hpp"
+
 using namespace lucid;
 
 constexpr char EDITOR_WINDOW[] = "Lucid Editor";
@@ -41,6 +44,7 @@ constexpr char SCENE_VIEWPORT[] = "Scene";
 constexpr char RESOURCES_BROWSER[] = "Resources browser";
 constexpr char SCENE_HIERARCHY[] = "Scene hierarchy";
 constexpr char MAIN_DOCKSPACE[] = "MainDockSpace";
+constexpr char POPUP_WINDOW[] = "PopupWindow";
 
 struct FSceneEditorState
 {
@@ -73,9 +77,20 @@ struct FSceneEditorState
     scene::CCamera PerspectiveCamera{ scene::ECameraMode::PERSPECTIVE };
     scene::CCamera* CurrentCamera = nullptr;
 
+    /** File dialog related things, used e.x. when importing assets */
     bool bShowFileDialog = false;
     ImGui::FileBrowser FileDialog;
     void (*OnFileSelected)(const std::filesystem::path&);
+
+    /** Variables used when importing an asset to the engine */
+
+    char AssetNameBuffer[256];
+    FDString PathToSelectedFile{ "" };
+
+    bool bAssetNameMissing;
+    bool bIsImportingMesh;
+    bool bIsImportingTexture;
+    bool bFailedToImportMesh;
 
 } GSceneEditorState;
 
@@ -89,6 +104,7 @@ void UIDrawSceneWindow();
 void UIDrawResourceBrowserWindow();
 void UIDrawSceneHierarchyWindow();
 void UIDrawFileDialog();
+void UIDrawMeshImporter();
 
 void ImportTexture(const std::filesystem::path& SelectedFilePath);
 void ImportMesh(const std::filesystem::path& SelectedFilePath);
@@ -102,7 +118,8 @@ int main(int argc, char** argv)
 
     // Load textures and meshes used in the demo scene
 
-    scene::CBlinnPhongMapsMaterial* BackpackMaterial = new scene::CBlinnPhongMapsMaterial { GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial* BackpackMaterial =
+      new scene::CBlinnPhongMapsMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     BackpackMaterial->Shininess = 32;
     BackpackMaterial->DiffuseMap = GEngine.GetTexturesHolder().Get("Backpack_TextureDiffuse")->TextureHandle;
     BackpackMaterial->NormalMap = GEngine.GetTexturesHolder().Get("Backpack_TextureNormal")->TextureHandle;
@@ -114,13 +131,16 @@ int main(int argc, char** argv)
                                                        BackpackMaterial,
                                                        scene::EStaticMeshType::STATIONARY };
 
+    const void* SkyboxFacesData[6]{
+        GEngine.GetTexturesHolder().Get("SkyboxRight")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxLeft")->TextureData,
+        GEngine.GetTexturesHolder().Get("SkyboxTop")->TextureData,   GEngine.GetTexturesHolder().Get("SkyboxBottom")->TextureData,
+        GEngine.GetTexturesHolder().Get("SkyboxFront")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxBack")->TextureData
+    };
 
-    const void* SkyboxFacesData[6]{ GEngine.GetTexturesHolder().Get("SkyboxRight")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxLeft")->TextureData,
-                                    GEngine.GetTexturesHolder().Get("SkyboxTop")->TextureData,   GEngine.GetTexturesHolder().Get("SkyboxBottom")->TextureData,
-                                    GEngine.GetTexturesHolder().Get("SkyboxFront")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxBack")->TextureData };
-
-    scene::CSkybox* Skybox =
-      scene::CreateSkybox(SkyboxFacesData, GEngine.GetTexturesHolder().Get("SkyboxRight")->Width, GEngine.GetTexturesHolder().Get("SkyboxRight")->Height, FString{ "Skybox" });
+    scene::CSkybox* Skybox = scene::CreateSkybox(SkyboxFacesData,
+                                                 GEngine.GetTexturesHolder().Get("SkyboxRight")->Width,
+                                                 GEngine.GetTexturesHolder().Get("SkyboxRight")->Height,
+                                                 FString{ "Skybox" });
     // Configure the camera
     GSceneEditorState.PerspectiveCamera.AspectRatio =
       GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
@@ -353,7 +373,6 @@ void InitializeSceneEditor()
 
     GEngine.InitEngine(EngineConfig);
 
-    
     platform::FWindowDefiniton EditorWindow;
     EditorWindow.title = "Lucid Editor";
     EditorWindow.X = 100;
@@ -367,7 +386,7 @@ void InitializeSceneEditor()
     GSceneEditorState.Window->Prepare();
 
     GEngine.LoadResources();
-    
+
     // Setup ImGui
     IMGUI_CHECKVERSION();
 
@@ -628,10 +647,10 @@ void UIDrawResourceBrowserWindow()
         // Resources browser
         ImGui::BeginChild("Scrolling");
         {
-            const int    ResourceItemsPerRow = 8;
-            const float  ResourceItemWidth = ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow;
-            const ImVec2 ResourceItemSize { ResourceItemWidth, ResourceItemWidth };
-            
+            const int ResourceItemsPerRow = 8;
+            const float ResourceItemWidth = ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow;
+            const ImVec2 ResourceItemSize{ ResourceItemWidth, ResourceItemWidth };
+
             int CurrentRowItemsCount = 0;
 
             // Draw texture resource items
@@ -656,7 +675,7 @@ void UIDrawResourceBrowserWindow()
             }
 
             ImGui::Spacing();
-            
+
             // Draw meshes resource items
             CurrentRowItemsCount = 0;
             ImGui::Text("Meshes:");
@@ -673,15 +692,94 @@ void UIDrawResourceBrowserWindow()
                     ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount, 0);
                 }
 
-                if (MeshResource)
+                if (MeshResource && MeshResource->Thumb)
                 {
-                    ImGui::ColorButton("test", {1, 1, 1, 1}, ImGuiColorEditFlags_None, ResourceItemSize);
+                    MeshResource->Thumb->ImGuiImageButton(ResourceItemSize);
+                    ++CurrentRowItemsCount;
                 }
             }
         }
         ImGui::EndChild();
     }
     ImGui::End();
+
+    // Draw a window that ask user for some metadata about a mesh that he's importing
+    UIDrawMeshImporter();
+}
+
+void UIDrawMeshImporter()
+{
+    if (GSceneEditorState.bIsImportingMesh)
+    {
+        ImGui::SetNextWindowPos({ GSceneEditorState.Window->GetPosition().x + GSceneEditorState.Window->GetWidth() * 0.5f,
+                                  GSceneEditorState.Window->GetPosition().y + GSceneEditorState.Window->GetHeight() * 0.5f },
+                                ImGuiCond_Always,
+                                { 0.5f, 0.5f });
+        ImGui::SetNextWindowSize({ 0, 0 });
+        ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
+        {
+            ImGui::InputText("Mesh name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
+            if (ImGui::Button("Import"))
+            {
+                GSceneEditorState.bAssetNameMissing = false;
+                GSceneEditorState.bFailedToImportMesh = false;
+
+                if (strnlen_s(GSceneEditorState.AssetNameBuffer, 256) == 0)
+                {
+                    GSceneEditorState.bAssetNameMissing = true;
+                }
+                else
+                {
+                    // Everything is ok, import the mesh and save it
+                    static char IMPORTED_MESH_FILE_PATH[1024];
+
+                    // Import the mesh
+                    FDString MeshName = CopyToString(GSceneEditorState.AssetNameBuffer);
+                    resources::CMeshResource* ImportedMesh =
+                      resources::ImportMesh(GSceneEditorState.PathToSelectedFile, MeshName);
+
+                    if (!ImportedMesh)
+                    {
+                        GSceneEditorState.bFailedToImportMesh = true;
+                        return;
+                    }
+
+                    ImportedMesh->LoadDataToVideoMemorySynchronously();
+                    ImportedMesh->Thumb = GEngine.ThumbsGenerator->GenerateMeshThumb(256, 256, ImportedMesh);
+
+                    // Save it to file
+                    sprintf_s(IMPORTED_MESH_FILE_PATH, 1024, "assets/meshes/%s.asset", GSceneEditorState.AssetNameBuffer);
+                    FILE* ImportedMeshFile;
+                    fopen_s(&ImportedMeshFile, IMPORTED_MESH_FILE_PATH, "wb");
+                    ImportedMesh->SaveSynchronously(ImportedMeshFile);
+                    fclose(ImportedMeshFile);
+
+                    // Update engine resources database
+                    GEngine.GetResourceDatabase().Entries.push_back({ MeshName, CopyToString(IMPORTED_MESH_FILE_PATH), resources::EResourceType::MESH });
+                    GEngine.GetMeshesHolder().Add(*MeshName, ImportedMesh);
+
+                    WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
+
+                    // End mesh import
+                    GSceneEditorState.bIsImportingMesh = false;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Close"))
+            {
+                GSceneEditorState.bIsImportingMesh = false;
+            }
+            if (GSceneEditorState.bAssetNameMissing)
+            {
+                ImGui::Text("Please provide mesh name!");
+            }
+            if (GSceneEditorState.bFailedToImportMesh)
+            {
+                ImGui::Text("Failed to import mesh"); // @TODO error code
+            }
+        }
+        ImGui::EndPopup();
+    }
 }
 
 void UIDrawSceneHierarchyWindow()
@@ -711,4 +809,10 @@ void UIDrawFileDialog()
 
 void ImportTexture(const std::filesystem::path& SelectedFilePath) {}
 
-void ImportMesh(const std::filesystem::path& SelectedFilePath) {}
+void ImportMesh(const std::filesystem::path& SelectedFilePath)
+{
+    GSceneEditorState.PathToSelectedFile = CopyToString(SelectedFilePath.string().c_str());
+    GSceneEditorState.bIsImportingMesh = true;
+    Zero(GSceneEditorState.AssetNameBuffer, 256);
+    ImGui::OpenPopup(POPUP_WINDOW);
+}

@@ -22,7 +22,7 @@ namespace lucid::platform
         {
             SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
         }
-        Uint32 WindowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
+        Uint32 WindowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE;
         if (Definition.bHidden)
         {
             WindowFlags |= SDL_WINDOW_HIDDEN;
@@ -79,6 +79,13 @@ namespace lucid::platform
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
     }
 
+    glm::vec2 SDLWindow::GetPosition() const
+    {
+        int WindowX, WindowY;
+        SDL_GetWindowPosition(MySDLWindow, &WindowX, &WindowY);
+        return { WindowX, WindowY };
+    }
+
     void SDLWindow::Prepare()
     {
         gpu::GPUState = &GPUStateForMyContext; 
@@ -111,6 +118,12 @@ namespace lucid::platform
     void SDLWindow::OnFocusGained()
     {
         // SDL_CaptureMouse(SDL_TRUE);
+    }
+
+    void SDLWindow::OnResize(const u16& InWidth, const u16& InHeight)
+    {
+        Width = InWidth;
+        Height = InHeight;
     }
 
     void SDLWindow::ImgUiSetup()

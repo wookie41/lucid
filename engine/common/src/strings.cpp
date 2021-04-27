@@ -76,6 +76,11 @@ namespace lucid
         UpdateLengthAndCalculateHash(NewLength);
         CString[NewLength] = 0;
     }
+
+    FDString FDString::GetCopy() const
+    {
+        return CopyToString(CString, Length);
+    }
     
     /**************************************
     *          Static String            *

@@ -5,7 +5,10 @@
 #include "schemas/schemas.hpp"
 #include "MakeBinaryReadFooter.h"
 
-// Binary Writing
-#include "MakeBinaryWriteHeader.h"
+#ifdef LUCID_SCHEMAS_IMPLEMENTATION
+    #include "MakeBinaryWriteHeader.h"
+#else
+    #include "MakeBinaryWriteHeaderFWD.h"
+#endif
 #include "schemas/schemas.hpp"
 #include "MakeBinaryWriteFooter.h"
