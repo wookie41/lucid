@@ -302,3 +302,14 @@ bool BinaryRead(lucid::gpu::ETextureDataFormat& value, const TDYNAMICARRAY<char>
     }
     return false;
 }
+
+bool BinaryRead(lucid::UUID& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    TSTRING string_value;
+    if(BinaryRead(string_value, data, offset))
+    {
+        value = sole::rebuild(string_value);
+        return true;
+    }
+    return false;
+}

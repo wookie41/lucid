@@ -1,75 +1,94 @@
 {
     "Entries": [
         {
+            "Id": "761e8f37-06b1-4af3-8c6c-8a2931dc56f6",
             "Name": "BrickDiffuse",
             "Path": "assets/textures/BrickDiffuse.asset"
         },
         {
+            "Id": "848401ec-e072-490b-b87a-3ab0e58309bb",
             "Name": "BrickNormal",
             "Path": "assets/textures/BrickNormal.asset"
         },
         {
+            "Id": "76206f90-1209-40af-b94c-785bbee012e4",
             "Name": "WoodDiffuse",
             "Path": "assets/textures/WoodDiffuse.asset"
         },
         {
+            "Id": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
             "Name": "Blank",
-            "Path": "assets/textures/Blank.asset"
+            "Path": "assets/textures/Blank.asset",
+            "bIsDefault": true
         },
         {
+            "Id": "0d95ff69-79d8-4e03-bafd-3ed739171538",
             "Name": "ToyboxNormal",
             "Path": "assets/textures/ToyboxNormal.asset"
         },
         {
+            "Id": "d7ea00c8-0d67-4700-8146-b8e01e61fae2",
             "Name": "ToyboxDisplacement",
             "Path": "assets/textures/ToyboxDisplacement.asset"
         },
         {
+            "Id": "abd835d6-6aa9-4140-9442-9afe04a2b999",
             "Name": "LightBulb",
             "Path": "assets/textures/LightBulb.asset"
         },
         {
+            "Id": "e87b3486-5c30-4d46-ae6e-de3fb1d2300c",
             "Name": "BackpackMesh",
             "Path": "assets/meshes/BackpackMesh.asset",
             "Type": 1
         },
         {
+            "Id": "e1afcc14-2831-4044-8c45-71599f9046e0",
             "Name": "Backpack_TextureDiffuse",
             "Path": "assets/textures/Backpack_TextureDiffuse.asset"
         },
         {
+            "Id": "0d46d301-a47d-4014-9c1c-5bf36d51a9db",
             "Name": "Backpack_TextureNormal",
             "Path": "assets/textures/Backpack_TextureNormal.asset"
         },
         {
+            "Id": "8426a551-06ee-4254-a5aa-0246049a73b3",
             "Name": "Backpack_TextureSpecular",
             "Path": "assets/textures/Backpack_TextureSpecular.asset"
         },
         {
+            "Id": "a0a74314-fbf7-4682-af9f-5ca551832b74",
             "Name": "SkyboxRight",
             "Path": "assets/textures/SkyboxRight.asset"
         },
         {
+            "Id": "b269661e-a6e3-42f3-8767-d4c77fd48845",
             "Name": "SkyboxLeft",
             "Path": "assets/textures/SkyboxLeft.asset"
         },
         {
+            "Id": "f48e07e3-e732-46b6-86c7-7c9950dd3f15",
             "Name": "SkyboxTop",
             "Path": "assets/textures/SkyboxTop.asset"
         },
         {
+            "Id": "e5868f3b-f9f1-4268-a86f-a60797d1a39c",
             "Name": "SkyboxBottom",
             "Path": "assets/textures/SkyboxBottom.asset"
         },
         {
+            "Id": "01d79778-1b38-48bb-b670-b691b8fbbd56",
             "Name": "SkyboxFront",
             "Path": "assets/textures/SkyboxFront.asset"
         },
         {
+            "Id": "05a50582-5461-4698-8f4d-f264b0a4b732",
             "Name": "SkyboxBack",
             "Path": "assets/textures/SkyboxBack.asset"
         },
         {
+            "Id": "0e7b9172-7163-4f63-a40f-3f5c406d5dfd",
             "Name": "Cyborg",
             "Path": "assets/meshes/Cyborg.asset",
             "Type": 1

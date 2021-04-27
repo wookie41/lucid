@@ -15,7 +15,7 @@ namespace lucid::resources
     {
     }
 
-    void CResource::SaveHeader(FILE* ResourceFile)
+    void CResource::SaveHeader(FILE* ResourceFile) const
     {
         const u32           NameLength      = Name.GetLength();
         const EResourceType ResourceType    = GetType();
@@ -27,4 +27,18 @@ namespace lucid::resources
         fwrite(&NameLength, sizeof(NameLength), 1, ResourceFile);
         fwrite(*Name, Name.GetLength(), 1, ResourceFile);
     }
+
+    void CResource::Resave() const
+    {
+        FILE* ResourceFile;
+        if(fopen_s(&ResourceFile, *FilePath, "wb+") == 0)
+        {
+            SaveSynchronously(ResourceFile);
+            fclose(ResourceFile);
+        }
+        else
+        {
+            LUCID_LOG(ELogLevel::WARN, "Failed to resave resource %s - couldn't open file", *Name);
+        }
+    }    
 } // namespace lucid::resources

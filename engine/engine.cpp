@@ -56,6 +56,11 @@ namespace lucid
                         LoadedMesh->LoadDataToVideoMemorySynchronously();
                         LoadedMesh->Thumb = ThumbsGenerator->GenerateMeshThumb(256, 256, LoadedMesh);
                         GEngine.GetMeshesHolder().Add(*Entry.Name, LoadedMesh);
+
+                        if (Entry.bIsDefault)
+                        {
+                            GEngine.GetMeshesHolder().SetDefaultResource(LoadedMesh);
+                        }
                     }
                     break;
                 }
@@ -66,6 +71,12 @@ namespace lucid
                         LoadedTexture->LoadDataToMainMemorySynchronously();
                         LoadedTexture->LoadDataToVideoMemorySynchronously();
                         GEngine.GetTexturesHolder().Add(*Entry.Name, LoadedTexture);
+
+                        if (Entry.bIsDefault)
+                        {
+                            GEngine.GetTexturesHolder().SetDefaultResource(LoadedTexture);
+                        }
+                        
                     }
                     break;
                 }

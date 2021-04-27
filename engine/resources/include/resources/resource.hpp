@@ -38,20 +38,25 @@ namespace lucid::resources
          */
         virtual void LoadDataToVideoMemorySynchronously() = 0;
 
-        virtual void SaveSynchronously(FILE* ResourceFile) = 0;
+        virtual void SaveSynchronously(FILE* ResourceFile) const = 0;
+
+        /** This method migrates the asset to it's latest version by filling the new values with defaults and saving it to the file */
+        virtual void MigrateToLatestVersion() = 0;
         
         virtual void FreeMainMemory() = 0;
         virtual void FreeVideoMemory() = 0;
 
-        inline FString& GetName() { return Name; }
+        inline const UUID&     GetID() const { return ID; }
+        inline const FString& GetName() const { return Name; }
         
         virtual ~CResource() = default;
 
     protected:
 
-        void SaveHeader(FILE* ResourceFile);
+        void SaveHeader(FILE* ResourceFile) const;
+        void Resave() const;
         
-        const UUID              ID;
+        UUID                    ID;
         FString                 Name;
 
         /** Path the the file from which this resource was loaded */

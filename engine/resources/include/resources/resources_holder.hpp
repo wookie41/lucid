@@ -33,6 +33,11 @@ namespace lucid::resources
             shput(ResourcesHashMap, ResourceName, Resource);
         }
 
+        void Remove(char const* ResourceName)
+        {
+            shdel(ResourcesHashMap, ResourceName);
+        }
+
         /** Returns the default resource if the resource doesn't exist */
         R* Get(char const* ResourceName)
         {

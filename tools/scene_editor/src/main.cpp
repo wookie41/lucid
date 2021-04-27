@@ -36,6 +36,9 @@
 #include "schemas/json.hpp"
 #include "misc/actor_thumbs.hpp"
 
+#include <algorithm>
+#include <stdio.h>
+
 using namespace lucid;
 
 constexpr char EDITOR_WINDOW[] = "Lucid Editor";
@@ -74,7 +77,7 @@ struct FSceneEditorState
     scene::IActor* CurrentlyDraggedActor = nullptr;
     float DistanceToCurrentlyDraggedActor = 0;
 
-    scene::CCamera PerspectiveCamera{ scene::ECameraMode::PERSPECTIVE };
+    scene::CCamera PerspectiveCamera{scene::ECameraMode::PERSPECTIVE};
     scene::CCamera* CurrentCamera = nullptr;
 
     /** File dialog related things, used e.x. when importing assets */
@@ -85,13 +88,16 @@ struct FSceneEditorState
     /** Variables used when importing an asset to the engine */
 
     char AssetNameBuffer[256];
-    FDString PathToSelectedFile{ "" };
+    FDString PathToSelectedFile{""};
 
-    bool bAssetNameMissing;
-    bool bIsImportingMesh;
-    bool bIsImportingTexture;
-    bool bFailedToImportMesh;
+    bool bAssetNameMissing = false;
+    bool bIsImportingMesh = false;
+    bool bIsImportingTexture = false;
+    bool bFailedToImportMesh = false;
+    bool bShowMeshContextMenu = false;
 
+    resources::CMeshResource* ClickedMeshResource = nullptr;
+    
 } GSceneEditorState;
 
 void InitializeSceneEditor();
@@ -105,6 +111,7 @@ void UIDrawResourceBrowserWindow();
 void UIDrawSceneHierarchyWindow();
 void UIDrawFileDialog();
 void UIDrawMeshImporter();
+void UIDrawMeshContextMenu();
 
 void ImportTexture(const std::filesystem::path& SelectedFilePath);
 void ImportMesh(const std::filesystem::path& SelectedFilePath);
@@ -119,32 +126,37 @@ int main(int argc, char** argv)
     // Load textures and meshes used in the demo scene
 
     scene::CBlinnPhongMapsMaterial* BackpackMaterial =
-      new scene::CBlinnPhongMapsMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+        new scene::CBlinnPhongMapsMaterial{GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps")};
     BackpackMaterial->Shininess = 32;
     BackpackMaterial->DiffuseMap = GEngine.GetTexturesHolder().Get("Backpack_TextureDiffuse")->TextureHandle;
     BackpackMaterial->NormalMap = GEngine.GetTexturesHolder().Get("Backpack_TextureNormal")->TextureHandle;
     BackpackMaterial->SpecularMap = GEngine.GetTexturesHolder().Get("Backpack_TextureSpecular")->TextureHandle;
 
-    auto* BackpackStaticMesh = new scene::CStaticMesh{ CopyToString("Backpack"),
-                                                       nullptr,
-                                                       GEngine.GetMeshesHolder().Get("BackpackMesh")->VAO,
-                                                       BackpackMaterial,
-                                                       scene::EStaticMeshType::STATIONARY };
+    auto* BackpackStaticMesh = new scene::CStaticMesh{
+        CopyToString("Backpack"),
+        nullptr,
+        GEngine.GetMeshesHolder().Get("BackpackMesh")->VAO,
+        BackpackMaterial,
+        scene::EStaticMeshType::STATIONARY
+    };
 
     const void* SkyboxFacesData[6]{
-        GEngine.GetTexturesHolder().Get("SkyboxRight")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxLeft")->TextureData,
-        GEngine.GetTexturesHolder().Get("SkyboxTop")->TextureData,   GEngine.GetTexturesHolder().Get("SkyboxBottom")->TextureData,
-        GEngine.GetTexturesHolder().Get("SkyboxFront")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxBack")->TextureData
+        GEngine.GetTexturesHolder().Get("SkyboxRight")->TextureData,
+        GEngine.GetTexturesHolder().Get("SkyboxLeft")->TextureData,
+        GEngine.GetTexturesHolder().Get("SkyboxTop")->TextureData,
+        GEngine.GetTexturesHolder().Get("SkyboxBottom")->TextureData,
+        GEngine.GetTexturesHolder().Get("SkyboxFront")->TextureData,
+        GEngine.GetTexturesHolder().Get("SkyboxBack")->TextureData
     };
 
     scene::CSkybox* Skybox = scene::CreateSkybox(SkyboxFacesData,
                                                  GEngine.GetTexturesHolder().Get("SkyboxRight")->Width,
                                                  GEngine.GetTexturesHolder().Get("SkyboxRight")->Height,
-                                                 FString{ "Skybox" });
+                                                 FString{"Skybox"});
     // Configure the camera
     GSceneEditorState.PerspectiveCamera.AspectRatio =
-      GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
-    GSceneEditorState.PerspectiveCamera.Position = { 0, 0, 3 };
+        GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
+    GSceneEditorState.PerspectiveCamera.Position = {0, 0, 3};
     GSceneEditorState.PerspectiveCamera.Yaw = -90.f;
     GSceneEditorState.PerspectiveCamera.UpdateCameraVectors();
     GSceneEditorState.PerspectiveCamera.Right = 1920;
@@ -152,134 +164,139 @@ int main(int argc, char** argv)
     GSceneEditorState.CurrentCamera = &GSceneEditorState.PerspectiveCamera;
 
     // Setup the renderer
-    scene::CForwardRenderer Renderer{ 32, 4 };
+    scene::CForwardRenderer Renderer{32, 4};
     Renderer.AmbientStrength = 0.05;
     Renderer.NumSamplesPCF = 20;
-    Renderer.ResultResolution = { 1920, 1080 };
+    Renderer.ResultResolution = {1920, 1080};
     Renderer.LightBulbTexture = GEngine.GetTexturesHolder().Get("LightBulb")->TextureHandle;
     Renderer.Setup();
 
-    scene::CBlinnPhongMapsMaterial woodMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial woodMaterial{GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps")};
     woodMaterial.Shininess = 32;
     woodMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
-    woodMaterial.SpecularColor = glm::vec3{ 0.5 };
+    woodMaterial.SpecularColor = glm::vec3{0.5};
     woodMaterial.NormalMap = nullptr;
     woodMaterial.SpecularMap = nullptr;
 
-    scene::CBlinnPhongMapsMaterial brickMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial brickMaterial{GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps")};
     brickMaterial.Shininess = 32;
     brickMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("BrickDiffuse")->TextureHandle;
     brickMaterial.SpecularMap = nullptr;
     brickMaterial.DisplacementMap = nullptr;
     brickMaterial.NormalMap = GEngine.GetTexturesHolder().Get("BrickNormal")->TextureHandle;
-    brickMaterial.SpecularColor = glm::vec3{ 0.2 };
+    brickMaterial.SpecularColor = glm::vec3{0.2};
 
-    scene::CBlinnPhongMapsMaterial toyboxMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial toyboxMaterial{GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps")};
     toyboxMaterial.Shininess = 32;
     toyboxMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
     toyboxMaterial.SpecularMap = nullptr;
     toyboxMaterial.NormalMap = GEngine.GetTexturesHolder().Get("ToyboxNormal")->TextureHandle;
     toyboxMaterial.DisplacementMap = GEngine.GetTexturesHolder().Get("ToyboxDisplacement")->TextureHandle;
-    toyboxMaterial.SpecularColor = glm::vec3{ 0.2 };
+    toyboxMaterial.SpecularColor = glm::vec3{0.2};
 
-    scene::CBlinnPhongMaterial flatBlinnPhongMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhong") };
-    flatBlinnPhongMaterial.DiffuseColor = glm::vec3{ 1 };
-    flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
+    scene::CBlinnPhongMaterial flatBlinnPhongMaterial{GEngine.GetShadersManager().GetShaderByName("BlinnPhong")};
+    flatBlinnPhongMaterial.DiffuseColor = glm::vec3{1};
+    flatBlinnPhongMaterial.SpecularColor = glm::vec3{1};
     flatBlinnPhongMaterial.Shininess = 32;
 
     scene::CStaticMesh woodenFloor{
-        FDString{ "woodenFloor" }, nullptr, QuadVAO, &woodMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{"woodenFloor"}, nullptr, QuadVAO, &woodMaterial, scene::EStaticMeshType::STATIONARY
     };
-    woodenFloor.Transform.Scale = glm::vec3{ 25.0 };
-    woodenFloor.Transform.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{ 1.0, 0.0, 0.0 });
-    woodenFloor.Transform.Translation = glm::vec3{ 0, -0.5, 0 };
+    woodenFloor.Transform.Scale = glm::vec3{25.0};
+    woodenFloor.Transform.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{1.0, 0.0, 0.0});
+    woodenFloor.Transform.Translation = glm::vec3{0, -0.5, 0};
 
-    scene::CStaticMesh cube{ FDString{ "Cube" }, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY };
-    cube.Transform.Translation = { 4.0, -3.5, 0.0 };
-    cube.Transform.Scale = glm::vec3{ 0.5 };
+    scene::CStaticMesh cube{FDString{"Cube"}, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY};
+    cube.Transform.Translation = {4.0, -3.5, 0.0};
+    cube.Transform.Scale = glm::vec3{0.5};
 
     scene::CStaticMesh cube1{
-        FDString{ "Cube1" }, nullptr, UnitCubeVAO, &flatBlinnPhongMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{"Cube1"}, nullptr, UnitCubeVAO, &flatBlinnPhongMaterial, scene::EStaticMeshType::STATIONARY
     };
-    cube1.Transform.Translation = { 2.0, 3.0, 1.0 };
-    cube1.Transform.Scale = glm::vec3{ 0.75 };
+    cube1.Transform.Translation = {2.0, 3.0, 1.0};
+    cube1.Transform.Scale = glm::vec3{0.75};
 
-    scene::CStaticMesh cube2{ FDString{ "Cube2" }, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY };
-    cube2.Transform.Translation = { -1.5, 2.0, -3.0 };
-    cube2.Transform.Scale = glm::vec3{ 0.75 };
+    scene::CStaticMesh cube2{
+        FDString{"Cube2"}, nullptr, UnitCubeVAO, &brickMaterial, scene::EStaticMeshType::STATIONARY
+    };
+    cube2.Transform.Translation = {-1.5, 2.0, -3.0};
+    cube2.Transform.Scale = glm::vec3{0.75};
 
-    scene::CStaticMesh cube3{ FDString{ "Cube3" }, nullptr, UnitCubeVAO, &toyboxMaterial, scene::EStaticMeshType::STATIONARY };
-    cube3.Transform.Translation = { -1.5, 1.0, 1.5 };
-    cube3.Transform.Scale = glm::vec3{ 0.75 };
+    scene::CStaticMesh cube3{
+        FDString{"Cube3"}, nullptr, UnitCubeVAO, &toyboxMaterial, scene::EStaticMeshType::STATIONARY
+    };
+    cube3.Transform.Translation = {-1.5, 1.0, 1.5};
+    cube3.Transform.Scale = glm::vec3{0.75};
 
     scene::CStaticMesh gigaCube{
-        FDString{ "Gigacube" }, nullptr, UnitCubeVAO, &woodMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{"Gigacube"}, nullptr, UnitCubeVAO, &woodMaterial, scene::EStaticMeshType::STATIONARY
     };
-    gigaCube.Transform.Translation = glm::vec3{ 0 };
-    gigaCube.Transform.Scale = glm::vec3{ 10 };
-    gigaCube.Transform.Rotation = glm::quat{ 0, 0, 0, 0 };
+    gigaCube.Transform.Translation = glm::vec3{0};
+    gigaCube.Transform.Scale = glm::vec3{10};
+    gigaCube.Transform.Rotation = glm::quat{0, 0, 0, 0};
     gigaCube.SetReverseNormals(true);
 
     // scene::CStaticMesh* backPackRenderable = scene::CreateBlinnPhongRenderable(FString{ LUCID_TEXT("MyMesh") }, backPackMesh,
     // BlinnPhongMapsShader); backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
     // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
-    scene::FlatMaterial flatWhiteMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
-    flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
+    scene::FlatMaterial flatWhiteMaterial{GEngine.GetShadersManager().GetShaderByName("Flat")};
+    flatWhiteMaterial.Color = {1.0, 1.0, 1.0, 1.0};
 
-    scene::FlatMaterial flatRedMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
-    flatRedMaterial.Color = { 1.0, 0.0, 0.0, 1.0 };
+    scene::FlatMaterial flatRedMaterial{GEngine.GetShadersManager().GetShaderByName("Flat")};
+    flatRedMaterial.Color = {1.0, 0.0, 0.0, 1.0};
 
-    scene::FlatMaterial flatGreenMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
-    flatGreenMaterial.Color = { 0.0, 1.0, 0.0, 1.0 };
+    scene::FlatMaterial flatGreenMaterial{GEngine.GetShadersManager().GetShaderByName("Flat")};
+    flatGreenMaterial.Color = {0.0, 1.0, 0.0, 1.0};
 
-    scene::FlatMaterial flatBlueMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
-    flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
+    scene::FlatMaterial flatBlueMaterial{GEngine.GetShadersManager().GetShaderByName("Flat")};
+    flatBlueMaterial.Color = {0.0, 0.0, 1.0, 1.0};
 
-    scene::CDirectionalLight* DirectionalLight = Renderer.CreateDirectionalLight(FDString{ "DirectionalLight" }, nullptr, true);
-    DirectionalLight->Direction = glm::normalize(glm::vec3{ 0.5, -1, 1 });
-    DirectionalLight->Transform.Translation = { -2.0f, 4.0f, -1.0f };
-    DirectionalLight->Color = glm::vec3{ 1.0, 1.0, 1.0 };
+    scene::CDirectionalLight* DirectionalLight = Renderer.CreateDirectionalLight(
+        FDString{"DirectionalLight"}, nullptr, true);
+    DirectionalLight->Direction = glm::normalize(glm::vec3{0.5, -1, 1});
+    DirectionalLight->Transform.Translation = {-2.0f, 4.0f, -1.0f};
+    DirectionalLight->Color = glm::vec3{1.0, 1.0, 1.0};
 
-    scene::CSpotLight* RedSpotLight = Renderer.CreateSpotLight(FDString{ "RedSpotLight" }, nullptr, true);
-    RedSpotLight->Transform.Translation = cube2.Transform.Translation + glm::vec3{ 0, 2, -1.5 };
+    scene::CSpotLight* RedSpotLight = Renderer.CreateSpotLight(FDString{"RedSpotLight"}, nullptr, true);
+    RedSpotLight->Transform.Translation = cube2.Transform.Translation + glm::vec3{0, 2, -1.5};
     RedSpotLight->Direction = glm::normalize(cube2.Transform.Translation - RedSpotLight->Transform.Translation);
-    RedSpotLight->Color = { 1, 0, 0 };
+    RedSpotLight->Color = {1, 0, 0};
     RedSpotLight->Constant = 1;
     RedSpotLight->Linear = 0.09;
     RedSpotLight->Quadratic = 0.032;
     RedSpotLight->InnerCutOffRad = glm::radians(30.0);
     RedSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CSpotLight* GreenSpotLight = Renderer.CreateSpotLight(FDString{ "GreenSpotLight" }, nullptr, true);
+    scene::CSpotLight* GreenSpotLight = Renderer.CreateSpotLight(FDString{"GreenSpotLight"}, nullptr, true);
     GreenSpotLight->Transform.Translation = cube.Transform.Translation + glm::vec3(0, 2, -2.5);
     GreenSpotLight->Direction = glm::normalize(cube.Transform.Translation - GreenSpotLight->Transform.Translation);
-    GreenSpotLight->Color = { 0, 1, 0 };
+    GreenSpotLight->Color = {0, 1, 0};
     GreenSpotLight->Constant = 1;
     GreenSpotLight->Linear = 0.09;
     GreenSpotLight->Quadratic = 0.032;
     GreenSpotLight->InnerCutOffRad = glm::radians(30.0);
     GreenSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CSpotLight* BlueSpotLight = Renderer.CreateSpotLight(FDString{ "BlueSpotLight" }, nullptr, true);
-    BlueSpotLight->Transform.Translation = { 0, 5, 0 };
-    BlueSpotLight->Direction = { 0, -1, 0 };
-    BlueSpotLight->Color = { 0, 0, 1 };
+    scene::CSpotLight* BlueSpotLight = Renderer.CreateSpotLight(FDString{"BlueSpotLight"}, nullptr, true);
+    BlueSpotLight->Transform.Translation = {0, 5, 0};
+    BlueSpotLight->Direction = {0, -1, 0};
+    BlueSpotLight->Color = {0, 0, 1};
     BlueSpotLight->Constant = 1;
     BlueSpotLight->Linear = 0.09;
     BlueSpotLight->Quadratic = 0.032;
     BlueSpotLight->InnerCutOffRad = glm::radians(30.0);
     BlueSpotLight->OuterCutOffRad = glm::radians(35.0);
-    BlueSpotLight->LightUp = { -1, 0, 0 };
+    BlueSpotLight->LightUp = {-1, 0, 0};
 
     scene::CStaticMesh shadowCastingLightCube{
-        FDString{ "ShadowCastingLightCube" }, nullptr, UnitCubeVAO, &flatWhiteMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{"ShadowCastingLightCube"}, nullptr, UnitCubeVAO, &flatWhiteMaterial, scene::EStaticMeshType::STATIONARY
     };
     shadowCastingLightCube.Transform.Translation = DirectionalLight->Transform.Translation;
 
-    scene::CPointLight* RedPointLight = Renderer.CreatePointLight(FDString{ "RedSpotLight" }, nullptr, true);
-    RedPointLight->Transform.Translation = { 0, 0, 1.5 };
-    RedPointLight->Color = { 1, 0, 0 };
+    scene::CPointLight* RedPointLight = Renderer.CreatePointLight(FDString{"RedSpotLight"}, nullptr, true);
+    RedPointLight->Transform.Translation = {0, 0, 1.5};
+    RedPointLight->Color = {1, 0, 0};
     RedPointLight->Constant = 1;
     RedPointLight->Linear = 0.007;
     RedPointLight->Quadratic = 0.017;
@@ -313,7 +330,7 @@ int main(int argc, char** argv)
 
     scene::FRenderView RenderView;
     RenderView.Camera = GSceneEditorState.CurrentCamera; // @TODO is this needed???
-    RenderView.Viewport = { 0, 0, Renderer.ResultResolution.x, Renderer.ResultResolution.y };
+    RenderView.Viewport = {0, 0, Renderer.ResultResolution.x, Renderer.ResultResolution.y};
 
     while (IsRunning)
     {
@@ -416,17 +433,19 @@ void InitializeSceneEditor()
             // Create the dockspace
             ImGui::DockSpace(GSceneEditorState.MainDockId, ImVec2(0.0f, 0.0f));
             ImGui::DockBuilderSetNodeSize(
-              GSceneEditorState.MainDockId,
-              { (float)GSceneEditorState.EditorWindowWidth, (float)GSceneEditorState.EditorWindowHeight });
+                GSceneEditorState.MainDockId,
+                {(float)GSceneEditorState.EditorWindowWidth, (float)GSceneEditorState.EditorWindowHeight});
 
             // Split the dockspace
             ImGuiID ResourceBrowserWindowDockId;
             ImGuiID SceneHierarchyDockId;
             ImGuiID SceneWindowDockId;
             SceneWindowDockId =
-              ImGui::DockBuilderSplitNode(GSceneEditorState.MainDockId, ImGuiDir_Left, 0.75f, nullptr, &SceneHierarchyDockId);
+                ImGui::DockBuilderSplitNode(GSceneEditorState.MainDockId, ImGuiDir_Left, 0.75f, nullptr,
+                                            &SceneHierarchyDockId);
             SceneWindowDockId =
-              ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Up, 0.7f, nullptr, &ResourceBrowserWindowDockId);
+                ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Up, 0.7f, nullptr,
+                                            &ResourceBrowserWindowDockId);
 
             // Attach windows to dockspaces
             ImGui::DockBuilderDockWindow(SCENE_VIEWPORT, SceneWindowDockId);
@@ -474,7 +493,8 @@ void HandleCameraMovement(const float& DeltaTime)
 
     if (IsMouseButtonPressed(RIGHT) && !GSceneEditorState.CurrentlyDraggedActor)
     {
-        GSceneEditorState.CurrentCamera->AddRotation(-MousePos.DeltaX * 17.5 * DeltaTime, MousePos.DeltaY * 17.5 * DeltaTime);
+        GSceneEditorState.CurrentCamera->AddRotation(-MousePos.DeltaX * 17.5 * DeltaTime,
+                                                     MousePos.DeltaY * 17.5 * DeltaTime);
     }
 }
 
@@ -482,7 +502,7 @@ void HandleActorDrag()
 {
     const ImVec2 MousePositionAbs = ImGui::GetMousePos();
     const ImVec2 SceneWindowPos = GSceneEditorState.SceneWindowPos;
-    const ImVec2 MousePosRelative = { MousePositionAbs.x - SceneWindowPos.x, MousePositionAbs.y - SceneWindowPos.y };
+    const ImVec2 MousePosRelative = {MousePositionAbs.x - SceneWindowPos.x, MousePositionAbs.y - SceneWindowPos.y};
 
     // Check if we're outside the scene window
     if (MousePosRelative.x < 0 || MousePosRelative.x > GSceneEditorState.SceneWindowWidth || MousePositionAbs.y < 0 ||
@@ -497,7 +517,8 @@ void HandleActorDrag()
     }
 
     // Check if the scene window is not obscured by some other widget
-    if (ImGui::GetFocusID() != GSceneEditorState.ImSceneWindow->ID && ImGui::GetFocusID() != GSceneEditorState.SceneDockId)
+    if (ImGui::GetFocusID() != GSceneEditorState.ImSceneWindow->ID && ImGui::GetFocusID() != GSceneEditorState.
+        SceneDockId)
     {
         return;
     }
@@ -508,15 +529,18 @@ void HandleActorDrag()
         {
             // Actor pos from world to view space
             glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() *
-                                     glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
+                glm::vec4{GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1};
 
             // Get the mouse ray in view space from mouse pos
-            const glm::vec2 MouseRayNDC = 2.f * glm::vec2{ MousePosRelative.x / GSceneEditorState.SceneWindowWidth,
-                                                           1 - (MousePosRelative.y / GSceneEditorState.SceneWindowHeight) } -
-                                          1.f;
+            const glm::vec2 MouseRayNDC = 2.f * glm::vec2{
+                    MousePosRelative.x / GSceneEditorState.SceneWindowWidth,
+                    1 - (MousePosRelative.y / GSceneEditorState.SceneWindowHeight)
+                } -
+                1.f;
 
-            const glm::vec4 MouseRayClip{ MouseRayNDC, -1, 1 };
-            const glm::vec4 MouseRayView = glm::inverse(GSceneEditorState.CurrentCamera->GetProjectionMatrix()) * MouseRayClip;
+            const glm::vec4 MouseRayClip{MouseRayNDC, -1, 1};
+            const glm::vec4 MouseRayView = glm::inverse(GSceneEditorState.CurrentCamera->GetProjectionMatrix()) *
+                MouseRayClip;
 
             // Calculate actor's position to match mouse view space x/y pos, preserving z
             ActorPosView.x = -MouseRayView.x * GSceneEditorState.DistanceToCurrentlyDraggedActor;
@@ -524,7 +548,7 @@ void HandleActorDrag()
 
             // Update actor's position
             GSceneEditorState.CurrentlyDraggedActor->Transform.Translation =
-              (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
+                (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
         }
         else
         {
@@ -540,16 +564,19 @@ void HandleActorDrag()
         const float RatioX = MousePosRelative.x / GSceneEditorState.SceneWindowWidth;
         const float RatioY = MousePosRelative.y / GSceneEditorState.SceneWindowHeight;
 
-        const glm::vec2 AdjustedMousePos = { ((float)CachedHitMap.Width) * RatioX, ((float)CachedHitMap.Height) * RatioY };
+        const glm::vec2 AdjustedMousePos = {
+            ((float)CachedHitMap.Width) * RatioX, ((float)CachedHitMap.Height) * RatioY
+        };
 
-        scene::IActor* ClickedActor = GSceneEditorState.World->GetActorById(CachedHitMap.GetIdAtMousePositon(AdjustedMousePos));
+        scene::IActor* ClickedActor = GSceneEditorState.World->GetActorById(
+            CachedHitMap.GetIdAtMousePositon(AdjustedMousePos));
 
         // Ignore skyboxes
         if (ClickedActor != nullptr && ClickedActor->GetActorType() != scene::EActorType::SKYBOX)
         {
             // Remember the actor that we hit and how far from the camera it was on the z axis
             glm::vec4 ActorPosView =
-              GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
+                GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ClickedActor->Transform.Translation, 1};
             GSceneEditorState.DistanceToCurrentlyDraggedActor = ActorPosView.z;
             GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
         }
@@ -561,7 +588,7 @@ void UISetupDockspace()
     // Create the dockspace window which will occupy the whole editor window
     ImGuiWindowFlags DockspaceWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     DockspaceWindowFlags |=
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     DockspaceWindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -582,7 +609,7 @@ void UIDrawSceneWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
     ImGui::Begin(SCENE_VIEWPORT, nullptr, WindowFlags);
     {
         // Update scene editor state so it can be used later in the frame
@@ -600,7 +627,7 @@ void UIDrawSceneWindow()
 
         // Draw the rendered scene into an image
         GSceneEditorState.Renderer->GetResultFramebuffer()->ImGuiDrawToImage(
-          { GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
+            {GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight});
     }
     ImGui::PopStyleVar(1);
     ImGui::End();
@@ -622,7 +649,7 @@ void UIDrawResourceBrowserWindow()
                     if (ImGui::MenuItem("Mesh"))
                     {
                         GSceneEditorState.FileDialog.SetTitle("Select a mesh file");
-                        GSceneEditorState.FileDialog.SetTypeFilters({ ".obj", ".fbx" });
+                        GSceneEditorState.FileDialog.SetTypeFilters({".obj", ".fbx"});
                         GSceneEditorState.bShowFileDialog = true;
                         GSceneEditorState.OnFileSelected = &ImportMesh;
                         GSceneEditorState.FileDialog.Open();
@@ -631,7 +658,7 @@ void UIDrawResourceBrowserWindow()
                     if (ImGui::MenuItem("Texture"))
                     {
                         GSceneEditorState.FileDialog.SetTitle("Select a texture file");
-                        GSceneEditorState.FileDialog.SetTypeFilters({ ".png", ".jpg", ".jpeg" });
+                        GSceneEditorState.FileDialog.SetTypeFilters({".png", ".jpg", ".jpeg"});
                         GSceneEditorState.OnFileSelected = &ImportTexture;
                         GSceneEditorState.bShowFileDialog = true;
                         GSceneEditorState.FileDialog.Open();
@@ -649,7 +676,7 @@ void UIDrawResourceBrowserWindow()
         {
             const int ResourceItemsPerRow = 8;
             const float ResourceItemWidth = ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow;
-            const ImVec2 ResourceItemSize{ ResourceItemWidth, ResourceItemWidth };
+            const ImVec2 ResourceItemSize{ResourceItemWidth, ResourceItemWidth};
 
             int CurrentRowItemsCount = 0;
 
@@ -682,7 +709,7 @@ void UIDrawResourceBrowserWindow()
 
             for (int i = 0; i < shlen(GEngine.GetMeshesHolder().GetResourcesHashMap()); ++i)
             {
-                const resources::CMeshResource* MeshResource = GEngine.GetMeshesHolder().GetResourcesHashMap()[i].value;
+                resources::CMeshResource* MeshResource = GEngine.GetMeshesHolder().GetResourcesHashMap()[i].value;
                 if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
                 {
                     CurrentRowItemsCount = 0;
@@ -694,7 +721,11 @@ void UIDrawResourceBrowserWindow()
 
                 if (MeshResource && MeshResource->Thumb)
                 {
-                    MeshResource->Thumb->ImGuiImageButton(ResourceItemSize);
+                    if (MeshResource->Thumb->ImGuiImageButton(ResourceItemSize))
+                    {
+                        GSceneEditorState.bShowMeshContextMenu = true;
+                        GSceneEditorState.ClickedMeshResource = MeshResource;
+                    }
                     ++CurrentRowItemsCount;
                 }
             }
@@ -703,84 +734,147 @@ void UIDrawResourceBrowserWindow()
     }
     ImGui::End();
 
-    // Draw a window that ask user for some metadata about a mesh that he's importing
-    UIDrawMeshImporter();
+    if (GSceneEditorState.bIsImportingMesh)
+    {        
+        UIDrawMeshImporter();
+    }
+    else if (GSceneEditorState.bShowMeshContextMenu)
+    {
+        UIDrawMeshContextMenu();
+    }
 }
 
 void UIDrawMeshImporter()
 {
-    if (GSceneEditorState.bIsImportingMesh)
+    if(!ImGui::IsPopupOpen(POPUP_WINDOW))
     {
-        ImGui::SetNextWindowPos({ GSceneEditorState.Window->GetPosition().x + GSceneEditorState.Window->GetWidth() * 0.5f,
-                                  GSceneEditorState.Window->GetPosition().y + GSceneEditorState.Window->GetHeight() * 0.5f },
-                                ImGuiCond_Always,
-                                { 0.5f, 0.5f });
-        ImGui::SetNextWindowSize({ 0, 0 });
-        ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
+        ImGui::OpenPopup(POPUP_WINDOW);   
+    }
+
+    ImGui::SetNextWindowPos({
+                                GSceneEditorState.Window->GetPosition().x + GSceneEditorState.Window->GetWidth() * 0.5f,
+                                GSceneEditorState.Window->GetPosition().y + GSceneEditorState.Window->GetHeight() * 0.5f
+                            },
+                            ImGuiCond_Always,
+                            {0.5f, 0.5f});
+    ImGui::SetNextWindowSize({0, 0});
+    ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
+    {
+        ImGui::InputText("Mesh name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
+        if (ImGui::Button("Import"))
         {
-            ImGui::InputText("Mesh name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
-            if (ImGui::Button("Import"))
+            GSceneEditorState.bAssetNameMissing = false;
+            GSceneEditorState.bFailedToImportMesh = false;
+
+            if (strnlen_s(GSceneEditorState.AssetNameBuffer, 256) == 0)
             {
-                GSceneEditorState.bAssetNameMissing = false;
-                GSceneEditorState.bFailedToImportMesh = false;
-
-                if (strnlen_s(GSceneEditorState.AssetNameBuffer, 256) == 0)
-                {
-                    GSceneEditorState.bAssetNameMissing = true;
-                }
-                else
-                {
-                    // Everything is ok, import the mesh and save it
-                    static char IMPORTED_MESH_FILE_PATH[1024];
-
-                    // Import the mesh
-                    FDString MeshName = CopyToString(GSceneEditorState.AssetNameBuffer);
-                    resources::CMeshResource* ImportedMesh =
-                      resources::ImportMesh(GSceneEditorState.PathToSelectedFile, MeshName);
-
-                    if (!ImportedMesh)
-                    {
-                        GSceneEditorState.bFailedToImportMesh = true;
-                        return;
-                    }
-
-                    ImportedMesh->LoadDataToVideoMemorySynchronously();
-                    ImportedMesh->Thumb = GEngine.ThumbsGenerator->GenerateMeshThumb(256, 256, ImportedMesh);
-
-                    // Save it to file
-                    sprintf_s(IMPORTED_MESH_FILE_PATH, 1024, "assets/meshes/%s.asset", GSceneEditorState.AssetNameBuffer);
-                    FILE* ImportedMeshFile;
-                    fopen_s(&ImportedMeshFile, IMPORTED_MESH_FILE_PATH, "wb");
-                    ImportedMesh->SaveSynchronously(ImportedMeshFile);
-                    fclose(ImportedMeshFile);
-
-                    // Update engine resources database
-                    GEngine.GetResourceDatabase().Entries.push_back({ MeshName, CopyToString(IMPORTED_MESH_FILE_PATH), resources::EResourceType::MESH });
-                    GEngine.GetMeshesHolder().Add(*MeshName, ImportedMesh);
-
-                    WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
-
-                    // End mesh import
-                    GSceneEditorState.bIsImportingMesh = false;
-                }
+                GSceneEditorState.bAssetNameMissing = true;
             }
-            ImGui::SameLine();
-            if (ImGui::Button("Close"))
+            else
             {
+                // Everything is ok, import the mesh and save it
+                static char IMPORTED_MESH_FILE_PATH[1024];
+
+                // Import the mesh
+                FDString MeshName = CopyToString(GSceneEditorState.AssetNameBuffer);
+                resources::CMeshResource* ImportedMesh =
+                    resources::ImportMesh(GSceneEditorState.PathToSelectedFile, MeshName);
+
+                if (!ImportedMesh)
+                {
+                    GSceneEditorState.bFailedToImportMesh = true;
+                    return;
+                }
+
+                ImportedMesh->LoadDataToVideoMemorySynchronously();
+                ImportedMesh->Thumb = GEngine.ThumbsGenerator->GenerateMeshThumb(256, 256, ImportedMesh);
+
+                // Save it to file
+                sprintf_s(IMPORTED_MESH_FILE_PATH, 1024, "assets/meshes/%s.asset", GSceneEditorState.AssetNameBuffer);
+                FILE* ImportedMeshFile;
+                fopen_s(&ImportedMeshFile, IMPORTED_MESH_FILE_PATH, "wb");
+                ImportedMesh->SaveSynchronously(ImportedMeshFile);
+                fclose(ImportedMeshFile);
+
+                // Update engine resources database
+                GEngine.GetResourceDatabase().Entries.push_back({ ImportedMesh->GetID(), MeshName, CopyToString(IMPORTED_MESH_FILE_PATH), resources::EResourceType::MESH });
+                GEngine.GetMeshesHolder().Add(*MeshName, ImportedMesh);
+
+                WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
+
+                // End mesh import
                 GSceneEditorState.bIsImportingMesh = false;
-            }
-            if (GSceneEditorState.bAssetNameMissing)
-            {
-                ImGui::Text("Please provide mesh name!");
-            }
-            if (GSceneEditorState.bFailedToImportMesh)
-            {
-                ImGui::Text("Failed to import mesh"); // @TODO error code
+                ImGui::CloseCurrentPopup();
             }
         }
-        ImGui::EndPopup();
+        ImGui::SameLine();
+        if (ImGui::Button("Close"))
+        {
+            GSceneEditorState.bIsImportingMesh = false;
+            ImGui::CloseCurrentPopup();
+        }
+        if (GSceneEditorState.bAssetNameMissing)
+        {
+            ImGui::Text("Please provide mesh name!");
+        }
+        if (GSceneEditorState.bFailedToImportMesh)
+        {
+            ImGui::Text("Failed to import mesh"); // @TODO error code
+        }
     }
+    ImGui::EndPopup();
 }
+
+void UIDrawMeshContextMenu()
+{
+    if(!ImGui::IsPopupOpen(POPUP_WINDOW))
+    {
+        ImGui::OpenPopup(POPUP_WINDOW);   
+    }
+    
+    ImGui::SetNextWindowPos({
+                                GSceneEditorState.Window->GetPosition().x + GSceneEditorState.Window->GetWidth() * 0.5f,
+                                GSceneEditorState.Window->GetPosition().y + GSceneEditorState.Window->GetHeight() * 0.5f
+                            },
+                            ImGuiCond_Always,
+                            {0.5f, 0.5f});
+    ImGui::SetNextWindowSize({0, 0});
+    ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
+    ImGui::Text("Mesh resource actions:");
+    
+    if (ImGui::Button("Migrate to latest version"))
+    {
+        GSceneEditorState.ClickedMeshResource->MigrateToLatestVersion();
+        GSceneEditorState.bShowMeshContextMenu = false;
+        ImGui::CloseCurrentPopup();
+    }
+
+    
+    if (ImGui::Button("Remove"))
+    {
+        // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
+        GEngine.GetResourceDatabase().Entries.erase(std::remove_if(GEngine.GetResourceDatabase().Entries.begin(), GEngine.GetResourceDatabase().Entries.end(),
+        [&](const FResourceDatabaseEntry& Entry) {
+             return Entry.Id == GSceneEditorState.ClickedMeshResource->GetID();
+        }));
+
+        GEngine.GetMeshesHolder().Remove(*GSceneEditorState.ClickedMeshResource->GetName());
+        
+        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
+
+        GSceneEditorState.bShowMeshContextMenu = false;
+        ImGui::CloseCurrentPopup();
+    }
+    
+    if (ImGui::Button("Close"))
+    {
+        GSceneEditorState.bShowMeshContextMenu = false;
+        ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+}
+
 
 void UIDrawSceneHierarchyWindow()
 {
@@ -807,12 +901,13 @@ void UIDrawFileDialog()
     }
 }
 
-void ImportTexture(const std::filesystem::path& SelectedFilePath) {}
+void ImportTexture(const std::filesystem::path& SelectedFilePath)
+{
+}
 
 void ImportMesh(const std::filesystem::path& SelectedFilePath)
 {
     GSceneEditorState.PathToSelectedFile = CopyToString(SelectedFilePath.string().c_str());
     GSceneEditorState.bIsImportingMesh = true;
     Zero(GSceneEditorState.AssetNameBuffer, 256);
-    ImGui::OpenPopup(POPUP_WINDOW);
 }

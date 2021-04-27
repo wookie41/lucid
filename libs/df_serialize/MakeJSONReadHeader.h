@@ -322,3 +322,15 @@ bool JSONRead(lucid::resources::EResourceType& value, T& document)
     return true;
 }
 
+template <typename T>
+bool JSONRead(lucid::UUID& value, T& document)
+{
+    TSTRING string_value;
+    if (JSONRead(string_value, document))
+    {
+        value = sole::rebuild(string_value);
+        return true;
+    }
+    return false;
+}
+

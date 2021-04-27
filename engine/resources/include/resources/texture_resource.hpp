@@ -31,7 +31,8 @@ namespace lucid::resources
         virtual void LoadDataToMainMemorySynchronously() override;
         virtual void LoadDataToVideoMemorySynchronously() override;
 
-        virtual void SaveSynchronously(FILE* ResourceFile = nullptr) override;
+        virtual void SaveSynchronously(FILE* ResourceFile = nullptr) const override;
+        virtual void MigrateToLatestVersion() override;
 
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;

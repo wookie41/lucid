@@ -136,12 +136,9 @@ namespace lucid::resources
         MeshAttributes.Free();
     }
 
-    void CMeshResource::SaveSynchronously(FILE* ResourceFile)
+    void CMeshResource::SaveSynchronously(FILE* ResourceFile) const
     {
         assert(VertexData.Pointer);
-
-        // Set version of serialization code
-        AssetSerializationVersion = MESH_SERIALIZATION_VERSION;
 
         // Write header
         SaveHeader(ResourceFile);
@@ -484,5 +481,19 @@ namespace lucid::resources
         fclose(MeshFile);
         return MeshResource;
     }
+
+    void CMeshResource::MigrateToLatestVersion()
+    {
+        if (AssetSerializationVersion == 0)
+        {
+            MinPosX = 0, MaxPosX = 0;
+            MinPosY = 0, MaxPosY = 0;
+            MinPosZ = 0, MaxPosZ = 0;
+            AssetSerializationVersion = 1;
+        }
+
+        Resave();
+    }
+
 
 } // namespace lucid::resources

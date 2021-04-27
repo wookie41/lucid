@@ -170,12 +170,9 @@ namespace lucid::resources
         assert(TextureHandle);
     }
 
-    void CTextureResource::SaveSynchronously(FILE* ResourceFile)
+    void CTextureResource::SaveSynchronously(FILE* ResourceFile) const
     {
         assert(TextureData);
-
-        // Set version of serialization code
-        AssetSerializationVersion = TEXTURE_SERIALIZATION_VERSION;
 
         // Write header
         SaveHeader(ResourceFile);
@@ -221,5 +218,10 @@ namespace lucid::resources
         CTextureResource* TextureResource = resources::LoadResource<resources::CTextureResource>(TextureFile, FilePath);
         fclose(TextureFile);
         return TextureResource;
+    }
+
+    void CTextureResource::MigrateToLatestVersion()
+    {
+        Resave();
     }
 } // namespace lucid::resources
