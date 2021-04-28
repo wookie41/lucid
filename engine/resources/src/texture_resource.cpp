@@ -16,38 +16,83 @@ namespace lucid::resources
 
     static bool texturesInitialized;
 
-    CTextureResource* LoadTextureSTB(const FString& InTexturePath,
-                                     const FString& InResourcePath,
-                                     const bool& InIsTransparent,
-                                     const gpu::ETextureDataType& InDataType,
-                                     gpu::ETextureDataFormat InDataFormat,
-                                     gpu::ETexturePixelFormat InPixelFormat,
-                                     const bool& InFlipY,
-                                     const bool& InSendToGPU,
-                                     const FString& InName)
+    CTextureResource* ImportTexture(const FString& InPath,
+                                    const FString& InResourcePath,
+                                    const bool& InPerformGammaCorrection,
+                                    const gpu::ETextureDataType& InDataType,
+                                    const bool& InFlipY,
+                                    const bool& InSendToGPU,
+                                    const FString& InName)
     {
 #ifndef NDEBUG
         real StartTime = platform::GetCurrentTimeSeconds();
 #endif
-        int NumDesiredChannels = InIsTransparent ? 4 : 3;
-
         u32 NumChannels;
         u32 Width, Height;
 
         stbi_set_flip_vertically_on_load(InFlipY);
 
-        stbi_uc* TextureData = stbi_load(*InTexturePath, (int*)&Width, (int*)&Height, (int*)&NumChannels, NumDesiredChannels);
+        stbi_uc* TextureData = stbi_load(*InPath, (int*)&Width, (int*)&Height, (int*)&NumChannels, 0);
         u64 TextureSize = Width * Height * NumChannels * GetSizeInBytes(InDataType);
-
-        assert(NumChannels == NumDesiredChannels);
 
         auto* TextureResource =
           new CTextureResource(sole::uuid4(), InName, InResourcePath, 0, TextureSize, TEXTURE_SERIALIZATION_VERSION);
 
-        TextureResource->bSRGB = true;
+        TextureResource->bSRGB = InPerformGammaCorrection;
         TextureResource->DataType = InDataType;
-        TextureResource->DataFormat = InDataFormat;
-        TextureResource->PixelFormat = InPixelFormat;
+        if (InPerformGammaCorrection)
+        {
+            switch (NumChannels)
+            {
+            case 3:
+                TextureResource->DataFormat = gpu::ETextureDataFormat::SRGB;
+                break;
+            case 4:
+                TextureResource->DataFormat = gpu::ETextureDataFormat::SRGBA;
+                break;
+            default:
+                assert(0);
+            }
+        }
+        else
+        {
+            switch (NumChannels)
+            {
+            case 1:
+                TextureResource->DataFormat = gpu::ETextureDataFormat::R;
+                break;
+            case 2:
+                TextureResource->DataFormat = gpu::ETextureDataFormat::RG;
+                break;
+            case 3:
+                TextureResource->DataFormat = gpu::ETextureDataFormat::RGB;
+                break;
+            case 4:
+                TextureResource->DataFormat = gpu::ETextureDataFormat::RGBA;
+                break;
+            default:
+                assert(0);
+            }
+        }
+
+        switch (NumChannels)
+        {
+        case 1:
+            TextureResource->PixelFormat = gpu::ETexturePixelFormat::RED;
+            break;
+        case 2:
+            TextureResource->PixelFormat = gpu::ETexturePixelFormat::RG;
+            break;
+        case 3:
+            TextureResource->PixelFormat = gpu::ETexturePixelFormat::RGB;
+            break;
+        case 4:
+            TextureResource->PixelFormat = gpu::ETexturePixelFormat::RGBA;
+            break;
+        default:
+            assert(0);
+        }
+
         TextureResource->TextureData = TextureData;
         TextureResource->Width = Width;
         TextureResource->Height = Height;
@@ -57,7 +102,7 @@ namespace lucid::resources
             TextureResource->LoadDataToVideoMemorySynchronously();
         }
 
-        LUCID_LOG(ELogLevel::INFO, "Loading texture %s took %f", *InTexturePath, platform::GetCurrentTimeSeconds() - StartTime);
+        LUCID_LOG(ELogLevel::INFO, "Loading texture %s took %f", *InPath, platform::GetCurrentTimeSeconds() - StartTime);
 
         return TextureResource;
     }
@@ -79,44 +124,6 @@ namespace lucid::resources
         //                                                  true,
         //                                                  true,
         //                                                  FString{ "DefaultTexture" }));
-    }
-
-    CTextureResource* ImportJPGTexture(const FString& InPath,
-                                       const FString& InResourcePath,
-                                       const bool& InPerformGammaCorrection,
-                                       const gpu::ETextureDataType& InDataType,
-                                       const bool& InFlipY,
-                                       const bool& InSendToGPU,
-                                       const FString& InName)
-    {
-        return LoadTextureSTB(InPath,
-                              InResourcePath,
-                              false,
-                              InDataType,
-                              InPerformGammaCorrection ? gpu::ETextureDataFormat::SRGB : gpu::ETextureDataFormat::RGB,
-                              gpu::ETexturePixelFormat::RGB,
-                              InFlipY,
-                              InSendToGPU,
-                              InName);
-    }
-
-    CTextureResource* ImportPNGTexture(const FString& InPath,
-                                       const FString& InResourcePath,
-                                       const bool& InPerformGammaCorrection,
-                                       const gpu::ETextureDataType& InDataType,
-                                       const bool& InFlipY,
-                                       const bool& InSendToGPU,
-                                       const FString& InName)
-    {
-        return LoadTextureSTB(InPath,
-                              InResourcePath,
-                              true,
-                              InDataType,
-                              InPerformGammaCorrection ? gpu::ETextureDataFormat::SRGBA : gpu::ETextureDataFormat::RGBA,
-                              gpu::ETexturePixelFormat::RGBA,
-                              InFlipY,
-                              InSendToGPU,
-                              InName);
     }
 
     CTextureResource::CTextureResource(const UUID& InID,

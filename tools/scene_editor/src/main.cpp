@@ -885,12 +885,12 @@ void UIDrawTextureImporter()
 
                 if (GSceneEditorState.ImportingTextureType == EImportingTextureType::PNG)
                 {
-                    ImportedTexture = resources::ImportPNGTexture(
+                    ImportedTexture = resources::ImportTexture(
                       GSceneEditorState.PathToSelectedFile, { IMPORTED_TEXTURE_FILE_PATH }, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, TextureName);
                 }
                 else
                 {
-                    ImportedTexture = resources::ImportJPGTexture(
+                    ImportedTexture = resources::ImportTexture(
                       GSceneEditorState.PathToSelectedFile, { IMPORTED_TEXTURE_FILE_PATH }, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, TextureName);
                 }
 
