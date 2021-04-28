@@ -710,7 +710,8 @@ void UIDrawResourceBrowserWindow()
 
                 if (TextureResource && TextureResource->TextureHandle)
                 {
-                    if (TextureResource->TextureHandle->ImGuiImageButton(ResourceItemSize))
+                    TextureResource->TextureHandle->ImGuiImageButton(ResourceItemSize);
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
                         GSceneEditorState.bShowTextureContextMenu = true;
                         GSceneEditorState.ClickedTextureResource = TextureResource;
@@ -739,7 +740,8 @@ void UIDrawResourceBrowserWindow()
 
                 if (MeshResource && MeshResource->Thumb)
                 {
-                    if (MeshResource->Thumb->ImGuiImageButton(ResourceItemSize))
+                    MeshResource->Thumb->ImGuiImageButton(ResourceItemSize);
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
                         GSceneEditorState.bShowMeshContextMenu = true;
                         GSceneEditorState.ClickedMeshResource = MeshResource;
