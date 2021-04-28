@@ -88,7 +88,22 @@
             "Path": "assets/textures/SkyboxBack.asset"
         },
         {
-            "Id": "0e7b9172-7163-4f63-a40f-3f5c406d5dfd",
+            "Id": "b4abed8f-e4ef-499b-ab9d-c2a4c7ee4c5c",
+            "Name": "Cyborg_Diffuse",
+            "Path": "assets/textures/Cyborg_TextureDiffuse.asset"
+        },
+        {
+            "Id": "487b47da-2205-4c2e-8f78-d27a90b476b6",
+            "Name": "Cyborg_Specular",
+            "Path": "assets/textures/Cyborg_TextureSpecular.asset"
+        },
+        {
+            "Id": "038c74b8-1847-4d48-908f-cf95579949d1",
+            "Name": "Cyborg_Normal",
+            "Path": "assets/textures/Cyborg_TextureNormal.asset"
+        },
+        {
+            "Id": "5cc908f2-7272-4ee7-9251-b3f4047304f8",
             "Name": "Cyborg",
             "Path": "assets/meshes/Cyborg.asset",
             "Type": 1

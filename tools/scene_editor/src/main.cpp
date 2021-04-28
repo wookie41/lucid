@@ -113,6 +113,8 @@ struct FSceneEditorState
     resources::CMeshResource* ClickedMeshResource = nullptr;
     resources::CTextureResource* ClickedTextureResource = nullptr;
 
+    bool bDisableCameraMovement = false;
+
 } GSceneEditorState;
 
 void InitializeSceneEditor();
@@ -475,6 +477,21 @@ void InitializeSceneEditor()
 
 void HandleCameraMovement(const float& DeltaTime)
 {
+    // Check if we're inside the scene window
+    const ImVec2 MousePositionAbs = ImGui::GetMousePos();
+    const ImVec2 SceneWindowPos = GSceneEditorState.SceneWindowPos;
+    if (MousePositionAbs.x < SceneWindowPos.x || MousePositionAbs.x > (SceneWindowPos.x + GSceneEditorState.SceneWindowWidth) ||
+        MousePositionAbs.y < SceneWindowPos.y || MousePositionAbs.y > (SceneWindowPos.y + GSceneEditorState.SceneWindowHeight))
+    {
+        return;
+    }
+
+    if (GSceneEditorState.bDisableCameraMovement)
+    {
+        return;
+    }
+    
+
     const FMousePosition MousePos = GetMousePostion();
     if (IsKeyPressed(SDLK_w))
     {
@@ -646,7 +663,7 @@ void UIDrawResourceBrowserWindow()
                     if (ImGui::MenuItem("Mesh"))
                     {
                         GSceneEditorState.FileDialog.SetTitle("Select a mesh file");
-                        GSceneEditorState.FileDialog.SetTypeFilters({ ".obj", ".fbx" });
+                        GSceneEditorState.FileDialog.SetTypeFilters({ ".obj" });
                         GSceneEditorState.bShowFileDialog = true;
                         GSceneEditorState.OnFileSelected = &ImportMesh;
                         GSceneEditorState.FileDialog.Open();
@@ -807,6 +824,7 @@ void UIDrawMeshImporter()
 
                 // End mesh import
                 GSceneEditorState.bIsImportingMesh = false;
+                GSceneEditorState.bDisableCameraMovement = false;
                 ImGui::CloseCurrentPopup();
             }
         }
@@ -814,6 +832,7 @@ void UIDrawMeshImporter()
         if (ImGui::Button("Close"))
         {
             GSceneEditorState.bIsImportingMesh = false;
+            GSceneEditorState.bDisableCameraMovement = true;
             ImGui::CloseCurrentPopup();
         }
         if (GSceneEditorState.bAssetNameMissing)
@@ -892,6 +911,7 @@ void UIDrawTextureImporter()
 
                 // End texture import
                 GSceneEditorState.bIsImportingTexture = false;
+                GSceneEditorState.bDisableCameraMovement = true;
                 ImGui::CloseCurrentPopup();
             }
         }
@@ -899,6 +919,7 @@ void UIDrawTextureImporter()
         if (ImGui::Button("Close"))
         {
             GSceneEditorState.bIsImportingTexture = false;
+            GSceneEditorState.bDisableCameraMovement = true;
             ImGui::CloseCurrentPopup();
         }
         if (GSceneEditorState.bAssetNameMissing)
@@ -932,6 +953,7 @@ void UIDrawMeshContextMenu()
     {
         GSceneEditorState.ClickedMeshResource->MigrateToLatestVersion();
         GSceneEditorState.bShowMeshContextMenu = false;
+        GSceneEditorState.bDisableCameraMovement = true;
         ImGui::CloseCurrentPopup();
     }
 
@@ -949,12 +971,14 @@ void UIDrawMeshContextMenu()
         WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
 
         GSceneEditorState.bShowMeshContextMenu = false;
+        GSceneEditorState.bDisableCameraMovement = true;
         ImGui::CloseCurrentPopup();
     }
 
     if (ImGui::Button("Close"))
     {
         GSceneEditorState.bShowMeshContextMenu = false;
+        GSceneEditorState.bDisableCameraMovement = true;
         ImGui::CloseCurrentPopup();
     }
 
@@ -980,6 +1004,7 @@ void UIDrawTextureContextMenu()
     {
         GSceneEditorState.ClickedTextureResource->MigrateToLatestVersion();
         GSceneEditorState.bShowTextureContextMenu = false;
+        GSceneEditorState.bDisableCameraMovement = true;
         ImGui::CloseCurrentPopup();
     }
 
@@ -997,12 +1022,14 @@ void UIDrawTextureContextMenu()
         WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
 
         GSceneEditorState.bShowTextureContextMenu = false;
+        GSceneEditorState.bDisableCameraMovement = true;
         ImGui::CloseCurrentPopup();
     }
 
     if (ImGui::Button("Close"))
     {
         GSceneEditorState.bShowTextureContextMenu = false;
+        GSceneEditorState.bDisableCameraMovement = true;
         ImGui::CloseCurrentPopup();
     }
 
@@ -1051,6 +1078,7 @@ void ImportTexture(const std::filesystem::path& SelectedFilePath)
     }
     GSceneEditorState.PathToSelectedFile = CopyToString(SelectedFilePath.string().c_str());
     GSceneEditorState.bIsImportingTexture = true;
+    GSceneEditorState.bDisableCameraMovement = true;
     Zero(GSceneEditorState.AssetNameBuffer, 256);
 }
 
@@ -1058,5 +1086,6 @@ void ImportMesh(const std::filesystem::path& SelectedFilePath)
 {
     GSceneEditorState.PathToSelectedFile = CopyToString(SelectedFilePath.string().c_str());
     GSceneEditorState.bIsImportingMesh = true;
+    GSceneEditorState.bDisableCameraMovement = true;
     Zero(GSceneEditorState.AssetNameBuffer, 256);
 }

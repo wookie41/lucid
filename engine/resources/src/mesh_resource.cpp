@@ -440,6 +440,7 @@ namespace lucid::resources
         FDString TextureResourceFilePath =   SPrintf("assets/textures/%s.asset", *TextureName);
 
         CTextureResource* Texture = ImportJPGTexture(TexturePath, TextureResourceFilePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, false, SPrintf("%s_%s", *MeshName, *TextureTypeName));
+        Texture->LoadDataToVideoMemorySynchronously();
 
         // Update engine resources database
         GEngine.AddTextureResource(Texture, TexturePath);

@@ -89,7 +89,7 @@ namespace lucid
         FResourceDatabaseEntry Entry;
         Entry.Id = InTexture->GetID();
         Entry.Name = CopyToString(*InTexture->GetName(), InTexture->GetName().GetLength());
-        Entry.Path = CopyToString(*InSourcePath, InSourcePath.GetLength());
+        Entry.Path = CopyToString(*InTexture->GetFilePath(), InTexture->GetFilePath().GetLength());
         Entry.Type = resources::TEXTURE;
         Entry.bIsDefault = false;
         ResourceDatabase.Entries.push_back(Entry);
@@ -102,7 +102,7 @@ namespace lucid
         FResourceDatabaseEntry Entry;
         Entry.Id = InMesh->GetID();
         Entry.Name = CopyToString(*InMesh->GetName(), InMesh->GetName().GetLength());
-        Entry.Path = CopyToString(*InSourcePath, InSourcePath.GetLength());
+        Entry.Path = CopyToString(*InMesh->GetFilePath(), InMesh->GetFilePath().GetLength());
         Entry.Type = resources::MESH;
         Entry.bIsDefault = false;
         ResourceDatabase.Entries.push_back(Entry);
