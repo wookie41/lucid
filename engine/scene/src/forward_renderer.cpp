@@ -52,6 +52,7 @@ namespace lucid::scene
     static const FSString BILLBOARD_VIEWPORT_SIZE("uBillboardViewportSize");
     static const FSString BILLBOARD_TEXTURE("uBillboardTexture");
     static const FSString BILLBOARD_WORLD_POS("uBillboardWorldPos");
+    static const FSString BILLBOARD_COLOR_TINT("uBillboardColorTint");
 
     // Shader-wide uniforms
     static const FSString AMBIENT_STRENGTH("uAmbientStrength");
@@ -677,6 +678,7 @@ namespace lucid::scene
         {
             CLight* Light = InScene->Lights[i];
             BillboardShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
+            BillboardShader->SetVector(BILLBOARD_COLOR_TINT, Light->Color);
             ScreenWideQuadVAO->Draw();
         }
     }
