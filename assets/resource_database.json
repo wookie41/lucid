@@ -37,12 +37,6 @@
             "Path": "assets/textures/LightBulb.asset"
         },
         {
-            "Id": "e87b3486-5c30-4d46-ae6e-de3fb1d2300c",
-            "Name": "BackpackMesh",
-            "Path": "assets/meshes/BackpackMesh.asset",
-            "Type": 1
-        },
-        {
             "Id": "e1afcc14-2831-4044-8c45-71599f9046e0",
             "Name": "Backpack_TextureDiffuse",
             "Path": "assets/textures/Backpack_TextureDiffuse.asset"
@@ -88,22 +82,28 @@
             "Path": "assets/textures/SkyboxBack.asset"
         },
         {
-            "Id": "b4abed8f-e4ef-499b-ab9d-c2a4c7ee4c5c",
-            "Name": "Cyborg_Diffuse",
-            "Path": "assets/textures/Cyborg_TextureDiffuse.asset"
+            "Id": "1bc034a2-e724-42a7-bf60-c477a5c258b2",
+            "Name": "Backpack",
+            "Path": "assets/meshes/Backpack.asset",
+            "Type": 1
         },
         {
-            "Id": "487b47da-2205-4c2e-8f78-d27a90b476b6",
-            "Name": "Cyborg_Specular",
-            "Path": "assets/textures/Cyborg_TextureSpecular.asset"
+            "Id": "3cd08200-e6c9-4e79-97b1-bdfe74c8742b",
+            "Name": "Cyborg_Texture_cyborg_diffuse",
+            "Path": "assets/textures/Cyborg_Texture_cyborg_diffuse.asset"
         },
         {
-            "Id": "038c74b8-1847-4d48-908f-cf95579949d1",
-            "Name": "Cyborg_Normal",
-            "Path": "assets/textures/Cyborg_TextureNormal.asset"
+            "Id": "b32ceb96-812e-4522-b2c6-e113453af562",
+            "Name": "Cyborg_Texture_cyborg_specular",
+            "Path": "assets/textures/Cyborg_Texture_cyborg_specular.asset"
         },
         {
-            "Id": "5cc908f2-7272-4ee7-9251-b3f4047304f8",
+            "Id": "ed1a2979-3397-48a0-abc2-161f1032693a",
+            "Name": "Cyborg_Texture_cyborg_normal",
+            "Path": "assets/textures/Cyborg_Texture_cyborg_normal.asset"
+        },
+        {
+            "Id": "47249998-29ac-4721-8e3e-5d20fc25a158",
             "Name": "Cyborg",
             "Path": "assets/meshes/Cyborg.asset",
             "Type": 1

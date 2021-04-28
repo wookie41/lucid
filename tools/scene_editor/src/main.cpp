@@ -153,7 +153,7 @@ int main(int argc, char** argv)
 
     auto* BackpackStaticMesh = new scene::CStaticMesh{ CopyToString("Backpack"),
                                                        nullptr,
-                                                       GEngine.GetMeshesHolder().Get("BackpackMesh")->VAO,
+                                                       GEngine.GetMeshesHolder().Get("Backpack")->VAO,
                                                        BackpackMaterial,
                                                        scene::EStaticMeshType::STATIONARY };
 

@@ -454,9 +454,10 @@ namespace lucid::resources
         aiString TextureFilePath;
         Material->GetTexture(TextureType, InIndex, &TextureFilePath);
         std::filesystem::path Path { TextureFilePath.C_Str() };
-
+        Path.replace_extension("");
+        
         FDString TexturePath = SPrintf("%s/%s", *InMeshDirPath, TextureFilePath.C_Str());
-        FDString TextureName = CopyToString(Path.filename().string().c_str());
+        FDString TextureName =  SPrintf("%s_Texture_%s", *MeshName, Path.filename().string().c_str());
         FDString TextureResourceFilePath = SPrintf("assets/textures/%s.asset", *TextureName);
 
         CTextureResource* Texture = ImportTexture(TexturePath,
