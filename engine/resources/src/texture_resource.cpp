@@ -10,18 +10,21 @@
 
 namespace lucid::resources
 {
-    #define TEXTURE_RESOURCE_METADATA_SIZE (sizeof(u8) + sizeof(u32) + sizeof(u32) + sizeof(gpu::ETextureDataFormat) + sizeof(gpu::ETextureDataType) + sizeof(gpu::ETexturePixelFormat) )
-    
+#define TEXTURE_RESOURCE_METADATA_SIZE                                                                          \
+    (sizeof(u8) + sizeof(u32) + sizeof(u32) + sizeof(gpu::ETextureDataFormat) + sizeof(gpu::ETextureDataType) + \
+     sizeof(gpu::ETexturePixelFormat))
+
     static bool texturesInitialized;
 
     CTextureResource* LoadTextureSTB(const FString& InTexturePath,
-                                         const bool& InIsTransparent,
-                                         const gpu::ETextureDataType& InDataType,
-                                         gpu::ETextureDataFormat InDataFormat,
-                                         gpu::ETexturePixelFormat InPixelFormat,
-                                         const bool& InFlipY,
-                                         const bool& InSendToGPU,
-                                         const FString& InName)
+                                     const FString& InResourcePath,
+                                     const bool& InIsTransparent,
+                                     const gpu::ETextureDataType& InDataType,
+                                     gpu::ETextureDataFormat InDataFormat,
+                                     gpu::ETexturePixelFormat InPixelFormat,
+                                     const bool& InFlipY,
+                                     const bool& InSendToGPU,
+                                     const FString& InName)
     {
 #ifndef NDEBUG
         real StartTime = platform::GetCurrentTimeSeconds();
@@ -33,20 +36,21 @@ namespace lucid::resources
 
         stbi_set_flip_vertically_on_load(InFlipY);
 
-        stbi_uc*    TextureData = stbi_load(*InTexturePath, (int*)&Width, (int*)&Height, (int*)&NumChannels, NumDesiredChannels);
-        u64         TextureSize = Width * Height * NumChannels * GetSizeInBytes(InDataType);
+        stbi_uc* TextureData = stbi_load(*InTexturePath, (int*)&Width, (int*)&Height, (int*)&NumChannels, NumDesiredChannels);
+        u64 TextureSize = Width * Height * NumChannels * GetSizeInBytes(InDataType);
 
         assert(NumChannels == NumDesiredChannels);
 
-        auto* TextureResource = new CTextureResource(sole::uuid4(), InName, FString  { "" }, 0, TextureSize, TEXTURE_SERIALIZATION_VERSION);
+        auto* TextureResource =
+          new CTextureResource(sole::uuid4(), InName, InResourcePath, 0, TextureSize, TEXTURE_SERIALIZATION_VERSION);
 
-        TextureResource->bSRGB          = true;
-        TextureResource->DataType       = InDataType;
-        TextureResource->DataFormat     = InDataFormat;
-        TextureResource->PixelFormat    = InPixelFormat;
-        TextureResource->TextureData    = TextureData;
-        TextureResource->Width          = Width;
-        TextureResource->Height         = Height;
+        TextureResource->bSRGB = true;
+        TextureResource->DataType = InDataType;
+        TextureResource->DataFormat = InDataFormat;
+        TextureResource->PixelFormat = InPixelFormat;
+        TextureResource->TextureData = TextureData;
+        TextureResource->Width = Width;
+        TextureResource->Height = Height;
 
         if (InSendToGPU)
         {
@@ -78,13 +82,15 @@ namespace lucid::resources
     }
 
     CTextureResource* ImportJPGTexture(const FString& InPath,
-                                           const bool& InPerformGammaCorrection,
-                                           const gpu::ETextureDataType& InDataType,
-                                           const bool& InFlipY,
-                                           const bool& InSendToGPU,
-                                           const FString& InName)
+                                       const FString& InResourcePath,
+                                       const bool& InPerformGammaCorrection,
+                                       const gpu::ETextureDataType& InDataType,
+                                       const bool& InFlipY,
+                                       const bool& InSendToGPU,
+                                       const FString& InName)
     {
         return LoadTextureSTB(InPath,
+                              InResourcePath,
                               false,
                               InDataType,
                               InPerformGammaCorrection ? gpu::ETextureDataFormat::SRGB : gpu::ETextureDataFormat::RGB,
@@ -95,13 +101,15 @@ namespace lucid::resources
     }
 
     CTextureResource* ImportPNGTexture(const FString& InPath,
-                                      const bool& InPerformGammaCorrection,
-                                      const gpu::ETextureDataType& InDataType,
-                                      const bool& InFlipY,
-                                      const bool& InSendToGPU,
-                                      const FString& InName)
+                                       const FString& InResourcePath,
+                                       const bool& InPerformGammaCorrection,
+                                       const gpu::ETextureDataType& InDataType,
+                                       const bool& InFlipY,
+                                       const bool& InSendToGPU,
+                                       const FString& InName)
     {
         return LoadTextureSTB(InPath,
+                              InResourcePath,
                               true,
                               InDataType,
                               InPerformGammaCorrection ? gpu::ETextureDataFormat::SRGBA : gpu::ETextureDataFormat::RGBA,
@@ -209,19 +217,16 @@ namespace lucid::resources
     CTextureResource* LoadTexture(const FString& FilePath)
     {
         FILE* TextureFile;
-        if(fopen_s(&TextureFile, *FilePath, "rb") != 0)
+        if (fopen_s(&TextureFile, *FilePath, "rb") != 0)
         {
             LUCID_LOG(ELogLevel::ERR, "Failed to load texture from file %s", *FilePath);
             return nullptr;
         }
-        
+
         CTextureResource* TextureResource = resources::LoadResource<resources::CTextureResource>(TextureFile, FilePath);
         fclose(TextureFile);
         return TextureResource;
     }
 
-    void CTextureResource::MigrateToLatestVersion()
-    {
-        Resave();
-    }
+    void CTextureResource::MigrateToLatestVersion() { Resave(); }
 } // namespace lucid::resources

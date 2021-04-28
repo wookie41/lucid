@@ -84,4 +84,31 @@ namespace lucid
         }
     }
 
+    void CEngine::AddTextureResource(resources::CTextureResource* InTexture, const FString& InSourcePath)
+    {
+        FResourceDatabaseEntry Entry;
+        Entry.Id = InTexture->GetID();
+        Entry.Name = CopyToString(*InTexture->GetName(), InTexture->GetName().GetLength());
+        Entry.Path = CopyToString(*InSourcePath, InSourcePath.GetLength());
+        Entry.Type = resources::TEXTURE;
+        Entry.bIsDefault = false;
+        ResourceDatabase.Entries.push_back(Entry);
+        TexturesHolder.Add(*InTexture->GetName(), InTexture);
+        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
+    }
+
+    void CEngine::AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath)
+    {
+        FResourceDatabaseEntry Entry;
+        Entry.Id = InMesh->GetID();
+        Entry.Name = CopyToString(*InMesh->GetName(), InMesh->GetName().GetLength());
+        Entry.Path = CopyToString(*InSourcePath, InSourcePath.GetLength());
+        Entry.Type = resources::MESH;
+        Entry.bIsDefault = false;
+        ResourceDatabase.Entries.push_back(Entry);
+        MeshesHolder.Add(*InMesh->GetName(), InMesh);
+        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
+    }
+
+
 } // namespace lucid

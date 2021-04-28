@@ -46,8 +46,9 @@ namespace lucid::resources
         virtual void FreeMainMemory() = 0;
         virtual void FreeVideoMemory() = 0;
 
-        inline const UUID&     GetID() const { return ID; }
-        inline const FString& GetName() const { return Name; }
+        inline const UUID&      GetID() const { return ID; }
+        inline const FString&   GetName() const { return Name; }
+        inline const FString&   GetFilePath() const { return FilePath; }
         
         virtual ~CResource() = default;
 

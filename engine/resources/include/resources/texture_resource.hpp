@@ -52,6 +52,7 @@ namespace lucid::resources
     CTextureResource* LoadTexture(const FString& FilePath);
 
     CTextureResource* ImportJPGTexture(const FString& InPath,
+    const FString& InResourcePath,
                                        const bool& InPerformGammaCorrection,
                                        const gpu::ETextureDataType& InDataType,
                                        const bool& InFlipY,
@@ -59,8 +60,8 @@ namespace lucid::resources
                                        const FString& InName);
 
     CTextureResource* ImportPNGTexture(const FString& InPath,
+                const FString& InResourcePath,
                                        const bool& InPerformGammaCorrection,
-
                                        const gpu::ETextureDataType& InDataType,
                                        const bool& InFlipY,
                                        const bool& InSendToGPU,

@@ -21,6 +21,8 @@
 #include "devices/gpu/texture_enums.hpp"
 #include "resources/serialization_versions.hpp"
 
+#include "schemas/types.hpp"
+
 namespace lucid::resources
 {
     
@@ -223,7 +225,7 @@ namespace lucid::resources
     
     static CTextureResource* AssimpImportMaterialTexture(const FString& ModelFileDir, aiMaterial* Material, aiTextureType TextureType, const FString& MeshName, const FString& TextureTypeName);
 
-    CMeshResource* ImportMesh(const FString& InMeshFilePath, const FString& MeshName)
+    CMeshResource* ImportMesh(const FString& InMeshFilePath, const FString& InMeshResourceFilePath, const FString& MeshName)
     {
 #ifndef NDEBUG
         real StartTime = platform::GetCurrentTimeSeconds();
@@ -288,7 +290,7 @@ namespace lucid::resources
         LUCID_LOG(ELogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshName,platform::GetCurrentTimeSeconds() - StartTime);
 #endif
 
-        auto* ImportedMesh = new CMeshResource { sole::uuid4(), MeshName, FString { "" }, 0, MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize, MESH_SERIALIZATION_VERSION };
+        auto* ImportedMesh = new CMeshResource { sole::uuid4(), MeshName, InMeshResourceFilePath, 0, MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize, MESH_SERIALIZATION_VERSION };
 
         ImportedMesh->VertexData = MeshInfoHelper.VertexBuffer;
         ImportedMesh->ElementData = MeshInfoHelper.ElementBuffer;
@@ -435,8 +437,13 @@ namespace lucid::resources
 
         FDString TexturePath = SPrintf("%s/%s", *InMeshDirPath, TextureFilePath.C_Str());
         FDString TextureName = SPrintf("%s_Texture%s", *MeshName, *TextureTypeName);
+        FDString TextureResourceFilePath =   SPrintf("assets/textures/%s.asset", *TextureName);
 
-        CTextureResource* Texture = ImportJPGTexture(TexturePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, false, SPrintf("%s_%s", *MeshName, *TextureTypeName));
+        CTextureResource* Texture = ImportJPGTexture(TexturePath, TextureResourceFilePath, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, false, SPrintf("%s_%s", *MeshName, *TextureTypeName));
+
+        // Update engine resources database
+        GEngine.AddTextureResource(Texture, TexturePath);
+        
         TexturePath.Free();
         
         if (Texture == nullptr)
@@ -447,9 +454,7 @@ namespace lucid::resources
         }
 
         // Save to a texture resource
-        FDString    TextureResourceFilePath =   SPrintf("assets/textures/%s.asset", *TextureName);
         FILE*       TextureResourceFile =       fopen(*TextureResourceFilePath, "wb");
-
         if (TextureResourceFile == nullptr)
         {
             TextureResourceFilePath.Free();

@@ -42,6 +42,9 @@ namespace lucid
 
         inline gpu::CShadersManager& GetShadersManager() { return ShadersManager; }
 
+        void AddTextureResource(resources::CTextureResource* InTexture,  const FString& InSourcePath);
+        void AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath);
+    
     protected:
 
         gpu::CShadersManager ShadersManager;

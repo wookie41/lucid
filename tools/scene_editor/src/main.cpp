@@ -781,10 +781,11 @@ void UIDrawMeshImporter()
             {
                 // Everything is ok, import the mesh and save it
                 static char IMPORTED_MESH_FILE_PATH[1024];
+                sprintf_s(IMPORTED_MESH_FILE_PATH, 1024, "assets/meshes/%s.asset", GSceneEditorState.AssetNameBuffer);
 
                 // Import the mesh
                 FDString MeshName = CopyToString(GSceneEditorState.AssetNameBuffer);
-                resources::CMeshResource* ImportedMesh = resources::ImportMesh(GSceneEditorState.PathToSelectedFile, MeshName);
+                resources::CMeshResource* ImportedMesh = resources::ImportMesh(GSceneEditorState.PathToSelectedFile, { IMPORTED_MESH_FILE_PATH }, MeshName);
 
                 if (!ImportedMesh)
                 {
@@ -796,18 +797,13 @@ void UIDrawMeshImporter()
                 ImportedMesh->Thumb = GEngine.ThumbsGenerator->GenerateMeshThumb(256, 256, ImportedMesh);
 
                 // Save it to file
-                sprintf_s(IMPORTED_MESH_FILE_PATH, 1024, "assets/meshes/%s.asset", GSceneEditorState.AssetNameBuffer);
                 FILE* ImportedMeshFile;
                 fopen_s(&ImportedMeshFile, IMPORTED_MESH_FILE_PATH, "wb");
                 ImportedMesh->SaveSynchronously(ImportedMeshFile);
                 fclose(ImportedMeshFile);
 
                 // Update engine resources database
-                GEngine.GetResourceDatabase().Entries.push_back(
-                  { ImportedMesh->GetID(), MeshName, CopyToString(IMPORTED_MESH_FILE_PATH), resources::EResourceType::MESH });
-                GEngine.GetMeshesHolder().Add(*MeshName, ImportedMesh);
-
-                WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
+                GEngine.AddMeshResource(ImportedMesh, GSceneEditorState.PathToSelectedFile);
 
                 // End mesh import
                 GSceneEditorState.bIsImportingMesh = false;
@@ -860,6 +856,7 @@ void UIDrawTextureImporter()
             {
                 // Everything is ok, import the mesh and save it
                 static char IMPORTED_TEXTURE_FILE_PATH[1024];
+                sprintf_s(IMPORTED_TEXTURE_FILE_PATH, 1024, "assets/textures/%s.asset", GSceneEditorState.AssetNameBuffer);
 
                 // Import the texture
                 FDString TextureName = CopyToString(GSceneEditorState.AssetNameBuffer);
@@ -868,12 +865,12 @@ void UIDrawTextureImporter()
                 if (GSceneEditorState.ImportingTextureType == EImportingTextureType::PNG)
                 {
                     ImportedTexture = resources::ImportPNGTexture(
-                      GSceneEditorState.PathToSelectedFile, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, TextureName);
+                      GSceneEditorState.PathToSelectedFile, { IMPORTED_TEXTURE_FILE_PATH }, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, TextureName);
                 }
                 else
                 {
                     ImportedTexture = resources::ImportJPGTexture(
-                      GSceneEditorState.PathToSelectedFile, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, TextureName);
+                      GSceneEditorState.PathToSelectedFile, { IMPORTED_TEXTURE_FILE_PATH }, true, gpu::ETextureDataType::UNSIGNED_BYTE, true, true, TextureName);
                 }
 
                 if (!ImportedTexture)
@@ -883,18 +880,13 @@ void UIDrawTextureImporter()
                 }
 
                 // Save it to file
-                sprintf_s(IMPORTED_TEXTURE_FILE_PATH, 1024, "assets/textures/%s.asset", GSceneEditorState.AssetNameBuffer);
                 FILE* ImportedTextureFile;
                 fopen_s(&ImportedTextureFile, IMPORTED_TEXTURE_FILE_PATH, "wb");
                 ImportedTexture->SaveSynchronously(ImportedTextureFile);
                 fclose(ImportedTextureFile);
 
                 // Update engine resources database
-                GEngine.GetResourceDatabase().Entries.push_back({ ImportedTexture->GetID(),
-                                                                  TextureName,
-                                                                  CopyToString(IMPORTED_TEXTURE_FILE_PATH),
-                                                                  resources::EResourceType::TEXTURE });
-                GEngine.GetTexturesHolder().Add(*TextureName, ImportedTexture);
+                GEngine.AddTextureResource(ImportedTexture, GSceneEditorState.PathToSelectedFile);
 
                 WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
 
@@ -952,6 +944,7 @@ void UIDrawMeshContextMenu()
           [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == GSceneEditorState.ClickedMeshResource->GetID(); }));
 
         GEngine.GetMeshesHolder().Remove(*GSceneEditorState.ClickedMeshResource->GetName());
+        remove(*GSceneEditorState.ClickedMeshResource->GetFilePath());
 
         WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
 
@@ -998,6 +991,7 @@ void UIDrawTextureContextMenu()
           GEngine.GetResourceDatabase().Entries.end(),
           [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == GSceneEditorState.ClickedTextureResource->GetID(); }));
 
+        remove(*GSceneEditorState.ClickedTextureResource->GetFilePath());
         GEngine.GetTexturesHolder().Remove(*GSceneEditorState.ClickedTextureResource->GetName());
 
         WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
