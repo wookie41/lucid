@@ -40,7 +40,6 @@ namespace lucid
         PipelineState.IsSRGBFramebufferEnabled = false;
         PipelineState.IsDepthBufferReadOnly = false;
 
-        Camera.Position = { 0, 0, 4 };
         Camera.Yaw = -90.f;
         Camera.UpdateCameraVectors();
 
@@ -69,6 +68,19 @@ namespace lucid
 
         MeshThumbShader->Use();
 
+        // Calculate camera fov so the whole mesh fits in the view
+
+        const float VerticalMidPoint = (MeshResource->MaxPosY + MeshResource->MinPosY) / 2.0f;
+
+        // Let's move the mesh a bit in view-space
+        const float MeshMaxZ = 10 + MeshResource->MaxPosZ;
+
+        const float FovX = fmaxf(atan2f(fabs(MeshResource->MinPosX), MeshMaxZ), atan2f(fabs(MeshResource->MaxPosX), MeshMaxZ)); 
+        const float FovY = fmaxf(atan2f(fabs(MeshResource->MinPosY), MeshMaxZ), atan2f(fabs(MeshResource->MaxPosY), MeshMaxZ)); 
+
+        Camera.Position = { 0, VerticalMidPoint, 10 };
+        Camera.FOV = glm::degrees(fmax(FovX, FovY));
+        
         MeshThumbShader->SetMatrix(PROJECTION_MATRIX, Camera.GetProjectionMatrix());
         MeshThumbShader->SetMatrix(VIEW_MATRIX, Camera.GetViewMatrix());
 
