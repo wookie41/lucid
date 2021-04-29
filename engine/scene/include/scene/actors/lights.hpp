@@ -43,6 +43,8 @@ namespace lucid::scene
         virtual void SetupShader(gpu::CShader* InShader) const;
         virtual void SetupShadowMapShader(gpu::CShader* InShader) = 0;
 
+        virtual float GetVerticalMidPoint() const override;
+
         glm::vec3   Color           { 0, 0, 0 };
         u8          Quality         = 1;
 
@@ -52,7 +54,7 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         /** Editor stuff */
-        virtual void UIDrawSceneHierarchy() override;
+        virtual void UIDrawActorDetails() override;
 #endif  
     };
 

@@ -127,12 +127,12 @@ void UISetupDockspace();
 void UIDrawSceneWindow();
 void UIDrawResourceBrowserWindow();
 void UIDrawSceneHierarchyWindow();
+void UIDrawActorDetailsWindow();
 void UIDrawFileDialog();
 void UIDrawMeshImporter();
 void UIDrawTextureImporter();
 void UIDrawMeshContextMenu();
 void UIDrawTextureContextMenu();
-void UIDrawActorDetailsWindow();
 
 void ImportTexture(const std::filesystem::path& SelectedFilePath);
 void ImportMesh(const std::filesystem::path& SelectedFilePath);
@@ -220,7 +220,7 @@ int main(int argc, char** argv)
                                    GEngine.GetMeshesHolder().Get("Cube"),
                                    &woodMaterial,
                                    scene::EStaticMeshType::STATIONARY };
-    
+
     WoodenCube.Transform.Scale = glm::vec3{ 25.0 };
     WoodenCube.Transform.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{ 1.0, 0.0, 0.0 });
     WoodenCube.Transform.Translation = glm::vec3{ 0, -0.5, 0 };
@@ -527,6 +527,7 @@ void HandleCameraMovement(const float& DeltaTime)
 
     if (IsMouseButtonPressed(RIGHT))
     {
+        GSceneEditorState.CurrentlyDraggedActor = nullptr;
         GSceneEditorState.CurrentCamera->AddRotation(-MousePos.DeltaX * 17.5 * DeltaTime, MousePos.DeltaY * 17.5 * DeltaTime);
     }
 }
@@ -566,38 +567,35 @@ void HandleActorDrag()
         // Ignore skyboxes
         if (ClickedActor != nullptr && ClickedActor->GetActorType() != scene::EActorType::SKYBOX)
         {
-            if (ClickedActor != GSceneEditorState.CurrentlyDraggedActor)
+            if (GSceneEditorState.CurrentlyDraggedActor == nullptr)
             {
                 // Remember the actor that we hit and how far from the camera it was on the z axis
-                glm::vec4 ActorPosView =
-                  GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
+                glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
                 GSceneEditorState.DistanceToCurrentlyDraggedActor = ActorPosView.z;
                 GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
             }
-            else
-            {
-                GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
-                // Actor pos from world to view space
-                glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() *
-                                         glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
 
-                // Get the mouse ray in view space from mouse pos
-                const glm::vec2 MouseRayNDC = 2.f * glm::vec2{ MousePosRelative.x / GSceneEditorState.SceneWindowWidth,
-                                                               1 - (MousePosRelative.y / GSceneEditorState.SceneWindowHeight) } -
-                                              1.f;
+            // Actor pos from world to view space
+            glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() *
+                                     glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
 
-                const glm::vec4 MouseRayClip{ MouseRayNDC, -1, 1 };
-                const glm::vec4 MouseRayView =
-                  glm::inverse(GSceneEditorState.CurrentCamera->GetProjectionMatrix()) * MouseRayClip;
+            // Get the mouse ray in view space from mouse pos
+            const glm::vec2 MouseRayNDC = 2.f * glm::vec2{ MousePosRelative.x / GSceneEditorState.SceneWindowWidth,
+                                                           1 - (MousePosRelative.y / GSceneEditorState.SceneWindowHeight) } -
+                                          1.f;
 
-                // Calculate actor's position to match mouse view space x/y pos, preserving z
-                ActorPosView.x = -MouseRayView.x * GSceneEditorState.DistanceToCurrentlyDraggedActor;
-                ActorPosView.y = -MouseRayView.y * GSceneEditorState.DistanceToCurrentlyDraggedActor;
+            const glm::vec4 MouseRayClip{ MouseRayNDC, -1, 1 };
+            const glm::vec4 MouseRayView = glm::inverse(GSceneEditorState.CurrentCamera->GetProjectionMatrix()) * MouseRayClip;
 
-                // Update actor's position
-                GSceneEditorState.CurrentlyDraggedActor->Transform.Translation =
-                  (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
-            }
+            // Calculate actor's position to match mouse view space x/y pos, preserving z
+            const float ActorMidPoint = GSceneEditorState.CurrentlyDraggedActor->GetVerticalMidPoint();
+            
+            ActorPosView.x = -MouseRayView.x * GSceneEditorState.DistanceToCurrentlyDraggedActor;
+            ActorPosView.y = -MouseRayView.y * GSceneEditorState.DistanceToCurrentlyDraggedActor - ActorMidPoint;
+
+            // Update actor's position
+            GSceneEditorState.CurrentlyDraggedActor->Transform.Translation =
+              (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
         }
     }
 }
@@ -714,7 +712,7 @@ void UIDrawResourceBrowserWindow()
                 }
 
                 ImGui::BeginGroup();
-                
+
                 if (TextureResource && TextureResource->TextureHandle)
                 {
                     TextureResource->TextureHandle->ImGuiImageButton(ResourceItemSize);
@@ -1059,7 +1057,7 @@ void UIDrawActorDetailsWindow()
     {
         if (GSceneEditorState.CurrentlyDraggedActor)
         {
-            GSceneEditorState.CurrentlyDraggedActor->UIDrawSceneHierarchy();
+            GSceneEditorState.CurrentlyDraggedActor->UIDrawActorDetails();
         }
     }
     ImGui::End();

@@ -20,9 +20,11 @@ namespace lucid::scene
                 const u32& InHeight);
 
 
+        virtual float GetVerticalMidPoint() const override;
+
 #if DEVELOPMENT
         /** Editor stuff */
-        virtual void UIDrawSceneHierarchy() override;
+        virtual void UIDrawActorDetails() override;
 #endif
         
         u32 Width, Height;

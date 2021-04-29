@@ -29,8 +29,13 @@ namespace lucid::scene
     {
     }
 
-    void CSkybox::UIDrawSceneHierarchy()
+    void CSkybox::UIDrawActorDetails()
     {
         
+    }
+    
+    float CSkybox::GetVerticalMidPoint() const
+    {
+        return 0;
     }
 } // namespace lucid::scene

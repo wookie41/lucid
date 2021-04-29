@@ -29,9 +29,11 @@ namespace lucid::scene
         inline void SetReverseNormals(const bool& InReverseNormals) { bReverseNormals = InReverseNormals; }
         inline bool GetReverseNormals() const { return bReverseNormals; }
 
+        virtual float GetVerticalMidPoint() const override;
+
 #if DEVELOPMENT
         /** Editor stuff */
-        virtual void UIDrawSceneHierarchy() override;
+        virtual void UIDrawActorDetails() override;
 #endif
     
       protected:

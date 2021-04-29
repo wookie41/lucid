@@ -15,7 +15,7 @@ namespace lucid::scene
         ActorType = EActorType::STATIC_MESH;
     }
 
-    void CStaticMesh::UIDrawSceneHierarchy()
+    void CStaticMesh::UIDrawActorDetails()
     {
         ImGui::Text("Mesh resource:");
         if (ImGui::BeginListBox("##listbox 2", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
@@ -36,4 +36,14 @@ namespace lucid::scene
             ImGui::EndListBox();
         }
     }
+
+    float CStaticMesh::GetVerticalMidPoint() const
+    {
+        if (0.002f > fabs(MeshResource->MinPosY))
+        {
+            return (MeshResource->MaxPosY - MeshResource->MinPosY) / 2.f;
+        }
+        return 0;
+    }
+
 } // namespace lucid::scene

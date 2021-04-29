@@ -47,9 +47,10 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         /** Editor stuff */
-        virtual void UIDrawSceneHierarchy() = 0;
+        virtual void UIDrawActorDetails() = 0;
 #endif
 
+        virtual float GetVerticalMidPoint() const = 0;
 
         /**
          * Unique id for an actor, used e.x. by the renderer when generating the hitmap texture

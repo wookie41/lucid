@@ -55,9 +55,14 @@ namespace lucid::scene
         InShader->SetVector(LIGHT_COLOR, Color);
     }
 
-    void CLight::UIDrawSceneHierarchy()
+    void CLight::UIDrawActorDetails()
     {
         ImGui::SliderFloat3("Light color", &Color.r, 0, 1);
+    }
+
+    float CLight::GetVerticalMidPoint() const
+    {
+        return 0;
     }
 
     /////////////////////////////////////
