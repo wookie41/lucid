@@ -17,7 +17,9 @@ namespace lucid::scene
 
     void CStaticMesh::UIDrawActorDetails()
     {
-        ImGui::Text("Mesh resource:");
+        IActor::UIDrawActorDetails();
+
+        ImGui::Text("Static mesh:");
         if (ImGui::BeginListBox("##listbox 2", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
         {
             for (int i = 0; i < GEngine.GetMeshesHolder().Length(); ++i)
@@ -41,7 +43,7 @@ namespace lucid::scene
     {
         if (0.002f > fabs(MeshResource->MinPosY))
         {
-            return (MeshResource->MaxPosY - MeshResource->MinPosY) / 2.f;
+            return (MeshResource->MaxPosY - MeshResource->MinPosY) * Transform.Scale.y / 2.f;
         }
         return 0;
     }

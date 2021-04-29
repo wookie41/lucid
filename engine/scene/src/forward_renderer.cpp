@@ -466,9 +466,12 @@ namespace lucid::scene
             for (int i = 0; i < arrlen(InSceneToRender->StaticMeshes); ++i)
             {
                 CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes[i];
-                CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
-                StaticMesh->GetMeshResource()->VAO->Bind();
-                StaticMesh->GetMeshResource()->VAO->Draw();
+                if (StaticMesh->bVisible)
+                {
+                    CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
+                    StaticMesh->GetMeshResource()->VAO->Bind();
+                    StaticMesh->GetMeshResource()->VAO->Draw();   
+                }
             }
         }
     }
@@ -623,6 +626,10 @@ namespace lucid::scene
 
     void CForwardRenderer::RenderStaticMesh(gpu::CShader* Shader, const CStaticMesh* InStaticMesh)
     {
+        if (!InStaticMesh->bVisible)
+        {
+            return;
+        }
         const glm::mat4 ModelMatrix = InStaticMesh->CalculateModelMatrix();
         Shader->SetMatrix(MODEL_MATRIX, ModelMatrix);
         Shader->SetBool(REVERSE_NORMALS, InStaticMesh->GetReverseNormals());
@@ -704,10 +711,13 @@ namespace lucid::scene
         for (int i = 0; i < arrlen(InScene->StaticMeshes); ++i)
         {
             CStaticMesh* StaticMesh = InScene->StaticMeshes[i];
-            HitMapShader->SetUInt(ACTOR_ID, StaticMesh->Id);
-            HitMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
-            StaticMesh->GetMeshResource()->VAO->Bind();
-            StaticMesh->GetMeshResource()->VAO->Draw();
+            if (StaticMesh->bVisible)
+            {
+                HitMapShader->SetUInt(ACTOR_ID, StaticMesh->Id);
+                HitMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
+                StaticMesh->GetMeshResource()->VAO->Bind();
+                StaticMesh->GetMeshResource()->VAO->Draw();
+            }            
         }
 
         // Render lights quads

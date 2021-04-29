@@ -5,6 +5,9 @@
 
 namespace lucid
 {
+    constexpr float FLT_HALF_MIN = FLT_MIN / 2.f;
+    constexpr float FLT_HALF_MAX = FLT_MAX / 2.f;
+
     using UUID = sole::uuid;
     
     using u8 = uint8_t;

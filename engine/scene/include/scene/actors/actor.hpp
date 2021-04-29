@@ -47,7 +47,7 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         /** Editor stuff */
-        virtual void UIDrawActorDetails() = 0;
+        virtual void UIDrawActorDetails();
 #endif
 
         virtual float GetVerticalMidPoint() const = 0;
@@ -60,6 +60,7 @@ namespace lucid::scene
         const IActor*           Parent     = nullptr;
         const FDString          Name;
         FTransform3D            Transform;
+        bool                    bVisible = true;
 
         virtual ~IActor() = default;
     
