@@ -54,6 +54,7 @@ constexpr char RESOURCES_BROWSER[] = "Resources browser";
 constexpr char SCENE_HIERARCHY[] = "Scene hierarchy";
 constexpr char MAIN_DOCKSPACE[] = "MainDockSpace";
 constexpr char POPUP_WINDOW[] = "PopupWindow";
+constexpr char ACTOR_DETAILS[] = "ActorDetails";
 
 enum class EImportingTextureType : u8
 {
@@ -131,6 +132,7 @@ void UIDrawMeshImporter();
 void UIDrawTextureImporter();
 void UIDrawMeshContextMenu();
 void UIDrawTextureContextMenu();
+void UIDrawActorDetailsWindow();
 
 void ImportTexture(const std::filesystem::path& SelectedFilePath);
 void ImportMesh(const std::filesystem::path& SelectedFilePath);
@@ -378,6 +380,7 @@ int main(int argc, char** argv)
             UIDrawSceneWindow();
             UIDrawResourceBrowserWindow();
             UIDrawSceneHierarchyWindow();
+            UIDrawActorDetailsWindow();
             UIDrawFileDialog();
         }
 
@@ -454,16 +457,20 @@ void InitializeSceneEditor()
             // Split the dockspace
             ImGuiID ResourceBrowserWindowDockId;
             ImGuiID SceneHierarchyDockId;
+            ImGuiID ActorDetailsDockId;
             ImGuiID SceneWindowDockId;
             SceneWindowDockId =
               ImGui::DockBuilderSplitNode(GSceneEditorState.MainDockId, ImGuiDir_Left, 0.75f, nullptr, &SceneHierarchyDockId);
             SceneWindowDockId =
               ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Up, 0.7f, nullptr, &ResourceBrowserWindowDockId);
+            SceneHierarchyDockId =
+              ImGui::DockBuilderSplitNode(SceneHierarchyDockId, ImGuiDir_Up, 0.5f, nullptr, &ActorDetailsDockId);
 
             // Attach windows to dockspaces
             ImGui::DockBuilderDockWindow(SCENE_VIEWPORT, SceneWindowDockId);
             ImGui::DockBuilderDockWindow(RESOURCES_BROWSER, ResourceBrowserWindowDockId);
             ImGui::DockBuilderDockWindow(SCENE_HIERARCHY, SceneHierarchyDockId);
+            ImGui::DockBuilderDockWindow(ACTOR_DETAILS, ActorDetailsDockId);
 
             // Submit the layout
             ImGui::DockBuilderFinish(GSceneEditorState.MainDockId);
@@ -1040,6 +1047,15 @@ void UIDrawSceneHierarchyWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
     ImGui::Begin(SCENE_HIERARCHY, nullptr, WindowFlags);
+    {
+    }
+    ImGui::End();
+}
+
+void UIDrawActorDetailsWindow()
+{
+    ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
+    ImGui::Begin(ACTOR_DETAILS, nullptr, WindowFlags);
     {
         if (GSceneEditorState.CurrentlyDraggedActor)
         {
