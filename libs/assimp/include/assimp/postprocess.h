@@ -440,7 +440,7 @@ enum aiPostProcessSteps
      *  together with #aiProcess_OptimizeGraph, if possible. The flag is fully
      *  compatible with both #aiProcess_SplitLargeMeshes and #aiProcess_SortByPType.
     */
-    aiProcess_OptimizeMeshes  = 0x200000,
+     aiProcess_OptimizeMeshes  = 0x200000,
 
 
     // -------------------------------------------------------------------------

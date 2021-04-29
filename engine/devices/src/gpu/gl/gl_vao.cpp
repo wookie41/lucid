@@ -1,4 +1,5 @@
 #include "devices/gpu/gl/gl_vao.hpp"
+
 #include "devices/gpu/buffer.hpp"
 #include "devices/gpu/gl/gl_common.hpp"
 #include "devices/gpu/gpu.hpp"

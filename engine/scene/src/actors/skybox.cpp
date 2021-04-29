@@ -29,4 +29,8 @@ namespace lucid::scene
     {
     }
 
+    void CSkybox::UIDrawSceneHierarchy()
+    {
+        
+    }
 } // namespace lucid::scene

@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "scene/actors/actor.hpp"
 
-namespace lucid::gpu
+namespace lucid::resources
 {
-    class CVertexArray;
+    class CMeshResource;
 }
 
 namespace lucid::scene
@@ -19,20 +19,25 @@ namespace lucid::scene
       public:
         CStaticMesh(const FDString& InName,
                     const IActor* InParent,
-                    gpu::CVertexArray* InVertexArray,
+                    resources::CMeshResource* InMeshResource,
                     CMaterial* InMaterial,
                     const EStaticMeshType& InType);
 
-        inline gpu::CVertexArray*   GetVertexArray() const { return VertexArray; }
-        inline CMaterial*           GetMaterial() const { return Material; }
+        inline resources::CMeshResource*    GetMeshResource() const { return MeshResource; }
+        inline CMaterial*                   GetMaterial() const { return Material; }
 
         inline void SetReverseNormals(const bool& InReverseNormals) { bReverseNormals = InReverseNormals; }
         inline bool GetReverseNormals() const { return bReverseNormals; }
 
+#if DEVELOPMENT
+        /** Editor stuff */
+        virtual void UIDrawSceneHierarchy() override;
+#endif
+    
       protected:
-        EStaticMeshType     Type;
-        CMaterial*          Material = nullptr;
-        gpu::CVertexArray*  VertexArray = nullptr;
-        bool                bReverseNormals = false;
+        EStaticMeshType             Type;
+        CMaterial*                  Material = nullptr;
+        resources::CMeshResource*   MeshResource = nullptr;
+        bool                        bReverseNormals = false;
     };
 } // namespace lucid::scene

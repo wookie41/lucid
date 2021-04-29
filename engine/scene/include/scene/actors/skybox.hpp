@@ -20,6 +20,11 @@ namespace lucid::scene
                 const u32& InHeight);
 
 
+#if DEVELOPMENT
+        /** Editor stuff */
+        virtual void UIDrawSceneHierarchy() override;
+#endif
+        
         u32 Width, Height;
         gpu::CCubemap* SkyboxCubemap = nullptr;
     };

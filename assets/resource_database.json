@@ -82,31 +82,38 @@
             "Path": "assets/textures/SkyboxBack.asset"
         },
         {
+            "Id": "67a6a025-0ad7-4412-b184-4c164c6438f6",
+            "Name": "Cyborg_Texture_cyborg_diffuse",
+            "Path": "assets/textures/Cyborg_Texture_cyborg_diffuse.asset"
+        },
+        {
+            "Id": "fdf06687-28f3-431a-bb19-a68502f23170",
+            "Name": "Cyborg_Texture_cyborg_specular",
+            "Path": "assets/textures/Cyborg_Texture_cyborg_specular.asset"
+        },
+        {
+            "Id": "e40eefd5-9aef-4ada-b356-11e94d2bdfbf",
+            "Name": "Cyborg_Texture_cyborg_normal",
+            "Path": "assets/textures/Cyborg_Texture_cyborg_normal.asset"
+        },
+        {
+            "Id": "bf503aaa-d6ae-4fb2-8c83-2e30fd1a4309",
+            "Name": "Cyborg",
+            "Path": "assets/meshes/Cyborg.asset",
+            "Type": 1
+        },
+        {
             "Id": "1bc034a2-e724-42a7-bf60-c477a5c258b2",
             "Name": "Backpack",
             "Path": "assets/meshes/Backpack.asset",
             "Type": 1
         },
         {
-            "Id": "3cd08200-e6c9-4e79-97b1-bdfe74c8742b",
-            "Name": "Cyborg_Texture_cyborg_diffuse",
-            "Path": "assets/textures/Cyborg_Texture_cyborg_diffuse.asset"
-        },
-        {
-            "Id": "b32ceb96-812e-4522-b2c6-e113453af562",
-            "Name": "Cyborg_Texture_cyborg_specular",
-            "Path": "assets/textures/Cyborg_Texture_cyborg_specular.asset"
-        },
-        {
-            "Id": "ed1a2979-3397-48a0-abc2-161f1032693a",
-            "Name": "Cyborg_Texture_cyborg_normal",
-            "Path": "assets/textures/Cyborg_Texture_cyborg_normal.asset"
-        },
-        {
-            "Id": "47249998-29ac-4721-8e3e-5d20fc25a158",
-            "Name": "Cyborg",
-            "Path": "assets/meshes/Cyborg.asset",
-            "Type": 1
+            "Id": "24de2047-f0a1-4208-8ad4-ee6ca75df43d",
+            "Name": "Cube",
+            "Path": "assets/meshes/Cube.asset",
+            "Type": 1,
+            "bIsDefault": true
         }
     ]
 }

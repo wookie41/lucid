@@ -74,6 +74,16 @@ namespace lucid::resources
             shfree(ResourcesHashMap);
         }
 
+        u32 Length() const { return shlen(ResourcesHashMap); }
+        R* GetByIndex(const u32& Index) const
+        {
+            if(Index >= shlen(ResourcesHashMap))
+            {
+                return defaultResource;
+            }
+            return ResourcesHashMap[Index].value;
+        }
+        
         inline FResourcesHashMap* GetResourcesHashMap() const { return ResourcesHashMap; }
     
       private:

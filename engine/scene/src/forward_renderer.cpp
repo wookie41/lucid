@@ -467,8 +467,8 @@ namespace lucid::scene
             {
                 CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes[i];
                 CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
-                StaticMesh->GetVertexArray()->Bind();
-                StaticMesh->GetVertexArray()->Draw();
+                StaticMesh->GetMeshResource()->VAO->Bind();
+                StaticMesh->GetMeshResource()->VAO->Draw();
             }
         }
     }
@@ -629,8 +629,8 @@ namespace lucid::scene
 
         InStaticMesh->GetMaterial()->SetupShader(Shader);
 
-        InStaticMesh->GetVertexArray()->Bind();
-        InStaticMesh->GetVertexArray()->Draw();
+        InStaticMesh->GetMeshResource()->VAO->Bind();
+        InStaticMesh->GetMeshResource()->VAO->Draw();
     }
 
     inline void CForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
@@ -706,8 +706,8 @@ namespace lucid::scene
             CStaticMesh* StaticMesh = InScene->StaticMeshes[i];
             HitMapShader->SetUInt(ACTOR_ID, StaticMesh->Id);
             HitMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
-            StaticMesh->GetVertexArray()->Bind();
-            StaticMesh->GetVertexArray()->Draw();
+            StaticMesh->GetMeshResource()->VAO->Bind();
+            StaticMesh->GetMeshResource()->VAO->Draw();
         }
 
         // Render lights quads

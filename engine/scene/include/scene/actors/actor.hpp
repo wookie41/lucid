@@ -46,10 +46,8 @@ namespace lucid::scene
         inline EActorType GetActorType() const { return ActorType; }
 
 #if DEVELOPMENT
-
         /** Editor stuff */
-        void EditorOnSelected();
-
+        virtual void UIDrawSceneHierarchy() = 0;
 #endif
 
 

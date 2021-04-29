@@ -49,6 +49,11 @@ namespace lucid::scene
         CShadowMap* ShadowMap       = nullptr;
 
         virtual ~CLight() = default;
+
+#if DEVELOPMENT
+        /** Editor stuff */
+        virtual void UIDrawSceneHierarchy() override;
+#endif  
     };
 
     /////////////////////////////////////

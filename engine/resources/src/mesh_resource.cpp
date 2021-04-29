@@ -1,8 +1,8 @@
 #include "resources/mesh_resource.hpp"
 
 #include <filesystem>
-#include <engine/engine.hpp>
-#include <scene/actors/actor.hpp>
+#include "engine/engine.hpp"
+#include "scene/actors/actor.hpp"
 
 #include "common/log.hpp"
 #include "common/bytes.hpp"
@@ -113,8 +113,7 @@ namespace lucid::resources
             GPUBufferDescription.Data = ElementData.Pointer;
             GPUBufferDescription.Size = ElementData.Size;
 
-            ElementBuffer =
-              gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC, SPrintf("%s_ElementBuffer", *Name));
+            ElementBuffer = gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC, SPrintf("%s_ElementBuffer", *Name));
             assert(ElementBuffer);
         }
 
@@ -196,8 +195,7 @@ namespace lucid::resources
 
     static Assimp::Importer AssimpImporter;
 
-    static const constexpr u32 ASSIMP_DEFAULT_FLAGS = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
-                                                      aiProcess_CalcTangentSpace | aiProcess_OptimizeMeshes;
+    static constexpr u32 ASSIMP_DEFAULT_FLAGS = aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices;
 
     /* Helper structure used when importing the mesh */
     struct FMeshSize
@@ -209,13 +207,13 @@ namespace lucid::resources
     /* Helper structure used when importing the mesh */
     struct FMeshInfoHelper
     {
-        FMemBuffer VertexBuffer;
-        FMemBuffer ElementBuffer;
+        FMemBuffer& VertexBuffer;
+        FMemBuffer& ElementBuffer;
         u32 VertexCount = 0;
         u32 ElementCount = 0;
-        float MinX, MaxX;
-        float MinY, MaxY;
-        float MinZ, MaxZ;
+        float MinX = 0, MaxX = 0;
+        float MinY = 0, MaxY = 0;
+        float MinZ = 0, MaxZ = 0;
     };
 
     static FMeshSize AssimpCalculateMeshDataSize(aiNode* Node, const aiScene* Scene);
@@ -250,14 +248,12 @@ namespace lucid::resources
         // Allocate main memory needed for the mesh
         const FMeshSize MeshDataSize = AssimpCalculateMeshDataSize(Root->mRootNode, Root);
 
-        const FMemBuffer VertexDataBuffer = CreateMemBuffer(MeshDataSize.VertexDataSize);
-        const FMemBuffer ElementDataBuffer =
-          MeshDataSize.ElementDataSize > 0 ? CreateMemBuffer(MeshDataSize.ElementDataSize) : FMemBuffer{ nullptr, 0, 0 };
+        FMemBuffer VertexDataBuffer = CreateMemBuffer(MeshDataSize.VertexDataSize);
+        FMemBuffer ElementDataBuffer = MeshDataSize.ElementDataSize > 0 ? CreateMemBuffer(MeshDataSize.ElementDataSize) : FMemBuffer{ nullptr, 0, 0 };
 
         FMeshInfoHelper MeshInfoHelper{ VertexDataBuffer, ElementDataBuffer, 0, 0 };
 
         // Load the assimp nodes recursively
-
         StartTime = platform::GetCurrentTimeSeconds();
 
         MeshInfoHelper.MinX = MeshInfoHelper.MinY = MeshInfoHelper.MinZ = FLT_MAX;
@@ -280,8 +276,7 @@ namespace lucid::resources
 
             for (int TextureIndex = 0; TextureIndex < Material->GetTextureCount(aiTextureType_SPECULAR); ++TextureIndex)
             {
-                AssimpImportMaterialTexture(
-                  TextureIndex, MeshFileDirPath, Material, aiTextureType_SPECULAR, MeshName, FString{ "Specular" });
+                AssimpImportMaterialTexture(TextureIndex, MeshFileDirPath, Material, aiTextureType_SPECULAR, MeshName, FString{ "Specular" });
             }
 
             for (int TextureIndex = 0; TextureIndex < Material->GetTextureCount(aiTextureType_HEIGHT); ++TextureIndex)
@@ -306,8 +301,8 @@ namespace lucid::resources
                                                 MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize,
                                                 MESH_SERIALIZATION_VERSION };
 
-        ImportedMesh->VertexData = MeshInfoHelper.VertexBuffer;
-        ImportedMesh->ElementData = MeshInfoHelper.ElementBuffer;
+        ImportedMesh->VertexData = VertexDataBuffer;
+        ImportedMesh->ElementData = ElementDataBuffer;
 
         ImportedMesh->VertexCount = MeshInfoHelper.VertexCount;
         ImportedMesh->ElementCount = MeshInfoHelper.ElementCount;
@@ -424,8 +419,7 @@ namespace lucid::resources
             MeshData.VertexBuffer.Size += sizeof(glm::vec2);
         }
 
-        // Now wak through each of the mesh's faces (a face in a mesh it's triangle) and retrieve the corresponding vertex
-        // indices.
+        // Now wak through each of the mesh's faces (a face in a mesh it's triangle) and retrieve the corresponding vertex indices.
         for (unsigned int idx = 0; idx < Mesh->mNumFaces; ++idx)
         {
             aiFace* Face = Mesh->mFaces + idx;
