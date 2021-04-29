@@ -1,11 +1,7 @@
 #include "scene/blinn_phong_material.hpp"
 
+#include "engine/engine.hpp"
 #include "devices/gpu/shader.hpp"
-
-#include "common/log.hpp"
-
-#include "resources/mesh_resource.hpp"
-#include "resources/texture_resource.hpp"
 
 namespace lucid::scene
 {
@@ -13,7 +9,7 @@ namespace lucid::scene
     static const FSString DIFFUSE_COLOR("uMaterialDiffuseColor");
     static const FSString SPECULAR_COLOR("uMaterialSpecularColor");
 
-    CBlinnPhongMaterial::CBlinnPhongMaterial(gpu::CShader* InShader) : CMaterial(InShader) {}
+    CBlinnPhongMaterial::CBlinnPhongMaterial(const FString& InName, gpu::CShader* InShader) : CMaterial(InName, InShader) {}
 
     void CBlinnPhongMaterial::SetupShader(gpu::CShader* Shader)
     {
@@ -21,6 +17,19 @@ namespace lucid::scene
         Shader->SetVector(DIFFUSE_COLOR, DiffuseColor);
         Shader->SetVector(DIFFUSE_COLOR, SpecularColor);
     };
+
+        CBlinnPhongMaterial* CreateBlinnPhongMaterial(const FBlinnPhongMaterialDescription& Description)
+        {
+            gpu::CShader* Shader = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);        
+            auto* Material = new CBlinnPhongMaterial { Description.Name, Shader };
+    
+            Material->Shininess = Description.Shininess;
+            Material->SpecularColor = { Description.SpecularColor[0], Description.SpecularColor[1], Description.SpecularColor[2] };
+            Material->DiffuseColor = { Description.DiffuseColor[0], Description.DiffuseColor[1], Description.DiffuseColor[2] };
+    
+            GEngine.GetMaterialsHolder().Add(*Material->GetName(), Material);
+            return Material;
+        }
 
     /* ---------------------------------------------------------------------------*/
 
@@ -32,7 +41,7 @@ namespace lucid::scene
     static const FSString HAS_DISPLACEMENT_MAP("uMaterialHasDisplacementMap");
     static const FSString DISPLACEMENT_MAP("uMaterialDisplacementMap");
 
-    CBlinnPhongMapsMaterial::CBlinnPhongMapsMaterial(gpu::CShader* InShader) : CMaterial(InShader) {}
+    CBlinnPhongMapsMaterial::CBlinnPhongMapsMaterial(const FString& InName, gpu::CShader* InShader) : CMaterial(InName, InShader) {}
 
     void CBlinnPhongMapsMaterial::SetupShader(gpu::CShader* Shader)
     {
@@ -71,44 +80,19 @@ namespace lucid::scene
         }
     };
 
-    CMaterial* CreateBlinnPhongMapsMaterial(const FString& InMeshName, resources::CMeshResource* InMesh, gpu::CShader* InShader)
+    CBlinnPhongMapsMaterial* CreateBlinnPhongMapsMaterial(const FBlinnPhongMapsMaterialDescription& Description)
     {
-        // gpu::CTexture* FallbackTexture = resources::TexturesHolder.GetDefaultResource()->TextureHandle;
-        //
-        // CBlinnPhongMapsMaterial* Material = new CBlinnPhongMapsMaterial(InShader);
-        // Material->Shininess = 32;
-        //
-        // if (InMesh->DiffuseMap == nullptr)
-        // {
-        //     LUCID_LOG(ELogLevel::INFO, "Mesh is missing a diffuse map");
-        //     Material->DiffuseMap = FallbackTexture;
-        // }
-        // else
-        // {
-        //     Material->DiffuseMap = InMesh->DiffuseMap->TextureHandle;
-        // }
-        //
-        // if (InMesh->SpecularMap == nullptr)
-        // {
-        //     LUCID_LOG(ELogLevel::INFO, "Mesh is missing a specular map");
-        //     Material->SpecularMap = FallbackTexture;
-        // }
-        // else
-        // {
-        //     Material->SpecularMap = InMesh->SpecularMap->TextureHandle;
-        // }
-        //
-        // if (InMesh->NormalMap == nullptr)
-        // {
-        //     LUCID_LOG(ELogLevel::INFO, "Mesh is missing a normal map");
-        //     Material->NormalMap = FallbackTexture;
-        // }
-        // else
-        // {
-        //     Material->NormalMap = InMesh->NormalMap->TextureHandle;
-        // }
-        //
-        // return Material;
-        return nullptr;
+        gpu::CShader* Shader = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);        
+        auto* Material = new CBlinnPhongMapsMaterial { Description.Name, Shader };
+
+        Material->DiffuseMap = GEngine.GetTexturesHolder().Get(*Description.DiffuseTextureName)->TextureHandle;
+        Material->SpecularMap = GEngine.GetTexturesHolder().Get(*Description.SpecularTextureName)->TextureHandle;
+        Material->NormalMap = GEngine.GetTexturesHolder().Get(*Description.NormalTextureName)->TextureHandle;
+        Material->DisplacementMap = GEngine.GetTexturesHolder().Get(*Description.DisplacementTextureName)->TextureHandle;
+        Material->SpecularColor = { Description.SpecularColor[0], Description.SpecularColor[1], Description.SpecularColor[2] };
+
+        GEngine.GetMaterialsHolder().Add(*Material->GetName(), Material);
+        return Material;
     }
+
 } // namespace lucid::scene

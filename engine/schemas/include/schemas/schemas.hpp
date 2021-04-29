@@ -1,3 +1,4 @@
 ﻿#include "schemas/shaders.hpp"
-#include "schemas/scene.hpp"
+#include "schemas/materials.hpp"
+#include "schemas/world.hpp"
 #include "schemas/resource.hpp"

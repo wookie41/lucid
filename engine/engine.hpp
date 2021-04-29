@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <scene/material.hpp>
+
 #include "common/types.hpp"
 
 #include "resources/resource.hpp"
@@ -12,8 +14,14 @@
 
 namespace lucid
 {
-    using TexturesHolder = resources::CResourcesHolder<resources::CTextureResource>;
-    using MeshesHolder = resources::CResourcesHolder<resources::CMeshResource>;
+    namespace scene
+    {
+        CMaterial;
+    }
+    
+    using CTexturesHolder = resources::CResourcesHolder<resources::CTextureResource>;
+    using CMeshesHolder = resources::CResourcesHolder<resources::CMeshResource>;
+    using CMaterialsHolder = resources::CResourcesHolder<scene::CMaterial>;
 
     class CActorThumbsGenerator;
 
@@ -37,8 +45,9 @@ namespace lucid
         void             LoadResources();
         
         inline FResourceDatabase&   GetResourceDatabase()   { return ResourceDatabase; }
-        inline TexturesHolder&      GetTexturesHolder() { return TexturesHolder; } 
-        inline MeshesHolder&        GetMeshesHolder()   { return MeshesHolder; }
+        inline CTexturesHolder&     GetTexturesHolder() { return TexturesHolder; } 
+        inline CMeshesHolder&       GetMeshesHolder()   { return MeshesHolder; }
+        inline CMaterialsHolder&    GetMaterialsHolder()   { return MaterialsHolder; }
 
         inline gpu::CShadersManager& GetShadersManager() { return ShadersManager; }
 
@@ -54,8 +63,9 @@ namespace lucid
 
         FResourceDatabase ResourceDatabase;
 
-        MeshesHolder    MeshesHolder;
-        TexturesHolder  TexturesHolder;
+        CMeshesHolder    MeshesHolder;
+        CTexturesHolder  TexturesHolder;
+        CMaterialsHolder MaterialsHolder;
 
 #if DEVELOPMENT
     public:

@@ -11,7 +11,7 @@ namespace lucid::scene
     class CMaterial
     {
       public:
-        explicit CMaterial(gpu::CShader* InShader = nullptr) : Shader(InShader) {}
+        explicit CMaterial(const FString& InName, gpu::CShader* InShader = nullptr) : Name(InName) Shader(InShader) {}
 
         /*
          * Function responsible for sending material's properties to the shader as uniform variables
@@ -21,11 +21,13 @@ namespace lucid::scene
          */
         virtual void            SetupShader(gpu::CShader* InShadder) = 0;
         inline gpu::CShader*    GetShader() const { return Shader; }
+        inline const FString&   GetName() const { return Name };
 
         virtual ~CMaterial() = default;
 
       protected:
 
+        const FString& Name;
         gpu::CShader* Shader;
     };
 } // namespace lucid::scene
