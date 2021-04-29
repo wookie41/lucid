@@ -187,12 +187,12 @@ int main(int argc, char** argv)
     Renderer.LightBulbTexture = GEngine.GetTexturesHolder().Get("LightBulb")->TextureHandle;
     Renderer.Setup();
 
-    scene::CBlinnPhongMapsMaterial woodMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
-    woodMaterial.Shininess = 32;
-    woodMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
-    woodMaterial.SpecularColor = glm::vec3{ 0.5 };
-    woodMaterial.NormalMap = nullptr;
-    woodMaterial.SpecularMap = nullptr;
+    scene::CBlinnPhongMapsMaterial WoodMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+    WoodMaterial.Shininess = 32;
+    WoodMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
+    WoodMaterial.SpecularColor = glm::vec3{ 0.5 };
+    WoodMaterial.NormalMap = nullptr;
+    WoodMaterial.SpecularMap = nullptr;
 
     scene::CBlinnPhongMapsMaterial brickMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     brickMaterial.Shininess = 32;
@@ -215,10 +215,10 @@ int main(int argc, char** argv)
     flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.Shininess = 32;
 
-    scene::CStaticMesh WoodenCube{ FDString{ "woodenFloor" },
+    scene::CStaticMesh WoodenCube{ FDString{ "WoodenCube" },
                                    nullptr,
                                    GEngine.GetMeshesHolder().Get("Cube"),
-                                   &woodMaterial,
+                                   &WoodMaterial,
                                    scene::EStaticMeshType::STATIONARY };
 
     WoodenCube.Transform.Scale = glm::vec3{ 25.0 };
@@ -252,7 +252,7 @@ int main(int argc, char** argv)
     cube3.Transform.Scale = glm::vec3{ 0.75 };
 
     scene::CStaticMesh gigaCube{
-        FDString{ "Gigacube" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), &woodMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{ "Gigacube" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), &WoodMaterial, scene::EStaticMeshType::STATIONARY
     };
     gigaCube.Transform.Translation = glm::vec3{ 0 };
     gigaCube.Transform.Scale = glm::vec3{ 10 };

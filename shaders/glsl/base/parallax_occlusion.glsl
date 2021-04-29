@@ -15,6 +15,10 @@ vec2 ParallaxOcclusionMapping(in vec3 TanToViewN, in vec2 TexCoords, in sampler2
     while (currentMapValueDepth > currentLayerDepth)
     {
         texCoords -= deltaTexCoords;
+        if (texCoords.x < 0 || texCoords.x > 1 || texCoords.y < 0 || texCoords.y > 1)
+        {
+            return texCoords;
+        }
         currentLayerDepth += layerDepth;
         currentMapValueDepth = texture(DisplacementMap, texCoords).r;
     }

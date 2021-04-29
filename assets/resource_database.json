@@ -112,7 +112,8 @@
             "Id": "34828167-a07f-4421-8351-e55b4ca233ab",
             "Name": "Cube",
             "Path": "assets/meshes/Cube.asset",
-            "Type": 1
+            "Type": 1,
+            "bIsDefault": true
         }
     ]
 }
