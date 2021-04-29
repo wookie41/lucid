@@ -44,7 +44,10 @@ namespace lucid
 
         void AddTextureResource(resources::CTextureResource* InTexture,  const FString& InSourcePath);
         void AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath);
-    
+
+        void RemoveMeshResource(resources::CMeshResource* InMesh);
+        void RemoveTextureResource(resources::CTextureResource*);
+        
     protected:
 
         gpu::CShadersManager ShadersManager;

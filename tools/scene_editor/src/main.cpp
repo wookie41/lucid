@@ -687,7 +687,7 @@ void UIDrawResourceBrowserWindow()
         ImGui::BeginChild("Scrolling");
         {
             const int ResourceItemsPerRow = 8;
-            const float ResourceItemWidth = ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow;
+            const float ResourceItemWidth = (ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow) - 4;
             const ImVec2 ResourceItemSize{ ResourceItemWidth, ResourceItemWidth };
 
             int CurrentRowItemsCount = 0;
@@ -703,12 +703,15 @@ void UIDrawResourceBrowserWindow()
                 }
                 else if (CurrentRowItemsCount > 0)
                 {
-                    ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount, 0);
+                    ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount + (4 * CurrentRowItemsCount), 2);
                 }
 
+                ImGui::BeginGroup();
+                
                 if (TextureResource && TextureResource->TextureHandle)
                 {
                     TextureResource->TextureHandle->ImGuiImageButton(ResourceItemSize);
+                    ImGui::Button(*TextureResource->GetName(), { ResourceItemWidth, 0 });
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
                         GSceneEditorState.bShowTextureContextMenu = true;
@@ -716,6 +719,8 @@ void UIDrawResourceBrowserWindow()
                     }
                     ++CurrentRowItemsCount;
                 }
+
+                ImGui::EndGroup();
             }
 
             ImGui::Spacing();
@@ -726,6 +731,7 @@ void UIDrawResourceBrowserWindow()
 
             for (int i = 0; i < GEngine.GetMeshesHolder().Length(); ++i)
             {
+
                 resources::CMeshResource* MeshResource = GEngine.GetMeshesHolder().GetByIndex(i);
                 if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
                 {
@@ -733,12 +739,14 @@ void UIDrawResourceBrowserWindow()
                 }
                 else if (CurrentRowItemsCount > 0)
                 {
-                    ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount, 0);
+                    ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount + (4 * CurrentRowItemsCount), 2);
                 }
 
+                ImGui::BeginGroup();
                 if (MeshResource && MeshResource->Thumb)
                 {
                     MeshResource->Thumb->ImGuiImageButton(ResourceItemSize);
+                    ImGui::Button(*MeshResource->GetName(), { ResourceItemWidth, 0 });
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
                         GSceneEditorState.bShowMeshContextMenu = true;
@@ -746,6 +754,7 @@ void UIDrawResourceBrowserWindow()
                     }
                     ++CurrentRowItemsCount;
                 }
+                ImGui::EndGroup();
             }
         }
         ImGui::EndChild();
@@ -970,17 +979,7 @@ void UIDrawMeshContextMenu()
 
     if (ImGui::Button("Remove"))
     {
-        // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
-        GEngine.GetResourceDatabase().Entries.erase(std::remove_if(
-          GEngine.GetResourceDatabase().Entries.begin(),
-          GEngine.GetResourceDatabase().Entries.end(),
-          [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == GSceneEditorState.ClickedMeshResource->GetID(); }));
-
-        GEngine.GetMeshesHolder().Remove(*GSceneEditorState.ClickedMeshResource->GetName());
-        remove(*GSceneEditorState.ClickedMeshResource->GetFilePath());
-
-        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
-
+        GEngine.RemoveMeshResource(GSceneEditorState.ClickedMeshResource);
         GSceneEditorState.bShowMeshContextMenu = false;
         GSceneEditorState.bDisableCameraMovement = false;
         ImGui::CloseCurrentPopup();
@@ -1021,17 +1020,7 @@ void UIDrawTextureContextMenu()
 
     if (ImGui::Button("Remove"))
     {
-        // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
-        GEngine.GetResourceDatabase().Entries.erase(std::remove_if(
-          GEngine.GetResourceDatabase().Entries.begin(),
-          GEngine.GetResourceDatabase().Entries.end(),
-          [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == GSceneEditorState.ClickedTextureResource->GetID(); }));
-
-        remove(*GSceneEditorState.ClickedTextureResource->GetFilePath());
-        GEngine.GetTexturesHolder().Remove(*GSceneEditorState.ClickedTextureResource->GetName());
-
-        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
-
+        GEngine.RemoveTextureResource(GSceneEditorState.ClickedTextureResource);
         GSceneEditorState.bShowTextureContextMenu = false;
         GSceneEditorState.bDisableCameraMovement = false;
         ImGui::CloseCurrentPopup();

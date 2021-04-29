@@ -110,5 +110,33 @@ namespace lucid
         WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
     }
 
+    void CEngine::RemoveTextureResource(resources::CTextureResource* InTexture)
+    {
+        // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
+        ResourceDatabase.Entries.erase(std::remove_if(
+          ResourceDatabase.Entries.begin(),
+          ResourceDatabase.Entries.end(),
+          [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == InTexture->GetID(); }));
 
+        
+        MeshesHolder.Remove(*InTexture->GetName());
+        remove(*InTexture->GetFilePath());
+
+        WriteToJSONFile(ResourceDatabase, "assets/resource_database.json");
+    }
+    
+    void CEngine::RemoveMeshResource(resources::CMeshResource* InMesh)
+    {
+        // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
+        ResourceDatabase.Entries.erase(std::remove_if(
+          ResourceDatabase.Entries.begin(),
+          ResourceDatabase.Entries.end(),
+          [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == InMesh->GetID(); }));
+
+        
+        MeshesHolder.Remove(*InMesh->GetName());
+        remove(*InMesh->GetFilePath());
+
+        WriteToJSONFile(ResourceDatabase, "assets/resource_database.json");
+    }
 } // namespace lucid

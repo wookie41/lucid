@@ -109,11 +109,10 @@
             "Type": 1
         },
         {
-            "Id": "24de2047-f0a1-4208-8ad4-ee6ca75df43d",
+            "Id": "34828167-a07f-4421-8351-e55b4ca233ab",
             "Name": "Cube",
             "Path": "assets/meshes/Cube.asset",
-            "Type": 1,
-            "bIsDefault": true
+            "Type": 1
         }
     ]
 }
