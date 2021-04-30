@@ -1,7 +1,11 @@
 ﻿#pragma once
 
 // Binary Reading
-#include "MakeBinaryReadHeader.h"
+#ifdef LUCID_SCHEMAS_IMPLEMENTATION
+    #include "MakeBinaryReadHeader.h"
+#else
+    #include "MakeBinaryReadHeaderFWD.h"
+#endif
 #include "schemas/schemas.hpp"
 #include "MakeBinaryReadFooter.h"
 

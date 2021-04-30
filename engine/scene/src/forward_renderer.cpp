@@ -386,6 +386,8 @@ namespace lucid::scene
         CachedHitMap.Height = ResultResolution.y;
         CachedHitMap.CachedTextureData = (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
         Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
+
+        LightBulbTexture = GEngine.GetTexturesHolder().Get("LightBulb")->TextureHandle;
 #endif
     }
 
@@ -432,9 +434,9 @@ namespace lucid::scene
         u8 PrevShadowMapQuality = 255;
         gpu::CShader* PrevShadowMapShader = nullptr;
 
-        for (int i = 0; i < arrlen(InSceneToRender->Lights); ++i)
+        for (int i = 0; i < arrlen(InSceneToRender->AllLights); ++i)
         {
-            CLight* Light = InSceneToRender->Lights[i];
+            CLight* Light = InSceneToRender->AllLights[i];
 
             // @TODO This should happen only if light moves
             Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
@@ -541,19 +543,19 @@ namespace lucid::scene
 
     void CForwardRenderer::RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
-        if (arrlen(InScene->Lights) == 0)
+        if (arrlen(InScene->AllLights) == 0)
         {
             RenderWithoutLights(InScene, InRenderView);
             return;
         }
 
-        RenderLightContribution(InScene->Lights[0], InScene, InRenderView);
+        RenderLightContribution(InScene->AllLights[0], InScene, InRenderView);
 
         // Switch blending so we render the rest of the lights additively
         gpu::ConfigurePipelineState(LightpassPipelineState);
-        for (int i = 1; i < arrlen(InScene->Lights); ++i)
+        for (int i = 1; i < arrlen(InScene->AllLights); ++i)
         {
-            RenderLightContribution(InScene->Lights[i], InScene, InRenderView);
+            RenderLightContribution(InScene->AllLights[i], InScene, InRenderView);
         }
     }
 
@@ -681,9 +683,9 @@ namespace lucid::scene
         BillboardShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
         ScreenWideQuadVAO->Bind();
 
-        for (int i = 0; i < arrlen(InScene->Lights); ++i)
+        for (int i = 0; i < arrlen(InScene->AllLights); ++i)
         {
-            CLight* Light = InScene->Lights[i];
+            CLight* Light = InScene->AllLights[i];
             BillboardShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
             BillboardShader->SetVector(BILLBOARD_COLOR_TINT, Light->Color);
             ScreenWideQuadVAO->Draw();
@@ -739,9 +741,9 @@ namespace lucid::scene
         BillboardHitMapShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
         BillboardHitMapShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
         
-        for (int i = 0; i < arrlen(InScene->Lights); ++i)
+        for (int i = 0; i < arrlen(InScene->AllLights); ++i)
         {
-            CLight* Light = InScene->Lights[i];
+            CLight* Light = InScene->AllLights[i];
             
             BillboardHitMapShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
             BillboardHitMapShader->SetUInt(ACTOR_ID, Light->Id);

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <glm/fwd.hpp>
+#include <glm/detail/type_quat.hpp>
+#include <array>
+
 #include "glm/vec4.hpp"
 #include "sole/sole.hpp"
 
@@ -62,4 +66,33 @@ namespace lucid
         UNSUPPORTED
     };
 
+    inline glm::vec3 Float3ToVec(const std::array<float, 3>& Values)
+    {
+        return { Values[0], Values[1], Values[2] };
+    }
+
+    inline glm::vec4 Float4ToVec(const std::array<float, 4>& Values)
+    {
+        return { Values[0], Values[1], Values[2], Values[3] };
+    }
+
+    inline glm::quat Float4ToQuat(const std::array<float, 4>& Values)
+    {
+        return { Values[0], Values[1], Values[2], Values[3] };
+    }
+
+    inline std::array<float, 3> VecToFloat3(const glm::vec3& Vec)
+    {
+        return { Vec.x, Vec.y, Vec.z };
+    }
+
+    inline std::array<float, 4> VecToFloat4(const glm::vec4& Vec)
+    {
+        return { Vec.x, Vec.y, Vec.z, Vec.w };
+    }
+
+    inline std::array<float, 4> QuatToFloat4(const glm::quat& Quat)
+    {
+        return { Quat.x, Quat.y, Quat.z, Quat.w };
+    }
 } // namespace lucid

@@ -5,6 +5,8 @@
 
 #include <common/strings.hpp>
 #include <resources/resource.hpp>
+#include <scene/render_scene.hpp>
+
 
 
 #include "_common.h"
@@ -334,3 +336,15 @@ bool JSONRead(lucid::UUID& value, T& document)
     return false;
 }
 
+template <typename T>
+bool JSONRead(lucid::scene::EStaticMeshType& value, T& document)
+{
+    if (!document.IsInt())
+    {
+        DFS_LOG("Trying to read a string but it wasn't a string\n");
+        return false;
+    }
+
+    value = static_cast<lucid::scene::EStaticMeshType>(document.GetInt());
+    return true;
+}

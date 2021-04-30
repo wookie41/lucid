@@ -177,3 +177,8 @@ void BinaryWrite(const lucid::UUID& value, TDYNAMICARRAY<char>& output)
 {
     BinaryWrite(value.str(), output);
 }
+
+void BinaryWrite(const lucid::scene::EStaticMeshType& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(static_cast<uint8_t>(value), output);
+}

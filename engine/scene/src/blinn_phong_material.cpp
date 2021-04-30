@@ -27,7 +27,6 @@ namespace lucid::scene
             Material->SpecularColor = { Description.SpecularColor[0], Description.SpecularColor[1], Description.SpecularColor[2] };
             Material->DiffuseColor = { Description.DiffuseColor[0], Description.DiffuseColor[1], Description.DiffuseColor[2] };
     
-            GEngine.GetMaterialsHolder().Add(*Material->GetName(), Material);
             return Material;
         }
 
@@ -91,7 +90,6 @@ namespace lucid::scene
         Material->DisplacementMap = GEngine.GetTexturesHolder().Get(*Description.DisplacementTextureName)->TextureHandle;
         Material->SpecularColor = { Description.SpecularColor[0], Description.SpecularColor[1], Description.SpecularColor[2] };
 
-        GEngine.GetMaterialsHolder().Add(*Material->GetName(), Material);
         return Material;
     }
 

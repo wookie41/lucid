@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include <scene/material.hpp>
-
 #include "common/types.hpp"
 
 #include "resources/resource.hpp"
@@ -16,12 +14,12 @@ namespace lucid
 {
     namespace scene
     {
-        CMaterial;
+        class CRenderer;
     }
     
     using CTexturesHolder = resources::CResourcesHolder<resources::CTextureResource>;
     using CMeshesHolder = resources::CResourcesHolder<resources::CMeshResource>;
-    using CMaterialsHolder = resources::CResourcesHolder<scene::CMaterial>;
+    using CMaterialsHolder = FStringHashMap<scene::CMaterial*>;
 
     class CActorThumbsGenerator;
 
@@ -44,24 +42,27 @@ namespace lucid
         EEngineInitError InitEngine(const FEngineConfig& InEngineConfig);
         void             LoadResources();
         
-        inline FResourceDatabase&   GetResourceDatabase()   { return ResourceDatabase; }
-        inline CTexturesHolder&     GetTexturesHolder() { return TexturesHolder; } 
-        inline CMeshesHolder&       GetMeshesHolder()   { return MeshesHolder; }
-        inline CMaterialsHolder&    GetMaterialsHolder()   { return MaterialsHolder; }
-
-        inline gpu::CShadersManager& GetShadersManager() { return ShadersManager; }
+        inline FResourceDatabase&       GetResourceDatabase()   { return ResourceDatabase; }
+        inline CTexturesHolder&         GetTexturesHolder()     { return TexturesHolder; } 
+        inline CMeshesHolder&           GetMeshesHolder()       { return MeshesHolder; }
+        inline CMaterialsHolder&        GetMaterialsHolder()    { return MaterialsHolder; }
+        inline scene::CRenderer*        GetRenderer()           { return Renderer; }
+        inline gpu::CShadersManager&    GetShadersManager()     { return ShadersManager; }
 
         void AddTextureResource(resources::CTextureResource* InTexture,  const FString& InSourcePath);
         void AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath);
 
         void RemoveMeshResource(resources::CMeshResource* InMesh);
         void RemoveTextureResource(resources::CTextureResource*);
-        
+    
     protected:
+
+        scene::CRenderer* Renderer = nullptr;
 
         gpu::CShadersManager ShadersManager;
 
         FResourceDatabase ResourceDatabase;
+        FMaterialDatabase MaterialDatabase;
 
         CMeshesHolder    MeshesHolder;
         CTexturesHolder  TexturesHolder;

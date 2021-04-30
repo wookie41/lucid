@@ -11,6 +11,9 @@ namespace lucid::resources
 namespace lucid::scene
 {
     class CLight;
+    class CDirectionalLight;
+    class CSpotLight;
+    class CPointLight;
     class CStaticMesh;
     class CSkybox;
 
@@ -24,8 +27,11 @@ namespace lucid::scene
     {
         FRenderScene() = default;
 
-        CStaticMesh** StaticMeshes = nullptr;
-        CLight** Lights = nullptr;
-        CSkybox* Skybox = nullptr;
+        CStaticMesh**       StaticMeshes = nullptr;
+        CDirectionalLight** DirectionalLights = nullptr;
+        CSpotLight**        SpotLights = nullptr;
+        CPointLight**       PointLights = nullptr;
+        CLight**            AllLights = nullptr;
+        CSkybox*            Skybox = nullptr;
     };
 } // namespace lucid::scene

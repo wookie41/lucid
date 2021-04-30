@@ -5,7 +5,12 @@
 #include "devices/gpu/shaders_manager.hpp"
 #include "misc/actor_thumbs.hpp"
 
+#include "scene/blinn_phong_material.hpp"
+#include "scene/flat_material.hpp"
+#include "scene/forward_renderer.hpp"
+
 #define LUCID_SCHEMAS_IMPLEMENTATION
+#include "schemas/types.hpp"
 #include "schemas/binary.hpp"
 #include "schemas/json.hpp"
 
@@ -29,6 +34,13 @@ namespace lucid
         {
             ShadersManager.EnableHotReload();
         }
+
+        // Setup the renderer
+        auto* ForwardRenderer = new scene::CForwardRenderer{ 32, 4 };
+        ForwardRenderer->AmbientStrength = 0.05;
+        ForwardRenderer->NumSamplesPCF = 20;
+        ForwardRenderer->ResultResolution = { 1920, 1080 };
+        Renderer = ForwardRenderer;
     }
 
     void CEngine::LoadResources()
@@ -44,6 +56,7 @@ namespace lucid
         // Read resource database
         ReadFromJSONFile(ResourceDatabase, "assets/resource_database.json");
 
+        // Load resources data
         for (const FResourceDatabaseEntry& Entry : ResourceDatabase.Entries)
         {
             switch (Entry.Type)
@@ -82,6 +95,30 @@ namespace lucid
                 }
             }
         }
+
+        // Load materials database
+        ReadFromJSONFile(MaterialDatabase, "assets/materials_database.json");
+
+        // Create materials for the materials definitions
+        for (const FFlatMaterialDescription& MaterialDescription : MaterialDatabase.FlatMaterials)
+        {
+            scene::FlatMaterial* FlatMaterial = scene::CreateFlatMaterial(MaterialDescription);
+            MaterialsHolder.Add(*FlatMaterial->GetName(), FlatMaterial);
+        }
+
+        for (const FBlinnPhongMaterialDescription& MaterialDescription : MaterialDatabase.BlinnPhongMaterials)
+        {
+            scene::CBlinnPhongMaterial* BlinnPhongMaterial = scene::CreateBlinnPhongMaterial(MaterialDescription);
+            MaterialsHolder.Add(*BlinnPhongMaterial->GetName(), BlinnPhongMaterial);
+        }
+
+        for (const FBlinnPhongMapsMaterialDescription& MaterialDescription : MaterialDatabase.BlinnPhongMapsMaterials)
+        {
+            scene::CBlinnPhongMapsMaterial* BlinnPhongMapsMaterial = scene::CreateBlinnPhongMapsMaterial(MaterialDescription);
+            MaterialsHolder.Add(*BlinnPhongMapsMaterial->GetName(), BlinnPhongMapsMaterial);
+        }
+
+        Renderer->Setup();
     }
 
     void CEngine::AddTextureResource(resources::CTextureResource* InTexture, const FString& InSourcePath)

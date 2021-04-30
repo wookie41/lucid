@@ -9,5 +9,5 @@
 STRUCT_END()
 
 STRUCT_BEGIN(lucid, FShadersDataBase, "Description of the shader program - what shaders make it up")
-    STRUCT_DYNAMIC_ARRAY(FShaderInfo, Shaders, {}, "Array of the shader")
+    STRUCT_DYNAMIC_ARRAY(FShaderInfo, Shaders, {}, "Array of shaders")
 STRUCT_END()

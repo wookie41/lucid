@@ -85,7 +85,6 @@ struct FSceneEditorState
     bool bIsFileDialogOpen = false;
 
     scene::CWorld* World = nullptr;
-    scene::CRenderer* Renderer = nullptr; // @TODO this should be an engine variable
 
     scene::IActor* CurrentlyDraggedActor = nullptr;
     float DistanceToCurrentlyDraggedActor = 0;
@@ -147,7 +146,7 @@ int main(int argc, char** argv)
     // Load textures and meshes used in the demo scene
 
     scene::CBlinnPhongMapsMaterial* BackpackMaterial =
-      new scene::CBlinnPhongMapsMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+      new scene::CBlinnPhongMapsMaterial{ "BackpackMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     BackpackMaterial->Shininess = 32;
     BackpackMaterial->DiffuseMap = GEngine.GetTexturesHolder().Get("Backpack_TextureDiffuse")->TextureHandle;
     BackpackMaterial->NormalMap = GEngine.GetTexturesHolder().Get("Backpack_TextureNormal")->TextureHandle;
@@ -159,13 +158,13 @@ int main(int argc, char** argv)
                                                        BackpackMaterial,
                                                        scene::EStaticMeshType::STATIONARY };
 
-    const void* SkyboxFacesData[6]{
-        GEngine.GetTexturesHolder().Get("SkyboxRight")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxLeft")->TextureData,
-        GEngine.GetTexturesHolder().Get("SkyboxTop")->TextureData,   GEngine.GetTexturesHolder().Get("SkyboxBottom")->TextureData,
-        GEngine.GetTexturesHolder().Get("SkyboxFront")->TextureData, GEngine.GetTexturesHolder().Get("SkyboxBack")->TextureData
+    const resources::CTextureResource* SkyboxFaces[6]{
+        GEngine.GetTexturesHolder().Get("SkyboxRight"), GEngine.GetTexturesHolder().Get("SkyboxLeft"),
+        GEngine.GetTexturesHolder().Get("SkyboxTop"),   GEngine.GetTexturesHolder().Get("SkyboxBottom"),
+        GEngine.GetTexturesHolder().Get("SkyboxFront"), GEngine.GetTexturesHolder().Get("SkyboxBack")
     };
 
-    scene::CSkybox* Skybox = scene::CreateSkybox(SkyboxFacesData,
+    scene::CSkybox* Skybox = scene::CreateSkybox(SkyboxFaces,
                                                  GEngine.GetTexturesHolder().Get("SkyboxRight")->Width,
                                                  GEngine.GetTexturesHolder().Get("SkyboxRight")->Height,
                                                  FString{ "Skybox" });
@@ -179,22 +178,15 @@ int main(int argc, char** argv)
     GSceneEditorState.PerspectiveCamera.Top = 1080;
     GSceneEditorState.CurrentCamera = &GSceneEditorState.PerspectiveCamera;
 
-    // Setup the renderer
-    scene::CForwardRenderer Renderer{ 32, 4 };
-    Renderer.AmbientStrength = 0.05;
-    Renderer.NumSamplesPCF = 20;
-    Renderer.ResultResolution = { 1920, 1080 };
-    Renderer.LightBulbTexture = GEngine.GetTexturesHolder().Get("LightBulb")->TextureHandle;
-    Renderer.Setup();
 
-    scene::CBlinnPhongMapsMaterial WoodMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial WoodMaterial { "WoodMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     WoodMaterial.Shininess = 32;
     WoodMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
     WoodMaterial.SpecularColor = glm::vec3{ 0.5 };
     WoodMaterial.NormalMap = nullptr;
     WoodMaterial.SpecularMap = nullptr;
 
-    scene::CBlinnPhongMapsMaterial brickMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial brickMaterial{ "BrickMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     brickMaterial.Shininess = 32;
     brickMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("BrickDiffuse")->TextureHandle;
     brickMaterial.SpecularMap = nullptr;
@@ -202,7 +194,7 @@ int main(int argc, char** argv)
     brickMaterial.NormalMap = GEngine.GetTexturesHolder().Get("BrickNormal")->TextureHandle;
     brickMaterial.SpecularColor = glm::vec3{ 0.2 };
 
-    scene::CBlinnPhongMapsMaterial toyboxMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+    scene::CBlinnPhongMapsMaterial toyboxMaterial{ "ToyboyxMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
     toyboxMaterial.Shininess = 32;
     toyboxMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
     toyboxMaterial.SpecularMap = nullptr;
@@ -210,7 +202,7 @@ int main(int argc, char** argv)
     toyboxMaterial.DisplacementMap = GEngine.GetTexturesHolder().Get("ToyboxDisplacement")->TextureHandle;
     toyboxMaterial.SpecularColor = glm::vec3{ 0.2 };
 
-    scene::CBlinnPhongMaterial flatBlinnPhongMaterial{ GEngine.GetShadersManager().GetShaderByName("BlinnPhong") };
+    scene::CBlinnPhongMaterial flatBlinnPhongMaterial{ "FlatBlinnPhongMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhong") };
     flatBlinnPhongMaterial.DiffuseColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
     flatBlinnPhongMaterial.Shininess = 32;
@@ -263,24 +255,24 @@ int main(int argc, char** argv)
     // BlinnPhongMapsShader); backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
     // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
-    scene::FlatMaterial flatWhiteMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
+    scene::FlatMaterial flatWhiteMaterial{ "FlatWhiteMaterial", GEngine.GetShadersManager().GetShaderByName("Flat") };
     flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
 
-    scene::FlatMaterial flatRedMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
+    scene::FlatMaterial flatRedMaterial{ "FlatRedMaterial", GEngine.GetShadersManager().GetShaderByName("Flat") };
     flatRedMaterial.Color = { 1.0, 0.0, 0.0, 1.0 };
 
-    scene::FlatMaterial flatGreenMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
+    scene::FlatMaterial flatGreenMaterial{ "FlatGreenMaterial", GEngine.GetShadersManager().GetShaderByName("Flat") };
     flatGreenMaterial.Color = { 0.0, 1.0, 0.0, 1.0 };
 
-    scene::FlatMaterial flatBlueMaterial{ GEngine.GetShadersManager().GetShaderByName("Flat") };
+    scene::FlatMaterial flatBlueMaterial{ "FlatBlueMaterial", GEngine.GetShadersManager().GetShaderByName("Flat") };
     flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
 
-    scene::CDirectionalLight* DirectionalLight = Renderer.CreateDirectionalLight(FDString{ "DirectionalLight" }, nullptr, true);
+    scene::CDirectionalLight* DirectionalLight = GEngine.GetRenderer()->CreateDirectionalLight(FDString{ "DirectionalLight" }, nullptr, true);
     DirectionalLight->Direction = glm::normalize(glm::vec3{ 0.5, -1, 1 });
     DirectionalLight->Transform.Translation = { -2.0f, 4.0f, -1.0f };
     DirectionalLight->Color = glm::vec3{ 1.0, 1.0, 1.0 };
 
-    scene::CSpotLight* RedSpotLight = Renderer.CreateSpotLight(FDString{ "RedSpotLight" }, nullptr, true);
+    scene::CSpotLight* RedSpotLight = GEngine.GetRenderer()->CreateSpotLight(FDString{ "RedSpotLight" }, nullptr, true);
     RedSpotLight->Transform.Translation = cube2.Transform.Translation + glm::vec3{ 0, 2, -1.5 };
     RedSpotLight->Direction = glm::normalize(cube2.Transform.Translation - RedSpotLight->Transform.Translation);
     RedSpotLight->Color = { 1, 0, 0 };
@@ -290,7 +282,7 @@ int main(int argc, char** argv)
     RedSpotLight->InnerCutOffRad = glm::radians(30.0);
     RedSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CSpotLight* GreenSpotLight = Renderer.CreateSpotLight(FDString{ "GreenSpotLight" }, nullptr, true);
+    scene::CSpotLight* GreenSpotLight = GEngine.GetRenderer()->CreateSpotLight(FDString{ "GreenSpotLight" }, nullptr, true);
     GreenSpotLight->Transform.Translation = cube.Transform.Translation + glm::vec3(0, 2, -2.5);
     GreenSpotLight->Direction = glm::normalize(cube.Transform.Translation - GreenSpotLight->Transform.Translation);
     GreenSpotLight->Color = { 0, 1, 0 };
@@ -300,7 +292,7 @@ int main(int argc, char** argv)
     GreenSpotLight->InnerCutOffRad = glm::radians(30.0);
     GreenSpotLight->OuterCutOffRad = glm::radians(35.0);
 
-    scene::CSpotLight* BlueSpotLight = Renderer.CreateSpotLight(FDString{ "BlueSpotLight" }, nullptr, true);
+    scene::CSpotLight* BlueSpotLight = GEngine.GetRenderer()->CreateSpotLight(FDString{ "BlueSpotLight" }, nullptr, true);
     BlueSpotLight->Transform.Translation = { 0, 5, 0 };
     BlueSpotLight->Direction = { 0, -1, 0 };
     BlueSpotLight->Color = { 0, 0, 1 };
@@ -311,7 +303,7 @@ int main(int argc, char** argv)
     BlueSpotLight->OuterCutOffRad = glm::radians(35.0);
     BlueSpotLight->LightUp = { -1, 0, 0 };
 
-    scene::CPointLight* RedPointLight = Renderer.CreatePointLight(FDString{ "RedSpotLight" }, nullptr, true);
+    scene::CPointLight* RedPointLight = GEngine.GetRenderer()->CreatePointLight(FDString{ "RedSpotLight" }, nullptr, true);
     RedPointLight->Transform.Translation = { 0, 0, 1.5 };
     RedPointLight->Color = { 1, 0, 0 };
     RedPointLight->Constant = 1;
@@ -329,15 +321,14 @@ int main(int argc, char** argv)
     DemoWorld.SetSkybox(Skybox);
     // sceneToRender.StaticGeometry.Add(&woodenFloor);
 
-    DemoWorld.AddLight(RedSpotLight);
-    DemoWorld.AddLight(GreenSpotLight);
-    DemoWorld.AddLight(BlueSpotLight);
-    DemoWorld.AddLight(RedPointLight);
+    DemoWorld.AddSpotLight(RedSpotLight);
+    DemoWorld.AddSpotLight(GreenSpotLight);
+    DemoWorld.AddSpotLight(BlueSpotLight);
+    DemoWorld.AddPointLight(RedPointLight);
 
     gpu::SetClearColor(BlackColor);
 
     GSceneEditorState.World = &DemoWorld;
-    GSceneEditorState.Renderer = &Renderer;
 
     bool IsRunning = true;
 
@@ -347,7 +338,7 @@ int main(int argc, char** argv)
 
     scene::FRenderView RenderView;
     RenderView.Camera = GSceneEditorState.CurrentCamera; // @TODO is this needed???
-    RenderView.Viewport = { 0, 0, Renderer.ResultResolution.x, Renderer.ResultResolution.y };
+    RenderView.Viewport = { 0, 0, 1920, 1080 }; // @TODO Engine level variable
 
     while (IsRunning)
     {
@@ -371,7 +362,7 @@ int main(int argc, char** argv)
 
         // Render the scene to off-screen framebuffer
         GSceneEditorState.Window->Prepare();
-        Renderer.Render(DemoWorld.MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
+        GEngine.GetRenderer()->Render(DemoWorld.MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
 
         GSceneEditorState.Window->ImgUiStartNewFrame();
         {
@@ -554,7 +545,7 @@ void HandleActorDrag()
     if (IsMouseButtonPressed(LEFT))
     {
         // Check if've hit something based on the hit map generated by the renderer
-        const scene::FHitMap& CachedHitMap = GSceneEditorState.Renderer->GetCachedHitMap();
+        const scene::FHitMap& CachedHitMap = GEngine.GetRenderer()->GetCachedHitMap();
 
         // Adjust mouse postion based on hitmap texture size
         const float RatioX = MousePosRelative.x / GSceneEditorState.SceneWindowWidth;
@@ -643,8 +634,7 @@ void UIDrawSceneWindow()
         GSceneEditorState.SceneWindowPos.y += SceneWindowPos.y;
 
         // Draw the rendered scene into an image
-        GSceneEditorState.Renderer->GetResultFramebuffer()->ImGuiDrawToImage(
-          { GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
+        GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
     }
     ImGui::PopStyleVar(1);
     ImGui::End();

@@ -61,6 +61,7 @@ namespace lucid::scene
         const FDString          Name;
         FTransform3D            Transform;
         bool                    bVisible = true;
+        FDString                AssetPath { "" };
 
         virtual ~IActor() = default;
     

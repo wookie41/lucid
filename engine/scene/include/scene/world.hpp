@@ -1,13 +1,19 @@
 ﻿#pragma once
 
+#include <common/strings.hpp>
+
 #include "common/types.hpp"
 #include "platform/input.hpp"
+#include "schemas/types.hpp"
 
 namespace lucid::scene
 {
     class   CStaticMesh;
     class   CSkybox;
     class   CLight;
+    class   CDirectionalLight;
+    class   CSpotLight;
+    class   CPointLight;
     class   CCamera;
     class   IActor;
     struct  FRenderScene;
@@ -24,13 +30,19 @@ namespace lucid::scene
 
         void            Init();
         void            AddStaticMesh(CStaticMesh* InStaticMesh);
-        void            AddLight(CLight* InLight);
+        void            AddDirectionalLight(CDirectionalLight* InLight);
+        void            AddSpotLight(CSpotLight* InLight);
+        void            AddPointLight(CPointLight* InLight);
         void            SetSkybox(CSkybox* InSkybox);
         
         FRenderScene*   MakeRenderScene(CCamera* InCamera);
         IActor*         GetActorById(const u32& InActorId);
 
+        void            SaveToJSONFile(const FDString& InFilePath) const;
+        void            SaveToBinaryFile(const FDString& InFilePath) const;
     private:
+
+        void            CreateWorldDescription(FWorldDescription& InWorldDescription) const;
         u32             AddActor(IActor* InActor);
         
         struct
@@ -41,8 +53,15 @@ namespace lucid::scene
 
         u32             NextActorId = 1;
         
-        CStaticMesh**   StaticMeshes = nullptr;
-        CLight**        Lights = nullptr;
-        CSkybox*        Skybox = nullptr;
+        CStaticMesh**       StaticMeshes = nullptr;
+        CDirectionalLight** DirectionalLights = nullptr;
+        CSpotLight**        SpotLights = nullptr;
+        CPointLight**       PointLights = nullptr;
+        CLight**            AllLights = nullptr;
+        CSkybox*            Skybox = nullptr;
     };
+
+    CWorld* LoadWorldFromJSONFile(const FString& InFilePath);
+    CWorld* LoadWorldFromBinaryFile(const FString& InFilePath);
+    CWorld* LoadWorld(const FWorldDescription& InWorldDescription);
 }

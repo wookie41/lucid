@@ -1,7 +1,6 @@
 #include "scene/flat_material.hpp"
 
-#include <engine/engine.hpp>
-
+#include "engine/engine.hpp"
 #include "devices/gpu/shader.hpp"
 
 namespace lucid::scene
@@ -17,7 +16,6 @@ namespace lucid::scene
         gpu::CShader* Shader = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);        
         auto* Material = new FlatMaterial { Description.Name, Shader };
         Material->Color = { Description.Color[0], Description.Color[1], Description.Color[2], Description.Color[3] };
-        GEngine.GetMaterialsHolder().Add(*Material->GetName(), Material);
         return Material;
     }
 } // namespace lucid::scene
