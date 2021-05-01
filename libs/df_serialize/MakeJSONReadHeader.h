@@ -340,3 +340,16 @@ bool JSONRead(lucid::scene::EStaticMeshType& value, T& document)
     value = static_cast<lucid::scene::EStaticMeshType>(document.GetInt());
     return true;
 }
+
+template <typename T>
+bool JSONRead(lucid::scene::EActorType& value, T& document)
+{
+    if (!document.IsInt())
+    {
+        DFS_LOG("Trying to read a string but it wasn't a string\n");
+        return false;
+    }
+
+    value = static_cast<lucid::scene::EActorType>(document.GetInt());
+    return true;
+}

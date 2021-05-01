@@ -451,7 +451,7 @@ namespace lucid::resources
         Path.replace_extension("");
         
         FDString TexturePath = SPrintf("%s/%s", *InMeshDirPath, TextureFilePath.C_Str());
-        FDString TextureName =  SPrintf("%s_Texture_%s", *MeshName, *TextureTypeName);
+        FDString TextureName =  SPrintf("%s_Texture_%s", *MeshName, Path.string().c_str());
         FDString TextureResourceFilePath = SPrintf("assets/textures/%s.asset", *TextureName);
 
         CTextureResource* Texture = ImportTexture(TexturePath,

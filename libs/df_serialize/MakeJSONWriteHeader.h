@@ -216,3 +216,10 @@ rapidjson::Value MakeJSONValue(const lucid::scene::EStaticMeshType& value, rapid
     ret.SetInt(static_cast<uint8_t>(value));
     return ret;
 }
+
+rapidjson::Value MakeJSONValue(const lucid::scene::EActorType& value, rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value ret;
+    ret.SetInt(static_cast<uint8_t>(value));
+    return ret;
+}

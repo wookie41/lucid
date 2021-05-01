@@ -4,16 +4,18 @@
             "Id": 1,
             "Name": "Cube",
             "Postion": [
-                4.0,
-                -3.5,
-                0.0
+                0.07012766599655152,
+                -2.0753395557403566,
+                2.687904119491577
             ],
             "Scale": [
                 0.5,
                 0.5,
                 0.5
             ],
-            "bVisible": true
+            "bVisible": true,
+            "MeshResourceName": "Backpack",
+            "MaterialName": "BrickMaterial"
         },
         {
             "Id": 2,
@@ -28,52 +30,73 @@
                 0.75,
                 0.75
             ],
-            "bVisible": true
+            "bVisible": true,
+            "MeshResourceName": "Cube",
+            "MaterialName": "FlatBlinnPhongMaterial"
         },
         {
             "Id": 3,
             "Name": "Cube2",
             "Postion": [
-                -1.5,
-                2.0,
-                -3.0
+                3.003129482269287,
+                -4.230298042297363,
+                -2.7478787899017336
             ],
             "Scale": [
-                0.75,
-                0.75,
-                0.75
+                0.4000000059604645,
+                0.4000000059604645,
+                0.4000000059604645
             ],
-            "bVisible": true
+            "bVisible": true,
+            "MeshResourceName": "Nano",
+            "MaterialName": "BrickMaterial"
         },
         {
             "Id": 4,
             "Name": "Cube3",
             "Postion": [
-                -1.5,
-                1.0,
-                1.5
+                -2.846543788909912,
+                1.2410337924957276,
+                3.2113025188446047
             ],
             "Scale": [
-                0.75,
-                0.75,
-                0.75
+                2.0,
+                2.0,
+                2.0
             ],
-            "bVisible": true
+            "bVisible": true,
+            "MeshResourceName": "Cube",
+            "MaterialName": "ToyboyxMaterial"
         },
         {
             "Id": 5,
             "Name": "Gigacube",
+            "Postion": [
+                0.7798274159431458,
+                -0.7276607155799866,
+                1.2064440250396729
+            ],
             "Scale": [
                 10.0,
                 10.0,
                 10.0
             ],
-            "bVisible": true
+            "bVisible": true,
+            "MeshResourceName": "Cube",
+            "MaterialName": "WoodMaterial",
+            "bReverseNormals": true
         },
         {
             "Id": 6,
             "Name": "Backpack",
-            "bVisible": true
+            "Postion": [
+                -1.3334033489227296,
+                -1.7131092548370362,
+                -2.6841955184936525
+            ],
+            "bVisible": true,
+            "MeshResourceName": "Backpack",
+            "MaterialName": "BackpackMaterial"
         }
     ],
     "Skybox": {
@@ -95,6 +118,12 @@
                 0.0
             ],
             "Name": "RedSpotLight",
+            "Postion": [
+                3.8851113319396974,
+                -0.18863064050674439,
+                -0.8429744243621826
+            ],
+            "bCastsShadow": true,
             "Direction": [
                 0.0,
                 -0.800000011920929,
@@ -114,6 +143,12 @@
                 0.0
             ],
             "Name": "GreenSpotLight",
+            "Postion": [
+                1.1184443235397339,
+                -1.4001888036727906,
+                -0.7350867986679077
+            ],
+            "bCastsShadow": true,
             "Direction": [
                 0.0,
                 -0.6246950626373291,
@@ -127,12 +162,13 @@
         },
         {
             "Id": 9,
-            "Color": [
-                0.0,
-                0.0,
-                1.0
-            ],
             "Name": "BlueSpotLight",
+            "Postion": [
+                1.3137414455413819,
+                1.052735447883606,
+                0.42100828886032107
+            ],
+            "bCastsShadow": true,
             "Direction": [
                 0.0,
                 -1.0,
@@ -150,10 +186,11 @@
             "Id": 10,
             "Color": [
                 1.0,
-                0.0,
-                0.0
+                0.3140000104904175,
+                1.0
             ],
             "Name": "RedSpotLight",
+            "bCastsShadow": true,
             "Constant": 1.0,
             "Linear": 0.007000000216066837,
             "Quadratic": 0.017000000923871995

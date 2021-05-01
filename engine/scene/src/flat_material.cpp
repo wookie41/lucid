@@ -29,8 +29,8 @@ namespace lucid::scene
     {
         FFlatMaterialDescription FlatMaterialDescription;
         FlatMaterialDescription.Id = ID;
-        FlatMaterialDescription.Name = CopyToString(*Name);
-        FlatMaterialDescription.ShaderName = CopyToString(*Shader->GetName());
+        FlatMaterialDescription.Name = FDString { *Name };
+        FlatMaterialDescription.ShaderName = FDString { *Shader->GetName() };
         FlatMaterialDescription.Color = VecToFloat4(Color);
 
         switch (InFileFormat)
@@ -41,9 +41,6 @@ namespace lucid::scene
         case EFileFormat::Json:
             WriteToJSONFile(FlatMaterialDescription, *ResourcePath);
             break;
-        }
-        
-        FlatMaterialDescription.Name.Free();
-        FlatMaterialDescription.ShaderName.Free();
+        }        
     }
 } // namespace lucid::scene

@@ -441,6 +441,11 @@ namespace lucid::scene
             // @TODO This should happen only if light moves
             Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
 
+            if (!Light->ShadowMap)
+            {
+                continue; // Light doesn't cast shadows
+            }
+
             gpu::CShader* CurrentShadowMapShader = Light->GetType() == ELightType::POINT ? ShadowCubeMapShader : ShadowMapShader;
             if (CurrentShadowMapShader != PrevShadowMapShader)
             {

@@ -1,18 +1,23 @@
 ﻿#include "scene/actors/static_mesh.hpp"
 
+#include "scene/material.hpp"
+#include "scene/world.hpp"
+
 #include "engine/engine.hpp"
+#include "schemas/json.hpp"
+
 #include "imgui.h"
 
 namespace lucid::scene
 {
     CStaticMesh::CStaticMesh(const FDString& InName,
                              const IActor* InParent,
+                             CWorld* InWorld,
                              resources::CMeshResource* InMeshResource,
                              CMaterial* InMaterial,
                              const EStaticMeshType& InType)
-    : IActor(InName, InParent), MeshResource(InMeshResource), Material(InMaterial), Type(InType)
+    : IActor(InName, InParent, InWorld), MeshResource(InMeshResource), Material(InMaterial), Type(InType)
     {
-        ActorType = EActorType::STATIC_MESH;
     }
 
 #if DEVELOPMENT
@@ -40,9 +45,26 @@ namespace lucid::scene
         }
     }
 
-    void CStaticMesh::SaveToResourceFile() const
+    void CStaticMesh::FillDescription(FStaticMeshDescription& OutDescription) const
     {
-        
+        OutDescription.Type = Type;
+        OutDescription.MaterialName = FDString { *Material->GetName(), Material->GetName().GetLength() };
+        OutDescription.MeshResourceName = FDString { *MeshResource->GetName(), MeshResource->GetName().GetLength() };
+        OutDescription.Id = Id;
+        OutDescription.ParentId = Parent ? Parent->Id : 0;
+        OutDescription.Name = Name;
+        OutDescription.Postion = VecToFloat3(Transform.Translation);
+        OutDescription.Rotation = QuatToFloat4(Transform.Rotation);
+        OutDescription.Scale = VecToFloat3(Transform.Scale);
+        OutDescription.bVisible = bVisible;
+        OutDescription.bReverseNormals = bReverseNormals;
+    }
+    
+    void CStaticMesh::_SaveToResourceFile(const FString& InFilePath)
+    {
+        FStaticMeshDescription StaticMeshDescription;
+        FillDescription(StaticMeshDescription);
+        WriteToJSONFile(StaticMeshDescription, *InFilePath);        
     }
     
 #endif
@@ -55,4 +77,18 @@ namespace lucid::scene
         return 0;
     }
 
+    CStaticMesh* CStaticMesh::CreateActor(CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription)
+    {
+        auto* Parent = InStaticMeshDescription.ParentId > 0 ? InWorld->GetActorById(InStaticMeshDescription.ParentId) : nullptr;
+        auto* MeshResource = GEngine.GetMeshesHolder().Get(*InStaticMeshDescription.MeshResourceName);
+        auto* Material = GEngine.GetMaterialsHolder().Get(*InStaticMeshDescription.MaterialName);
+        
+        auto* StaticMesh = new CStaticMesh { InStaticMeshDescription.Name, Parent, InWorld, MeshResource, Material, InStaticMeshDescription.Type };
+        StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
+        StaticMesh->Transform.Rotation = Float4ToQuat(InStaticMeshDescription.Rotation);
+        StaticMesh->Transform.Scale = Float3ToVec(InStaticMeshDescription.Scale);
+        StaticMesh->SetReverseNormals(InStaticMeshDescription.bReverseNormals);
+        InWorld->AddStaticMesh(StaticMesh);
+        return StaticMesh;
+    }
 } // namespace lucid::scene

@@ -145,154 +145,9 @@ int main(int argc, char** argv)
 
     // Load textures and meshes used in the demo scene
 
-    scene::CMaterial* BackpackMaterial = GEngine.GetMaterialsHolder().Get("BackpackMaterial");
-    auto* BackpackStaticMesh = new scene::CStaticMesh{ CopyToString("Backpack"),
-                                                       nullptr,
-                                                       GEngine.GetMeshesHolder().Get("Backpack"),
-                                                       BackpackMaterial,
-                                                       scene::EStaticMeshType::STATIONARY };
-
-    const resources::CTextureResource* SkyboxFaces[6]{
-        GEngine.GetTexturesHolder().Get("SkyboxRight"), GEngine.GetTexturesHolder().Get("SkyboxLeft"),
-        GEngine.GetTexturesHolder().Get("SkyboxTop"),   GEngine.GetTexturesHolder().Get("SkyboxBottom"),
-        GEngine.GetTexturesHolder().Get("SkyboxFront"), GEngine.GetTexturesHolder().Get("SkyboxBack")
-    };
-
-    scene::CSkybox* Skybox = scene::CreateSkybox(SkyboxFaces,
-                                                 GEngine.GetTexturesHolder().Get("SkyboxRight")->Width,
-                                                 GEngine.GetTexturesHolder().Get("SkyboxRight")->Height,
-                                                 FString{ "Skybox" });
-    // Configure the camera
-    GSceneEditorState.PerspectiveCamera.AspectRatio =
-      GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
-    GSceneEditorState.PerspectiveCamera.Position = { 0, 0, 3 };
-    GSceneEditorState.PerspectiveCamera.Yaw = -90.f;
-    GSceneEditorState.PerspectiveCamera.UpdateCameraVectors();
-    GSceneEditorState.PerspectiveCamera.Right = 1920;
-    GSceneEditorState.PerspectiveCamera.Top = 1080;
-    GSceneEditorState.CurrentCamera = &GSceneEditorState.PerspectiveCamera;
-
-
-    scene::CMaterial* WoodMaterial = GEngine.GetMaterialsHolder().Get("WoodMaterial");
-    scene::CMaterial* BrickMaterial = GEngine.GetMaterialsHolder().Get("BrickMaterial");
-    scene::CMaterial* ToyboxMaterial = GEngine.GetMaterialsHolder().Get("ToyboyxMaterial");
-    scene::CMaterial* FlatBlinnPhongMaterial = GEngine.GetMaterialsHolder().Get("FlatBlinnPhongMaterial");
-
-    scene::CStaticMesh WoodenCube{ FDString{ "WoodenCube" },
-                                   nullptr,
-                                   GEngine.GetMeshesHolder().Get("Cube"),
-                                   WoodMaterial,
-                                   scene::EStaticMeshType::STATIONARY };
-
-    WoodenCube.Transform.Scale = glm::vec3{ 25.0 };
-    WoodenCube.Transform.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{ 1.0, 0.0, 0.0 });
-    WoodenCube.Transform.Translation = glm::vec3{ 0, -0.5, 0 };
-
-    scene::CStaticMesh cube{
-        FDString{ "Cube" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), BrickMaterial, scene::EStaticMeshType::STATIONARY
-    };
-    cube.Transform.Translation = { 4.0, -3.5, 0.0 };
-    cube.Transform.Scale = glm::vec3{ 0.5 };
-
-    scene::CStaticMesh cube1{ FDString{ "Cube1" },
-                              nullptr,
-                              GEngine.GetMeshesHolder().Get("Cube"),
-                              FlatBlinnPhongMaterial,
-                              scene::EStaticMeshType::STATIONARY };
-    cube1.Transform.Translation = { 2.0, 3.0, 1.0 };
-    cube1.Transform.Scale = glm::vec3{ 0.75 };
-
-    scene::CStaticMesh cube2{
-        FDString{ "Cube2" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), BrickMaterial, scene::EStaticMeshType::STATIONARY
-    };
-    cube2.Transform.Translation = { -1.5, 2.0, -3.0 };
-    cube2.Transform.Scale = glm::vec3{ 0.75 };
-
-    scene::CStaticMesh cube3{
-        FDString{ "Cube3" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), ToyboxMaterial, scene::EStaticMeshType::STATIONARY
-    };
-    cube3.Transform.Translation = { -1.5, 1.0, 1.5 };
-    cube3.Transform.Scale = glm::vec3{ 0.75 };
-
-    scene::CStaticMesh gigaCube{
-        FDString{ "Gigacube" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), WoodMaterial, scene::EStaticMeshType::STATIONARY
-    };
-    gigaCube.Transform.Translation = glm::vec3{ 0 };
-    gigaCube.Transform.Scale = glm::vec3{ 10 };
-    gigaCube.Transform.Rotation = glm::quat{ 0, 0, 0, 0 };
-    gigaCube.SetReverseNormals(true);
-
-    // scene::CStaticMesh* backPackRenderable = scene::CreateBlinnPhongRenderable(FString{ LUCID_TEXT("MyMesh") }, backPackMesh,
-    // BlinnPhongMapsShader); backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
-    // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
-
-    scene::CMaterial* FlatWhiteMaterial = GEngine.GetMaterialsHolder().Get("FlatWhiteMaterial");
-    scene::CMaterial* FlatRedMaterial = GEngine.GetMaterialsHolder().Get("FlatRedMaterial");
-    scene::CMaterial* FlatGreenMaterial = GEngine.GetMaterialsHolder().Get("FlatGreenMaterial");
-    scene::CMaterial* FlaBlueMaterial = GEngine.GetMaterialsHolder().Get("FlatBlueMaterial");
-
-    scene::CDirectionalLight* DirectionalLight = GEngine.GetRenderer()->CreateDirectionalLight(FDString{ "DirectionalLight" }, nullptr, true);
-    DirectionalLight->Direction = glm::normalize(glm::vec3{ 0.5, -1, 1 });
-    DirectionalLight->Transform.Translation = { -2.0f, 4.0f, -1.0f };
-    DirectionalLight->Color = glm::vec3{ 1.0, 1.0, 1.0 };
-
-    scene::CSpotLight* RedSpotLight = GEngine.GetRenderer()->CreateSpotLight(FDString{ "RedSpotLight" }, nullptr, true);
-    RedSpotLight->Transform.Translation = cube2.Transform.Translation + glm::vec3{ 0, 2, -1.5 };
-    RedSpotLight->Direction = glm::normalize(cube2.Transform.Translation - RedSpotLight->Transform.Translation);
-    RedSpotLight->Color = { 1, 0, 0 };
-    RedSpotLight->Constant = 1;
-    RedSpotLight->Linear = 0.09;
-    RedSpotLight->Quadratic = 0.032;
-    RedSpotLight->InnerCutOffRad = glm::radians(30.0);
-    RedSpotLight->OuterCutOffRad = glm::radians(35.0);
-
-    scene::CSpotLight* GreenSpotLight = GEngine.GetRenderer()->CreateSpotLight(FDString{ "GreenSpotLight" }, nullptr, true);
-    GreenSpotLight->Transform.Translation = cube.Transform.Translation + glm::vec3(0, 2, -2.5);
-    GreenSpotLight->Direction = glm::normalize(cube.Transform.Translation - GreenSpotLight->Transform.Translation);
-    GreenSpotLight->Color = { 0, 1, 0 };
-    GreenSpotLight->Constant = 1;
-    GreenSpotLight->Linear = 0.09;
-    GreenSpotLight->Quadratic = 0.032;
-    GreenSpotLight->InnerCutOffRad = glm::radians(30.0);
-    GreenSpotLight->OuterCutOffRad = glm::radians(35.0);
-
-    scene::CSpotLight* BlueSpotLight = GEngine.GetRenderer()->CreateSpotLight(FDString{ "BlueSpotLight" }, nullptr, true);
-    BlueSpotLight->Transform.Translation = { 0, 5, 0 };
-    BlueSpotLight->Direction = { 0, -1, 0 };
-    BlueSpotLight->Color = { 0, 0, 1 };
-    BlueSpotLight->Constant = 1;
-    BlueSpotLight->Linear = 0.09;
-    BlueSpotLight->Quadratic = 0.032;
-    BlueSpotLight->InnerCutOffRad = glm::radians(30.0);
-    BlueSpotLight->OuterCutOffRad = glm::radians(35.0);
-    BlueSpotLight->LightUp = { -1, 0, 0 };
-
-    scene::CPointLight* RedPointLight = GEngine.GetRenderer()->CreatePointLight(FDString{ "RedSpotLight" }, nullptr, true);
-    RedPointLight->Transform.Translation = { 0, 0, 1.5 };
-    RedPointLight->Color = { 1, 0, 0 };
-    RedPointLight->Constant = 1;
-    RedPointLight->Linear = 0.007;
-    RedPointLight->Quadratic = 0.017;
-
-    scene::CWorld DemoWorld;
-    DemoWorld.Init();
-    DemoWorld.AddStaticMesh(&cube);
-    DemoWorld.AddStaticMesh(&cube1);
-    DemoWorld.AddStaticMesh(&cube2);
-    DemoWorld.AddStaticMesh(&cube3);
-    DemoWorld.AddStaticMesh(&gigaCube);
-    DemoWorld.AddStaticMesh(BackpackStaticMesh);
-    DemoWorld.SetSkybox(Skybox);
-    // sceneToRender.StaticGeometry.Add(&woodenFloor);
-
-    DemoWorld.AddSpotLight(RedSpotLight);
-    DemoWorld.AddSpotLight(GreenSpotLight);
-    DemoWorld.AddSpotLight(BlueSpotLight);
-    DemoWorld.AddPointLight(RedPointLight);
-
     gpu::SetClearColor(BlackColor);
 
-    GSceneEditorState.World = &DemoWorld;
+    GSceneEditorState.World = scene::LoadWorldFromJSONFile("assets/worlds/Demo.asset");
 
     bool IsRunning = true;
 
@@ -304,8 +159,6 @@ int main(int argc, char** argv)
     RenderView.Camera = GSceneEditorState.CurrentCamera; // @TODO is this needed???
     RenderView.Viewport = { 0, 0, 1920, 1080 }; // @TODO Engine level variable
 
-    DemoWorld.SaveToJSONFile("assets/worlds/Demo.asset");
-    
     while (IsRunning)
     {
         platform::Update();
@@ -328,7 +181,7 @@ int main(int argc, char** argv)
 
         // Render the scene to off-screen framebuffer
         GSceneEditorState.Window->Prepare();
-        GEngine.GetRenderer()->Render(DemoWorld.MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
+        GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
 
         GSceneEditorState.Window->ImgUiStartNewFrame();
         {
@@ -352,6 +205,7 @@ int main(int argc, char** argv)
         HandleActorDrag();
     }
 
+    GSceneEditorState.World->SaveToJSONFile("assets/worlds/Demo.asset");
     GEngine.Shutdown();
     return 0;
 }
@@ -440,6 +294,16 @@ void InitializeSceneEditor()
         }
         ImGui::End();
     }
+
+    // Configure the camera
+    GSceneEditorState.PerspectiveCamera.AspectRatio =
+    GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
+    GSceneEditorState.PerspectiveCamera.Position = { 0, 0, 3 };
+    GSceneEditorState.PerspectiveCamera.Yaw = -90.f;
+    GSceneEditorState.PerspectiveCamera.UpdateCameraVectors();
+
+    GSceneEditorState.CurrentCamera = &GSceneEditorState.PerspectiveCamera;
+    
     GSceneEditorState.Window->ImgUiDrawFrame();
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();

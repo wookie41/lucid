@@ -29,9 +29,8 @@ namespace lucid::scene
     {
       public:
 
-        CLight(const FDString& InName, const IActor* InParent) : IActor(InName, InParent)
+        CLight(const FDString& InName, const IActor* InParent, CWorld* InWorld) : IActor(InName, InParent, InWorld)
         {
-            ActorType = EActorType::LIGHT;
         };
 
         virtual ELightType GetType() const = 0;
@@ -45,6 +44,9 @@ namespace lucid::scene
 
         virtual float GetVerticalMidPoint() const override;
 
+        static  EActorType GetActorTypeStatic() { return EActorType::LIGHT; }
+        virtual EActorType GetActorType() const override { return EActorType::LIGHT; }
+        
         glm::vec3   Color           { 0, 0, 0 };
         u8          Quality         = 1;
 
@@ -55,6 +57,9 @@ namespace lucid::scene
 #if DEVELOPMENT
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
+    protected:
+        virtual void _SaveToResourceFile(const FString& InActorResourceName) override;
+    public:
 #endif  
     };
 
@@ -65,7 +70,7 @@ namespace lucid::scene
     class CDirectionalLight : public CLight
     {
       public:
-        CDirectionalLight(const FDString& InName, const IActor* InParent) : CLight(InName, InParent) {}
+        CDirectionalLight(const FDString& InName, const IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
 
         virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
         virtual void SetupShader(gpu::CShader* InShader) const override;
@@ -87,7 +92,7 @@ namespace lucid::scene
     class CSpotLight : public CLight
     {
     public:
-        CSpotLight(const FDString& InName, const IActor* InParent) : CLight(InName, InParent) {}
+        CSpotLight(const FDString& InName, const IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
         
         virtual ELightType GetType() const override { return ELightType::SPOT; }
 
@@ -115,7 +120,7 @@ namespace lucid::scene
     {
       public:
 
-        CPointLight(const FDString& InName, const IActor* InParent) : CLight(InName, InParent) {}
+        CPointLight(const FDString& InName, const IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
         
         virtual ELightType GetType() const override { return ELightType::POINT; }
 

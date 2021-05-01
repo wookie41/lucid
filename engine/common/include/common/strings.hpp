@@ -17,7 +17,7 @@ namespace lucid
         FString(char* InCString, const u32& InLength = 0);
 
         char operator[](const u32& InIndex) const;
-        const char* operator*() const { return CString; } 
+        char* operator*() const { return CString; } 
 
         char* GetBytesCopy() const;
         inline bool operator==(const FString& InRhs) const { return Hash == InRhs.Hash; };

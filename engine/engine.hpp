@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "scene/actors/actor.hpp"
+
 #include "common/types.hpp"
 
 #include "schemas/types.hpp"
@@ -15,6 +17,7 @@ namespace lucid
     namespace scene
     {
         class CRenderer;
+        class CStaticMesh;
         class CFlatMaterial;
         class CBlinnPhongMaterial;
         class CBlinnPhongMapsMaterial;
@@ -26,8 +29,6 @@ namespace lucid
     using CMeshesHolder = resources::CResourcesHolder<resources::CMeshResource>;
     using CMaterialsHolder = FStringHashMap<scene::CMaterial*>;
     using CStaticMeshesHolder = FStringHashMap<scene::CStaticMesh*>;
-    using FIdToPathMap = FStringHashMap<FDString>;
-    using FIdToPathMap = FStringHashMap<FDString>;
 
     class CActorThumbsGenerator;
 
@@ -40,6 +41,12 @@ namespace lucid
     struct FEngineConfig
     {
         bool bHotReloadShaders;
+    };
+
+    struct FActorResourceInfo
+    {
+        FDString            ResourceFilePath;
+        scene::EActorType   Type;
     };
     
     class CEngine
@@ -58,6 +65,7 @@ namespace lucid
         inline CMaterialsHolder&        GetMaterialsHolder()    { return MaterialsHolder; }
         inline scene::CRenderer*        GetRenderer()           { return Renderer; }
         inline gpu::CShadersManager&    GetShadersManager()     { return ShadersManager; }
+        inline FActorDatabase&          GetActorsDatabase()           { return ActorDatabase; }
 
         void AddTextureResource(resources::CTextureResource* InTexture,  const FString& InSourcePath);
         void AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath);
@@ -65,7 +73,8 @@ namespace lucid
         void RemoveMeshResource(resources::CMeshResource* InMesh);
         void RemoveTextureResource(resources::CTextureResource*);
 
-        scene::CStaticMesh* GetStaticMeshActor(const UUID& ActorId);
+        template <typename TActor, typename TActorDescription>
+        TActor* CreateActorInstance(scene::CWorld* InWorld, const UUID& InActorResourceId, const TActorDescription& InActorDescription);
     
     protected:
 
@@ -85,9 +94,7 @@ namespace lucid
         CTexturesHolder  TexturesHolder {};
         CMaterialsHolder MaterialsHolder {};
 
-        FIdToPathMap   ActorResourceFilePathById;
-        
-        CStaticMeshesHolder StaticMeshesHolder {};
+        FStringHashMap<FActorResourceInfo>   ActorResourceById;        
 
 #if DEVELOPMENT
     public:
@@ -98,3 +105,5 @@ namespace lucid
 
     extern CEngine GEngine;
 }
+
+#include "engine.tpp"

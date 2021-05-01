@@ -38,11 +38,11 @@ namespace lucid::scene
         FRenderScene*   MakeRenderScene(CCamera* InCamera);
         IActor*         GetActorById(const u32& InActorId);
 
-        void            SaveToJSONFile(const FDString& InFilePath) const;
-        void            SaveToBinaryFile(const FDString& InFilePath) const;
+        void            SaveToJSONFile(const FString& InFilePath) const;
+        void            SaveToBinaryFile(const FString& InFilePath) const;
     private:
 
-        void            CreateWorldDescription(FWorldDescription& InWorldDescription) const;
+        void            CreateWorldDescription(FWorldDescription& OutWorldDescription) const;
         u32             AddActor(IActor* InActor);
         
         struct

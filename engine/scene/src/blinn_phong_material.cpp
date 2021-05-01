@@ -44,8 +44,8 @@ namespace lucid::scene
     {
         FBlinnPhongMaterialDescription BlinnPhongMaterialDescription;
         BlinnPhongMaterialDescription.Id = ID;
-        BlinnPhongMaterialDescription.Name = CopyToString(*Name);
-        BlinnPhongMaterialDescription.ShaderName = CopyToString(*Shader->GetName());
+        BlinnPhongMaterialDescription.Name = FDString{ *Name, Name.GetLength() };
+        BlinnPhongMaterialDescription.ShaderName = FDString{ *Shader->GetName(), Shader->GetName().GetLength() };
         BlinnPhongMaterialDescription.Shininess = Shininess;
         BlinnPhongMaterialDescription.DiffuseColor = VecToFloat3(DiffuseColor);
         BlinnPhongMaterialDescription.SpecularColor = VecToFloat3(SpecularColor);
@@ -59,9 +59,6 @@ namespace lucid::scene
             WriteToJSONFile(BlinnPhongMaterialDescription, *ResourcePath);
             break;
         }
-
-        BlinnPhongMaterialDescription.Name.Free();
-        BlinnPhongMaterialDescription.ShaderName.Free();
     }
 
     /* ---------------------------------------------------------------------------*/
@@ -135,7 +132,7 @@ namespace lucid::scene
         {
             Material->SpecularColor = Float3ToVec(Description.SpecularColor);
         }
-        
+
         if (Description.NormalTextureName.GetLength())
         {
             Material->NormalMap = GEngine.GetTexturesHolder().Get(*Description.NormalTextureName);
@@ -153,17 +150,17 @@ namespace lucid::scene
     {
         FBlinnPhongMapsMaterialDescription BlinnPhongMapsMaterialDescription;
         BlinnPhongMapsMaterialDescription.Id = ID;
-        BlinnPhongMapsMaterialDescription.Name = CopyToString(*Name);
-        BlinnPhongMapsMaterialDescription.ShaderName = CopyToString(*Shader->GetName());
+        BlinnPhongMapsMaterialDescription.Name = FDString { *Name, Name.GetLength() };
+        BlinnPhongMapsMaterialDescription.ShaderName = FDString { *Shader->GetName(), Shader->GetName().GetLength() };
 
         if (DiffuseMap)
         {
-            BlinnPhongMapsMaterialDescription.DiffuseTextureName = CopyToString(*DiffuseMap->GetName());
+            BlinnPhongMapsMaterialDescription.DiffuseTextureName = FDString { *DiffuseMap->GetName(), DiffuseMap->GetName().GetLength() };
         }
 
         if (SpecularMap)
         {
-            BlinnPhongMapsMaterialDescription.SpecularTextureName = CopyToString(*SpecularMap->GetName());
+            BlinnPhongMapsMaterialDescription.SpecularTextureName = FDString { *SpecularMap->GetName(), SpecularMap->GetName().GetLength() };
         }
         else
         {
@@ -172,12 +169,12 @@ namespace lucid::scene
 
         if (NormalMap)
         {
-            BlinnPhongMapsMaterialDescription.NormalTextureName = CopyToString(*NormalMap->GetName());
+            BlinnPhongMapsMaterialDescription.NormalTextureName = FDString { *NormalMap->GetName(), NormalMap->GetName().GetLength() };
         }
 
         if (DisplacementMap)
         {
-            BlinnPhongMapsMaterialDescription.DisplacementTextureName = CopyToString(*DisplacementMap->GetName());
+            BlinnPhongMapsMaterialDescription.DisplacementTextureName = FDString { *DisplacementMap->GetName(), DisplacementMap->GetName().GetLength() };
         }
 
         switch (InFileFormat)
@@ -189,8 +186,5 @@ namespace lucid::scene
             WriteToJSONFile(BlinnPhongMapsMaterialDescription, *ResourcePath);
             break;
         }
-
-        BlinnPhongMapsMaterialDescription.Name.Free();
-        BlinnPhongMapsMaterialDescription.ShaderName.Free();
     }
 } // namespace lucid::scene

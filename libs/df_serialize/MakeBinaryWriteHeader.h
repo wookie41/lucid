@@ -183,3 +183,8 @@ void BinaryWrite(const lucid::scene::EStaticMeshType& value, TDYNAMICARRAY<char>
 {
     BinaryWrite(static_cast<uint8_t>(value), output);
 }
+
+void BinaryWrite(const lucid::scene::EActorType& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(static_cast<uint8_t>(value), output);
+}

@@ -318,3 +318,14 @@ bool BinaryRead(lucid::scene::EStaticMeshType& value, const TDYNAMICARRAY<char>&
     }
     return false;
 }
+
+bool BinaryRead(lucid::scene::EActorType& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    int8_t int_value;
+    if(BinaryRead(int_value, data, offset))
+    {
+        value = static_cast<lucid::scene::EActorType>(int_value);
+        return true;
+    }
+    return false;
+}

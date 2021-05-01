@@ -18,36 +18,36 @@
 
 namespace lucid
 {
-    #define DEFINE_LOAD_MATERIAL_FUNC(Suffix, TMaterialDescription, TMaterial)\
-    void CEngine::Load##Suffix(TDYNAMICARRAY<FMaterialDatabaseEntry> Entries)\
-    {\
-        bool bSuccess = false; \
-        TMaterialDescription MaterialDescription; \
-        for (FMaterialDatabaseEntry Entry : Entries) \
-        { \
-            switch (Entry.FileFormat) \
-            { \
-            case EFileFormat::Json: \
-                { \
-                    bSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);\
-                    break;\
-                }\
-            case EFileFormat::Binary:\
-                {\
-                    bSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);\
-                    break;\
-                }\
-            }\
-            if (bSuccess)\
-            {\
-                TMaterial* Material = TMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);\
-                MaterialsHolder.Add(*Material->GetName(), Material);\
-            }\
-            else\
-            {\
-                LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);\
-            }\
-        }\
+#define DEFINE_LOAD_MATERIAL_FUNC(Suffix, TMaterialDescription, TMaterial)                                \
+    void CEngine::Load##Suffix(TDYNAMICARRAY<FMaterialDatabaseEntry> Entries)                             \
+    {                                                                                                     \
+        bool bSuccess = false;                                                                            \
+        TMaterialDescription MaterialDescription;                                                         \
+        for (FMaterialDatabaseEntry Entry : Entries)                                                      \
+        {                                                                                                 \
+            switch (Entry.FileFormat)                                                                     \
+            {                                                                                             \
+            case EFileFormat::Json:                                                                       \
+            {                                                                                             \
+                bSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);                    \
+                break;                                                                                    \
+            }                                                                                             \
+            case EFileFormat::Binary:                                                                     \
+            {                                                                                             \
+                bSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);                  \
+                break;                                                                                    \
+            }                                                                                             \
+            }                                                                                             \
+            if (bSuccess)                                                                                 \
+            {                                                                                             \
+                TMaterial* Material = TMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath); \
+                MaterialsHolder.Add(*Material->GetName(), Material);                                      \
+            }                                                                                             \
+            else                                                                                          \
+            {                                                                                             \
+                LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);  \
+            }                                                                                             \
+        }                                                                                                 \
     }
 
     CEngine GEngine;
@@ -141,9 +141,12 @@ namespace lucid
         ReadFromJSONFile(ActorDatabase, "assets/databases/actors.json");
         for (const FActorDatabaseEntry& Entry : ActorDatabase.Entries)
         {
-            ActorResourceFilePathById.Add(Entry.ActorId.str().c_str(), Entry.ActorPath);
+            FActorResourceInfo ActorResourceInfo;
+            ActorResourceInfo.Type = Entry.ActorType;
+            ActorResourceInfo.ResourceFilePath = Entry.ActorPath;
+            ActorResourceById.Add(Entry.ActorId.str().c_str(), ActorResourceInfo);
         }
-        
+
         Renderer->Setup();
     }
 
@@ -192,9 +195,8 @@ namespace lucid
         // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
         ResourceDatabase.Entries.erase(std::remove_if(
           ResourceDatabase.Entries.begin(), ResourceDatabase.Entries.end(), [&](const FResourceDatabaseEntry& Entry) {
-
-        MeshesHolder.Remove(*InMesh->GetName());
-        remove(*InMesh->GetFilePath());
+              MeshesHolder.Remove(*InMesh->GetName());
+              remove(*InMesh->GetFilePath());
 
               return Entry.Id == InMesh->GetID();
           }));
@@ -213,32 +215,7 @@ namespace lucid
 
         for (u32 i = 0; i < MaterialsHolder.GetLength(); ++i)
         {
-            MaterialsHolder.Get(i)->SaveToResourceFile(EFileFormat::Json);            
+            MaterialsHolder.Get(i)->SaveToResourceFile(EFileFormat::Json);
         }
-    }
-
-    scene::CStaticMesh* CEngine::GetStaticMeshActor(const UUID& ActorId)
-    {
-        const auto ActorIdStr = ActorId.str();
-        if (StaticMeshesHolder.Contains(ActorIdStr.c_str()))
-        {
-            return StaticMeshesHolder.Get(ActorIdStr.c_str());
-        }
-
-        if (ActorResourceFilePathById.Contains(ActorIdStr.c_str()))
-        {
-            FStaticMeshDescription StaticMeshDescription;
-            const FDString& ActorResourcePath = ActorResourceFilePathById.Get(ActorIdStr.c_str());
-            // @TODO assert loaded actor type in some better way
-            if (ReadFromJSONFile(StaticMeshDescription, *ActorResourcePath))
-            {
-               return scene::CStaticMesh::CreateStaticMesh(StaticMeshDescription); 
-            }
-            return nullptr;
-        }
-
-        // @TODO default actor
-        return nullptr; 
-
     }
 } // namespace lucid

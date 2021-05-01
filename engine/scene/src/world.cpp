@@ -1,5 +1,8 @@
 ﻿#include "scene/world.hpp"
 
+#include <scene/material.hpp>
+
+
 #include "resources/texture_resource.hpp"
 #include "engine/engine.hpp"
 
@@ -125,51 +128,24 @@ namespace lucid::scene
     CWorld* LoadWorld(const FWorldDescription& InWorldDescription)
     {
         auto World = new CWorld;
+        World->Init();
 
         // Load static meshes
         FStaticMeshDescription StaticMeshDescription;
-        for (const FActorEntry& StaticMeshEntry : InWorldDescription.StaticMeshes)
+        for (const FStaticMeshDescription& InStaticMeshDescription : InWorldDescription.StaticMeshes)
         {
-            if (ReadFromJSONFile(StaticMeshDescription, *StaticMeshEntry.ResourcePath))
-            {
-                CMaterial* Material = GEngine.GetMaterialsHolder().Get(*StaticMeshDescription.MaterialName);
-                resources::CMeshResource* MeshResource = GEngine.GetMeshesHolder().Get(*StaticMeshDescription.MeshResourceName);
-
-                auto StaticMesh = new CStaticMesh {
-                    StaticMeshEntry.Name,
-                    World->GetActorById(StaticMeshEntry.ParentId), 
-                    MeshResource,
-                    Material,
-                    StaticMeshDescription.Type
-                };
-
-                StaticMesh->Id = StaticMeshEntry.Id;
-                StaticMesh->Transform.Translation = Float3ToVec(StaticMeshEntry.Postion);
-                StaticMesh->Transform.Rotation = Float4ToQuat(StaticMeshEntry.Rotation);
-                StaticMesh->Transform.Scale = Float3ToVec(StaticMeshEntry.Scale);
-                StaticMesh->bVisible = StaticMeshEntry.bVisible;
-                StaticMesh->ResourcePath = StaticMeshEntry.ResourcePath;
-                
-                World->AddStaticMesh(StaticMesh);
-            }
+            CStaticMesh::CreateActor(World, InStaticMeshDescription);
         }
 
-        // Load skybox
+        if (!InWorldDescription.Skybox.FacesTextures.empty())
         {
-            const resources::CTextureResource* FaceTextures[6];
-            for (u8 i = 0; i < 6; ++i)
-            {
-                FaceTextures[i] = GEngine.GetTexturesHolder().Get(*InWorldDescription.Skybox.FacesTextures[i]);
-            }
-            resources::CTextureResource* FirstTex = GEngine.GetTexturesHolder().Get(*InWorldDescription.Skybox.FacesTextures[0]);
-            CSkybox* Skybox = CreateSkybox(FaceTextures, FirstTex->Width, FirstTex->Height, "Skybox");
-            World->SetSkybox(Skybox);
+            CSkybox::CreateActor(World, InWorldDescription.Skybox);            
         }
 
         // Load lights
         for (const FDirectionalLightEntry& DirLightEntry : InWorldDescription.DirectionalLights)
         {
-            CDirectionalLight* DirLight = GEngine.GetRenderer()->CreateDirectionalLight(DirLightEntry.Name, World->GetActorById(DirLightEntry.ParentId), DirLightEntry.bCastsShadow);
+            CDirectionalLight* DirLight = GEngine.GetRenderer()->CreateDirectionalLight(DirLightEntry.Name, World->GetActorById(DirLightEntry.ParentId), World, DirLightEntry.bCastsShadow);
 
             DirLight->Id = DirLightEntry.Id;
 
@@ -185,7 +161,7 @@ namespace lucid::scene
 
         for (const FSpotLightEntry& SpotLightEntry : InWorldDescription.SpotLights)
         {
-            CSpotLight* SpotLight = GEngine.GetRenderer()->CreateSpotLight(SpotLightEntry.Name, World->GetActorById(SpotLightEntry.ParentId), SpotLightEntry.bCastsShadow);
+            CSpotLight* SpotLight = GEngine.GetRenderer()->CreateSpotLight(SpotLightEntry.Name, World->GetActorById(SpotLightEntry.ParentId), World, SpotLightEntry.bCastsShadow);
 
             SpotLight->Id = SpotLightEntry.Id;
 
@@ -207,7 +183,7 @@ namespace lucid::scene
 
         for (const FPointLightEntry& PointLightEntry : InWorldDescription.PointLights)
         {
-            CPointLight* PointLight = GEngine.GetRenderer()->CreatePointLight(PointLightEntry.Name, World->GetActorById(PointLightEntry.ParentId), PointLightEntry.bCastsShadow);
+            CPointLight* PointLight = GEngine.GetRenderer()->CreatePointLight(PointLightEntry.Name, World->GetActorById(PointLightEntry.ParentId), World, PointLightEntry.bCastsShadow);
 
             PointLight->Id = PointLightEntry.Id;
 
@@ -228,23 +204,15 @@ namespace lucid::scene
         return World;
     }
 
-    void CWorld::CreateWorldDescription(FWorldDescription& InWorldDescription) const
+    void CWorld::CreateWorldDescription(FWorldDescription& OutWorldDescription) const
     {
         // Save static meshes
-        FActorEntry StaticMeshEntry;
+        FStaticMeshDescription StaticMeshEntry;
         for (u32 i = 0; i < arrlen(StaticMeshes); ++i)
         {
             const CStaticMesh* StaticMesh = StaticMeshes[i];
-            StaticMeshEntry.Id = StaticMesh->Id; 
-            StaticMeshEntry.ParentId = StaticMesh->Parent ? StaticMesh->Parent->Id : 0;
-            StaticMeshEntry.Name = StaticMesh->Name;
-            StaticMeshEntry.ResourcePath = StaticMesh->ResourcePath;
-            StaticMeshEntry.Postion = VecToFloat3(StaticMesh->Transform.Translation);
-            StaticMeshEntry.Rotation = QuatToFloat4(StaticMesh->Transform.Rotation);
-            StaticMeshEntry.Scale = VecToFloat3(StaticMesh->Transform.Scale);
-            StaticMeshEntry.bVisible = StaticMesh->bVisible;
-
-            InWorldDescription.StaticMeshes.push_back(StaticMeshEntry);
+            StaticMesh->FillDescription(StaticMeshEntry);
+            OutWorldDescription.StaticMeshes.push_back(StaticMeshEntry);
         }
 
         // Save skybox
@@ -252,7 +220,7 @@ namespace lucid::scene
         {
             for (u8 i = 0; i < 6; ++i)
             {
-                InWorldDescription.Skybox.FacesTextures[i] = CopyToString(*Skybox->FaceTextures[i]->GetName(), Skybox->FaceTextures[i]->GetName().GetLength());
+                OutWorldDescription.Skybox.FacesTextures[i] = CopyToString(*Skybox->FaceTextures[i]->GetName(), Skybox->FaceTextures[i]->GetName().GetLength());
             }
         }
 
@@ -270,8 +238,9 @@ namespace lucid::scene
             DirLightEntry.Rotation = {0, 0, 0};
             DirLightEntry.Direction = VecToFloat3(DirLight->Direction);
             DirLightEntry.LightUp = VecToFloat3(DirLight->LightUp);
+            DirLightEntry.bCastsShadow = DirLight->ShadowMap != nullptr;
 
-            InWorldDescription.DirectionalLights.push_back(DirLightEntry);
+            OutWorldDescription.DirectionalLights.push_back(DirLightEntry);
         }
 
         // Save spot lights
@@ -284,16 +253,17 @@ namespace lucid::scene
             SpotLightEntry.Color = VecToFloat3(SpotLight->Color);
             SpotLightEntry.Quality = SpotLight->Quality;
             SpotLightEntry.Name = SpotLight->Name;
-            SpotLightEntry.Postion = { 0, 0, 0};
-            SpotLightEntry.Rotation = {0, 0, 0};
+            SpotLightEntry.Postion = VecToFloat3(SpotLight->Transform.Translation);
+            SpotLightEntry.Rotation = QuatToFloat4(SpotLight->Transform.Rotation);
             SpotLightEntry.Direction = VecToFloat3(SpotLight->Direction);
             SpotLightEntry.Constant = SpotLight->Constant;
             SpotLightEntry.Linear = SpotLight->Linear;
             SpotLightEntry.Quadratic = SpotLight->Quadratic;
             SpotLightEntry.InnerCutOffRad = SpotLight->InnerCutOffRad;
             SpotLightEntry.OuterCutOffRad = SpotLight->OuterCutOffRad;
+            SpotLightEntry.bCastsShadow = SpotLight->ShadowMap != nullptr;
 
-            InWorldDescription.SpotLights.push_back(SpotLightEntry);
+            OutWorldDescription.SpotLights.push_back(SpotLightEntry);
         }
 
         // Save point lights
@@ -306,19 +276,19 @@ namespace lucid::scene
             PointLightEntry.Color = VecToFloat3(PointLight->Color);
             PointLightEntry.Quality = PointLight->Quality;
             PointLightEntry.Name = PointLight->Name;
-            PointLightEntry.Postion = { 0, 0, 0};
-            PointLightEntry.Rotation = {0, 0, 0};
+            SpotLightEntry.Postion = VecToFloat3(PointLight->Transform.Translation);
             PointLightEntry.Constant = PointLight->Constant;
             PointLightEntry.Linear = PointLight->Linear;
             PointLightEntry.Quadratic = PointLight->Quadratic;
             PointLightEntry.NearPlane = PointLight->NearPlane;
             PointLightEntry.FarPlane = PointLight->FarPlane;
+            PointLightEntry.bCastsShadow = PointLight->ShadowMap != nullptr;
 
-            InWorldDescription.PointLights.push_back(PointLightEntry);
+            OutWorldDescription.PointLights.push_back(PointLightEntry);
         }
     }
 
-    void CWorld::SaveToJSONFile(const FDString& InFilePath) const
+    void CWorld::SaveToJSONFile(const FString& InFilePath) const
     {
         FWorldDescription WorldDescription {};
         CreateWorldDescription(WorldDescription);
@@ -333,7 +303,7 @@ namespace lucid::scene
         }
     }
 
-    void CWorld::SaveToBinaryFile(const FDString& InFilePath) const
+    void CWorld::SaveToBinaryFile(const FString& InFilePath) const
     {
         FWorldDescription WorldDescription;
         CreateWorldDescription(WorldDescription);

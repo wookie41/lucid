@@ -65,6 +65,11 @@ namespace lucid::scene
         return 0;
     }
 
+    void CLight::_SaveToResourceFile(const FString& InFilePath)
+    {
+        // Light data is written directly to the world file
+    }
+    
     /////////////////////////////////////
     //        Directional light        //
     /////////////////////////////////////
