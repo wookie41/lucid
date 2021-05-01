@@ -1,0 +1,8 @@
+{
+    "Id": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9",
+    "Name": "BackpackMaterial",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureName": "Backpack_Texture_Diffuse",
+    "SpecularTextureName": "Backpack_Texture_Specular",
+    "NormalTextureName": "Backpack_Texture_Normal"
+}

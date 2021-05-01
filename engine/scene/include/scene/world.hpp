@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <common/strings.hpp>
+#include "common/strings.hpp"
 
 #include "common/types.hpp"
 #include "platform/input.hpp"
@@ -47,7 +47,7 @@ namespace lucid::scene
         
         struct
         {
-            u32             key; // Actor id
+            u32         key; // Actor id
             IActor*    value; 
         }* ActorById = NULL;
 

@@ -1,4 +1,5 @@
 ﻿STRUCT_BEGIN(lucid, FMaterialDescription, "")
+    STRUCT_FIELD(UUID, Id, sole::uuid4(), "Id of the material")	
     STRUCT_FIELD(FDString, Name, "", "Name of the material")	
     STRUCT_FIELD(FDString, ShaderName, "", "Name of the shader used by this material")	
 STRUCT_END()
@@ -22,9 +23,13 @@ STRUCT_INHERIT_BEGIN(lucid, FBlinnPhongMapsMaterialDescription, lucid::FMaterial
     STRUCT_STATIC_ARRAY(float, SpecularColor, 3, {0 COMMA 0 COMMA 0}, "Fallback specular color when no specular map is present")	    
 STRUCT_END()
 
-STRUCT_BEGIN(lucid, FMaterialDatabase, "")
-    STRUCT_DYNAMIC_ARRAY(lucid::FFlatMaterialDescription, FlatMaterials, {}, "")
-    STRUCT_DYNAMIC_ARRAY(lucid::FBlinnPhongMaterialDescription, BlinnPhongMaterials, {}, "")
-    STRUCT_DYNAMIC_ARRAY(lucid::FBlinnPhongMapsMaterialDescription, BlinnPhongMapsMaterials, {}, "")
+STRUCT_BEGIN(lucid, FMaterialDatabaseEntry, "")
+    STRUCT_FIELD(FDString, MaterialPath, "", "")
+    STRUCT_FIELD(EFileFormat, FileFormat, lucid::EFileFormat::Json, "")
 STRUCT_END()
 
+STRUCT_BEGIN(lucid, FMaterialDatabase, "")
+    STRUCT_DYNAMIC_ARRAY(FMaterialDatabaseEntry, FlatMaterials,  "")
+    STRUCT_DYNAMIC_ARRAY(FMaterialDatabaseEntry, BlinnPhongMaterials,  "")
+    STRUCT_DYNAMIC_ARRAY(FMaterialDatabaseEntry, BlinnPhongMapsMaterials,  "")
+STRUCT_END()

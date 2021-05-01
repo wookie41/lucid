@@ -1,4 +1,4 @@
-inline bool LoadBinaryFile(const char* fileName, TDYNAMICARRAY<char>& data)
+bool LoadBinaryFile(const char* fileName, TDYNAMICARRAY<char>& data)
 {
     // open the file if we can
     FILE* file = nullptr;

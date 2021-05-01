@@ -1,0 +1,162 @@
+{
+    "StaticMeshes": [
+        {
+            "Id": 1,
+            "Name": "Cube",
+            "Postion": [
+                4.0,
+                -3.5,
+                0.0
+            ],
+            "Scale": [
+                0.5,
+                0.5,
+                0.5
+            ],
+            "bVisible": true
+        },
+        {
+            "Id": 2,
+            "Name": "Cube1",
+            "Postion": [
+                2.0,
+                3.0,
+                1.0
+            ],
+            "Scale": [
+                0.75,
+                0.75,
+                0.75
+            ],
+            "bVisible": true
+        },
+        {
+            "Id": 3,
+            "Name": "Cube2",
+            "Postion": [
+                -1.5,
+                2.0,
+                -3.0
+            ],
+            "Scale": [
+                0.75,
+                0.75,
+                0.75
+            ],
+            "bVisible": true
+        },
+        {
+            "Id": 4,
+            "Name": "Cube3",
+            "Postion": [
+                -1.5,
+                1.0,
+                1.5
+            ],
+            "Scale": [
+                0.75,
+                0.75,
+                0.75
+            ],
+            "bVisible": true
+        },
+        {
+            "Id": 5,
+            "Name": "Gigacube",
+            "Scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "bVisible": true
+        },
+        {
+            "Id": 6,
+            "Name": "Backpack",
+            "bVisible": true
+        }
+    ],
+    "Skybox": {
+        "FacesTextures": [
+            "SkyboxRight",
+            "SkyboxLeft",
+            "SkyboxTop",
+            "SkyboxBottom",
+            "SkyboxFront",
+            "SkyboxBack"
+        ]
+    },
+    "SpotLights": [
+        {
+            "Id": 7,
+            "Color": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "Name": "RedSpotLight",
+            "Direction": [
+                0.0,
+                -0.800000011920929,
+                0.6000000238418579
+            ],
+            "Constant": 1.0,
+            "Linear": 0.09000000357627869,
+            "Quadratic": 0.03200000151991844,
+            "InnerCutOffRad": 0.5235987901687622,
+            "OuterCutOffRad": 0.6108652353286743
+        },
+        {
+            "Id": 8,
+            "Color": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "Name": "GreenSpotLight",
+            "Direction": [
+                0.0,
+                -0.6246950626373291,
+                0.7808688282966614
+            ],
+            "Constant": 1.0,
+            "Linear": 0.09000000357627869,
+            "Quadratic": 0.03200000151991844,
+            "InnerCutOffRad": 0.5235987901687622,
+            "OuterCutOffRad": 0.6108652353286743
+        },
+        {
+            "Id": 9,
+            "Color": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "Name": "BlueSpotLight",
+            "Direction": [
+                0.0,
+                -1.0,
+                0.0
+            ],
+            "Constant": 1.0,
+            "Linear": 0.09000000357627869,
+            "Quadratic": 0.03200000151991844,
+            "InnerCutOffRad": 0.5235987901687622,
+            "OuterCutOffRad": 0.6108652353286743
+        }
+    ],
+    "PointLights": [
+        {
+            "Id": 10,
+            "Color": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "Name": "RedSpotLight",
+            "Constant": 1.0,
+            "Linear": 0.007000000216066837,
+            "Quadratic": 0.017000000923871995
+        }
+    ]
+}

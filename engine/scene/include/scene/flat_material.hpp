@@ -11,15 +11,18 @@ namespace lucid::gpu
 
 namespace lucid::scene
 {
-    class FlatMaterial : public CMaterial
+    class CFlatMaterial : public CMaterial
     {
       public:
-        FlatMaterial(const FString& InName, gpu::CShader* InShader);
+        static CFlatMaterial* CreateMaterial(const FFlatMaterialDescription& Description, const FDString& InResourcePath);
+
+        CFlatMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader);
 
         virtual void SetupShader(gpu::CShader* Shader) override;
 
+        void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const override;
+        
         FColor Color;
     };
 
-    FlatMaterial* CreateFlatMaterial(const FFlatMaterialDescription& Description);
 }

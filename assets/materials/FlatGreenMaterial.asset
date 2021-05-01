@@ -1,0 +1,11 @@
+{
+    "Id": "b61c567e-ee51-4a5a-b80d-aca4cd9f0747",
+    "Name": "FlatGreenMaterial",
+    "ShaderName": "Flat",
+    "Color": [
+        0.0,
+        1.0,
+        0.0,
+        1.0
+    ]
+}

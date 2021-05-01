@@ -42,8 +42,9 @@ namespace lucid
      */
     struct FDString : public FString
     {
-        FDString(char* InCString = nullptr, const u32& InLength = 0);
-        
+        FDString(char* InCString = "", const u32& InLength = 0);
+        FDString(const FDString& InRhs);
+
         void Append(const FString& InString);
         void Append(const char* InString, const u64& InStringLength);
 

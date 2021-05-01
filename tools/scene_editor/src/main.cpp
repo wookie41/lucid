@@ -54,7 +54,7 @@ constexpr char RESOURCES_BROWSER[] = "Resources browser";
 constexpr char SCENE_HIERARCHY[] = "Scene hierarchy";
 constexpr char MAIN_DOCKSPACE[] = "MainDockSpace";
 constexpr char POPUP_WINDOW[] = "PopupWindow";
-constexpr char ACTOR_DETAILS[] = "ActorDetails";
+constexpr char ACTOR_DETAILS[] = "Actor Details";
 
 enum class EImportingTextureType : u8
 {
@@ -145,13 +145,7 @@ int main(int argc, char** argv)
 
     // Load textures and meshes used in the demo scene
 
-    scene::CBlinnPhongMapsMaterial* BackpackMaterial =
-      new scene::CBlinnPhongMapsMaterial{ "BackpackMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
-    BackpackMaterial->Shininess = 32;
-    BackpackMaterial->DiffuseMap = GEngine.GetTexturesHolder().Get("Backpack_TextureDiffuse")->TextureHandle;
-    BackpackMaterial->NormalMap = GEngine.GetTexturesHolder().Get("Backpack_TextureNormal")->TextureHandle;
-    BackpackMaterial->SpecularMap = GEngine.GetTexturesHolder().Get("Backpack_TextureSpecular")->TextureHandle;
-
+    scene::CMaterial* BackpackMaterial = GEngine.GetMaterialsHolder().Get("BackpackMaterial");
     auto* BackpackStaticMesh = new scene::CStaticMesh{ CopyToString("Backpack"),
                                                        nullptr,
                                                        GEngine.GetMeshesHolder().Get("Backpack"),
@@ -179,38 +173,15 @@ int main(int argc, char** argv)
     GSceneEditorState.CurrentCamera = &GSceneEditorState.PerspectiveCamera;
 
 
-    scene::CBlinnPhongMapsMaterial WoodMaterial { "WoodMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
-    WoodMaterial.Shininess = 32;
-    WoodMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
-    WoodMaterial.SpecularColor = glm::vec3{ 0.5 };
-    WoodMaterial.NormalMap = nullptr;
-    WoodMaterial.SpecularMap = nullptr;
-
-    scene::CBlinnPhongMapsMaterial brickMaterial{ "BrickMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
-    brickMaterial.Shininess = 32;
-    brickMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("BrickDiffuse")->TextureHandle;
-    brickMaterial.SpecularMap = nullptr;
-    brickMaterial.DisplacementMap = nullptr;
-    brickMaterial.NormalMap = GEngine.GetTexturesHolder().Get("BrickNormal")->TextureHandle;
-    brickMaterial.SpecularColor = glm::vec3{ 0.2 };
-
-    scene::CBlinnPhongMapsMaterial toyboxMaterial{ "ToyboyxMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
-    toyboxMaterial.Shininess = 32;
-    toyboxMaterial.DiffuseMap = GEngine.GetTexturesHolder().Get("WoodDiffuse")->TextureHandle;
-    toyboxMaterial.SpecularMap = nullptr;
-    toyboxMaterial.NormalMap = GEngine.GetTexturesHolder().Get("ToyboxNormal")->TextureHandle;
-    toyboxMaterial.DisplacementMap = GEngine.GetTexturesHolder().Get("ToyboxDisplacement")->TextureHandle;
-    toyboxMaterial.SpecularColor = glm::vec3{ 0.2 };
-
-    scene::CBlinnPhongMaterial flatBlinnPhongMaterial{ "FlatBlinnPhongMaterial", GEngine.GetShadersManager().GetShaderByName("BlinnPhong") };
-    flatBlinnPhongMaterial.DiffuseColor = glm::vec3{ 1 };
-    flatBlinnPhongMaterial.SpecularColor = glm::vec3{ 1 };
-    flatBlinnPhongMaterial.Shininess = 32;
+    scene::CMaterial* WoodMaterial = GEngine.GetMaterialsHolder().Get("WoodMaterial");
+    scene::CMaterial* BrickMaterial = GEngine.GetMaterialsHolder().Get("BrickMaterial");
+    scene::CMaterial* ToyboxMaterial = GEngine.GetMaterialsHolder().Get("ToyboyxMaterial");
+    scene::CMaterial* FlatBlinnPhongMaterial = GEngine.GetMaterialsHolder().Get("FlatBlinnPhongMaterial");
 
     scene::CStaticMesh WoodenCube{ FDString{ "WoodenCube" },
                                    nullptr,
                                    GEngine.GetMeshesHolder().Get("Cube"),
-                                   &WoodMaterial,
+                                   WoodMaterial,
                                    scene::EStaticMeshType::STATIONARY };
 
     WoodenCube.Transform.Scale = glm::vec3{ 25.0 };
@@ -218,7 +189,7 @@ int main(int argc, char** argv)
     WoodenCube.Transform.Translation = glm::vec3{ 0, -0.5, 0 };
 
     scene::CStaticMesh cube{
-        FDString{ "Cube" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), &brickMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{ "Cube" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), BrickMaterial, scene::EStaticMeshType::STATIONARY
     };
     cube.Transform.Translation = { 4.0, -3.5, 0.0 };
     cube.Transform.Scale = glm::vec3{ 0.5 };
@@ -226,25 +197,25 @@ int main(int argc, char** argv)
     scene::CStaticMesh cube1{ FDString{ "Cube1" },
                               nullptr,
                               GEngine.GetMeshesHolder().Get("Cube"),
-                              &flatBlinnPhongMaterial,
+                              FlatBlinnPhongMaterial,
                               scene::EStaticMeshType::STATIONARY };
     cube1.Transform.Translation = { 2.0, 3.0, 1.0 };
     cube1.Transform.Scale = glm::vec3{ 0.75 };
 
     scene::CStaticMesh cube2{
-        FDString{ "Cube2" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), &brickMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{ "Cube2" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), BrickMaterial, scene::EStaticMeshType::STATIONARY
     };
     cube2.Transform.Translation = { -1.5, 2.0, -3.0 };
     cube2.Transform.Scale = glm::vec3{ 0.75 };
 
     scene::CStaticMesh cube3{
-        FDString{ "Cube3" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), &toyboxMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{ "Cube3" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), ToyboxMaterial, scene::EStaticMeshType::STATIONARY
     };
     cube3.Transform.Translation = { -1.5, 1.0, 1.5 };
     cube3.Transform.Scale = glm::vec3{ 0.75 };
 
     scene::CStaticMesh gigaCube{
-        FDString{ "Gigacube" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), &WoodMaterial, scene::EStaticMeshType::STATIONARY
+        FDString{ "Gigacube" }, nullptr, GEngine.GetMeshesHolder().Get("Cube"), WoodMaterial, scene::EStaticMeshType::STATIONARY
     };
     gigaCube.Transform.Translation = glm::vec3{ 0 };
     gigaCube.Transform.Scale = glm::vec3{ 10 };
@@ -255,17 +226,10 @@ int main(int argc, char** argv)
     // BlinnPhongMapsShader); backPackRenderable->Transform.Scale = { 0.25, 0.25, 0.25 };
     // backPackRenderable->Transform.Translation = { 0.0, 0.0, 0.0 };
 
-    scene::FlatMaterial flatWhiteMaterial{ "FlatWhiteMaterial", GEngine.GetShadersManager().GetShaderByName("Flat") };
-    flatWhiteMaterial.Color = { 1.0, 1.0, 1.0, 1.0 };
-
-    scene::FlatMaterial flatRedMaterial{ "FlatRedMaterial", GEngine.GetShadersManager().GetShaderByName("Flat") };
-    flatRedMaterial.Color = { 1.0, 0.0, 0.0, 1.0 };
-
-    scene::FlatMaterial flatGreenMaterial{ "FlatGreenMaterial", GEngine.GetShadersManager().GetShaderByName("Flat") };
-    flatGreenMaterial.Color = { 0.0, 1.0, 0.0, 1.0 };
-
-    scene::FlatMaterial flatBlueMaterial{ "FlatBlueMaterial", GEngine.GetShadersManager().GetShaderByName("Flat") };
-    flatBlueMaterial.Color = { 0.0, 0.0, 1.0, 1.0 };
+    scene::CMaterial* FlatWhiteMaterial = GEngine.GetMaterialsHolder().Get("FlatWhiteMaterial");
+    scene::CMaterial* FlatRedMaterial = GEngine.GetMaterialsHolder().Get("FlatRedMaterial");
+    scene::CMaterial* FlatGreenMaterial = GEngine.GetMaterialsHolder().Get("FlatGreenMaterial");
+    scene::CMaterial* FlaBlueMaterial = GEngine.GetMaterialsHolder().Get("FlatBlueMaterial");
 
     scene::CDirectionalLight* DirectionalLight = GEngine.GetRenderer()->CreateDirectionalLight(FDString{ "DirectionalLight" }, nullptr, true);
     DirectionalLight->Direction = glm::normalize(glm::vec3{ 0.5, -1, 1 });
@@ -340,6 +304,8 @@ int main(int argc, char** argv)
     RenderView.Camera = GSceneEditorState.CurrentCamera; // @TODO is this needed???
     RenderView.Viewport = { 0, 0, 1920, 1080 }; // @TODO Engine level variable
 
+    DemoWorld.SaveToJSONFile("assets/worlds/Demo.asset");
+    
     while (IsRunning)
     {
         platform::Update();
@@ -386,7 +352,7 @@ int main(int argc, char** argv)
         HandleActorDrag();
     }
 
-    gpu::Shutdown();
+    GEngine.Shutdown();
     return 0;
 }
 
@@ -701,21 +667,20 @@ void UIDrawResourceBrowserWindow()
                     ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount + (4 * CurrentRowItemsCount), 2);
                 }
 
-                ImGui::BeginGroup();
-
                 if (TextureResource && TextureResource->TextureHandle)
                 {
+                    ImGui::BeginGroup();
                     TextureResource->TextureHandle->ImGuiImageButton(ResourceItemSize);
-                    ImGui::Button(*TextureResource->GetName(), { ResourceItemWidth, 0 });
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
                         GSceneEditorState.bShowTextureContextMenu = true;
                         GSceneEditorState.ClickedTextureResource = TextureResource;
                     }
+                    ImGui::Button(*TextureResource->GetName(), { ResourceItemWidth, 0 });
+                    ImGui::EndGroup();
                     ++CurrentRowItemsCount;
                 }
 
-                ImGui::EndGroup();
             }
 
             ImGui::Spacing();
@@ -737,19 +702,20 @@ void UIDrawResourceBrowserWindow()
                     ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount + (4 * CurrentRowItemsCount), 2);
                 }
 
-                ImGui::BeginGroup();
                 if (MeshResource && MeshResource->Thumb)
                 {
+                    ImGui::BeginGroup();
                     MeshResource->Thumb->ImGuiImageButton(ResourceItemSize);
-                    ImGui::Button(*MeshResource->GetName(), { ResourceItemWidth, 0 });
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
                         GSceneEditorState.bShowMeshContextMenu = true;
                         GSceneEditorState.ClickedMeshResource = MeshResource;
                     }
+
+                    ImGui::Button(*MeshResource->GetName(), { ResourceItemWidth, 0 });
+                    ImGui::EndGroup();
                     ++CurrentRowItemsCount;
                 }
-                ImGui::EndGroup();
             }
         }
         ImGui::EndChild();
@@ -921,8 +887,6 @@ void UIDrawTextureImporter()
 
                 // Update engine resources database
                 GEngine.AddTextureResource(ImportedTexture, GSceneEditorState.PathToSelectedFile);
-
-                WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
 
                 // End texture import
                 GSceneEditorState.bIsImportingTexture = false;

@@ -1,0 +1,35 @@
+{
+    "FlatMaterials": [
+        {
+            "MaterialPath": "assets/materials/FlatWhiteMaterial.asset"
+        },
+        {
+            "MaterialPath": "assets/materials/FlatRedMaterial.asset"
+        },
+        {
+            "MaterialPath": "assets/materials/FlatBlueMaterial.asset"
+        },
+        {
+            "MaterialPath": "assets/materials/FlatGreenMaterial.asset"
+        }
+    ],
+    "BlinnPhongMaterials": [
+        {
+            "MaterialPath": "assets/materials/FlatBlinnPhongMaterial.asset"
+        }
+    ],
+    "BlinnPhongMapsMaterials": [
+        {
+            "MaterialPath": "assets/materials/WoodMaterial.asset"
+        },
+        {
+            "MaterialPath": "assets/materials/BrickMaterial.asset"
+        },
+        {
+            "MaterialPath": "assets/materials/BackpackMaterial.asset"
+        },
+        {
+            "MaterialPath": "assets/materials/ToyboxMaterial.asset"
+        }
+    ]
+}

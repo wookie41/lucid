@@ -34,6 +34,7 @@ namespace lucid::scene
 #if DEVELOPMENT
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
+        virtual void SaveToResourceFile() const override;
 #endif
     
       protected:

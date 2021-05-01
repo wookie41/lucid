@@ -1,9 +1,9 @@
 // Generates code to write data to json files.
 
-#include <resources/resource.hpp>
 
 #include "_common.h"
 #include "common/bytes.hpp"
+#include "resources/resource.hpp"
 
 // Enums
 

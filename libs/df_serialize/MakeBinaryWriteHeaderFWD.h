@@ -1,7 +1,7 @@
 // Enums
 
 #define ENUM_BEGIN(_NAMESPACE, _NAME, _DESCRIPTION) void BinaryWrite(const _NAMESPACE::_NAME& value, TDYNAMICARRAY<char>& output);
-#define ENUM_ITEM(_NAME, _DESCRIPTION)
+#define ENUM_ITEM(_NAME, _DESCRIPTION)  
 #define ENUM_END()
 // Structs
 

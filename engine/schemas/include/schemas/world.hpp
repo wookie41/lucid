@@ -1,6 +1,4 @@
-﻿#include "scene/actors/static_mesh.hpp"
-
-STRUCT_BEGIN(lucid, FStaticMeshDescription, "")
+﻿STRUCT_BEGIN(lucid, FStaticMeshDescription, "")
     STRUCT_FIELD(FDString, MeshResourceName, "", "")	
     STRUCT_FIELD(FDString, MaterialName, "", "")
     STRUCT_FIELD(lucid::scene::EStaticMeshType, Type, lucid::scene::EStaticMeshType::STATIONARY, "")
@@ -10,7 +8,7 @@ STRUCT_BEGIN(lucid, FActorEntry, "Description of the actor in the world")
     STRUCT_FIELD(u32, Id, 0, "Id of the actor")	
     STRUCT_FIELD(u32, ParentId, 0, "Id of the parent actor")	
     STRUCT_FIELD(FDString, Name, "", "Name of the actor")	
-    STRUCT_FIELD(FDString, AssetPath, "", "Path to the actor asset file")	
+    STRUCT_FIELD(FDString, ResourcePath, "", "Path to the actor resource file")	
     STRUCT_STATIC_ARRAY(float, Postion, 3, {0 COMMA 0 COMMA 0 }, "Position of the actor")	
     STRUCT_STATIC_ARRAY(float, Scale, 3, {1 COMMA 1 COMMA 1 }, "Scale of the actor")	
     STRUCT_STATIC_ARRAY(float, Rotation, 4, { 0 COMMA 0 COMMA 0 COMMA 0 }, "Rotation (quat) of the actor")
@@ -18,7 +16,7 @@ STRUCT_BEGIN(lucid, FActorEntry, "Description of the actor in the world")
 STRUCT_END()
 
 STRUCT_BEGIN(lucid, FSkyboxDescription, "")
-    STRUCT_STATIC_ARRAY(lucid::FDString, FacesTextures, 6, {}, "Names of texture resources making up the skybox (in order right, left, top, bottom, front, back)")	
+    STRUCT_STATIC_ARRAY(lucid::FDString, FacesTextures, 6, { "" COMMA "" COMMA "" COMMA "" COMMA "" COMMA "" }, "Names of texture resources making up the skybox (in order right, left, top, bottom, front, back)")	
 STRUCT_END()
 
 STRUCT_BEGIN(lucid, FLightEntry, "")
@@ -63,3 +61,11 @@ STRUCT_BEGIN(lucid, FWorldDescription, "Listing of all the things in the world")
     STRUCT_DYNAMIC_ARRAY(lucid::FPointLightEntry, PointLights, "")
 STRUCT_END()
 
+STRUCT_BEGIN(lucid, FActorDatabaseEntry, "")
+    STRUCT_FIELD(UUID,     ActorId, "", "")
+    STRUCT_FIELD(FDString, ActorPath, "", "")
+STRUCT_END()
+
+STRUCT_BEGIN(lucid, FActorDatabase, "")
+    STRUCT_DYNAMIC_ARRAY(FActorDatabaseEntry, Entries,  "")
+STRUCT_END()

@@ -2,24 +2,32 @@
 
 #include "common/types.hpp"
 
+#include "schemas/types.hpp"
+
 #include "resources/resource.hpp"
 #include "resources/resources_holder.hpp"
 #include "resources/texture_resource.hpp"
 #include "resources/mesh_resource.hpp"
 #include "devices/gpu/shaders_manager.hpp"
 
-#include "schemas/types.hpp"
-
 namespace lucid
 {
     namespace scene
     {
         class CRenderer;
+        class CFlatMaterial;
+        class CBlinnPhongMaterial;
+        class CBlinnPhongMapsMaterial;
     }
-    
+
+#define DECLARE_LOAD_MATERIAL_FUNC(Suffix, TMaterialDescription, TMaterial) void Load##Suffix(TDYNAMICARRAY<FMaterialDatabaseEntry> Entries);
+
     using CTexturesHolder = resources::CResourcesHolder<resources::CTextureResource>;
     using CMeshesHolder = resources::CResourcesHolder<resources::CMeshResource>;
     using CMaterialsHolder = FStringHashMap<scene::CMaterial*>;
+    using CStaticMeshesHolder = FStringHashMap<scene::CStaticMesh*>;
+    using FIdToPathMap = FStringHashMap<FDString>;
+    using FIdToPathMap = FStringHashMap<FDString>;
 
     class CActorThumbsGenerator;
 
@@ -40,9 +48,11 @@ namespace lucid
     public:
 
         EEngineInitError InitEngine(const FEngineConfig& InEngineConfig);
+        void             Shutdown();
         void             LoadResources();
         
         inline FResourceDatabase&       GetResourceDatabase()   { return ResourceDatabase; }
+        inline FMaterialDatabase&       GetMaterialDatabase()   { return MaterialDatabase; }
         inline CTexturesHolder&         GetTexturesHolder()     { return TexturesHolder; } 
         inline CMeshesHolder&           GetMeshesHolder()       { return MeshesHolder; }
         inline CMaterialsHolder&        GetMaterialsHolder()    { return MaterialsHolder; }
@@ -54,23 +64,34 @@ namespace lucid
 
         void RemoveMeshResource(resources::CMeshResource* InMesh);
         void RemoveTextureResource(resources::CTextureResource*);
+
+        scene::CStaticMesh* GetStaticMeshActor(const UUID& ActorId);
     
     protected:
 
+        DECLARE_LOAD_MATERIAL_FUNC(FlatMaterials, FFlatMaterialDescription, scene::CFlatMaterial)
+        DECLARE_LOAD_MATERIAL_FUNC(BlinnPhongMaterials, FBlinnPhongMaterialDescription, scene::CBlinnPhongMaterial)
+        DECLARE_LOAD_MATERIAL_FUNC(BlinnPhongMapsMaterials, FBlinnPhongMapsMaterialDescription, scene::CBlinnPhongMapsMaterial)
+        
         scene::CRenderer* Renderer = nullptr;
 
-        gpu::CShadersManager ShadersManager;
+        gpu::CShadersManager ShadersManager {};
 
-        FResourceDatabase ResourceDatabase;
-        FMaterialDatabase MaterialDatabase;
+        FResourceDatabase   ResourceDatabase {};
+        FMaterialDatabase   MaterialDatabase {};
+        FActorDatabase      ActorDatabase;
 
-        CMeshesHolder    MeshesHolder;
-        CTexturesHolder  TexturesHolder;
-        CMaterialsHolder MaterialsHolder;
+        CMeshesHolder    MeshesHolder {};
+        CTexturesHolder  TexturesHolder {};
+        CMaterialsHolder MaterialsHolder {};
+
+        FIdToPathMap   ActorResourceFilePathById;
+        
+        CStaticMeshesHolder StaticMeshesHolder {};
 
 #if DEVELOPMENT
     public:
-        CActorThumbsGenerator* ThumbsGenerator;
+        CActorThumbsGenerator* ThumbsGenerator = nullptr;
 #endif
 
     };

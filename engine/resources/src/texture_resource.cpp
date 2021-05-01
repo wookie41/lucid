@@ -115,15 +115,6 @@ namespace lucid::resources
         }
 
         texturesInitialized = true;
-
-        // TexturesHolder.SetDefaultResource(LoadTextureSTB(FString{ LUCID_TEXT("assets/textures/awesomeface.png") },
-        //                                                  true,
-        //                                                  gpu::ETextureDataType::UNSIGNED_BYTE,
-        //                                                  gpu::ETextureDataFormat::SRGBA,
-        //                                                  gpu::ETexturePixelFormat::RGBA,
-        //                                                  true,
-        //                                                  true,
-        //                                                  FString{ "DefaultTexture" }));
     }
 
     CTextureResource::CTextureResource(const UUID& InID,

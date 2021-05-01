@@ -1,11 +1,12 @@
 // Generates code to write binary data to memory and files
 
-#include <common/strings.hpp>
-#include <resources/resource.hpp>
+#include "common/strings.hpp"
+#include "resources/resource.hpp"
 
 
 #include "_common.h"
 #include "common/bytes.hpp"
+#include "scene/actors/static_mesh.hpp"
 
 // Enums
 

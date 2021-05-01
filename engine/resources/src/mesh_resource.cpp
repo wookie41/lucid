@@ -451,7 +451,7 @@ namespace lucid::resources
         Path.replace_extension("");
         
         FDString TexturePath = SPrintf("%s/%s", *InMeshDirPath, TextureFilePath.C_Str());
-        FDString TextureName =  SPrintf("%s_Texture_%s", *MeshName, Path.filename().string().c_str());
+        FDString TextureName =  SPrintf("%s_Texture_%s", *MeshName, *TextureTypeName);
         FDString TextureResourceFilePath = SPrintf("assets/textures/%s.asset", *TextureName);
 
         CTextureResource* Texture = ImportTexture(TexturePath,
@@ -483,9 +483,10 @@ namespace lucid::resources
             TextureName.Free();
 
             LUCID_LOG(ELogLevel::WARN,
-                      "Failed to save save imported %d texture of mesh %s - failed to open the file",
+                      "Failed to save save imported %d texture of mesh %s - failed to open the file %s",
                       *TextureTypeName,
-                      *MeshName);
+                      *MeshName,
+                      *TextureResourceFilePath);
             return GEngine.GetTexturesHolder().GetDefaultResource();
         }
 

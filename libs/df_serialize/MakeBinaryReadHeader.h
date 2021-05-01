@@ -2,14 +2,8 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <common/strings.hpp>
-#include <resources/resource.hpp>
-
-
 
 #include "_common.h"
-#include "common/bytes.hpp"
-#include "devices/gpu/texture_enums.hpp"
 
 // Enums
 

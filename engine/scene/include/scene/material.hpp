@@ -8,12 +8,20 @@ namespace lucid::gpu
     class CTexture;
 } // namespace lucid::gpu
 
+namespace lucid
+{
+    enum class EFileFormat : int;
+}
+
 namespace lucid::scene
 {
     class CMaterial
     {
       public:
-        explicit CMaterial(const FString& InName, gpu::CShader* InShader = nullptr) : Name(InName), Shader(InShader) {}
+        CMaterial(const UUID InID, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader = nullptr)
+        : ID(InID), Name(InName), ResourcePath(InResourcePath), Shader(InShader)
+        {
+        }
 
         /*
          * Function responsible for sending material's properties to the shader as uniform variables
@@ -21,15 +29,19 @@ namespace lucid::scene
          * it can use the Material's 'Shader' or provide some other shader as it sees fit - e.x. the renderer
          * will use a shadow map shader to "render" geometry when generating shadow maps
          */
-        virtual void            SetupShader(gpu::CShader* InShadder) = 0;
-        inline gpu::CShader*    GetShader() const { return Shader; }
-        inline const FString&   GetName() const { return Name; };
+        virtual void SetupShader(gpu::CShader* InShadder) = 0;
+        inline gpu::CShader* GetShader() const { return Shader; }
+        inline const FString& GetName() const { return Name; };
+        inline const UUID& GetId() const { return ID; };
+        virtual void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const = 0;
 
         virtual ~CMaterial() = default;
 
       protected:
 
-        const FString& Name;
+        const UUID ID;
+        const FDString Name;
+        const FDString ResourcePath;
         gpu::CShader* Shader;
     };
 } // namespace lucid::scene

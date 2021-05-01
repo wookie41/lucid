@@ -15,6 +15,7 @@ namespace lucid::scene
         ActorType = EActorType::STATIC_MESH;
     }
 
+#if DEVELOPMENT
     void CStaticMesh::UIDrawActorDetails()
     {
         IActor::UIDrawActorDetails();
@@ -39,6 +40,12 @@ namespace lucid::scene
         }
     }
 
+    void CStaticMesh::SaveToResourceFile() const
+    {
+        
+    }
+    
+#endif
     float CStaticMesh::GetVerticalMidPoint() const
     {
         if (0.002f > fabs(MeshResource->MinPosY))

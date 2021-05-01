@@ -24,17 +24,18 @@ namespace lucid::scene
     class CBlinnPhongMaterial : public CMaterial
     {
       public:
-        CBlinnPhongMaterial(const FString& InName, gpu::CShader* InShader);
+        static CBlinnPhongMaterial* CreateMaterial(const FBlinnPhongMaterialDescription& Description, const FDString& InResourcePath);
+
+        CBlinnPhongMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader);
 
         virtual void SetupShader(gpu::CShader* Shader) override;
+
+        void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const override;
 
         u32 Shininess;
         glm::vec3 DiffuseColor;
         glm::vec3 SpecularColor;
     };
-
-    CBlinnPhongMaterial* CreateBlinnPhongMaterial(const FBlinnPhongMaterialDescription& Description);
-
     
     /////////////////////////////////////
     //      BlinnPhongMapsMaterial     //
@@ -44,18 +45,22 @@ namespace lucid::scene
     {
       public:
 
-        CBlinnPhongMapsMaterial(const FString& InName, gpu::CShader* InShader);
+        static CBlinnPhongMapsMaterial* CreateMaterial(const FBlinnPhongMapsMaterialDescription& Description, const FDString& InResourcePath);        
+        
+        CBlinnPhongMapsMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader);
 
         virtual void SetupShader(gpu::CShader* Shader) override;
 
+        void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const override;
+        
         u32 Shininess;
-        gpu::CTexture* DiffuseMap = nullptr;
-        gpu::CTexture* SpecularMap = nullptr;
-        gpu::CTexture* NormalMap = nullptr;
-        gpu::CTexture* DisplacementMap = nullptr;
+        resources::CTextureResource* DiffuseMap = nullptr;
+        resources::CTextureResource* SpecularMap = nullptr;
+        resources::CTextureResource* NormalMap = nullptr;
+        resources::CTextureResource* DisplacementMap = nullptr;
 
         glm::vec3 SpecularColor; //Fallback when specular map is not used
+
     };
 
-    CBlinnPhongMapsMaterial* CreateBlinnPhongMapsMaterial(const FBlinnPhongMapsMaterialDescription& Description);
 } // namespace lucid::scene

@@ -3,15 +3,7 @@
 // RapidJSON Website: https://rapidjson.org/
 // RapidJSON Github:  https://github.com/Tencent/rapidjson/
 
-#include <common/strings.hpp>
-#include <resources/resource.hpp>
-#include <scene/render_scene.hpp>
-
-
-
 #include "_common.h"
-#include "common/bytes.hpp"
-#include "devices/gpu/texture_enums.hpp"
 
 // Enums
 

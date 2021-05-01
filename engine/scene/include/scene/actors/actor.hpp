@@ -48,9 +48,11 @@ namespace lucid::scene
 #if DEVELOPMENT
         /** Editor stuff */
         virtual void UIDrawActorDetails();
+        virtual void SaveToResourceFile() const = 0;
 #endif
 
         virtual float GetVerticalMidPoint() const = 0;
+
 
         /**
          * Unique id for an actor, used e.x. by the renderer when generating the hitmap texture
@@ -61,7 +63,7 @@ namespace lucid::scene
         const FDString          Name;
         FTransform3D            Transform;
         bool                    bVisible = true;
-        FDString                AssetPath { "" };
+        FDString                ResourcePath { "" };
 
         virtual ~IActor() = default;
     

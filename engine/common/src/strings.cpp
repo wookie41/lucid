@@ -42,6 +42,8 @@ namespace lucid
 
     FDString::FDString(char* InCString, const u32& InLength) : FString(InCString, InLength) {}
 
+    FDString::FDString(const FDString& InRhs) : FString(InRhs.CString, InRhs.Length) {}
+
     void FDString::Append(const FString& InANSIString)
     {
         Append(*InANSIString, InANSIString.GetLength());

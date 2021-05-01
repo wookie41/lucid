@@ -119,9 +119,9 @@ namespace lucid::scene
     {
         FWorldDescription WorldDescription;
         ReadFromBinaryFile(WorldDescription, *InFilePath);
-        return LoadWorld(WorldDescription);
-        
+        return LoadWorld(WorldDescription);         
     }
+
     CWorld* LoadWorld(const FWorldDescription& InWorldDescription)
     {
         auto World = new CWorld;
@@ -130,7 +130,7 @@ namespace lucid::scene
         FStaticMeshDescription StaticMeshDescription;
         for (const FActorEntry& StaticMeshEntry : InWorldDescription.StaticMeshes)
         {
-            if (ReadFromJSONFile(StaticMeshDescription, *StaticMeshEntry.AssetPath))
+            if (ReadFromJSONFile(StaticMeshDescription, *StaticMeshEntry.ResourcePath))
             {
                 CMaterial* Material = GEngine.GetMaterialsHolder().Get(*StaticMeshDescription.MaterialName);
                 resources::CMeshResource* MeshResource = GEngine.GetMeshesHolder().Get(*StaticMeshDescription.MeshResourceName);
@@ -148,7 +148,7 @@ namespace lucid::scene
                 StaticMesh->Transform.Rotation = Float4ToQuat(StaticMeshEntry.Rotation);
                 StaticMesh->Transform.Scale = Float3ToVec(StaticMeshEntry.Scale);
                 StaticMesh->bVisible = StaticMeshEntry.bVisible;
-                StaticMesh->AssetPath = StaticMeshEntry.AssetPath;
+                StaticMesh->ResourcePath = StaticMeshEntry.ResourcePath;
                 
                 World->AddStaticMesh(StaticMesh);
             }
@@ -238,7 +238,7 @@ namespace lucid::scene
             StaticMeshEntry.Id = StaticMesh->Id; 
             StaticMeshEntry.ParentId = StaticMesh->Parent ? StaticMesh->Parent->Id : 0;
             StaticMeshEntry.Name = StaticMesh->Name;
-            StaticMeshEntry.AssetPath = StaticMesh->AssetPath;
+            StaticMeshEntry.ResourcePath = StaticMesh->ResourcePath;
             StaticMeshEntry.Postion = VecToFloat3(StaticMesh->Transform.Translation);
             StaticMeshEntry.Rotation = QuatToFloat4(StaticMesh->Transform.Rotation);
             StaticMeshEntry.Scale = VecToFloat3(StaticMesh->Transform.Scale);
@@ -320,7 +320,7 @@ namespace lucid::scene
 
     void CWorld::SaveToJSONFile(const FDString& InFilePath) const
     {
-        FWorldDescription WorldDescription;
+        FWorldDescription WorldDescription {};
         CreateWorldDescription(WorldDescription);
         WriteToJSONFile(WorldDescription, *InFilePath);
 
@@ -337,7 +337,7 @@ namespace lucid::scene
     {
         FWorldDescription WorldDescription;
         CreateWorldDescription(WorldDescription);
-        WriteToBinaryFile(WorldDescription, *InFilePath);
+        // WriteToBinaryFile(WorldDescription, *InFilePath);
 
         if (Skybox)
         {

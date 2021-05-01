@@ -1,0 +1,11 @@
+{
+    "Id": "d7c004da-4cc5-4d8f-8bde-b8e26cfcd744",
+    "Name": "FlatRedMaterial",
+    "ShaderName": "Flat",
+    "Color": [
+        1.0,
+        0.0,
+        0.0,
+        1.0
+    ]
+}

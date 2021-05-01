@@ -10,12 +10,46 @@
 #include "scene/forward_renderer.hpp"
 
 #define LUCID_SCHEMAS_IMPLEMENTATION
+#include <scene/actors/static_mesh.hpp>
+
 #include "schemas/types.hpp"
 #include "schemas/binary.hpp"
 #include "schemas/json.hpp"
 
 namespace lucid
 {
+    #define DEFINE_LOAD_MATERIAL_FUNC(Suffix, TMaterialDescription, TMaterial)\
+    void CEngine::Load##Suffix(TDYNAMICARRAY<FMaterialDatabaseEntry> Entries)\
+    {\
+        bool bSuccess = false; \
+        TMaterialDescription MaterialDescription; \
+        for (FMaterialDatabaseEntry Entry : Entries) \
+        { \
+            switch (Entry.FileFormat) \
+            { \
+            case EFileFormat::Json: \
+                { \
+                    bSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);\
+                    break;\
+                }\
+            case EFileFormat::Binary:\
+                {\
+                    bSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);\
+                    break;\
+                }\
+            }\
+            if (bSuccess)\
+            {\
+                TMaterial* Material = TMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);\
+                MaterialsHolder.Add(*Material->GetName(), Material);\
+            }\
+            else\
+            {\
+                LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);\
+            }\
+        }\
+    }
+
     CEngine GEngine;
     EEngineInitError CEngine::InitEngine(const FEngineConfig& InEngineConfig)
     {
@@ -47,14 +81,14 @@ namespace lucid
     {
         // Read shaders databse
         FShadersDataBase ShadersDatabase;
-        ReadFromJSONFile(ShadersDatabase, "assets/shaders/shaders_database.json");
+        ReadFromJSONFile(ShadersDatabase, "assets/databases/shaders.json");
         ShadersManager.LoadShadersDatabase(ShadersDatabase);
 
         ThumbsGenerator = new CActorThumbsGenerator;
         ThumbsGenerator->Setup();
-        
+
         // Read resource database
-        ReadFromJSONFile(ResourceDatabase, "assets/resource_database.json");
+        ReadFromJSONFile(ResourceDatabase, "assets/databases/resources.json");
 
         // Load resources data
         for (const FResourceDatabaseEntry& Entry : ResourceDatabase.Entries)
@@ -62,62 +96,54 @@ namespace lucid
             switch (Entry.Type)
             {
             case resources::MESH:
+            {
+                if (resources::CMeshResource* LoadedMesh = resources::LoadMesh(Entry.Path))
                 {
-                    if (resources::CMeshResource* LoadedMesh = resources::LoadMesh(Entry.Path))
-                    {
-                        LoadedMesh->LoadDataToMainMemorySynchronously();
-                        LoadedMesh->LoadDataToVideoMemorySynchronously();
-                        LoadedMesh->Thumb = ThumbsGenerator->GenerateMeshThumb(256, 256, LoadedMesh);
-                        GEngine.GetMeshesHolder().Add(*Entry.Name, LoadedMesh);
+                    LoadedMesh->LoadDataToMainMemorySynchronously();
+                    LoadedMesh->LoadDataToVideoMemorySynchronously();
+                    LoadedMesh->Thumb = ThumbsGenerator->GenerateMeshThumb(256, 256, LoadedMesh);
+                    GEngine.GetMeshesHolder().Add(*Entry.Name, LoadedMesh);
 
-                        if (Entry.bIsDefault)
-                        {
-                            GEngine.GetMeshesHolder().SetDefaultResource(LoadedMesh);
-                        }
+                    if (Entry.bIsDefault)
+                    {
+                        GEngine.GetMeshesHolder().SetDefaultResource(LoadedMesh);
                     }
-                    break;
                 }
+                break;
+            }
             case resources::TEXTURE:
+            {
+                if (resources::CTextureResource* LoadedTexture = resources::LoadTexture(Entry.Path))
                 {
-                    if (resources::CTextureResource* LoadedTexture = resources::LoadTexture(Entry.Path))
-                    {
-                        LoadedTexture->LoadDataToMainMemorySynchronously();
-                        LoadedTexture->LoadDataToVideoMemorySynchronously();
-                        GEngine.GetTexturesHolder().Add(*Entry.Name, LoadedTexture);
+                    LoadedTexture->LoadDataToMainMemorySynchronously();
+                    LoadedTexture->LoadDataToVideoMemorySynchronously();
+                    GEngine.GetTexturesHolder().Add(*Entry.Name, LoadedTexture);
 
-                        if (Entry.bIsDefault)
-                        {
-                            GEngine.GetTexturesHolder().SetDefaultResource(LoadedTexture);
-                        }
-                        
+                    if (Entry.bIsDefault)
+                    {
+                        GEngine.GetTexturesHolder().SetDefaultResource(LoadedTexture);
                     }
-                    break;
                 }
+                break;
+            }
             }
         }
 
         // Load materials database
-        ReadFromJSONFile(MaterialDatabase, "assets/materials_database.json");
+        ReadFromJSONFile(MaterialDatabase, "assets/databases/materials.json");
 
         // Create materials for the materials definitions
-        for (const FFlatMaterialDescription& MaterialDescription : MaterialDatabase.FlatMaterials)
-        {
-            scene::FlatMaterial* FlatMaterial = scene::CreateFlatMaterial(MaterialDescription);
-            MaterialsHolder.Add(*FlatMaterial->GetName(), FlatMaterial);
-        }
+        LoadFlatMaterials(MaterialDatabase.FlatMaterials);
+        LoadBlinnPhongMaterials(MaterialDatabase.BlinnPhongMaterials);
+        LoadBlinnPhongMapsMaterials(MaterialDatabase.BlinnPhongMapsMaterials);
 
-        for (const FBlinnPhongMaterialDescription& MaterialDescription : MaterialDatabase.BlinnPhongMaterials)
+        // Load actor database
+        ReadFromJSONFile(ActorDatabase, "assets/databases/actors.json");
+        for (const FActorDatabaseEntry& Entry : ActorDatabase.Entries)
         {
-            scene::CBlinnPhongMaterial* BlinnPhongMaterial = scene::CreateBlinnPhongMaterial(MaterialDescription);
-            MaterialsHolder.Add(*BlinnPhongMaterial->GetName(), BlinnPhongMaterial);
+            ActorResourceFilePathById.Add(Entry.ActorId.str().c_str(), Entry.ActorPath);
         }
-
-        for (const FBlinnPhongMapsMaterialDescription& MaterialDescription : MaterialDatabase.BlinnPhongMapsMaterials)
-        {
-            scene::CBlinnPhongMapsMaterial* BlinnPhongMapsMaterial = scene::CreateBlinnPhongMapsMaterial(MaterialDescription);
-            MaterialsHolder.Add(*BlinnPhongMapsMaterial->GetName(), BlinnPhongMapsMaterial);
-        }
-
+        
         Renderer->Setup();
     }
 
@@ -131,7 +157,7 @@ namespace lucid
         Entry.bIsDefault = false;
         ResourceDatabase.Entries.push_back(Entry);
         TexturesHolder.Add(*InTexture->GetName(), InTexture);
-        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
+        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/databases/resources.json");
     }
 
     void CEngine::AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath)
@@ -144,36 +170,75 @@ namespace lucid
         Entry.bIsDefault = false;
         ResourceDatabase.Entries.push_back(Entry);
         MeshesHolder.Add(*InMesh->GetName(), InMesh);
-        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/resource_database.json");
+        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/databases/resources.json");
     }
 
     void CEngine::RemoveTextureResource(resources::CTextureResource* InTexture)
     {
         // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
         ResourceDatabase.Entries.erase(std::remove_if(
-          ResourceDatabase.Entries.begin(),
-          ResourceDatabase.Entries.end(),
-          [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == InTexture->GetID(); }));
+          ResourceDatabase.Entries.begin(), ResourceDatabase.Entries.end(), [&](const FResourceDatabaseEntry& Entry) {
+              return Entry.Id == InTexture->GetID();
+          }));
 
-        
         MeshesHolder.Remove(*InTexture->GetName());
         remove(*InTexture->GetFilePath());
 
-        WriteToJSONFile(ResourceDatabase, "assets/resource_database.json");
+        WriteToJSONFile(ResourceDatabase, "assets/databases/resources.json");
     }
-    
+
     void CEngine::RemoveMeshResource(resources::CMeshResource* InMesh)
     {
         // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
         ResourceDatabase.Entries.erase(std::remove_if(
-          ResourceDatabase.Entries.begin(),
-          ResourceDatabase.Entries.end(),
-          [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == InMesh->GetID(); }));
+          ResourceDatabase.Entries.begin(), ResourceDatabase.Entries.end(), [&](const FResourceDatabaseEntry& Entry) {
 
-        
         MeshesHolder.Remove(*InMesh->GetName());
         remove(*InMesh->GetFilePath());
 
-        WriteToJSONFile(ResourceDatabase, "assets/resource_database.json");
+              return Entry.Id == InMesh->GetID();
+          }));
+        WriteToJSONFile(ResourceDatabase, "assets/databases/resources.json");
+    }
+
+    DEFINE_LOAD_MATERIAL_FUNC(FlatMaterials, FFlatMaterialDescription, scene::CFlatMaterial)
+    DEFINE_LOAD_MATERIAL_FUNC(BlinnPhongMaterials, FBlinnPhongMaterialDescription, scene::CBlinnPhongMaterial)
+    DEFINE_LOAD_MATERIAL_FUNC(BlinnPhongMapsMaterials, FBlinnPhongMapsMaterialDescription, scene::CBlinnPhongMapsMaterial)
+
+    void CEngine::Shutdown()
+    {
+        MaterialDatabase.FlatMaterials.clear();
+        MaterialDatabase.BlinnPhongMaterials.clear();
+        MaterialDatabase.BlinnPhongMapsMaterials.clear();
+
+        for (u32 i = 0; i < MaterialsHolder.GetLength(); ++i)
+        {
+            MaterialsHolder.Get(i)->SaveToResourceFile(EFileFormat::Json);            
+        }
+    }
+
+    scene::CStaticMesh* CEngine::GetStaticMeshActor(const UUID& ActorId)
+    {
+        const auto ActorIdStr = ActorId.str();
+        if (StaticMeshesHolder.Contains(ActorIdStr.c_str()))
+        {
+            return StaticMeshesHolder.Get(ActorIdStr.c_str());
+        }
+
+        if (ActorResourceFilePathById.Contains(ActorIdStr.c_str()))
+        {
+            FStaticMeshDescription StaticMeshDescription;
+            const FDString& ActorResourcePath = ActorResourceFilePathById.Get(ActorIdStr.c_str());
+            // @TODO assert loaded actor type in some better way
+            if (ReadFromJSONFile(StaticMeshDescription, *ActorResourcePath))
+            {
+               return scene::CStaticMesh::CreateStaticMesh(StaticMeshDescription); 
+            }
+            return nullptr;
+        }
+
+        // @TODO default actor
+        return nullptr; 
+
     }
 } // namespace lucid
