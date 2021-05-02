@@ -66,7 +66,7 @@ namespace lucid::scene
         }
         else
         {
-            SkyboxFaces[0] = GEngine.GetTexturesHolder().Get(*InSkyboxDescription.RightFaceTexture.Value);
+            SkyboxFaces[0] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.RightFaceTexture.Value);
         }
 
         if (InSkyboxDescription.RightFaceTexture.bChanged)
@@ -75,7 +75,7 @@ namespace lucid::scene
         }
         else
         {
-            SkyboxFaces[1] = GEngine.GetTexturesHolder().Get(*InSkyboxDescription.LeftFaceTexture.Value);
+            SkyboxFaces[1] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.LeftFaceTexture.Value);
         }
 
 
@@ -85,7 +85,7 @@ namespace lucid::scene
         }
         else
         {
-            SkyboxFaces[2] = GEngine.GetTexturesHolder().Get(*InSkyboxDescription.TopFaceTexture.Value);
+            SkyboxFaces[2] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.TopFaceTexture.Value);
         }
 
 
@@ -95,7 +95,7 @@ namespace lucid::scene
         }
         else
         {
-            SkyboxFaces[3] = GEngine.GetTexturesHolder().Get(*InSkyboxDescription.BottomFaceTexture.Value);
+            SkyboxFaces[3] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.BottomFaceTexture.Value);
         }
 
 
@@ -105,7 +105,7 @@ namespace lucid::scene
         }
         else
         {
-            SkyboxFaces[4] = GEngine.GetTexturesHolder().Get(*InSkyboxDescription.FrontFaceTexture.Value);
+            SkyboxFaces[4] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.FrontFaceTexture.Value);
         }
 
         if (InSkyboxDescription.BackFaceTexture.bChanged)
@@ -114,7 +114,7 @@ namespace lucid::scene
         }
         else
         {
-            SkyboxFaces[5] = GEngine.GetTexturesHolder().Get(*InSkyboxDescription.BackFaceTexture.Value);
+            SkyboxFaces[5] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.BackFaceTexture.Value);
         }
         
         auto* Skybox = CreateSkybox(SkyboxFaces, InWorld, SkyboxFaces[0]->Width, SkyboxFaces[0]->Height, "Skybox");
@@ -142,47 +142,47 @@ namespace lucid::scene
             if (BaseSkyboxResource->FaceTextures[0] != FaceTextures[0])
             {
                 OutDescription.RightFaceTexture.bChanged = true;
-                OutDescription.RightFaceTexture.Value    = *FaceTextures[0]->GetName();
+                OutDescription.RightFaceTexture.Value    = FaceTextures[0]->GetID();
             }
 
             if (BaseSkyboxResource->FaceTextures[1] != FaceTextures[1])
             {
                 OutDescription.LeftFaceTexture.bChanged = true;
-                OutDescription.LeftFaceTexture.Value    = *FaceTextures[1]->GetName();
+                OutDescription.LeftFaceTexture.Value    = FaceTextures[1]->GetID();
             }
             
             if (BaseSkyboxResource->FaceTextures[2] != FaceTextures[2])
             {
                 OutDescription.TopFaceTexture.bChanged = true;
-                OutDescription.TopFaceTexture.Value    = *FaceTextures[2]->GetName();
+                OutDescription.TopFaceTexture.Value    = FaceTextures[2]->GetID();
             }
             
             if (BaseSkyboxResource->FaceTextures[3] != FaceTextures[3])
             {
                 OutDescription.BottomFaceTexture.bChanged = true;
-                OutDescription.BottomFaceTexture.Value    = *FaceTextures[3]->GetName();
+                OutDescription.BottomFaceTexture.Value    = FaceTextures[3]->GetID();
             }
             
             if (BaseSkyboxResource->FaceTextures[4] != FaceTextures[4])
             {
                 OutDescription.FrontFaceTexture.bChanged = true;
-                OutDescription.FrontFaceTexture.Value    = *FaceTextures[4]->GetName();
+                OutDescription.FrontFaceTexture.Value    = FaceTextures[4]->GetID();
             }
             
             if (BaseSkyboxResource->FaceTextures[5] != FaceTextures[5])
             {
                 OutDescription.BackFaceTexture.bChanged = true;
-                OutDescription.BackFaceTexture.Value    = *FaceTextures[5]->GetName();
+                OutDescription.BackFaceTexture.Value    = FaceTextures[5]->GetID();
             }
         }
         else
         {
-            OutDescription.LeftFaceTexture.Value    = *FaceTextures[0]->GetName();
-            OutDescription.RightFaceTexture.Value   = *FaceTextures[1]->GetName();
-            OutDescription.TopFaceTexture.Value     = *FaceTextures[2]->GetName();
-            OutDescription.BottomFaceTexture.Value  = *FaceTextures[3]->GetName();
-            OutDescription.FrontFaceTexture.Value   = *FaceTextures[4]->GetName();
-            OutDescription.BackFaceTexture.Value    = *FaceTextures[5]->GetName();
+            OutDescription.LeftFaceTexture.Value    = FaceTextures[0]->GetID();
+            OutDescription.RightFaceTexture.Value   = FaceTextures[1]->GetID();
+            OutDescription.TopFaceTexture.Value     = FaceTextures[2]->GetID();
+            OutDescription.BottomFaceTexture.Value  = FaceTextures[3]->GetID();
+            OutDescription.FrontFaceTexture.Value   = FaceTextures[4]->GetID();
+            OutDescription.BackFaceTexture.Value    = FaceTextures[5]->GetID();
         }
     }
 

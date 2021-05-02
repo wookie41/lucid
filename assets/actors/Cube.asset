@@ -1,11 +1,11 @@
-﻿{
+{
     "Name": "Cube",
-    "MeshResourceName": {
+    "MeshResourceId": {
         "bChanged": true,
-        "Value": "Cube",
+        "Value": "34828167-a07f-4421-8351-e55b4ca233ab"
     },
-    "MaterialName": {
+    "MaterialId": {
         "bChanged": true,
-        "Value": "FlatWhiteMAterial"
+        "Value": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3"
     }
 }

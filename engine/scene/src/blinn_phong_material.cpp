@@ -123,24 +123,24 @@ namespace lucid::scene
         auto* Material = new CBlinnPhongMapsMaterial{ Description.Id, Description.Name, InResourcePath, Shader };
 
         Material->Shininess = Description.Shininess;
-        Material->DiffuseMap = GEngine.GetTexturesHolder().Get(*Description.DiffuseTextureName);
-        if (Description.SpecularTextureName.GetLength())
+        Material->DiffuseMap = GEngine.GetTexturesHolder().Get(Description.DiffuseTextureID);
+        if (Description.SpecularTextureID != sole::INVALID_UUID)
         {
-            Material->SpecularMap = GEngine.GetTexturesHolder().Get(*Description.SpecularTextureName);
+            Material->SpecularMap = GEngine.GetTexturesHolder().Get(Description.SpecularTextureID);
         }
         else
         {
             Material->SpecularColor = Float3ToVec(Description.SpecularColor);
         }
 
-        if (Description.NormalTextureName.GetLength())
+        if (Description.NormalTextureID  != sole::INVALID_UUID)
         {
-            Material->NormalMap = GEngine.GetTexturesHolder().Get(*Description.NormalTextureName);
+            Material->NormalMap = GEngine.GetTexturesHolder().Get(Description.NormalTextureID);
         }
 
-        if (Description.DisplacementTextureName.GetLength())
+        if (Description.DisplacementTextureID != sole::INVALID_UUID)
         {
-            Material->DisplacementMap = GEngine.GetTexturesHolder().Get(*Description.DisplacementTextureName);
+            Material->DisplacementMap = GEngine.GetTexturesHolder().Get(Description.DisplacementTextureID);
         }
 
         return Material;
@@ -155,12 +155,12 @@ namespace lucid::scene
 
         if (DiffuseMap)
         {
-            BlinnPhongMapsMaterialDescription.DiffuseTextureName = FDString { *DiffuseMap->GetName(), DiffuseMap->GetName().GetLength() };
+            BlinnPhongMapsMaterialDescription.DiffuseTextureID = DiffuseMap->GetID();
         }
 
         if (SpecularMap)
         {
-            BlinnPhongMapsMaterialDescription.SpecularTextureName = FDString { *SpecularMap->GetName(), SpecularMap->GetName().GetLength() };
+            BlinnPhongMapsMaterialDescription.SpecularTextureID = SpecularMap->GetID();
         }
         else
         {
@@ -169,12 +169,12 @@ namespace lucid::scene
 
         if (NormalMap)
         {
-            BlinnPhongMapsMaterialDescription.NormalTextureName = FDString { *NormalMap->GetName(), NormalMap->GetName().GetLength() };
+            BlinnPhongMapsMaterialDescription.NormalTextureID = NormalMap->GetID();
         }
 
         if (DisplacementMap)
         {
-            BlinnPhongMapsMaterialDescription.DisplacementTextureName = FDString { *DisplacementMap->GetName(), DisplacementMap->GetName().GetLength() };
+            BlinnPhongMapsMaterialDescription.DisplacementTextureID = DisplacementMap->GetID();
         }
 
         switch (InFileFormat)

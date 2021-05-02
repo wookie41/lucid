@@ -13,15 +13,7 @@
                 0.5,
                 0.5
             ],
-            "bVisible": true,
-            "MeshResourceName": {
-                "bChanged": true,
-                "Value": "Cube",
-            },
-            "MaterialName": {
-                "bChanged": true,
-                "Value": "BrickMaterial"
-            }
+            "bVisible": true
         },
         {
             "Id": 2,
@@ -36,19 +28,11 @@
                 0.75,
                 0.75
             ],
-            "bVisible": true,
-            "MeshResourceName": {
-                "bChanged": true,
-                "Value": "Cube",
-            },
-            "MaterialName": {
-                "bChanged": true,
-                "Value": "FlatBlinnPhongMaterial"
-            }
+            "bVisible": true
         },
         {
             "Id": 3,
-            "Name": "Cube2",
+            "Name": "Nano",
             "Postion": [
                 3.003129482269287,
                 -4.230298042297363,
@@ -59,15 +43,7 @@
                 0.4000000059604645,
                 0.4000000059604645
             ],
-            "bVisible": true,
-            "MeshResourceName": {
-                "bChanged": true,
-                "Value": "Nano",
-            },
-            "MaterialName": {
-                "bChanged": true,
-                "Value": "BrickMaterial"
-            }
+            "bVisible": true
         },
         {
             "Id": 4,
@@ -82,23 +58,15 @@
                 2.0,
                 2.0
             ],
-            "bVisible": true,
-            "MeshResourceName": {
-                "bChanged": true,
-                "Value": "Cube",
-            },
-            "MaterialName": {
-                "bChanged": true,
-                "Value": "ToyboyxMaterial"
-            }
+            "bVisible": true
         },
         {
             "Id": 5,
             "Name": "Gigacube",
             "Postion": [
-                0.7798274159431458,
-                -0.7276607155799866,
-                1.2064440250396729
+                1.080240249633789,
+                -0.814562976360321,
+                1.1204549074172974
             ],
             "Scale": [
                 10.0,
@@ -106,61 +74,19 @@
                 10.0
             ],
             "bVisible": true,
-            "MeshResourceName": {
-                "bChanged": true,
-                "Value": "Cube",
-            },
-            "MaterialName": {
-                "bChanged": true,
-                "Value": "WoodMaterial"
-            },
             "bReverseNormals": true
         },
         {
             "Id": 6,
             "Name": "Backpack",
             "Postion": [
-                -1.3334033489227296,
-                -1.7131092548370362,
-                -2.6841955184936525
+                -0.758414089679718,
+                -2.2643446922302248,
+                -4.073437690734863
             ],
-            "bVisible": true,
-            "MeshResourceName": {
-                "bChanged": true,
-                "Value": "Backpack",
-            },
-            "MaterialName": {
-                "bChanged": true,
-                "Value": "BackpackMaterial"
-            }
+            "bVisible": true
         }
     ],
-    "Skybox": {
-            "RightFace": {
-                "bChanged": true,
-                "Value": "SkyboxRight",
-            },
-            "LeftFace": {
-                "bChanged": true,
-                "Value": "SkyboxLeft",
-            },
-            "TopFace": {
-                "bChanged": true,
-                "Value": "SkyboxTop",
-            },
-            "BottomFace": {
-                "bChanged": true,
-                "Value": "SkyboxBottom",
-            },
-            "FrontFace": {
-                "bChanged": true,
-                "Value": "SkyboxFront",
-            },
-            "BackFace": {
-                "bChanged": true,
-                "Value": "SkyboxBack",
-            }
-    },
     "SpotLights": [
         {
             "Id": 7,

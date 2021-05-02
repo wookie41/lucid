@@ -62,8 +62,10 @@ namespace lucid
         void        Add(const K& Key, const V& Value);
         V&          Get(const K& Key);
         V&          Get(const u64& EntryNum);
+        void        Remove(const K& Key);
         bool        Contains(const K& Key);
-        u32         GetLength();
+        u32         GetLength() const;
+        void        FreeAll();
 
     private:
         
@@ -83,7 +85,7 @@ namespace lucid
         V&          Get(const char* Key);
         V&          Get(const u64& EntryNum);
         bool        Contains(const char* Key);
-        u32         GetLength();
+        u32         GetLength() const;
     private:
         
         struct

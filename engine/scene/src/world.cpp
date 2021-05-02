@@ -131,15 +131,14 @@ namespace lucid::scene
         World->Init();
 
         // Load static meshes
-        FStaticMeshDescription StaticMeshDescription;
-        for (const FStaticMeshDescription& InStaticMeshDescription : InWorldDescription.StaticMeshes)
+        for (const FStaticMeshDescription& StaticMeshDescription : InWorldDescription.StaticMeshes)
         {
-            GEngine.CreateActorInstance<CStaticMesh>(World, StaticMeshDescription.BaseActorResourceId, InStaticMeshDescription);
+            GEngine.CreateActorInstance<CStaticMesh>(World, StaticMeshDescription);
         }
 
         if (InWorldDescription.Skybox.BaseActorResourceId != sole::INVALID_UUID)
         {
-            GEngine.CreateActorInstance<CSkybox>(World, StaticMeshDescription.BaseActorResourceId, InWorldDescription.Skybox);
+            GEngine.CreateActorInstance<CSkybox>(World, InWorldDescription.Skybox);
         }
 
         // Load lights

@@ -154,7 +154,7 @@ namespace lucid
     }
 
     template <typename K, typename V>
-    u32 FHashMap<K, V>::GetLength()
+    u32 FHashMap<K, V>::GetLength() const
     {
         return hmlen(HashMap);
     }   
@@ -164,6 +164,18 @@ namespace lucid
     {
         assert(EntryNum < GetLength());
         return HashMap[EntryNum].value;
+    }
+
+    template <typename K, typename V>
+    void FHashMap<K, V>::FreeAll()
+    {
+        hmfree(HashMap);
+    }
+
+    template <typename K, typename V>
+    void FHashMap<K, V>::Remove(const K& Key)
+    {
+        hmdel(HashMap, Key);
     }
 
     template <typename V>
@@ -185,7 +197,7 @@ namespace lucid
     }
 
     template <typename V>
-    u32 FStringHashMap<V>::GetLength()
+    u32 FStringHashMap<V>::GetLength() const
     {
         return hmlen(HashMap);
     }   

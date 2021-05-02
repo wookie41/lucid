@@ -28,8 +28,8 @@ namespace lucid
 
     using CTexturesHolder = resources::CResourcesHolder<resources::CTextureResource>;
     using CMeshesHolder = resources::CResourcesHolder<resources::CMeshResource>;
-    using CMaterialsHolder = FStringHashMap<scene::CMaterial*>;
-    using CStaticMeshesHolder = FStringHashMap<scene::CStaticMesh*>;
+    using CMaterialsHolder = FHashMap<UUID, scene::CMaterial*>;
+    using CStaticMeshesHolder = FHashMap<UUID, scene::CStaticMesh*>;
 
     class CActorThumbsGenerator;
 
@@ -75,7 +75,7 @@ namespace lucid
         void RemoveTextureResource(resources::CTextureResource*);
 
         template <typename TActor, typename TActorDescription>
-        TActor* CreateActorInstance(scene::CWorld* InWorld, const UUID& InActorResourceId, const TActorDescription& InActorDescription);
+        TActor* CreateActorInstance(scene::CWorld* InWorld, const TActorDescription& InActorDescription);
     
     protected:
 
@@ -95,8 +95,8 @@ namespace lucid
         CTexturesHolder  TexturesHolder {};
         CMaterialsHolder MaterialsHolder {};
 
-        FStringHashMap<FActorResourceInfo>   ActorResourceInfoById;        
-        FStringHashMap<scene::IActor*>       ActorResourceById;        
+        FHashMap<UUID, FActorResourceInfo>   ActorResourceInfoById;        
+        FHashMap<UUID, scene::IActor*>       ActorResourceById;        
 
 #if DEVELOPMENT
     public:

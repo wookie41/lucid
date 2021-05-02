@@ -2,8 +2,7 @@
     "Id": "24f49047-090b-4d13-900b-e65f66327148",
     "Name": "BrickMaterial",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureName": "Blank",
-    "NormalTextureName": "Blank",
+    "DiffuseTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
     "SpecularColor": [
         0.20000000298023225,
         0.20000000298023225,

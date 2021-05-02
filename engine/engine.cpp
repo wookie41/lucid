@@ -39,7 +39,7 @@ namespace lucid
             if (bSuccess)                                                                                 \
             {                                                                                             \
                 TMaterial* Material = TMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath); \
-                MaterialsHolder.Add(*Material->GetName(), Material);                                      \
+                MaterialsHolder.Add(Material->GetID(), Material);                                      \
             }                                                                                             \
             else                                                                                          \
             {                                                                                             \
@@ -100,7 +100,7 @@ namespace lucid
                     LoadedMesh->LoadDataToMainMemorySynchronously();
                     LoadedMesh->LoadDataToVideoMemorySynchronously();
                     LoadedMesh->Thumb = ThumbsGenerator->GenerateMeshThumb(256, 256, LoadedMesh);
-                    GEngine.GetMeshesHolder().Add(*Entry.Name, LoadedMesh);
+                    GEngine.GetMeshesHolder().Add(Entry.Id, LoadedMesh);
 
                     if (Entry.bIsDefault)
                     {
@@ -115,7 +115,7 @@ namespace lucid
                 {
                     LoadedTexture->LoadDataToMainMemorySynchronously();
                     LoadedTexture->LoadDataToVideoMemorySynchronously();
-                    GEngine.GetTexturesHolder().Add(*Entry.Name, LoadedTexture);
+                    GEngine.GetTexturesHolder().Add(Entry.Id, LoadedTexture);
 
                     if (Entry.bIsDefault)
                     {
@@ -142,7 +142,7 @@ namespace lucid
             FActorResourceInfo ActorResourceInfo;
             ActorResourceInfo.Type = Entry.ActorType;
             ActorResourceInfo.ResourceFilePath = Entry.ActorPath;
-            ActorResourceInfoById.Add(Entry.ActorId.str().c_str(), ActorResourceInfo);
+            ActorResourceInfoById.Add(Entry.ActorId, ActorResourceInfo);
         }
 
         Renderer->Setup();
@@ -157,7 +157,7 @@ namespace lucid
         Entry.Type = resources::TEXTURE;
         Entry.bIsDefault = false;
         ResourceDatabase.Entries.push_back(Entry);
-        TexturesHolder.Add(*InTexture->GetName(), InTexture);
+        TexturesHolder.Add(InTexture->GetID(), InTexture);
         WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/databases/resources.json");
     }
 
@@ -170,7 +170,7 @@ namespace lucid
         Entry.Type = resources::MESH;
         Entry.bIsDefault = false;
         ResourceDatabase.Entries.push_back(Entry);
-        MeshesHolder.Add(*InMesh->GetName(), InMesh);
+        MeshesHolder.Add(InMesh->GetID(), InMesh);
         WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/databases/resources.json");
     }
 
@@ -182,7 +182,7 @@ namespace lucid
               return Entry.Id == InTexture->GetID();
           }));
 
-        MeshesHolder.Remove(*InTexture->GetName());
+        MeshesHolder.Remove(InTexture->GetID());
         remove(*InTexture->GetFilePath());
 
         WriteToJSONFile(ResourceDatabase, "assets/databases/resources.json");
@@ -193,11 +193,12 @@ namespace lucid
         // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
         ResourceDatabase.Entries.erase(std::remove_if(
           ResourceDatabase.Entries.begin(), ResourceDatabase.Entries.end(), [&](const FResourceDatabaseEntry& Entry) {
-              MeshesHolder.Remove(*InMesh->GetName());
-              remove(*InMesh->GetFilePath());
-
               return Entry.Id == InMesh->GetID();
-          }));
+        }));
+        
+        MeshesHolder.Remove(InMesh->GetID());
+        remove(*InMesh->GetFilePath());
+
         WriteToJSONFile(ResourceDatabase, "assets/databases/resources.json");
     }
 

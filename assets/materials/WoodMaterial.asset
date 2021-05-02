@@ -2,7 +2,7 @@
     "Id": "5f13c189-43af-4816-94a9-36a7d8918e71",
     "Name": "WoodMaterial",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureName": "WoodDiffuse",
+    "DiffuseTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
     "SpecularColor": [
         0.5,
         0.5,

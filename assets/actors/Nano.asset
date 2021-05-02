@@ -1,11 +1,11 @@
-﻿{
+{
     "Name": "Nano",
-    "MeshResourceName": {
+    "MeshResourceId": {
         "bChanged": true,
-        "Value": "Nano",
+        "Value": "9be9bbf6-5774-4abb-b067-11c85a895ab2"
     },
-    "MaterialName": {
+    "MaterialId": {
         "bChanged": true,
-        "Value": "FlatWhiteMaterial"
+        "Value": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3"
     }
 }

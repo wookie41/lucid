@@ -1,22 +1,22 @@
 {
     "Entries": [
         {
-            "ActorId": "2fb2bde7-3c53-4d51-bffd-5a3b54ba4805",
+            "ActorId": "0abeaa63-b7cd-4493-b939-809986855b30",
             "ActorPath": "assets/actors/Cube.asset",
             "ActorType": 1
         },
         {
-            "ActorId": "41d124c9-c180-416d-9801-a35802741a5c",
+            "ActorId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
             "ActorPath": "assets/actors/Backpack.asset",
             "ActorType": 1
         },
         {
-            "ActorId": "f13beb86-9664-4613-a8b4-7b964b50ec5a",
+            "ActorId": "6c61f7da-7642-4523-b760-8a93d9d0f734",
             "ActorPath": "assets/actors/Nano.asset",
             "ActorType": 1
         },
         {
-            "ActorId": "393ee9b5-bdd8-4241-91e1-ecb14bfead6c",
+            "ActorId": "dfd87123-806f-4656-a086-2ec636e29fbc",
             "ActorPath": "assets/actors/ArcticSkybox.asset",
             "ActorType": 2
         }

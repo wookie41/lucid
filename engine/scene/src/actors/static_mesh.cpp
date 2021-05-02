@@ -52,20 +52,20 @@ namespace lucid::scene
         {
             if (MeshResource != BaseStaticMesh->MeshResource)
             {
-                OutDescription.MeshResourceName.bChanged = true;
-                OutDescription.MeshResourceName.Value = *MeshResource->GetName();
+                OutDescription.MeshResourceId.bChanged = true;
+                OutDescription.MeshResourceId.Value = MeshResource->GetID();
             }
 
             if (Material != BaseStaticMesh->Material)
             {
-                OutDescription.MaterialName.bChanged = true;
-                OutDescription.MaterialName.Value = *Material->GetName();
+                OutDescription.MaterialId.bChanged  = true;
+                OutDescription.MaterialId.Value     = Material->GetID();
             }
         }
         else
         {
-            OutDescription.MeshResourceName.Value = *MeshResource->GetName();
-            OutDescription.MaterialName.Value = *Material->GetName();
+            OutDescription.MeshResourceId.Value = MeshResource->GetID();
+            OutDescription.MaterialId.Value     =     Material->GetID();
         }
 
         OutDescription.Id = Id;
@@ -100,20 +100,20 @@ namespace lucid::scene
     {
         auto* Parent = InStaticMeshDescription.ParentId > 0 ? InWorld->GetActorById(InStaticMeshDescription.ParentId) : nullptr;
 
-        resources::CMeshResource*   MeshResource;
-        if (InStaticMeshDescription.MeshResourceName.bChanged)
+        resources::CMeshResource* MeshResource;
+        if (InStaticMeshDescription.MeshResourceId.bChanged)
         {
-            MeshResource = GEngine.GetMeshesHolder().Get(*InStaticMeshDescription.MeshResourceName.Value);
+            MeshResource = GEngine.GetMeshesHolder().Get(InStaticMeshDescription.MeshResourceId.Value);
         }
         else
         {
             MeshResource = BaseActorResource->MeshResource;
         }
 
-        CMaterial*            Material;
-        if (InStaticMeshDescription.MaterialName.bChanged)
+        CMaterial* Material;
+        if (InStaticMeshDescription.MaterialId.bChanged)
         {
-            Material = GEngine.GetMaterialsHolder().Get(*InStaticMeshDescription.MaterialName.Value);
+            Material = GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialId.Value);
         }
         else
         {

@@ -387,7 +387,7 @@ namespace lucid::scene
         CachedHitMap.CachedTextureData = (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
         Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
 
-        LightBulbTexture = GEngine.GetTexturesHolder().Get("LightBulb")->TextureHandle;
+        LightBulbTexture = GEngine.GetTexturesHolder().Get(sole::rebuild("abd835d6-6aa9-4140-9442-9afe04a2b999"))->TextureHandle;
 #endif
     }
 

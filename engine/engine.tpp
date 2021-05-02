@@ -3,41 +3,40 @@
 namespace lucid
 {
     template <typename TActor, typename TActorDescription>
-    TActor* CEngine::CreateActorInstance(scene::CWorld* InWorld, const UUID& InActorResourceId, const TActorDescription& InActorDescription)
+    TActor* CEngine::CreateActorInstance(scene::CWorld* InWorld, const TActorDescription& InActorDescription)
     {
-        if (InActorDescription.BaseActorResourceId != sole::INVALID_UUID)
+        if (InActorDescription.BaseActorResourceId == sole::INVALID_UUID)
         {
-            LUCID_LOG(ELogLevel::WARN, "Failed to create actor '%s' - base resource unknown");
+            LUCID_LOG(ELogLevel::WARN, "Failed to create actor '%s'- base resource unknown", *InActorDescription.Name);
             return nullptr;
         }
-        const auto ActorResourceIdStr = InActorResourceId.str();
-
+        
+        const auto ActorResourceId = InActorDescription.BaseActorResourceId;
         scene::IActor* BaseActorResource = nullptr;
 
         // Chcek if we've already loaded the actor resource info
-        if (ActorResourceById.Contains(ActorResourceIdStr.c_str()))
+        if (ActorResourceById.Contains(ActorResourceId))
         {
-            BaseActorResource = ActorResourceById.Get(ActorResourceIdStr.c_str());
+            BaseActorResource = ActorResourceById.Get(ActorResourceId);
         }
         else
         {
             // If not, check if we've got and entry for it and if so, load it
-            if (ActorResourceInfoById.Contains(ActorResourceIdStr.c_str()))
+            if (ActorResourceInfoById.Contains(ActorResourceId))
             {
-                FActorResourceInfo& ActorResourceInfo = ActorResourceInfoById.Get(ActorResourceIdStr.c_str());
+                FActorResourceInfo& ActorResourceInfo = ActorResourceInfoById.Get(ActorResourceId);
                 assert(ActorResourceInfo.Type == TActor::GetActorTypeStatic());
 
-                TActorDescription ActorResourceDescription;
-                if(!ReadFromJSONFile(ActorResourceDescription, *ActorResourceInfo.ResourceFilePath))
+                TActorDescription BaseActorResourceDescription;
+                if(!ReadFromJSONFile(BaseActorResourceDescription, *ActorResourceInfo.ResourceFilePath))
                 {
-                    LUCID_LOG(ELogLevel::WARN, "Failed to create actor '%s' - couldn't load file", *ActorResourceInfo.ResourceFilePath);
+                    LUCID_LOG(ELogLevel::WARN, "Failed to create actor '%s' - couldn't load file '%s'", *InActorDescription.Name, *ActorResourceInfo.ResourceFilePath);
                     return nullptr;
                 }
                 
-                BaseActorResource = TActor::CreateActor(nullptr, nullptr, ActorResourceDescription);
-                BaseActorResource->ResourceId = InActorResourceId;
+                BaseActorResource = TActor::CreateActor(nullptr, nullptr, BaseActorResourceDescription);
 
-                ActorResourceById.Add(ActorResourceIdStr.c_str(), BaseActorResource);
+                ActorResourceById.Add(ActorResourceId, BaseActorResource);
             }
             else
             {

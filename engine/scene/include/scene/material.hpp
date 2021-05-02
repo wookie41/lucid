@@ -32,7 +32,7 @@ namespace lucid::scene
         virtual void SetupShader(gpu::CShader* InShadder) = 0;
         inline gpu::CShader* GetShader() const { return Shader; }
         inline const FString& GetName() const { return Name; };
-        inline const UUID& GetId() const { return ID; };
+        inline const UUID& GetID() const { return ID; };
         virtual void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const = 0;
 
         virtual ~CMaterial() = default;

@@ -1,11 +1,11 @@
-﻿{
+{
     "Name": "Backpack",
-    "MeshResourceName": {
+    "MeshResourceId": {
         "bChanged": true,
-        "Value": "Backpack",
+        "Value": "b18e38d5-6d74-4242-b3dd-a6e3ad86aca4"
     },
-    "MaterialName": {
+    "MaterialId": {
         "bChanged": true,
-        "Value": "BacpackMaterial"
+        "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
     }
 }
