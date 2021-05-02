@@ -1,5 +1,8 @@
 #include "scene/actors/lights.hpp"
 
+#include <engine/engine.hpp>
+
+
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/shader.hpp"
 
@@ -55,10 +58,31 @@ namespace lucid::scene
         InShader->SetVector(LIGHT_COLOR, Color);
     }
 
+#if DEVELOPMENT
     void CLight::UIDrawActorDetails()
     {
+        IActor::UIDrawActorDetails();
         ImGui::SliderFloat3("Light color", &Color.r, 0, 1);
+
+        bool bCastsShadow = ShadowMap != nullptr;
+        ImGui::Checkbox("Casts shadow", &bCastsShadow);
+        if (bCastsShadow)
+        {
+            if (!ShadowMap)
+            {
+                ShadowMap = GEngine.GetRenderer()->CreateShadowMap(GetType());
+            }
+        }
+        else
+        {
+            if (ShadowMap)
+            {
+                ShadowMap->Free();
+                ShadowMap = nullptr;
+            }
+        }
     }
+#endif
 
     float CLight::GetVerticalMidPoint() const
     {
@@ -101,6 +125,15 @@ namespace lucid::scene
         InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
     }
 
+#if DEVELOPMENT
+    void CDirectionalLight::UIDrawActorDetails()
+    {
+        CLight::UIDrawActorDetails();
+        ImGui::SliderFloat3("Direction", &Direction.x, -1, 1);
+        ImGui::SliderFloat3("Light up", &LightUp.x, 0, 1);
+    }
+#endif
+    
     /////////////////////////////////////
     //            Spot light           //
     /////////////////////////////////////
@@ -137,6 +170,21 @@ namespace lucid::scene
         InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
     }
 
+#if DEVELOPMENT
+    void CSpotLight::UIDrawActorDetails()
+    {
+        CLight::UIDrawActorDetails();
+        ImGui::SliderFloat3("Direction", &Direction.x, -1, 1);
+        ImGui::SliderFloat3("Light up", &LightUp.x, 0, 1);
+
+        ImGui::SliderFloat("Constant", &Constant, 0, FLT_HALF_MAX);
+        ImGui::SliderFloat("Linear", &Linear, 0, FLT_HALF_MAX);
+        ImGui::SliderFloat("Quadratic", &Quadratic, 0, FLT_HALF_MAX);
+        ImGui::SliderFloat("InnerCutOffRad", &InnerCutOffRad, 0, 2);
+        ImGui::SliderFloat("OuterCutOffRad", &OuterCutOffRad, 0, 2);
+    }
+#endif
+    
     /////////////////////////////////////
     //           Point light           //
     /////////////////////////////////////
@@ -199,4 +247,19 @@ namespace lucid::scene
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);        
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);        
     }
+
+    
+#if DEVELOPMENT
+    void CPointLight::UIDrawActorDetails()
+    {
+        CLight::UIDrawActorDetails();
+
+        ImGui::SliderFloat("Constant", &Constant, 0, FLT_HALF_MAX);
+        ImGui::SliderFloat("Linear", &Linear, 0, FLT_HALF_MAX);
+        ImGui::SliderFloat("Quadratic", &Quadratic, 0, FLT_HALF_MAX);
+        ImGui::SliderFloat("Near plane", &NearPlane, 1, 5);
+        ImGui::SliderFloat("Far plane", &FarPlane, 5, 100);
+    }
+#endif
+    
 } // namespace lucid::scene

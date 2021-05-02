@@ -66,6 +66,8 @@ namespace lucid::scene
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
         void GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const;
 #endif
+
+        void DrawMeshSafe(const CStaticMesh* StaticMesh) const;
         
         u32 MaxNumOfDirectionalLights;
         float Gamma = 2.2;

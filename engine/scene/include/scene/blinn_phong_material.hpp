@@ -35,6 +35,11 @@ namespace lucid::scene
         u32 Shininess;
         glm::vec3 DiffuseColor;
         glm::vec3 SpecularColor;
+
+#if DEVELOPMENT
+        virtual void UIDrawMaterialEditor() override;
+#endif
+        
     };
     
     /////////////////////////////////////
@@ -61,6 +66,9 @@ namespace lucid::scene
 
         glm::vec3 SpecularColor; //Fallback when specular map is not used
 
-    };
+#if DEVELOPMENT
+        virtual void UIDrawMaterialEditor() override;
+#endif
 
+    };
 } // namespace lucid::scene

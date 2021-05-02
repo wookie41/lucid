@@ -81,8 +81,12 @@ namespace lucid::scene
         glm::vec3 Direction = { 0, 0, 0 };
         glm::vec3 LightUp{ 0, 1, 0 };
         glm::mat4 LightSpaceMatrix{ 1 };
-
+        
         CShadowMap* ShadowMap = nullptr;
+
+#if DEVELOPMENT
+        virtual void UIDrawActorDetails() override;
+#endif  
     };
 
     /////////////////////////////////////
@@ -110,6 +114,10 @@ namespace lucid::scene
         float Quadratic      = 0;
         float InnerCutOffRad = 0;
         float OuterCutOffRad = 0;
+
+#if DEVELOPMENT
+        virtual void UIDrawActorDetails() override;
+#endif  
     };
 
     /////////////////////////////////////
@@ -136,5 +144,9 @@ namespace lucid::scene
 
         float NearPlane = 1.f;
         float FarPlane  = 25.f;
+
+#if DEVELOPMENT
+        virtual void UIDrawActorDetails() override;
+#endif  
     };
 } // namespace lucid::scene

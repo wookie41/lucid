@@ -1,10 +1,16 @@
 #include "scene/blinn_phong_material.hpp"
 
+
 #include "engine/engine.hpp"
 #include "devices/gpu/shader.hpp"
 
 #include "schemas/binary.hpp"
 #include "schemas/json.hpp"
+
+#if DEVELOPMENT
+#include "imgui.h"
+#include "imgui_lucid.h"
+#endif
 
 namespace lucid::scene
 {
@@ -59,6 +65,14 @@ namespace lucid::scene
             WriteToJSONFile(BlinnPhongMaterialDescription, *ResourcePath);
             break;
         }
+    }
+
+    void CBlinnPhongMaterial::UIDrawMaterialEditor()
+    {
+        ImGui::Text("Blinn Phong material:");
+        ImGui::InputInt("Shininess", (int*)&Shininess);
+        ImGui::DragFloat3("Diffuse color", &DiffuseColor.r, 0.005, 0, 1);
+        ImGui::DragFloat3("Specular color", &SpecularColor.r, 0.005, 0, 1);
     }
 
     /* ---------------------------------------------------------------------------*/
@@ -186,5 +200,24 @@ namespace lucid::scene
             WriteToJSONFile(BlinnPhongMapsMaterialDescription, *ResourcePath);
             break;
         }
+    }
+    
+    void CBlinnPhongMapsMaterial::UIDrawMaterialEditor()
+    {
+        ImGui::Text("Blinn Phong Maps material:");
+        ImGui::InputInt("Shininess", (int*)&Shininess);
+        ImGui::DragFloat3("Fallback Specular color", &SpecularColor.r, 0.005, 0, 1);
+
+        ImGui::Text("Diffuse texture:");
+        ImGuiTextureResourcePicker("blinn_phong_maps_diffuse", &DiffuseMap);
+
+        ImGui::Text("Specular texture:");
+        ImGuiTextureResourcePicker("blinn_phong_maps_specular", &SpecularMap);
+        
+        ImGui::Text("Normal texture:");
+        ImGuiTextureResourcePicker("blinn_phong_maps_normal", &NormalMap);
+        
+        ImGui::Text("Displacement texture:");
+        ImGuiTextureResourcePicker("blinn_phong_maps_displacment", &DisplacementMap);
     }
 } // namespace lucid::scene

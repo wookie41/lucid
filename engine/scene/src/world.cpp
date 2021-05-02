@@ -209,6 +209,7 @@ namespace lucid::scene
         FStaticMeshDescription StaticMeshEntry;
         for (u32 i = 0; i < arrlen(StaticMeshes); ++i)
         {
+            StaticMeshEntry = {};
             const CStaticMesh* StaticMesh = StaticMeshes[i];
             StaticMesh->FillDescription(StaticMeshEntry);
             OutWorldDescription.StaticMeshes.push_back(StaticMeshEntry);
@@ -224,6 +225,7 @@ namespace lucid::scene
         FDirectionalLightEntry DirLightEntry;
         for (u32 i = 0; i < arrlen(DirectionalLights); ++i)
         {
+            DirLightEntry = {};
             const CDirectionalLight* DirLight = DirectionalLights[i];
             DirLightEntry.Id = DirLight->Id;
             DirLightEntry.ParentId = DirLight->Parent ? DirLight->Parent->Id : 0;
@@ -243,6 +245,7 @@ namespace lucid::scene
         FSpotLightEntry SpotLightEntry;
         for (u32 i = 0; i < arrlen(SpotLights); ++i)
         {
+            SpotLightEntry = {};
             const CSpotLight* SpotLight = SpotLights[i];
             SpotLightEntry.Id = SpotLight->Id;
             SpotLightEntry.ParentId = SpotLight->Parent ? SpotLight->Parent->Id : 0;
@@ -266,6 +269,7 @@ namespace lucid::scene
         FPointLightEntry PointLightEntry;
         for (u32 i = 0; i < arrlen(PointLights); ++i)
         {
+            PointLightEntry = {};
             const CPointLight* PointLight = PointLights[i];
             PointLightEntry.Id = PointLight->Id;
             PointLightEntry.ParentId = PointLight->Parent ? PointLight->Parent->Id : 0;

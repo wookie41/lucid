@@ -1,9 +1,7 @@
 #include "scene/forward_renderer.hpp"
 
-#include <devices/gpu/shaders_manager.hpp>
-#include <engine/engine.hpp>
-
-
+#include "devices/gpu/shaders_manager.hpp"
+#include "engine/engine.hpp"
 
 #include "common/log.hpp"
 #include "common/collections.hpp"
@@ -79,6 +77,26 @@ namespace lucid::scene
     static const FSString ACTOR_ID("uActorId");
 #endif
 
+    void CForwardRenderer::DrawMeshSafe(const CStaticMesh* StaticMesh) const
+    {
+    #if DEVELOPMENT
+            if (StaticMesh->GetMeshResource())
+            {
+                StaticMesh->GetMeshResource()->VAO->Bind();
+                StaticMesh->GetMeshResource()->VAO->Draw();   
+            }
+            else
+            {
+                LUCID_LOG(ELogLevel::ERR, "Static mesh '%s' has no MeshResource!", *StaticMesh->Name)
+                UnitCubeVAO->Bind();
+                UnitCubeVAO->Draw();
+            }
+    #else
+            StaticMesh->GetMeshResource()->VAO->Bind();
+            StaticMesh->GetMeshResource()->VAO->Draw();   
+    #endif
+    }
+    
     CForwardRenderer::CForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples)
     : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples)
     {
@@ -439,12 +457,13 @@ namespace lucid::scene
             CLight* Light = InSceneToRender->AllLights[i];
 
             // @TODO This should happen only if light moves
-            Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
 
             if (!Light->ShadowMap)
             {
                 continue; // Light doesn't cast shadows
             }
+
+            Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
 
             gpu::CShader* CurrentShadowMapShader = Light->GetType() == ELightType::POINT ? ShadowCubeMapShader : ShadowMapShader;
             if (CurrentShadowMapShader != PrevShadowMapShader)
@@ -476,8 +495,7 @@ namespace lucid::scene
                 if (StaticMesh->bVisible)
                 {
                     CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
-                    StaticMesh->GetMeshResource()->VAO->Bind();
-                    StaticMesh->GetMeshResource()->VAO->Draw();   
+                    DrawMeshSafe(StaticMesh);
                 }
             }
         }
@@ -643,8 +661,7 @@ namespace lucid::scene
 
         InStaticMesh->GetMaterial()->SetupShader(Shader);
 
-        InStaticMesh->GetMeshResource()->VAO->Bind();
-        InStaticMesh->GetMeshResource()->VAO->Draw();
+        DrawMeshSafe(InStaticMesh);
     }
 
     inline void CForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
@@ -722,8 +739,7 @@ namespace lucid::scene
             {
                 HitMapShader->SetUInt(ACTOR_ID, StaticMesh->Id);
                 HitMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
-                StaticMesh->GetMeshResource()->VAO->Bind();
-                StaticMesh->GetMeshResource()->VAO->Draw();
+                DrawMeshSafe(StaticMesh);
             }            
         }
 

@@ -1,5 +1,10 @@
 #include "scene/flat_material.hpp"
 
+
+#if DEVELOPMENT
+#include "imgui.h"
+#endif
+
 #include "devices/gpu/shader.hpp"
 #include "engine/engine.hpp"
 
@@ -43,4 +48,13 @@ namespace lucid::scene
             break;
         }        
     }
+
+#if DEVELOPMENT
+     void CFlatMaterial::UIDrawMaterialEditor()
+    {
+        ImGui::Text("Flat material:");
+        ImGui::DragFloat4("Color", &Color.r, 0.005, 0, 1);
+    }
+#endif
+
 } // namespace lucid::scene

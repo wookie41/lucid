@@ -37,6 +37,10 @@ namespace lucid::scene
 
         virtual ~CMaterial() = default;
 
+#if DEVELOPMENT
+        virtual void UIDrawMaterialEditor() = 0;
+#endif
+    
       protected:
 
         const UUID ID;

@@ -23,6 +23,9 @@ namespace lucid::scene
         void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const override;
         
         FColor Color;
+       
+#if DEVELOPMENT
+        virtual void UIDrawMaterialEditor() override;
+#endif
     };
-
 }

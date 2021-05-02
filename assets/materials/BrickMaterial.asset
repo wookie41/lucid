@@ -2,10 +2,7 @@
     "Id": "24f49047-090b-4d13-900b-e65f66327148",
     "Name": "BrickMaterial",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
-    "SpecularColor": [
-        0.20000000298023225,
-        0.20000000298023225,
-        0.20000000298023225
-    ]
+    "DiffuseTextureID": "761e8f37-06b1-4af3-8c6c-8a2931dc56f6",
+    "SpecularTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
+    "NormalTextureID": "848401ec-e072-490b-b87a-3ab0e58309bb"
 }

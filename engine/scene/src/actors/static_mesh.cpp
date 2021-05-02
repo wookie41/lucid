@@ -6,7 +6,10 @@
 #include "engine/engine.hpp"
 #include "schemas/json.hpp"
 
+#if DEVELOPMENT
 #include "imgui.h"
+#include "imgui_lucid.h"
+#endif
 
 namespace lucid::scene
 {
@@ -26,23 +29,11 @@ namespace lucid::scene
         IActor::UIDrawActorDetails();
 
         ImGui::Text("Static mesh:");
-        if (ImGui::BeginListBox("##listbox 2", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
-        {
-            for (int i = 0; i < GEngine.GetMeshesHolder().Length(); ++i)
-            {
-                resources::CMeshResource* CurrMeshResource = GEngine.GetMeshesHolder().GetByIndex(i);
-                if(ImGui::Selectable(*CurrMeshResource->GetName(), MeshResource == CurrMeshResource))
-                {
-                    MeshResource = CurrMeshResource;
-                }
-                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                if (MeshResource == CurrMeshResource)
-                {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndListBox();
-        }
+        ImGui::Checkbox("Reverse normals", &bReverseNormals);
+        ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
+        ImGui::Text("Material:");
+        ImGuiMaterialPicker("static_mesh_material", &Material);
+        Material->UIDrawMaterialEditor();
     }
 
     void CStaticMesh::FillDescription(FStaticMeshDescription& OutDescription) const
@@ -61,6 +52,8 @@ namespace lucid::scene
                 OutDescription.MaterialId.bChanged  = true;
                 OutDescription.MaterialId.Value     = Material->GetID();
             }
+
+            OutDescription.BaseActorResourceId = BaseStaticMesh->ResourceId;
         }
         else
         {
@@ -70,7 +63,6 @@ namespace lucid::scene
 
         OutDescription.Id = Id;
         OutDescription.ParentId = Parent ? Parent->Id : 0;
-        OutDescription.BaseActorResourceId = BaseStaticMesh ? BaseStaticMesh->ResourceId : sole::INVALID_UUID;
         OutDescription.Name = Name;
         OutDescription.Postion = VecToFloat3(Transform.Translation);
         OutDescription.Rotation = QuatToFloat4(Transform.Rotation);

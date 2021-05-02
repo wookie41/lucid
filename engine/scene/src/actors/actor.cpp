@@ -9,7 +9,7 @@ namespace lucid::scene
 {
     void IActor::UIDrawActorDetails()
     {
-        ImGui::Text("Actor:");
+        ImGui::Text(*Name);
 
         if (ImGui::Button("Save"))
         {

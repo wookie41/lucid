@@ -2,10 +2,7 @@
     "Id": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9",
     "Name": "BackpackMaterial",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
-    "SpecularColor": [
-        0.20000000298023225,
-        0.20000000298023225,
-        0.20000000298023225
-    ]
+    "DiffuseTextureID": "f889cd5f-2a97-4e63-91b7-12917ff3bbca",
+    "SpecularTextureID": "8fc72ee6-f857-47ea-ab57-923539690c3c",
+    "NormalTextureID": "c0845634-0934-4ea6-a4d2-b142575345bb"
 }

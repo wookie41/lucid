@@ -38,7 +38,6 @@ namespace lucid::scene
     public:
 #endif
         void FillDescription(FSkyboxDescription& OutDescription) const;
-
         
         u32 Width, Height;
         gpu::CCubemap* SkyboxCubemap = nullptr;

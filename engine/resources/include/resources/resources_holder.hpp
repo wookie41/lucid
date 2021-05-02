@@ -41,7 +41,7 @@ namespace lucid::resources
         /** Removes the loaded resource and calls FreeMainMemory() and FreeVideoMemory() on it */
         inline void Free(const UUID& InId)
         {
-            R* Resource= ResourcesHashMap.Get(InId);
+            R* Resource = ResourcesHashMap.Get(InId);
             if (Resource)
             {
                 Resource->FreeMainMemory();
