@@ -1,0 +1,11 @@
+﻿{
+    "Name": "Nano",
+    "MeshResourceName": {
+        "bChanged": true,
+        "Value": "Nano",
+    },
+    "MaterialName": {
+        "bChanged": true,
+        "Value": "FlatWhiteMaterial"
+    }
+}

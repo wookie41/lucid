@@ -1,4 +1,5 @@
-inline bool LoadTextFile(const char* fileName, TDYNAMICARRAY<char>& data)
+#ifdef LUCID_SCHEMAS_IMPLEMENTATION 
+bool LoadTextFile(const char* fileName, TDYNAMICARRAY<char>& data)
 {
     // open the file if we can
     FILE* file = nullptr;
@@ -19,8 +20,15 @@ inline bool LoadTextFile(const char* fileName, TDYNAMICARRAY<char>& data)
     data[TDYNAMICARRAY_SIZE(data) - 1] = 0;
     return true;
 }
-
 // Read a structure from a JSON string
+
+
+#else
+extern bool LoadTextFile(const char* fileName, TDYNAMICARRAY<char>& data);
+
+#endif
+
+
 template<typename TROOT>
 bool ReadFromJSONBuffer(TROOT& root, const char* data)
 {

@@ -149,6 +149,13 @@ int main(int argc, char** argv)
 
     GSceneEditorState.World = scene::LoadWorldFromJSONFile("assets/worlds/Demo.asset");
 
+    FActorDatabase TempDb;
+    TempDb.Entries.push_back({sole::uuid4(), "assets/actors/Cube.asset", scene::EActorType::STATIC_MESH });
+    TempDb.Entries.push_back({sole::uuid4(), "assets/actors/Backpack.asset", scene::EActorType::STATIC_MESH });
+    TempDb.Entries.push_back({sole::uuid4(), "assets/actors/Nano.asset", scene::EActorType::STATIC_MESH });
+    TempDb.Entries.push_back({sole::uuid4(), "assets/actors/ArcticSkybox.asset", scene::EActorType::SKYBOX });
+    WriteToJSONFile(TempDb, "assets/databases/actors.json");
+    
     bool IsRunning = true;
 
     real now = platform::GetCurrentTimeSeconds();

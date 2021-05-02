@@ -10,8 +10,6 @@
 #include "scene/forward_renderer.hpp"
 
 #define LUCID_SCHEMAS_IMPLEMENTATION
-#include <scene/actors/static_mesh.hpp>
-
 #include "schemas/types.hpp"
 #include "schemas/binary.hpp"
 #include "schemas/json.hpp"
@@ -144,7 +142,7 @@ namespace lucid
             FActorResourceInfo ActorResourceInfo;
             ActorResourceInfo.Type = Entry.ActorType;
             ActorResourceInfo.ResourceFilePath = Entry.ActorPath;
-            ActorResourceById.Add(Entry.ActorId.str().c_str(), ActorResourceInfo);
+            ActorResourceInfoById.Add(Entry.ActorId.str().c_str(), ActorResourceInfo);
         }
 
         Renderer->Setup();

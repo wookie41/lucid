@@ -16,6 +16,7 @@ namespace lucid
 {
     namespace scene
     {
+        class IActor;
         class CRenderer;
         class CStaticMesh;
         class CFlatMaterial;
@@ -94,7 +95,8 @@ namespace lucid
         CTexturesHolder  TexturesHolder {};
         CMaterialsHolder MaterialsHolder {};
 
-        FStringHashMap<FActorResourceInfo>   ActorResourceById;        
+        FStringHashMap<FActorResourceInfo>   ActorResourceInfoById;        
+        FStringHashMap<scene::IActor*>       ActorResourceById;        
 
 #if DEVELOPMENT
     public:

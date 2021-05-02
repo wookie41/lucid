@@ -223,3 +223,20 @@ rapidjson::Value MakeJSONValue(const lucid::scene::EActorType& value, rapidjson:
     ret.SetInt(static_cast<uint8_t>(value));
     return ret;
 }
+
+template <typename T>
+rapidjson::Value MakeJSONValue(const lucid::InstancedVariable<T>& value, rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value ret;
+    ret.SetObject();
+    rapidjson::Value changed;
+    changed.SetBool(value.bChanged);
+    ret.AddMember("bChanged", changed, allocator);
+    
+    if (value.bChanged)
+    {
+        auto val = MakeJSONValue(value.Value, allocator);
+        ret.AddMember("Value", val, allocator);
+    }
+    return ret;
+}

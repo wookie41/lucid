@@ -33,7 +33,7 @@ namespace lucid::scene
 
         static  EActorType   GetActorTypeStatic() { return EActorType::STATIC_MESH; };
         virtual EActorType   GetActorType() const override { return EActorType::STATIC_MESH; };
-        static  CStaticMesh* CreateActor(CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
+        static  CStaticMesh* CreateActor(CStaticMesh const* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
         
 #if DEVELOPMENT
         /** Editor stuff */
@@ -50,5 +50,7 @@ namespace lucid::scene
         CMaterial*                  Material = nullptr;
         resources::CMeshResource*   MeshResource = nullptr;
         bool                        bReverseNormals = false;
+
+        CStaticMesh const*          BaseStaticMesh = nullptr;
     };
 } // namespace lucid::scene

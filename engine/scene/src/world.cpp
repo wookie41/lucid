@@ -134,12 +134,12 @@ namespace lucid::scene
         FStaticMeshDescription StaticMeshDescription;
         for (const FStaticMeshDescription& InStaticMeshDescription : InWorldDescription.StaticMeshes)
         {
-            CStaticMesh::CreateActor(World, InStaticMeshDescription);
+            GEngine.CreateActorInstance<CStaticMesh>(World, StaticMeshDescription.BaseActorResourceId, InStaticMeshDescription);
         }
 
-        if (!InWorldDescription.Skybox.FacesTextures.empty())
+        if (InWorldDescription.Skybox.BaseActorResourceId != sole::INVALID_UUID)
         {
-            CSkybox::CreateActor(World, InWorldDescription.Skybox);            
+            GEngine.CreateActorInstance<CSkybox>(World, StaticMeshDescription.BaseActorResourceId, InWorldDescription.Skybox);
         }
 
         // Load lights
@@ -218,10 +218,7 @@ namespace lucid::scene
         // Save skybox
         if (Skybox)
         {
-            for (u8 i = 0; i < 6; ++i)
-            {
-                OutWorldDescription.Skybox.FacesTextures[i] = CopyToString(*Skybox->FaceTextures[i]->GetName(), Skybox->FaceTextures[i]->GetName().GetLength());
-            }
+            Skybox->FillDescription(OutWorldDescription.Skybox);
         }
 
         // Save dir lights
@@ -293,28 +290,12 @@ namespace lucid::scene
         FWorldDescription WorldDescription {};
         CreateWorldDescription(WorldDescription);
         WriteToJSONFile(WorldDescription, *InFilePath);
-
-        if (Skybox)
-        {
-            for (u8 i = 0; i < 6; ++i)
-            {
-                WorldDescription.Skybox.FacesTextures[i].Free();
-            }            
-        }
     }
 
     void CWorld::SaveToBinaryFile(const FString& InFilePath) const
     {
         FWorldDescription WorldDescription;
         CreateWorldDescription(WorldDescription);
-        // WriteToBinaryFile(WorldDescription, *InFilePath);
-
-        if (Skybox)
-        {
-            for (u8 i = 0; i < 6; ++i)
-            {
-                WorldDescription.Skybox.FacesTextures[i].Free();
-            }            
-        }
+        WriteToBinaryFile(WorldDescription, *InFilePath);
     }
 } // namespace lucid::scene

@@ -778,6 +778,7 @@ namespace sole {
         }
         return u;
     }
+    constexpr uuid INVALID_UUID = uuid {0, 0};
 
 } // ::sole
 

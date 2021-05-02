@@ -14,8 +14,14 @@
                 0.5
             ],
             "bVisible": true,
-            "MeshResourceName": "Backpack",
-            "MaterialName": "BrickMaterial"
+            "MeshResourceName": {
+                "bChanged": true,
+                "Value": "Cube",
+            },
+            "MaterialName": {
+                "bChanged": true,
+                "Value": "BrickMaterial"
+            }
         },
         {
             "Id": 2,
@@ -31,8 +37,14 @@
                 0.75
             ],
             "bVisible": true,
-            "MeshResourceName": "Cube",
-            "MaterialName": "FlatBlinnPhongMaterial"
+            "MeshResourceName": {
+                "bChanged": true,
+                "Value": "Cube",
+            },
+            "MaterialName": {
+                "bChanged": true,
+                "Value": "FlatBlinnPhongMaterial"
+            }
         },
         {
             "Id": 3,
@@ -48,8 +60,14 @@
                 0.4000000059604645
             ],
             "bVisible": true,
-            "MeshResourceName": "Nano",
-            "MaterialName": "BrickMaterial"
+            "MeshResourceName": {
+                "bChanged": true,
+                "Value": "Nano",
+            },
+            "MaterialName": {
+                "bChanged": true,
+                "Value": "BrickMaterial"
+            }
         },
         {
             "Id": 4,
@@ -65,8 +83,14 @@
                 2.0
             ],
             "bVisible": true,
-            "MeshResourceName": "Cube",
-            "MaterialName": "ToyboyxMaterial"
+            "MeshResourceName": {
+                "bChanged": true,
+                "Value": "Cube",
+            },
+            "MaterialName": {
+                "bChanged": true,
+                "Value": "ToyboyxMaterial"
+            }
         },
         {
             "Id": 5,
@@ -82,8 +106,14 @@
                 10.0
             ],
             "bVisible": true,
-            "MeshResourceName": "Cube",
-            "MaterialName": "WoodMaterial",
+            "MeshResourceName": {
+                "bChanged": true,
+                "Value": "Cube",
+            },
+            "MaterialName": {
+                "bChanged": true,
+                "Value": "WoodMaterial"
+            },
             "bReverseNormals": true
         },
         {
@@ -95,19 +125,41 @@
                 -2.6841955184936525
             ],
             "bVisible": true,
-            "MeshResourceName": "Backpack",
-            "MaterialName": "BackpackMaterial"
+            "MeshResourceName": {
+                "bChanged": true,
+                "Value": "Backpack",
+            },
+            "MaterialName": {
+                "bChanged": true,
+                "Value": "BackpackMaterial"
+            }
         }
     ],
     "Skybox": {
-        "FacesTextures": [
-            "SkyboxRight",
-            "SkyboxLeft",
-            "SkyboxTop",
-            "SkyboxBottom",
-            "SkyboxFront",
-            "SkyboxBack"
-        ]
+            "RightFace": {
+                "bChanged": true,
+                "Value": "SkyboxRight",
+            },
+            "LeftFace": {
+                "bChanged": true,
+                "Value": "SkyboxLeft",
+            },
+            "TopFace": {
+                "bChanged": true,
+                "Value": "SkyboxTop",
+            },
+            "BottomFace": {
+                "bChanged": true,
+                "Value": "SkyboxBottom",
+            },
+            "FrontFace": {
+                "bChanged": true,
+                "Value": "SkyboxFront",
+            },
+            "BackFace": {
+                "bChanged": true,
+                "Value": "SkyboxBack",
+            }
     },
     "SpotLights": [
         {

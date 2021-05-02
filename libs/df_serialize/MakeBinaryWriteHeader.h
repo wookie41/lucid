@@ -188,3 +188,13 @@ void BinaryWrite(const lucid::scene::EActorType& value, TDYNAMICARRAY<char>& out
 {
     BinaryWrite(static_cast<uint8_t>(value), output);
 }
+
+template <typename T>
+void BinaryWrite(const lucid::InstancedVariable<T>& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(value.bChanged, output);
+    if (value.bChanged)
+    {
+        BinaryWrite(value.Value, output);
+    }
+}

@@ -27,7 +27,7 @@ namespace lucid::scene
 
         static  EActorType GetActorTypeStatic() { return EActorType::SKYBOX; }
         virtual EActorType GetActorType() const override  { return EActorType::SKYBOX; }
-        static  CSkybox* CreateActor(CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
+        static  CSkybox* CreateActor(CSkybox const* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
 
 #if DEVELOPMENT
         /** Editor stuff */
@@ -43,6 +43,7 @@ namespace lucid::scene
         u32 Width, Height;
         gpu::CCubemap* SkyboxCubemap = nullptr;
         const resources::CTextureResource* FaceTextures[6];
+        CSkybox const* BaseSkyboxResource;
     };
 
     CSkybox* CreateSkybox(const resources::CTextureResource* FaceTextures[6],

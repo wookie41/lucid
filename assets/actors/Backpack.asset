@@ -1,0 +1,11 @@
+﻿{
+    "Name": "Backpack",
+    "MeshResourceName": {
+        "bChanged": true,
+        "Value": "Backpack",
+    },
+    "MaterialName": {
+        "bChanged": true,
+        "Value": "BacpackMaterial"
+    }
+}

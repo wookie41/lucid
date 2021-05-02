@@ -353,3 +353,22 @@ bool JSONRead(lucid::scene::EActorType& value, T& document)
     value = static_cast<lucid::scene::EActorType>(document.GetInt());
     return true;
 }
+
+template <typename T, typename R>
+bool JSONRead(lucid::InstancedVariable<R>& value, T& document)
+{
+    if (!document.IsObject())
+    {
+        return false;
+    }
+    auto obj = document.GetObjectW();
+    if (JSONRead(value.bChanged, obj["bChanged"]))
+    {
+        if (value.bChanged)
+        {
+            return JSONRead(value.Value, obj["Value"]);
+        }
+        return true;
+    }
+    return false;
+}

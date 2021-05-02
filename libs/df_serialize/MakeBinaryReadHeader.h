@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <common/strings.hpp>
+
 
 #include "_common.h"
 
@@ -326,6 +328,27 @@ bool BinaryRead(lucid::scene::EActorType& value, const TDYNAMICARRAY<char>& data
     {
         value = static_cast<lucid::scene::EActorType>(int_value);
         return true;
+    }
+    return false;
+}
+
+template <typename  T>
+bool BinaryRead(lucid::InstancedVariable<T>& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    if(BinaryRead(value.bChanged, data, offset))
+    {
+        if (value.bChanged)
+        {
+            if (BinaryRead(value.Value, data, offset))
+            {
+                return true;
+            }
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
     return false;
 }

@@ -1,0 +1,11 @@
+﻿{
+    "Name": "Cube",
+    "MeshResourceName": {
+        "bChanged": true,
+        "Value": "Cube",
+    },
+    "MaterialName": {
+        "bChanged": true,
+        "Value": "FlatWhiteMAterial"
+    }
+}

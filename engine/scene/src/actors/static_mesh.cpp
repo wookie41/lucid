@@ -48,10 +48,29 @@ namespace lucid::scene
     void CStaticMesh::FillDescription(FStaticMeshDescription& OutDescription) const
     {
         OutDescription.Type = Type;
-        OutDescription.MaterialName = FDString { *Material->GetName(), Material->GetName().GetLength() };
-        OutDescription.MeshResourceName = FDString { *MeshResource->GetName(), MeshResource->GetName().GetLength() };
+        if (BaseStaticMesh)
+        {
+            if (MeshResource != BaseStaticMesh->MeshResource)
+            {
+                OutDescription.MeshResourceName.bChanged = true;
+                OutDescription.MeshResourceName.Value = *MeshResource->GetName();
+            }
+
+            if (Material != BaseStaticMesh->Material)
+            {
+                OutDescription.MaterialName.bChanged = true;
+                OutDescription.MaterialName.Value = *Material->GetName();
+            }
+        }
+        else
+        {
+            OutDescription.MeshResourceName.Value = *MeshResource->GetName();
+            OutDescription.MaterialName.Value = *Material->GetName();
+        }
+
         OutDescription.Id = Id;
         OutDescription.ParentId = Parent ? Parent->Id : 0;
+        OutDescription.BaseActorResourceId = BaseStaticMesh ? BaseStaticMesh->ResourceId : sole::INVALID_UUID;
         OutDescription.Name = Name;
         OutDescription.Postion = VecToFloat3(Transform.Translation);
         OutDescription.Rotation = QuatToFloat4(Transform.Rotation);
@@ -77,18 +96,42 @@ namespace lucid::scene
         return 0;
     }
 
-    CStaticMesh* CStaticMesh::CreateActor(CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription)
+    CStaticMesh* CStaticMesh::CreateActor(CStaticMesh const* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription)
     {
         auto* Parent = InStaticMeshDescription.ParentId > 0 ? InWorld->GetActorById(InStaticMeshDescription.ParentId) : nullptr;
-        auto* MeshResource = GEngine.GetMeshesHolder().Get(*InStaticMeshDescription.MeshResourceName);
-        auto* Material = GEngine.GetMaterialsHolder().Get(*InStaticMeshDescription.MaterialName);
-        
+
+        resources::CMeshResource*   MeshResource;
+        if (InStaticMeshDescription.MeshResourceName.bChanged)
+        {
+            MeshResource = GEngine.GetMeshesHolder().Get(*InStaticMeshDescription.MeshResourceName.Value);
+        }
+        else
+        {
+            MeshResource = BaseActorResource->MeshResource;
+        }
+
+        CMaterial*            Material;
+        if (InStaticMeshDescription.MaterialName.bChanged)
+        {
+            Material = GEngine.GetMaterialsHolder().Get(*InStaticMeshDescription.MaterialName.Value);
+        }
+        else
+        {
+            Material = BaseActorResource->Material;
+        }
+
         auto* StaticMesh = new CStaticMesh { InStaticMeshDescription.Name, Parent, InWorld, MeshResource, Material, InStaticMeshDescription.Type };
         StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
         StaticMesh->Transform.Rotation = Float4ToQuat(InStaticMeshDescription.Rotation);
         StaticMesh->Transform.Scale = Float3ToVec(InStaticMeshDescription.Scale);
         StaticMesh->SetReverseNormals(InStaticMeshDescription.bReverseNormals);
-        InWorld->AddStaticMesh(StaticMesh);
+        StaticMesh->BaseStaticMesh = BaseActorResource;
+        
+        if (InWorld)
+        {
+            InWorld->AddStaticMesh(StaticMesh);            
+        }
+
         return StaticMesh;
     }
 } // namespace lucid::scene

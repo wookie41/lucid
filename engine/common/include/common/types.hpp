@@ -95,4 +95,27 @@ namespace lucid
     {
         return { Quat.x, Quat.y, Quat.z, Quat.w };
     }
+
+    /**
+     * Helper struct used when there are objects that reference a base resource and change just some of it's properties
+     * E.x. CStaticMesh that uses a differnt mesh, but the material
+     */
+    template <typename T>
+    struct InstancedVariable
+    {
+        InstancedVariable() = default;
+
+        T       Value = T {};
+        bool    bChanged = false;
+
+        bool operator==(const InstancedVariable<T>& InRhs) const
+        {
+            return Value == InRhs.Value;
+        }
+        bool operator!=(const InstancedVariable<T>& InRhs) const
+        {
+            return Value != InRhs.Value;
+        }
+
+    };
 } // namespace lucid

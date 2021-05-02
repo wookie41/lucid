@@ -65,7 +65,7 @@ namespace lucid::scene
         const FDString          Name;
         FTransform3D            Transform;
         bool                    bVisible = true;
-        UUID                    ResourceId = sole::uuid0();
+        UUID                    ResourceId = sole::INVALID_UUID;
         FDString                ResourcePath { "" };
         CWorld*                 World; // World that this actor is in
 

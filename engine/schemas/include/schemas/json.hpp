@@ -22,8 +22,11 @@
 // Writing JSON
 #ifdef LUCID_SCHEMAS_IMPLEMENTATION
     #include "MakeJSONWriteHeader.h"
+    #include "schemas/schemas.hpp"
+    #include "MakeJSONWriteFooter.h"
+
 #else
     #include "MakeJSONWriteHeaderFWD.h"
+    #include "schemas/schemas.hpp"
+    #include "MakeJSONWriteFooterFWD.h"
 #endif
-#include "schemas/schemas.hpp"
-#include "MakeJSONWriteFooter.h"
