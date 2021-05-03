@@ -291,7 +291,7 @@ namespace lucid::resources
     static Assimp::Importer AssimpImporter;
 
     static constexpr u32 ASSIMP_DEFAULT_FLAGS = aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace |
-                                                aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices;
+                                                aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices |aiProcess_Triangulate;
 
     /* Helper structure used when importing the mesh */
     struct FSubMeshInfo
@@ -370,6 +370,12 @@ namespace lucid::resources
                   TextureIndex, MeshFileDirPath, Material, aiTextureType_DIFFUSE, MeshName, FString{ "Diffuse" });
             }
 
+            for (int TextureIndex = 0; TextureIndex < Material->GetTextureCount(aiTextureType_REFLECTION); ++TextureIndex)
+            {
+                AssimpImportMaterialTexture(
+                  TextureIndex, MeshFileDirPath, Material, aiTextureType_REFLECTION, MeshName, FString{ "Reflection" });
+            }
+            
             for (int TextureIndex = 0; TextureIndex < Material->GetTextureCount(aiTextureType_SPECULAR); ++TextureIndex)
             {
                 AssimpImportMaterialTexture(

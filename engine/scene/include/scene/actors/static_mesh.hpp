@@ -47,7 +47,6 @@ namespace lucid::scene
 
         void FillDescription(FStaticMeshDescription& OutDescription) const;
         
-      protected:
         EStaticMeshType             Type;
         resources::CMeshResource*   MeshResource = nullptr;
         bool                        bReverseNormals = false;

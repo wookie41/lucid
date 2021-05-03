@@ -203,7 +203,7 @@ namespace lucid
     }   
 
     template <typename V>
-    V& FStringHashMap<V>::Get(const u64& EntryNum)
+    V& FStringHashMap<V>::Get(const u64& EntryNum) const
     {
         assert(EntryNum < GetLength());
         return HashMap[EntryNum].value;

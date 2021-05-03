@@ -4,5 +4,34 @@
         "bChanged": true,
         "Value": "9be9bbf6-5774-4abb-b067-11c85a895ab2"
     },
-    "MaterialIds": []
+    "MaterialIds": [
+        {
+            "bChanged": true,
+            "Value": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3"
+        },
+        {
+            "bChanged": true,
+            "Value": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3"
+        },
+        {
+            "bChanged": true,
+            "Value": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3"
+        },
+        {
+            "bChanged": true,
+            "Value": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3"
+        },
+        {
+            "bChanged": true,
+            "Value": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3"
+        },
+        {
+            "bChanged": true,
+            "Value": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3"
+        },
+        {
+            "bChanged": true,
+            "Value": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3"
+        }
+    ]
 }

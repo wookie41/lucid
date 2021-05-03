@@ -61,15 +61,16 @@ namespace lucid
         void             Shutdown();
         void             LoadResources();
         
-        inline FResourceDatabase&       GetResourceDatabase()   { return ResourceDatabase; }
-        inline FMaterialDatabase&       GetMaterialDatabase()   { return MaterialDatabase; }
-        inline CTexturesHolder&         GetTexturesHolder()     { return TexturesHolder; } 
-        inline CMeshesHolder&           GetMeshesHolder()       { return MeshesHolder; }
-        inline CMaterialsHolder&        GetMaterialsHolder()    { return MaterialsHolder; }
-        inline scene::CRenderer*        GetRenderer()           { return Renderer; }
-        inline gpu::CShadersManager&    GetShadersManager()     { return ShadersManager; }
-        inline FActorDatabase&          GetActorsDatabase()     { return ActorDatabase; }
-        inline scene::CMaterial*        GetDefaultMaterial()    { return DefaultMaterial; }
+        inline FResourceDatabase&                       GetResourceDatabase()   { return ResourceDatabase; }
+        inline FMaterialDatabase&                       GetMaterialDatabase()   { return MaterialDatabase; }
+        inline CTexturesHolder&                         GetTexturesHolder()     { return TexturesHolder; } 
+        inline CMeshesHolder&                           GetMeshesHolder()       { return MeshesHolder; }
+        inline CMaterialsHolder&                        GetMaterialsHolder()    { return MaterialsHolder; }
+        inline scene::CRenderer*                        GetRenderer()           { return Renderer; }
+        inline gpu::CShadersManager&                    GetShadersManager()     { return ShadersManager; }
+        inline FActorDatabase&                          GetActorsDatabase()     { return ActorDatabase; }
+        inline scene::CMaterial*                        GetDefaultMaterial()    { return DefaultMaterial; }
+        inline FHashMap<UUID, scene::IActor*>&          GetActorsResources()     { return ActorResourceById; }
 
         void AddTextureResource(resources::CTextureResource* InTexture,  const FString& InSourcePath);
         void AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath);

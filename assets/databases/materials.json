@@ -31,6 +31,15 @@
         },
         {
             "MaterialPath": "assets/materials/ToyboxMaterial.asset"
+        },
+        {
+            "MaterialPath": "assets/materials/Nanosuit_Glasses.asset"
+        },
+        {
+            "MaterialPath": "assets/materials/Nanosuit_Legs.asset"
+        },
+        {
+            "MaterialPath": "assets/materials/Nanosuit_Hands.asset"
         }
     ]
 }

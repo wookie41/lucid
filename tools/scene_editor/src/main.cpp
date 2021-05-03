@@ -17,12 +17,8 @@
 #include "scene/camera.hpp"
 #include "scene/forward_renderer.hpp"
 #include "scene/blinn_phong_material.hpp"
-#include "scene/render_scene.hpp"
 #include "scene/actors/static_mesh.hpp"
-#include "scene/actors/lights.hpp"
-#include "scene/flat_material.hpp"
 #include "scene/world.hpp"
-#include "scene/actors/skybox.hpp"
 
 #include "resources/texture_resource.hpp"
 #include "resources/mesh_resource.hpp"
@@ -39,7 +35,11 @@
 #include <algorithm>
 #include <stdio.h>
 #include <devices/gpu/texture_enums.hpp>
+#include <scene/flat_material.hpp>
+#include <scene/material.hpp>
 #include <sole/sole.hpp>
+
+#include "imgui_lucid.h"
 
 using namespace lucid;
 
@@ -52,6 +52,7 @@ constexpr char EDITOR_WINDOW[] = "Lucid Editor";
 constexpr char DOCKSPACE_WINDOW[] = "Dockspace";
 constexpr char SCENE_VIEWPORT[] = "Scene";
 constexpr char RESOURCES_BROWSER[] = "Resources browser";
+constexpr char ASSETS_BROWSER[] = "Assets browser";
 constexpr char SCENE_HIERARCHY[] = "Scene hierarchy";
 constexpr char MAIN_DOCKSPACE[] = "MainDockSpace";
 constexpr char POPUP_WINDOW[] = "PopupWindow";
@@ -61,6 +62,14 @@ enum class EImportingTextureType : u8
 {
     JPG,
     PNG
+};
+
+enum class EMaterialType : u8
+{
+    NONE,
+    FLAT,
+    BLINN_PHONG,
+    BLINN_PHONG_MAPS
 };
 
 struct FSceneEditorState
@@ -116,6 +125,14 @@ struct FSceneEditorState
 
     bool bDisableCameraMovement = false;
 
+    bool bShowMaterialAssets = true;
+    bool bShowActorAssets = false;
+
+    EMaterialType TypeOfMaterialToCreate = EMaterialType::NONE;
+    gpu::CShader* PickedShader = nullptr;
+    scene::CMaterial* EditedMaterial = nullptr;
+    scene::CStaticMesh* EditedStaticMesh = nullptr;
+
 } GSceneEditorState;
 
 void InitializeSceneEditor();
@@ -133,6 +150,7 @@ void UIDrawMeshImporter();
 void UIDrawTextureImporter();
 void UIDrawMeshContextMenu();
 void UIDrawTextureContextMenu();
+void UIDrawMaterialCreationMenu();
 
 void ImportTexture(const std::filesystem::path& SelectedFilePath);
 void ImportMesh(const std::filesystem::path& SelectedFilePath);
@@ -281,6 +299,7 @@ void InitializeSceneEditor()
             // Attach windows to dockspaces
             ImGui::DockBuilderDockWindow(SCENE_VIEWPORT, SceneWindowDockId);
             ImGui::DockBuilderDockWindow(RESOURCES_BROWSER, ResourceBrowserWindowDockId);
+            ImGui::DockBuilderDockWindow(ASSETS_BROWSER, ResourceBrowserWindowDockId);
             ImGui::DockBuilderDockWindow(SCENE_HIERARCHY, SceneHierarchyDockId);
             ImGui::DockBuilderDockWindow(ACTOR_DETAILS, ActorDetailsDockId);
 
@@ -298,13 +317,13 @@ void InitializeSceneEditor()
 
     // Configure the camera
     GSceneEditorState.PerspectiveCamera.AspectRatio =
-    GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
+      GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
     GSceneEditorState.PerspectiveCamera.Position = { 0, 0, 3 };
     GSceneEditorState.PerspectiveCamera.Yaw = -90.f;
     GSceneEditorState.PerspectiveCamera.UpdateCameraVectors();
 
     GSceneEditorState.CurrentCamera = &GSceneEditorState.PerspectiveCamera;
-    
+
     GSceneEditorState.Window->ImgUiDrawFrame();
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();
@@ -392,7 +411,8 @@ void HandleActorDrag()
             if (GSceneEditorState.CurrentlyDraggedActor == nullptr)
             {
                 // Remember the actor that we hit and how far from the camera it was on the z axis
-                glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
+                glm::vec4 ActorPosView =
+                  GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
                 GSceneEditorState.DistanceToCurrentlyDraggedActor = ActorPosView.z;
                 GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
             }
@@ -411,7 +431,7 @@ void HandleActorDrag()
 
             // Calculate actor's position to match mouse view space x/y pos, preserving z
             const float ActorMidPoint = GSceneEditorState.CurrentlyDraggedActor->GetVerticalMidPoint();
-            
+
             ActorPosView.x = -MouseRayView.x * GSceneEditorState.DistanceToCurrentlyDraggedActor;
             ActorPosView.y = -MouseRayView.y * GSceneEditorState.DistanceToCurrentlyDraggedActor - ActorMidPoint;
 
@@ -465,7 +485,8 @@ void UIDrawSceneWindow()
         GSceneEditorState.SceneWindowPos.y += SceneWindowPos.y;
 
         // Draw the rendered scene into an image
-        GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
+        GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage(
+          { GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
     }
     ImGui::PopStyleVar(1);
     ImGui::End();
@@ -474,8 +495,17 @@ void UIDrawSceneWindow()
 void UIDrawResourceBrowserWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_MenuBar;
+
+    const int ResourceItemsPerRow = 8;
+    float ResourceItemWidth = 0;
+    ImVec2 ResourceItemSize;
+    int CurrentRowItemsCount = 0;
+
     ImGui::Begin(RESOURCES_BROWSER, nullptr, WindowFlags);
     {
+        ResourceItemWidth = (ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow) - 8;
+        ResourceItemSize = { ResourceItemWidth, ResourceItemWidth };
+
         // Menu bar
         if (ImGui::BeginMenuBar())
         {
@@ -506,19 +536,14 @@ void UIDrawResourceBrowserWindow()
                 }
                 ImGui::EndMenu();
             }
+            ImGui::EndMenuBar();
         }
-        ImGui::EndMenuBar();
 
         // Resources browser
-        ImGui::BeginChild("Scrolling");
+        ImGui::BeginChild("resources scroll");
         {
-            const int ResourceItemsPerRow = 8;
-            const float ResourceItemWidth = (ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow) - 4;
-            const ImVec2 ResourceItemSize{ ResourceItemWidth, ResourceItemWidth };
-
-            int CurrentRowItemsCount = 0;
-
             // Draw texture resource items
+            CurrentRowItemsCount = 0;
             ImGui::Text("Textures:");
             for (int i = 0; i < GEngine.GetTexturesHolder().Length(); ++i)
             {
@@ -545,7 +570,6 @@ void UIDrawResourceBrowserWindow()
                     ImGui::EndGroup();
                     ++CurrentRowItemsCount;
                 }
-
             }
 
             ImGui::Spacing();
@@ -556,7 +580,6 @@ void UIDrawResourceBrowserWindow()
 
             for (int i = 0; i < GEngine.GetMeshesHolder().Length(); ++i)
             {
-
                 resources::CMeshResource* MeshResource = GEngine.GetMeshesHolder().GetByIndex(i);
                 if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
                 {
@@ -582,14 +605,15 @@ void UIDrawResourceBrowserWindow()
                     ++CurrentRowItemsCount;
                 }
             }
+            ImGui::EndChild();
         }
-        ImGui::EndChild();
+        ImGui::End();
     }
-    ImGui::End();
 
     if (GSceneEditorState.bIsImportingMesh)
     {
         UIDrawMeshImporter();
+        GSceneEditorState.bDisableCameraMovement = true;
     }
     else if (GSceneEditorState.bIsImportingTexture)
     {
@@ -602,6 +626,147 @@ void UIDrawResourceBrowserWindow()
     else if (GSceneEditorState.bShowTextureContextMenu)
     {
         UIDrawTextureContextMenu();
+    }
+    else if (GSceneEditorState.TypeOfMaterialToCreate != EMaterialType::NONE)
+    {
+        UIDrawMaterialCreationMenu();
+    }
+
+    // Asset browser
+    ImGui::Begin(ASSETS_BROWSER, nullptr, WindowFlags);
+    {
+        ResourceItemWidth = (ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow) - 8;
+        ResourceItemSize = { ResourceItemWidth, ResourceItemWidth };
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                // Resource import
+                if (ImGui::BeginMenu("Create asset"))
+                {
+                    if (ImGui::BeginMenu("Material"))
+                    {
+                        if (ImGui::MenuItem("Flat"))
+                        {
+                            GSceneEditorState.TypeOfMaterialToCreate = EMaterialType::FLAT;
+                            GSceneEditorState.PickedShader = nullptr;
+                        }
+                        if (ImGui::MenuItem("Blinn Phong"))
+                        {
+                            GSceneEditorState.TypeOfMaterialToCreate = EMaterialType::BLINN_PHONG;
+                            GSceneEditorState.PickedShader = nullptr;
+                        }
+                        if (ImGui::MenuItem("Blinn Phong Maps"))
+                        {
+                            GSceneEditorState.TypeOfMaterialToCreate = EMaterialType::BLINN_PHONG_MAPS;
+                            GSceneEditorState.PickedShader = nullptr;
+                        }
+                        ImGui::EndMenu();
+                    }
+
+                    if (ImGui::MenuItem("Actor"))
+                    {
+                    }
+
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenuBar();
+        }
+
+        ImGui::Checkbox("Materials", &GSceneEditorState.bShowMaterialAssets);
+        ImGui::SameLine();
+        ImGui::Checkbox("Actors", &GSceneEditorState.bShowActorAssets);
+
+        ImGui::BeginChild("asset scroll");
+        {
+            if (GSceneEditorState.bShowMaterialAssets)
+            {
+                static bool bMaterialEditorOpen = true;
+                if (GSceneEditorState.EditedMaterial)
+                {
+                    ImGuiShowMaterialEditor(GSceneEditorState.EditedMaterial, &bMaterialEditorOpen);
+                    if (!bMaterialEditorOpen)
+                    {
+                        GSceneEditorState.EditedMaterial = nullptr;
+                    }
+                }
+                CurrentRowItemsCount = 0;
+                ImGui::Text("Materials:");
+                for (u32 i = 0; i < GEngine.GetMaterialsHolder().GetLength(); ++i, ++CurrentRowItemsCount)
+                {
+                    if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
+                    {
+                        CurrentRowItemsCount = 0;
+                    }
+                    else if (CurrentRowItemsCount > 0)
+                    {
+                        ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount + (4 * CurrentRowItemsCount), 2);
+                    }
+
+                    if (ImGui::Button(*GEngine.GetMaterialsHolder().GetByIndex(i)->GetName(), ResourceItemSize) &&
+                        !GSceneEditorState.EditedMaterial)
+                    {
+                        GSceneEditorState.EditedMaterial = GEngine.GetMaterialsHolder().GetByIndex(i);
+                    }
+                }
+            }
+
+            if (GSceneEditorState.bShowActorAssets)
+            {
+                static bool bActorEditorOpen = true;
+                if (GSceneEditorState.EditedStaticMesh)
+                {
+                    ImGui::Begin("Actor resource details", &bActorEditorOpen);
+                    if (!bActorEditorOpen)
+                    {
+                        GSceneEditorState.EditedStaticMesh = nullptr;
+                    }
+                    else
+                    {
+                        ImGui::Text(*GSceneEditorState.EditedStaticMesh->Name);
+                        ImGuiMeshResourcePicker("Mesh resource", &GSceneEditorState.EditedStaticMesh->MeshResource);
+                        for (int i = 0; i < GSceneEditorState.EditedStaticMesh->GetNumMaterialSlots(); ++i)
+                        {
+                            auto MaterialSlotEditorLabel = SPrintf("actor_resource_material_%d", i);
+                            ImGui::Text("Select different:");
+                            ImGuiMaterialPicker(*MaterialSlotEditorLabel, GSceneEditorState.EditedStaticMesh->MaterialSlots[i]);
+
+                            MaterialSlotEditorLabel.Free();
+                        }   
+                    }
+
+                    ImGui::End();
+                }
+
+                CurrentRowItemsCount = 0;
+                ImGui::Text("Actors:");
+                for (u32 i = 0; i < GEngine.GetActorsResources().GetLength(); ++i, ++CurrentRowItemsCount)
+                {
+                    if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
+                    {
+                        CurrentRowItemsCount = 0;
+                    }
+                    else if (CurrentRowItemsCount > 0)
+                    {
+                        ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount + (4 * CurrentRowItemsCount), 2);
+                    }
+
+                    if (ImGui::Button(*GEngine.GetActorsResources().GetByIndex(i)->Name, ResourceItemSize) &&
+                        !GSceneEditorState.EditedStaticMesh)
+                    {
+                        if (auto* StaticMeshActor = dynamic_cast<scene::CStaticMesh*>(GEngine.GetActorsResources().GetByIndex(i)))
+                        {
+                            GSceneEditorState.EditedStaticMesh = StaticMeshActor;
+                        }
+                    }
+                }
+            }
+            ImGui::EndChild();
+        }
+
+        ImGui::End();
     }
 }
 
@@ -755,7 +920,7 @@ void UIDrawTextureImporter()
 
                 // End texture import
                 GSceneEditorState.bIsImportingTexture = false;
-                GSceneEditorState.bDisableCameraMovement = true;
+                GSceneEditorState.bDisableCameraMovement = false;
                 ImGui::CloseCurrentPopup();
             }
         }
@@ -873,24 +1038,24 @@ void UIDrawSceneHierarchyWindow()
             {
                 continue;
             }
-            
+
             ImGui::Text(*Actor->Name);
         }
+        ImGui::End();
     }
-    ImGui::End();
 }
 
 void UIDrawActorDetailsWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
-    ImGui::Begin(ACTOR_DETAILS, nullptr, WindowFlags);
+    if (ImGui::Begin(ACTOR_DETAILS, nullptr, WindowFlags))
     {
         if (GSceneEditorState.CurrentlyDraggedActor)
         {
             GSceneEditorState.CurrentlyDraggedActor->UIDrawActorDetails();
         }
+        ImGui::End();
     }
-    ImGui::End();
 }
 
 void UIDrawFileDialog()
@@ -936,4 +1101,74 @@ void ImportMesh(const std::filesystem::path& SelectedFilePath)
     GSceneEditorState.bIsImportingMesh = true;
     GSceneEditorState.bDisableCameraMovement = true;
     Zero(GSceneEditorState.AssetNameBuffer, 256);
+}
+
+void UIDrawMaterialCreationMenu()
+{
+    if (!ImGui::IsPopupOpen(POPUP_WINDOW))
+    {
+        ImGui::OpenPopup(POPUP_WINDOW);
+    }
+
+    ImGui::SetNextWindowPos({ GSceneEditorState.Window->GetPosition().x + GSceneEditorState.Window->GetWidth() * 0.5f,
+                              GSceneEditorState.Window->GetPosition().y + GSceneEditorState.Window->GetHeight() * 0.5f },
+                            ImGuiCond_Always,
+                            { 0.5f, 0.5f });
+    ImGui::SetNextWindowSize({ 500, 0 });
+    ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
+    {
+
+        ImGui::InputText("Material name name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
+        ImGuiShadersPicker("Material shader", &GSceneEditorState.PickedShader);
+        if (GSceneEditorState.PickedShader)
+        {
+            if (ImGui::Button("Create"))
+            {
+                if (strnlen_s(GSceneEditorState.AssetNameBuffer, 256) == 0)
+                {
+                    GSceneEditorState.bAssetNameMissing = true;
+                }
+                else
+                {
+                    auto CreatedMaterialPath = SPrintf("assets/materials/%s.asset", GSceneEditorState.AssetNameBuffer);
+
+                    scene::CMaterial* CreatedMaterial;
+                    switch (GSceneEditorState.TypeOfMaterialToCreate)
+                    {
+                    case EMaterialType::FLAT:
+                        GSceneEditorState.bDisableCameraMovement = true;
+                        CreatedMaterial = new scene::CFlatMaterial{ sole::uuid4(),
+                                                                    CopyToString(GSceneEditorState.AssetNameBuffer),
+                                                                    CreatedMaterialPath,
+                                                                    GSceneEditorState.PickedShader };
+                        break;
+                    case EMaterialType::BLINN_PHONG:
+                        GSceneEditorState.bDisableCameraMovement = true;
+                        CreatedMaterial = new scene::CBlinnPhongMaterial{ sole::uuid4(),
+                                                                          CopyToString(GSceneEditorState.AssetNameBuffer),
+                                                                          CreatedMaterialPath,
+                                                                          GSceneEditorState.PickedShader };
+                        break;
+                    case EMaterialType::BLINN_PHONG_MAPS:
+                        GSceneEditorState.bDisableCameraMovement = true;
+                        CreatedMaterial = new scene::CBlinnPhongMapsMaterial{ sole::uuid4(),
+                                                                              CopyToString(GSceneEditorState.AssetNameBuffer),
+                                                                              CreatedMaterialPath,
+                                                                              GSceneEditorState.PickedShader };
+                        break;
+
+                    default:
+                        assert(0);
+                    }
+
+                    GEngine.GetMaterialsHolder().Add(CreatedMaterial->GetID(), CreatedMaterial);
+                    GSceneEditorState.TypeOfMaterialToCreate = EMaterialType::NONE;
+                    GSceneEditorState.PickedShader = nullptr;
+                    ImGui::CloseCurrentPopup();
+                    GSceneEditorState.bDisableCameraMovement = false;
+                }
+            }
+        }
+    }
+    ImGui::EndPopup();
 }

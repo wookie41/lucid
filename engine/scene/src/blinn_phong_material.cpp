@@ -46,7 +46,7 @@ namespace lucid::scene
         return Material;
     }
 
-    void CBlinnPhongMaterial::SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const
+    void CBlinnPhongMaterial::SaveToResourceFile(const lucid::EFileFormat& InFileFormat)
     {
         FBlinnPhongMaterialDescription BlinnPhongMaterialDescription;
         BlinnPhongMaterialDescription.Id = ID;
@@ -65,11 +65,13 @@ namespace lucid::scene
             WriteToJSONFile(BlinnPhongMaterialDescription, *ResourcePath);
             break;
         }
+
+        GEngine.GetMaterialDatabase().BlinnPhongMaterials.push_back({ResourcePath, InFileFormat, GEngine.GetDefaultMaterial() == this});
     }
 
     void CBlinnPhongMaterial::UIDrawMaterialEditor()
     {
-        ImGui::Text("Blinn Phong material:");
+        ImGui::Text("Blinn Phong material: %s", *Name);
         ImGui::InputInt("Shininess", (int*)&Shininess);
         ImGui::DragFloat3("Diffuse color", &DiffuseColor.r, 0.005, 0, 1);
         ImGui::DragFloat3("Specular color", &SpecularColor.r, 0.005, 0, 1);
@@ -96,7 +98,10 @@ namespace lucid::scene
     void CBlinnPhongMapsMaterial::SetupShader(gpu::CShader* Shader)
     {
         Shader->SetInt(SHININESS, Shininess);
-        Shader->UseTexture(DIFFUSE_MAP, DiffuseMap->TextureHandle);
+        if (DiffuseMap->TextureHandle)
+        {
+            Shader->UseTexture(DIFFUSE_MAP, DiffuseMap->TextureHandle);            
+        }
 
         if (SpecularMap)
         {
@@ -160,7 +165,7 @@ namespace lucid::scene
         return Material;
     }
 
-    void CBlinnPhongMapsMaterial::SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const
+    void CBlinnPhongMapsMaterial::SaveToResourceFile(const lucid::EFileFormat& InFileFormat)
     {
         FBlinnPhongMapsMaterialDescription BlinnPhongMapsMaterialDescription;
         BlinnPhongMapsMaterialDescription.Id = ID;
@@ -200,11 +205,13 @@ namespace lucid::scene
             WriteToJSONFile(BlinnPhongMapsMaterialDescription, *ResourcePath);
             break;
         }
+
+        GEngine.GetMaterialDatabase().BlinnPhongMapsMaterials.push_back({ResourcePath, InFileFormat, GEngine.GetDefaultMaterial() == this});
     }
     
     void CBlinnPhongMapsMaterial::UIDrawMaterialEditor()
     {
-        ImGui::Text("Blinn Phong Maps material:");
+        ImGui::Text("Blinn Phong Maps material: %s", *Name);
         ImGui::InputInt("Shininess", (int*)&Shininess);
         ImGui::DragFloat3("Fallback Specular color", &SpecularColor.r, 0.005, 0, 1);
 

@@ -1,5 +1,8 @@
 ﻿#include "scene/actors/static_mesh.hpp"
 
+#include <resources/mesh_resource.hpp>
+
+
 #include "scene/material.hpp"
 #include "scene/world.hpp"
 
@@ -24,24 +27,60 @@ namespace lucid::scene
 
 #if DEVELOPMENT
     void CStaticMesh::UIDrawActorDetails()
-    {
+    {        
         IActor::UIDrawActorDetails();
 
         ImGui::Text("Static mesh:");
         ImGui::Checkbox("Reverse normals", &bReverseNormals);
+        resources::CMeshResource* OldMesh = MeshResource;
+        
         ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
+
+        if (MeshResource != OldMesh && MeshResource)
+        {
+            const auto NumSubMeshes = MeshResource->SubMeshes.GetLength();
+            MeshResource = MeshResource;
+            MaterialSlots.Free();
+            MaterialSlots = FArray <CMaterial*>{ NumSubMeshes, true };
+            for (int i = 0; i < NumSubMeshes; ++i)
+            {
+                MaterialSlots.Add(nullptr);
+            }
+        }
+        else
+        {
+            MeshResource = OldMesh;
+        }
+
+        static CMaterial*   CurrentlyEditedMaterial = nullptr;
+        static bool         bMaterialEditorOpen  = true;
+        
         for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
-            ImGui::Text("Material slot %d:", i);
-            ImGuiMaterialPicker("static_mesh_material", MaterialSlots[i]);
-            if (*MaterialSlots[i])
+            auto MaterialSlotEditorLabel = SPrintf("static_mesh_material_%d", i);
+
+            if (ImGui::TreeNode(*MaterialSlotEditorLabel, "Material slot %d:", i))
             {
-                (*MaterialSlots[i])->UIDrawMaterialEditor();                
+                if(ImGui::Button("Edit"))
+                {
+                    CurrentlyEditedMaterial = *MaterialSlots[i];
+                }
+
+                if(CurrentlyEditedMaterial)
+                {
+                    ImGuiShowMaterialEditor(*MaterialSlots[i], &bMaterialEditorOpen);
+                    if (!bMaterialEditorOpen)
+                    {
+                        CurrentlyEditedMaterial = nullptr;
+                    }
+                }
+
+                ImGui::Text("Select different:");
+                ImGuiMaterialPicker(*MaterialSlotEditorLabel, MaterialSlots[i]);
+                ImGui::TreePop();
             }
-            else
-            {
-                ImGui::Text("-- No material selected --");
-            }
+
+            MaterialSlotEditorLabel.Free();
         }
     }
 
@@ -58,7 +97,7 @@ namespace lucid::scene
 
             for (u16 i = 0; i < BaseStaticMesh->MaterialSlots.GetLength(); ++i)
             {
-                if (*MaterialSlots[i] != *(BaseStaticMesh->MaterialSlots[i]))
+                if (i < MaterialSlots.GetLength() && *MaterialSlots[i] && *MaterialSlots[i] != *(BaseStaticMesh->MaterialSlots[i]))
                 {
                     OutDescription.MaterialIds.push_back({(*MaterialSlots[i])->GetID(), true });
                 }

@@ -2,43 +2,111 @@
     "StaticMeshes": [
         {
             "Id": 1,
-            "Name": "Nano",
-            "BaseActorResourceId": "6c61f7da-7642-4523-b760-8a93d9d0f734",
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
             "Postion": [
-                5.5879950523376469,
-                -4.594632625579834,
-                5.087027549743652
-            ],
-            "Scale": [
-                0.4000000059604645,
-                0.4000000059604645,
-                0.4000000059604645
+                -0.3202953040599823,
+                -8.63540267944336,
+                -3.33139705657959
             ],
             "bVisible": true,
+            "MeshResourceId": {
+                "bChanged": true,
+                "Value": "9a84b959-8a9e-4fa5-a854-2b610b2d937f"
+            },
             "MaterialIds": [
                 {
-                    "bChanged": false
+                    "bChanged": true,
+                    "Value": "240af0c4-d087-42cd-942b-20d52f01bfdd"
                 }
             ]
         },
         {
             "Id": 2,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
+            "Name": "Cube1",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
             "Postion": [
-                0.2719346880912781,
-                -0.0573124997317791,
-                -0.735846757888794
+                4.512546539306641,
+                0.5722740888595581,
+                4.095197677612305
+            ],
+            "Scale": [
+                0.75,
+                0.75,
+                0.75
             ],
             "bVisible": true,
-            "MeshResourceId": {
-                "bChanged": true,
-                "Value": "cb125c49-0688-4a20-aa19-a02e2d45884f"
-            },
             "MaterialIds": [
                 {
                     "bChanged": true,
                     "Value": "4334ce9d-38d0-47d3-b796-a9f572929eea"
+                }
+            ],
+            "bReverseNormals": true
+        },
+        {
+            "Id": 3,
+            "Name": "Cube3",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -1.4433441162109376,
+                1.7056914567947388,
+                2.4076671600341799
+            ],
+            "Scale": [
+                2.0,
+                2.0,
+                2.0
+            ],
+            "bVisible": true,
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "24f49047-090b-4d13-900b-e65f66327148"
+                }
+            ],
+            "bReverseNormals": true
+        },
+        {
+            "Id": 4,
+            "Name": "Gigacube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                1.3653240203857422,
+                -0.07723969966173172,
+                1.2532416582107545
+            ],
+            "Scale": [
+                20.0,
+                20.0,
+                20.0
+            ],
+            "bVisible": true,
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "5f13c189-43af-4816-94a9-36a7d8918e71"
+                }
+            ],
+            "bReverseNormals": true
+        },
+        {
+            "Id": 5,
+            "Name": "Backpack",
+            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
+            "Postion": [
+                6.3414435386657719,
+                -0.8636757731437683,
+                -1.8377883434295655
+            ],
+            "bVisible": true,
+            "MeshResourceId": {
+                "bChanged": true,
+                "Value": "790b6bf1-e1c3-4fdf-8861-2518a016ea61"
+            },
+            "MaterialIds": [
+                {
+                    "bChanged": false
                 }
             ]
         }
@@ -48,7 +116,7 @@
     },
     "SpotLights": [
         {
-            "Id": 3,
+            "Id": 6,
             "Color": [
                 1.0,
                 0.0,
@@ -56,9 +124,9 @@
             ],
             "Name": "RedSpotLight",
             "Postion": [
-                6.532752990722656,
-                -5.076262950897217,
-                4.715665817260742
+                1.4343745708465577,
+                -2.166379928588867,
+                1.4520035982131959
             ],
             "bCastsShadow": true,
             "Direction": [
@@ -73,29 +141,24 @@
             "OuterCutOffRad": 0.6108652353286743
         },
         {
-            "Id": 4,
-            "Color": [
-                0.0,
-                1.0,
-                0.0
-            ],
+            "Id": 7,
             "Name": "GreenSpotLight",
             "Postion": [
-                -1.0265980958938599,
-                -0.9574930667877197,
-                0.10752391815185547
+                -0.5085839033126831,
+                -1.766666054725647,
+                0.3486116826534271
             ],
             "Rotation": [
-                -0.029999999329447748,
-                -0.10999999940395355,
                 -0.20999999344348908,
-                -0.5049999952316284
+                -0.5049999952316284,
+                -0.029999999329447748,
+                -0.10999999940395355
             ],
             "bCastsShadow": true,
             "Direction": [
-                0.019999999552965165,
-                0.3529999852180481,
-                0.17000000178813935
+                -0.019999999552965165,
+                -0.17599999904632569,
+                -0.4339999854564667
             ],
             "Constant": 1.0,
             "Linear": 0.09000000357627869,
@@ -104,12 +167,12 @@
             "OuterCutOffRad": 0.6108652353286743
         },
         {
-            "Id": 5,
+            "Id": 8,
             "Name": "BlueSpotLight",
             "Postion": [
-                0.05147421360015869,
-                -0.8525872826576233,
-                3.143928289413452
+                0.6128180027008057,
+                -0.11357986927032471,
+                3.786607027053833
             ],
             "bCastsShadow": true,
             "Direction": [
@@ -126,7 +189,7 @@
     ],
     "PointLights": [
         {
-            "Id": 6,
+            "Id": 9,
             "Color": [
                 1.0,
                 0.6079999804496765,

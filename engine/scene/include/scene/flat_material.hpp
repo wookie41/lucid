@@ -20,7 +20,7 @@ namespace lucid::scene
 
         virtual void SetupShader(gpu::CShader* Shader) override;
 
-        void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const override;
+        void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
         
         FColor Color;
        

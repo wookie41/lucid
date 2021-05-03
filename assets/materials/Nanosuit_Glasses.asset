@@ -1,0 +1,9 @@
+{
+    "Id": "26308125-4838-4c00-bfff-fd2b1f95679f",
+    "Name": "Nanosuit_Glasses",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "9091a377-4648-4b2d-91fe-f06b6d285bf5",
+    "SpecularTextureID": "dc8b7bc2-2ec4-41e3-a025-ab1acb0b4033",
+    "NormalTextureID": "86f4a951-89a2-4257-aab5-2260eaf9d3cb",
+    "DisplacementTextureID": "d7ea00c8-0d67-4700-8146-b8e01e61fae2"
+}

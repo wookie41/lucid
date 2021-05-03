@@ -30,7 +30,7 @@ namespace lucid::scene
         return Material;
     }
 
-    void CFlatMaterial::SaveToResourceFile(const lucid::EFileFormat& InFileFormat) const
+    void CFlatMaterial::SaveToResourceFile(const lucid::EFileFormat& InFileFormat)
     {
         FFlatMaterialDescription FlatMaterialDescription;
         FlatMaterialDescription.Id = ID;
@@ -46,13 +46,15 @@ namespace lucid::scene
         case EFileFormat::Json:
             WriteToJSONFile(FlatMaterialDescription, *ResourcePath);
             break;
-        }        
+        }
+
+        GEngine.GetMaterialDatabase().FlatMaterials.push_back({ResourcePath, InFileFormat, GEngine.GetDefaultMaterial() == this});
     }
 
 #if DEVELOPMENT
      void CFlatMaterial::UIDrawMaterialEditor()
     {
-        ImGui::Text("Flat material:");
+        ImGui::Text("Flat material: %s", *Name);
         ImGui::DragFloat4("Color", &Color.r, 0.005, 0, 1);
     }
 #endif

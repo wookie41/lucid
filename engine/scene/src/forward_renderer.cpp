@@ -665,10 +665,9 @@ namespace lucid::scene
 #endif
         for (u16 j = 0; j < InStaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
         {
-            CMaterial* Material = InStaticMesh->GetMaterialSlot(j);
 
 #if DEVELOPMENT
-            if (Material == nullptr)
+            if (j >= InStaticMesh->GetNumMaterialSlots() || InStaticMesh->GetMaterialSlot(j) == nullptr)
             {
                 LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at slot %d", *InStaticMesh->Name, j);
                 RenderWithDefaultMaterial(InStaticMesh, InLight, InRenderView);
@@ -676,6 +675,8 @@ namespace lucid::scene
                 continue;
             }
 #endif
+            CMaterial* Material = InStaticMesh->GetMaterialSlot(j);
+
             // Determine if the material uses a custom shader
             // if yes, then setup the renderer-provided uniforms
             if (Material->GetShader() != *LastShader)

@@ -220,5 +220,7 @@ namespace lucid
         {
             MaterialsHolder.GetByIndex(i)->SaveToResourceFile(EFileFormat::Json);
         }
+
+        WriteToJSONFile(MaterialDatabase, "assets/databases/materials.json");
     }
 } // namespace lucid

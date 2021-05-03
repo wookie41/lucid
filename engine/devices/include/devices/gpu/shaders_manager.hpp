@@ -15,7 +15,8 @@ namespace lucid::gpu
 
         void LoadShadersDatabase(const FShadersDataBase& InShadersDatabase);
 
-        CShader* GetShaderByName(const FString& ShaderName);
+        CShader*                            GetShaderByName(const FString& ShaderName);
+        inline const FStringHashMap<CShader*>& GetAllShaders() const { return CompiledShadersByName; }
         
 #ifndef NDEBUG
         friend void ReloadShaders();

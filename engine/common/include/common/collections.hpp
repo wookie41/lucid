@@ -83,7 +83,7 @@ namespace lucid
 
         void        Add(const char* Key, const V& Value);
         V&          Get(const char* Key);
-        V&          Get(const u64& EntryNum);
+        V&          Get(const u64& EntryNum) const;
         bool        Contains(const char* Key);
         u32         GetLength() const;
     private:
