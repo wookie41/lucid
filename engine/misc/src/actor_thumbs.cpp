@@ -84,8 +84,11 @@ namespace lucid
         MeshThumbShader->SetMatrix(PROJECTION_MATRIX, Camera.GetProjectionMatrix());
         MeshThumbShader->SetMatrix(VIEW_MATRIX, Camera.GetViewMatrix());
 
-        MeshResource->VAO->Bind();
-        MeshResource->VAO->Draw();
+        for (u16 i = 0; i < MeshResource->SubMeshes.GetLength(); ++i)
+        {
+            MeshResource->SubMeshes[i]->VAO->Bind();
+            MeshResource->SubMeshes[i]->VAO->Draw();
+        }
 
         return ThumbTexture; 
     }

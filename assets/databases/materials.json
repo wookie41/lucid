@@ -1,7 +1,8 @@
 {
     "FlatMaterials": [
         {
-            "MaterialPath": "assets/materials/FlatWhiteMaterial.asset"
+            "MaterialPath": "assets/materials/FlatWhiteMaterial.asset",
+            "bDefault": true
         },
         {
             "MaterialPath": "assets/materials/FlatRedMaterial.asset"

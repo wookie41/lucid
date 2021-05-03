@@ -39,7 +39,11 @@ namespace lucid
             if (bSuccess)                                                                                 \
             {                                                                                             \
                 TMaterial* Material = TMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath); \
-                MaterialsHolder.Add(Material->GetID(), Material);                                      \
+                MaterialsHolder.Add(Material->GetID(), Material);                                         \
+                if (Entry.bDefault)                                                                       \
+                {                                                                                         \
+                    DefaultMaterial = Material;                                                           \
+                }                                                                                         \
             }                                                                                             \
             else                                                                                          \
             {                                                                                             \
@@ -182,7 +186,7 @@ namespace lucid
               return Entry.Id == InTexture->GetID();
           }));
 
-        MeshesHolder.Remove(InTexture->GetID());
+        TexturesHolder.Remove(InTexture->GetID());
         remove(*InTexture->GetFilePath());
 
         WriteToJSONFile(ResourceDatabase, "assets/databases/resources.json");
@@ -214,7 +218,7 @@ namespace lucid
 
         for (u32 i = 0; i < MaterialsHolder.GetLength(); ++i)
         {
-            MaterialsHolder.Get(i)->SaveToResourceFile(EFileFormat::Json);
+            MaterialsHolder.GetByIndex(i)->SaveToResourceFile(EFileFormat::Json);
         }
     }
 } // namespace lucid

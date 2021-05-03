@@ -865,6 +865,17 @@ void UIDrawSceneHierarchyWindow()
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
     ImGui::Begin(SCENE_HIERARCHY, nullptr, WindowFlags);
     {
+        auto& ActorMap = GSceneEditorState.World->GetActorsMap();
+        for (u32 i = 0; i < ActorMap.GetLength(); ++i)
+        {
+            auto* Actor = ActorMap.GetByIndex(i);
+            if (Actor->Parent)
+            {
+                continue;
+            }
+            
+            ImGui::Text(*Actor->Name);
+        }
     }
     ImGui::End();
 }

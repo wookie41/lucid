@@ -1,9 +1,12 @@
 #pragma once
 
 #include "common/strings.hpp"
+#include "common/collections.hpp"
+
 #include "glm/glm.hpp"
-#include "scene/transform.hpp"
 #include "glm/gtx/quaternion.hpp"
+
+#include "scene/transform.hpp"
 #include "scene/actors/actor_enums.hpp"
 namespace lucid::gpu
 {
@@ -19,7 +22,13 @@ namespace lucid::scene
     class IActor
     {
     public:
-        IActor(const FDString& InName, const IActor* InParent, CWorld* InWorld) : Name(InName), Parent(InParent), World(InWorld) {}
+        IActor(const FDString& InName, IActor* InParent, CWorld* InWorld) : Name(InName), Parent(InParent), World(InWorld)
+        {
+            if (Parent)
+            {
+                Parent->Children.Add(this);
+            }
+        }
         IActor(const FDString& InName, const IActor& InRHS) : Name(InName)
         {
             Parent      =   InRHS.Parent;
@@ -61,13 +70,14 @@ namespace lucid::scene
          * Starts with 1, 0 = INVALID
          */
         u32                     Id = 0; 
-        const IActor*           Parent     = nullptr;
+        IActor*                 Parent     = nullptr;
         const FDString          Name;
         FTransform3D            Transform;
         bool                    bVisible = true;
         UUID                    ResourceId = sole::INVALID_UUID;
         FDString                ResourcePath { "" };
         CWorld*                 World; // World that this actor is in
+        FArray<IActor*>         Children { 1, true };
 
         virtual ~IActor() = default;    
 

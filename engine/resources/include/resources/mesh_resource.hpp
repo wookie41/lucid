@@ -2,14 +2,32 @@
 
 #include "resources/resources_holder.hpp"
 #include "common/bytes.hpp"
+#include "common/collections.hpp"
 
 #include "devices/gpu/vao.hpp"
-#include <cstdint>
 
 namespace lucid::resources
 {
     class CTextureResource;
 
+    struct FSubMesh
+    {
+        gpu::CVertexArray*  VAO = nullptr;;
+        gpu::CBuffer*       VertexBuffer  = nullptr;
+        gpu::CBuffer*       ElementBuffer = nullptr;
+
+        bool bHasPositions;
+        bool bHasNormals;
+        bool bHasTangetns;
+        bool bHasUVs;
+
+        u32 VertexCount = 0;
+        u32 ElementCount = 0;
+        
+        FMemBuffer VertexDataBuffer;
+        FMemBuffer ElementDataBuffer;
+    };
+    
     class CMeshResource : public CResource
     {
       public:
@@ -33,20 +51,12 @@ namespace lucid::resources
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
-        u32 VertexCount     = 0;
-        u32 ElementCount    = 0;
-        
-        gpu::CVertexArray*    VAO           = nullptr;
-        gpu::CBuffer*         VertexBuffer  = nullptr;
-        gpu::CBuffer*         ElementBuffer = nullptr;
-
         float MinPosX = 0, MaxPosX = 0;
         float MinPosY = 0, MaxPosY = 0;
         float MinPosZ = 0, MaxPosZ = 0;
-        
-        FMemBuffer            VertexData;
-        FMemBuffer            ElementData;
 
+        FArray<FSubMesh> SubMeshes { 1, true };
+        
 #if DEVELOPMENT
         /** Thumb texture used to show the mesh in asset browser */
         gpu::CTexture*  Thumb;

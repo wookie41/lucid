@@ -55,8 +55,8 @@ namespace lucid::scene
         void RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView);
 
         void RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView);
-        void RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
-        void RenderStaticMesh(gpu::CShader* InShader, const CStaticMesh* InStaticMesh);
+        inline void RenderLightContribution(gpu::CShader** LastShader, const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
+        void RenderStaticMesh(gpu::CShader** LastShader, const scene::CStaticMesh* InStaticMesh, const scene::CLight* InLight, const FRenderView* InRenderView);
 
         void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
@@ -65,10 +65,9 @@ namespace lucid::scene
 #if DEVELOPMENT
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
         void GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const;
+        void RenderWithDefaultMaterial(const CStaticMesh* InStaticMesh, const CLight* InLight, const FRenderView* InRenderView);
 #endif
 
-        void DrawMeshSafe(const CStaticMesh* StaticMesh) const;
-        
         u32 MaxNumOfDirectionalLights;
         float Gamma = 2.2;
 

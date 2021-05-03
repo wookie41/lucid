@@ -73,7 +73,7 @@ namespace lucid
             
             for (int i = 0; i < GEngine.GetMaterialsHolder().GetLength(); ++i)
             {
-                scene::CMaterial* CurrMaterial = GEngine.GetMaterialsHolder().Get(i);
+                scene::CMaterial* CurrMaterial = GEngine.GetMaterialsHolder().GetByIndex(i);
                 if(ImGui::Selectable(*CurrMaterial->GetName(), *OutMaterial == CurrMaterial))
                 {
                     *OutMaterial = CurrMaterial;

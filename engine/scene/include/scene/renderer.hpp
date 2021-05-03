@@ -122,9 +122,9 @@ namespace lucid::scene
         //         Lights/ShadowMaps       //
         /////////////////////////////////////
 
-        CDirectionalLight*  CreateDirectionalLight(const FDString& InName, const IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
-        CSpotLight*         CreateSpotLight(const FDString& InName, const IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
-        CPointLight*        CreatePointLight(const FDString& InName, const IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
+        CDirectionalLight*  CreateDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
+        CSpotLight*         CreateSpotLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
+        CPointLight*        CreatePointLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
 
         CShadowMap* CreateShadowMap(const ELightType& InLightType);
         void        RemoveShadowMap(CShadowMap* InShadowMap);

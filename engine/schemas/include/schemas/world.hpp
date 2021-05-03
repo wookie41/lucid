@@ -11,7 +11,7 @@ STRUCT_END()
 
 STRUCT_INHERIT_BEGIN(lucid, FStaticMeshDescription, lucid::FActorEntry, "")
     STRUCT_FIELD(InstancedVariable<UUID>, MeshResourceId, lucid::InstancedVariable<lucid::UUID>{}, "")	
-    STRUCT_FIELD(InstancedVariable<UUID>, MaterialId, lucid::InstancedVariable<lucid::UUID>{}, "")
+    STRUCT_DYNAMIC_ARRAY(InstancedVariable<UUID>, MaterialIds, "")
     STRUCT_FIELD(bool, bReverseNormals, false, "")
     STRUCT_FIELD(scene::EStaticMeshType, Type, lucid::scene::EStaticMeshType::STATIONARY, 0, "")
 STRUCT_END()

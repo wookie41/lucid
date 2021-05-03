@@ -40,18 +40,17 @@ namespace lucid::scene
 
         void            SaveToJSONFile(const FString& InFilePath) const;
         void            SaveToBinaryFile(const FString& InFilePath) const;
+
+        inline FHashMap<u32, IActor*>& GetActorsMap() { return ActorById; }
+    
     private:
 
         void            CreateWorldDescription(FWorldDescription& OutWorldDescription) const;
         u32             AddActor(IActor* InActor);
         
-        struct
-        {
-            u32         key; // Actor id
-            IActor*    value; 
-        }* ActorById = NULL;
+        FHashMap<u32, IActor*> ActorById;
 
-        u32             NextActorId = 1;
+        u32                  NextActorId = 1;
         
         CStaticMesh**       StaticMeshes = nullptr;
         CDirectionalLight** DirectionalLights = nullptr;

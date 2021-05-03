@@ -1,5 +1,8 @@
 #include "scene/forward_renderer.hpp"
 
+#include <resources/mesh_resource.hpp>
+
+
 #include "devices/gpu/shaders_manager.hpp"
 #include "engine/engine.hpp"
 
@@ -77,26 +80,6 @@ namespace lucid::scene
     static const FSString ACTOR_ID("uActorId");
 #endif
 
-    void CForwardRenderer::DrawMeshSafe(const CStaticMesh* StaticMesh) const
-    {
-    #if DEVELOPMENT
-            if (StaticMesh->GetMeshResource())
-            {
-                StaticMesh->GetMeshResource()->VAO->Bind();
-                StaticMesh->GetMeshResource()->VAO->Draw();   
-            }
-            else
-            {
-                LUCID_LOG(ELogLevel::ERR, "Static mesh '%s' has no MeshResource!", *StaticMesh->Name)
-                UnitCubeVAO->Bind();
-                UnitCubeVAO->Draw();
-            }
-    #else
-            StaticMesh->GetMeshResource()->VAO->Bind();
-            StaticMesh->GetMeshResource()->VAO->Draw();   
-    #endif
-    }
-    
     CForwardRenderer::CForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples)
     : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples)
     {
@@ -495,7 +478,28 @@ namespace lucid::scene
                 if (StaticMesh->bVisible)
                 {
                     CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
-                    DrawMeshSafe(StaticMesh);
+#if DEVELOPMENT
+                    if (resources::CMeshResource* MeshResource = StaticMesh->GetMeshResource())
+                    {
+                        for (u16 SubMeshIdx = 0; SubMeshIdx < MeshResource->SubMeshes.GetLength(); ++SubMeshIdx)
+                        {
+                            MeshResource->SubMeshes[SubMeshIdx]->VAO->Bind();
+                            MeshResource->SubMeshes[SubMeshIdx]->VAO->Draw();   
+                        }
+                    }
+                    else
+                    {
+                        LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a mesh resource", *StaticMesh->Name)
+                        UnitCubeVAO->Bind();
+                        UnitCubeVAO->Draw();
+                    }
+#else
+                    for (u16 SubMeshIdx = 0; SubMeshIdx < StaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++SubMeshIdx)
+                    {
+                        StaticMesh->GetMeshResource()->SubMeshes[SubMeshIdx]->VAO->Bind();
+                        StaticMesh->GetMeshResource()->SubMeshes[SubMeshIdx]->VAO->Draw();   
+                    }
+#endif
                 }
             }
         }
@@ -518,7 +522,35 @@ namespace lucid::scene
 
         for (int i = 0; i < arrlen(InSceneToRender->StaticMeshes); ++i)
         {
-            RenderStaticMesh(PrepassShader, InSceneToRender->StaticMeshes[i]);
+            CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes[i];
+            if (StaticMesh->bVisible)
+            {
+                const glm::mat4 ModelMatrix = StaticMesh->CalculateModelMatrix();
+                PrepassShader->SetMatrix(MODEL_MATRIX, ModelMatrix);
+#if DEVELOPMENT
+                if (resources::CMeshResource* MeshResource = StaticMesh->GetMeshResource())
+                {
+                    for (u16 j = 0; j < MeshResource->SubMeshes.GetLength(); ++j)
+                    {
+                        StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
+                        StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
+                    }
+                }
+                else
+                {
+                    LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a mesh resource", *StaticMesh->Name);
+                    UnitCubeVAO->Bind();
+                    UnitCubeVAO->Draw();
+                }
+#else
+                for (u16 j = 0; j < StaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
+                {
+                    StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
+                    StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
+                }
+#endif
+                
+            }
         }
 
         // Calculate SSAO
@@ -572,35 +604,22 @@ namespace lucid::scene
             return;
         }
 
-        RenderLightContribution(InScene->AllLights[0], InScene, InRenderView);
+        gpu::CShader* LastUsedShader = nullptr;
+        RenderLightContribution(&LastUsedShader, InScene->AllLights[0], InScene, InRenderView);
 
         // Switch blending so we render the rest of the lights additively
         gpu::ConfigurePipelineState(LightpassPipelineState);
         for (int i = 1; i < arrlen(InScene->AllLights); ++i)
         {
-            RenderLightContribution(InScene->AllLights[i], InScene, InRenderView);
+            RenderLightContribution(&LastUsedShader, InScene->AllLights[i], InScene, InRenderView);
         }
     }
-
-    void CForwardRenderer::RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView)
+    
+    void CForwardRenderer::RenderLightContribution(gpu::CShader** LastShader, const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView)
     {
-        gpu::CShader* LastUsedShader = nullptr;
-        for (int i = 0; i < arrlen(InScene->StaticMeshes); ++i)
+        for (u32 i = 0; i < arrlen(InScene->StaticMeshes); ++i)
         {
-            CStaticMesh* CurrentMesh = InScene->StaticMeshes[i];
-
-            // Determine if the material uses a custom shader
-            // if yes, then setup the renderer-provided uniforms
-            auto Shader = CurrentMesh->GetMaterial()->GetShader();
-            if (Shader != LastUsedShader)
-            {
-                Shader->Use();
-            }
-            LastUsedShader = Shader;
-
-            SetupRendererWideUniforms(LastUsedShader, InRenderView);
-            InLight->SetupShader(Shader);
-            RenderStaticMesh(Shader, CurrentMesh);
+            RenderStaticMesh(LastShader, InScene->StaticMeshes[i], InLight, InRenderView);
         }
     }
 
@@ -610,24 +629,7 @@ namespace lucid::scene
 
         for (int i = 0; i < arrlen(InScene->StaticMeshes); ++i)
         {
-            CStaticMesh* StaticMesh = InScene->StaticMeshes[i];
-
-            // Determine if the material uses a custom shader if yes, then setup the renderer-provided uniforms
-            gpu::CShader* CustomShader = StaticMesh->GetMaterial()->GetShader();
-            if (CustomShader)
-            {
-                CustomShader->Use();
-                CustomShader->SetInt(LIGHT_TYPE, NO_LIGHT);
-                SetupRendererWideUniforms(CustomShader, InRenderView);
-                LastUserShader = CustomShader;
-            }
-            else if (LastUserShader != CustomShader)
-            {
-                CustomShader->Use();
-                LastUserShader = CustomShader;
-            }
-
-            RenderStaticMesh(LastUserShader, StaticMesh);
+            RenderStaticMesh(&LastUserShader, InScene->StaticMeshes[i], nullptr, InRenderView);
         }
     }
 
@@ -649,19 +651,52 @@ namespace lucid::scene
         InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
     }
 
-    void CForwardRenderer::RenderStaticMesh(gpu::CShader* Shader, const CStaticMesh* InStaticMesh)
+    void CForwardRenderer::RenderStaticMesh(gpu::CShader** LastShader, const CStaticMesh* InStaticMesh, const CLight* InLight, const FRenderView* InRenderView)
     {
-        if (!InStaticMesh->bVisible)
+        const glm::mat4 ModelMatrix = InStaticMesh->CalculateModelMatrix();
+
+#if DEVELOPMENT
+        if (InStaticMesh->GetMeshResource() == nullptr)
         {
+            RenderWithDefaultMaterial(InStaticMesh, InLight, InRenderView);
+            *LastShader = GEngine.GetDefaultMaterial()->GetShader();
             return;
         }
-        const glm::mat4 ModelMatrix = InStaticMesh->CalculateModelMatrix();
-        Shader->SetMatrix(MODEL_MATRIX, ModelMatrix);
-        Shader->SetBool(REVERSE_NORMALS, InStaticMesh->GetReverseNormals());
+#endif
+        for (u16 j = 0; j < InStaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
+        {
+            CMaterial* Material = InStaticMesh->GetMaterialSlot(j);
 
-        InStaticMesh->GetMaterial()->SetupShader(Shader);
+#if DEVELOPMENT
+            if (Material == nullptr)
+            {
+                LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at slot %d", *InStaticMesh->Name, j);
+                RenderWithDefaultMaterial(InStaticMesh, InLight, InRenderView);
+                *LastShader = GEngine.GetDefaultMaterial()->GetShader();
+                continue;
+            }
+#endif
+            // Determine if the material uses a custom shader
+            // if yes, then setup the renderer-provided uniforms
+            if (Material->GetShader() != *LastShader)
+            {
+                Material->GetShader()->Use();
+                *LastShader = Material->GetShader();
+                SetupRendererWideUniforms(*LastShader, InRenderView);
+                if (InLight)
+                {
+                    InLight->SetupShader(*LastShader);                    
+                }
+            }
 
-        DrawMeshSafe(InStaticMesh);
+            (*LastShader)->SetMatrix(MODEL_MATRIX, ModelMatrix);
+            (*LastShader)->SetBool(REVERSE_NORMALS, InStaticMesh->GetReverseNormals());
+
+            Material->SetupShader(*LastShader);
+
+            InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
+            InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
+        }        
     }
 
     inline void CForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
@@ -739,7 +774,19 @@ namespace lucid::scene
             {
                 HitMapShader->SetUInt(ACTOR_ID, StaticMesh->Id);
                 HitMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
-                DrawMeshSafe(StaticMesh);
+                if (StaticMesh->GetMeshResource())
+                {
+                    for (u16 j = 0; j < StaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
+                    {
+                        StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
+                        StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
+                    }
+                }
+                else
+                {
+                    UnitCubeVAO->Bind();
+                    UnitCubeVAO->Draw();
+                }
             }            
         }
 
@@ -775,6 +822,28 @@ namespace lucid::scene
         // Get the result
         HitMapFramebuffer->ReadPixels(0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), CachedHitMap.CachedTextureData);
     }
+
+    
+    void CForwardRenderer::RenderWithDefaultMaterial(const CStaticMesh* InStaticMesh, const CLight* InLight, const FRenderView* InRenderView)
+    {
+        CMaterial* DefaultMaterial = GEngine.GetDefaultMaterial();
+        DefaultMaterial->GetShader()->Use();
+
+        SetupRendererWideUniforms(DefaultMaterial->GetShader(), InRenderView);
+        if (InLight)
+        {
+            InLight->SetupShader(DefaultMaterial->GetShader());            
+        }
+        else
+        {
+            DefaultMaterial->GetShader()->SetInt(LIGHT_TYPE, NO_LIGHT);
+        }
+        DefaultMaterial->SetupShader(DefaultMaterial->GetShader());
+
+        UnitCubeVAO->Bind();
+        UnitCubeVAO->Draw();
+    }
+
 #endif
 
 

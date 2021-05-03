@@ -3,9 +3,6 @@
     "Name": "WoodMaterial",
     "ShaderName": "BlinnPhongMaps",
     "DiffuseTextureID": "76206f90-1209-40af-b94c-785bbee012e4",
-    "SpecularColor": [
-        0.5,
-        0.5,
-        0.5
-    ]
+    "SpecularTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
+    "NormalTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5"
 }

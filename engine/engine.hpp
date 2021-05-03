@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <scene/material.hpp>
+
 #include "scene/actors/actor.hpp"
 
 #include "common/types.hpp"
@@ -66,7 +68,8 @@ namespace lucid
         inline CMaterialsHolder&        GetMaterialsHolder()    { return MaterialsHolder; }
         inline scene::CRenderer*        GetRenderer()           { return Renderer; }
         inline gpu::CShadersManager&    GetShadersManager()     { return ShadersManager; }
-        inline FActorDatabase&          GetActorsDatabase()           { return ActorDatabase; }
+        inline FActorDatabase&          GetActorsDatabase()     { return ActorDatabase; }
+        inline scene::CMaterial*        GetDefaultMaterial()    { return DefaultMaterial; }
 
         void AddTextureResource(resources::CTextureResource* InTexture,  const FString& InSourcePath);
         void AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath);
@@ -96,7 +99,9 @@ namespace lucid
         CMaterialsHolder MaterialsHolder {};
 
         FHashMap<UUID, FActorResourceInfo>   ActorResourceInfoById;        
-        FHashMap<UUID, scene::IActor*>       ActorResourceById;        
+        FHashMap<UUID, scene::IActor*>       ActorResourceById;
+
+        scene::CMaterial* DefaultMaterial = nullptr;
 
 #if DEVELOPMENT
     public:

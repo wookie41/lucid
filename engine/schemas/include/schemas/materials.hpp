@@ -1,7 +1,7 @@
 ﻿STRUCT_BEGIN(lucid, FMaterialDescription, "")
     STRUCT_FIELD(UUID, Id, sole::INVALID_UUID, "Id of the material")	
     STRUCT_FIELD(FDString, Name, "", "Name of the material")	
-    STRUCT_FIELD(FDString, ShaderName, "", "Name of the shader used by this material")	
+    STRUCT_FIELD(FDString, ShaderName, "", "Name of the shader used by this material")
 STRUCT_END()
 
 STRUCT_INHERIT_BEGIN(lucid, FFlatMaterialDescription, lucid::FMaterialDescription, "")
@@ -26,6 +26,7 @@ STRUCT_END()
 STRUCT_BEGIN(lucid, FMaterialDatabaseEntry, "")
     STRUCT_FIELD(FDString, MaterialPath, "", "")
     STRUCT_FIELD(EFileFormat, FileFormat, lucid::EFileFormat::Json, "")
+    STRUCT_FIELD(bool, bDefault, false, "should this material be used when as a default one, e.x. when mesh is missing a material")
 STRUCT_END()
 
 STRUCT_BEGIN(lucid, FMaterialDatabase, "")

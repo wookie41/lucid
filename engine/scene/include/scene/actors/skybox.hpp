@@ -16,7 +16,7 @@ namespace lucid::scene
     {
       public:
         CSkybox(const FDString& InName,
-                const IActor* InParent,
+                IActor* InParent,
                 CWorld* InWorld,
                 gpu::CCubemap* InSkyboxCubemap,
                 const u32& InWidth,

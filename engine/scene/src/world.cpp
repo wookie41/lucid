@@ -90,20 +90,16 @@ namespace lucid::scene
 
     IActor* CWorld::GetActorById(const u32& InActorId)
     {
-        if (hmgeti(ActorById, InActorId) != -1)
-        {
-            return hmget(ActorById, InActorId);
-        }
-        return nullptr;
+        return ActorById.Get(InActorId);
     }
 
     u32 CWorld::AddActor(IActor* InActor)
     {
         // If actor doesn't have an id yet or it's not in the map
-        if (InActor->Id == 0 || hmgeti(ActorById, InActor->Id) == -1)
+        if (InActor->Id == 0 || !ActorById.Contains(InActor->Id))
         {
             InActor->Id = NextActorId++;
-            hmput(ActorById, InActor->Id, InActor);
+            ActorById.Add(InActor->Id, InActor);
             LUCID_LOG(ELogLevel::INFO, "Actor '%s' added to the world", *InActor->Name);
             return InActor->Id;
         }

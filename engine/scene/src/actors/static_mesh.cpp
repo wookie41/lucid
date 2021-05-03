@@ -14,12 +14,11 @@
 namespace lucid::scene
 {
     CStaticMesh::CStaticMesh(const FDString& InName,
-                             const IActor* InParent,
+                             IActor* InParent,
                              CWorld* InWorld,
                              resources::CMeshResource* InMeshResource,
-                             CMaterial* InMaterial,
                              const EStaticMeshType& InType)
-    : IActor(InName, InParent, InWorld), MeshResource(InMeshResource), Material(InMaterial), Type(InType)
+    : IActor(InName, InParent, InWorld), MeshResource(InMeshResource), Type(InType)
     {
     }
 
@@ -31,9 +30,19 @@ namespace lucid::scene
         ImGui::Text("Static mesh:");
         ImGui::Checkbox("Reverse normals", &bReverseNormals);
         ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
-        ImGui::Text("Material:");
-        ImGuiMaterialPicker("static_mesh_material", &Material);
-        Material->UIDrawMaterialEditor();
+        for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
+        {
+            ImGui::Text("Material slot %d:", i);
+            ImGuiMaterialPicker("static_mesh_material", MaterialSlots[i]);
+            if (*MaterialSlots[i])
+            {
+                (*MaterialSlots[i])->UIDrawMaterialEditor();                
+            }
+            else
+            {
+                ImGui::Text("-- No material selected --");
+            }
+        }
     }
 
     void CStaticMesh::FillDescription(FStaticMeshDescription& OutDescription) const
@@ -47,18 +56,27 @@ namespace lucid::scene
                 OutDescription.MeshResourceId.Value = MeshResource->GetID();
             }
 
-            if (Material != BaseStaticMesh->Material)
+            for (u16 i = 0; i < BaseStaticMesh->MaterialSlots.GetLength(); ++i)
             {
-                OutDescription.MaterialId.bChanged  = true;
-                OutDescription.MaterialId.Value     = Material->GetID();
+                if (*MaterialSlots[i] != *(BaseStaticMesh->MaterialSlots[i]))
+                {
+                    OutDescription.MaterialIds.push_back({(*MaterialSlots[i])->GetID(), true });
+                }
+                else
+                {
+                    OutDescription.MaterialIds.push_back({sole::INVALID_UUID, false });
+                }
             }
-
+            
             OutDescription.BaseActorResourceId = BaseStaticMesh->ResourceId;
         }
         else
         {
             OutDescription.MeshResourceId.Value = MeshResource->GetID();
-            OutDescription.MaterialId.Value     =     Material->GetID();
+            for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
+            {
+                OutDescription.MaterialIds.push_back({(*MaterialSlots[i])->GetID(), true});
+            }
         }
 
         OutDescription.Id = Id;
@@ -81,6 +99,12 @@ namespace lucid::scene
 #endif
     float CStaticMesh::GetVerticalMidPoint() const
     {
+#if DEVELOPMENT
+        if (!MeshResource)
+        {
+            return 0;
+        }
+#endif
         if (0.002f > fabs(MeshResource->MinPosY))
         {
             return (MeshResource->MaxPosY - MeshResource->MinPosY) * Transform.Scale.y / 2.f;
@@ -102,23 +126,36 @@ namespace lucid::scene
             MeshResource = BaseActorResource->MeshResource;
         }
 
-        CMaterial* Material;
-        if (InStaticMeshDescription.MaterialId.bChanged)
-        {
-            Material = GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialId.Value);
-        }
-        else
-        {
-            Material = BaseActorResource->Material;
-        }
-
-        auto* StaticMesh = new CStaticMesh { InStaticMeshDescription.Name, Parent, InWorld, MeshResource, Material, InStaticMeshDescription.Type };
+        auto* StaticMesh = new CStaticMesh { InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
         StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
         StaticMesh->Transform.Rotation = Float4ToQuat(InStaticMeshDescription.Rotation);
         StaticMesh->Transform.Scale = Float3ToVec(InStaticMeshDescription.Scale);
         StaticMesh->SetReverseNormals(InStaticMeshDescription.bReverseNormals);
         StaticMesh->BaseStaticMesh = BaseActorResource;
-        
+
+        if (BaseActorResource)
+        {
+            for (u16 i = 0; i < BaseActorResource->GetNumMaterialSlots(); ++i)
+            {
+                if (i < InStaticMeshDescription.MaterialIds.size() && InStaticMeshDescription.MaterialIds[i].bChanged)
+                {
+                    StaticMesh->AddMaterial(GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialIds[i].Value));
+                }
+                else
+                {
+                    StaticMesh->AddMaterial(BaseActorResource->GetMaterialSlot(i));
+
+                }            
+            }
+        }
+        else
+        {
+            for (u16 i = 0; i < InStaticMeshDescription.MaterialIds.size(); ++i)
+            {
+                StaticMesh->AddMaterial(GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialIds[i].Value));
+            }
+        }
+
         if (InWorld)
         {
             InWorld->AddStaticMesh(StaticMesh);            

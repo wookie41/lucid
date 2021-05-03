@@ -160,7 +160,7 @@ namespace lucid
     }   
 
     template <typename K, typename V>
-    V& FHashMap<K, V>::Get(const u64& EntryNum)
+    V& FHashMap<K, V>::GetByIndex(const u64& EntryNum)
     {
         assert(EntryNum < GetLength());
         return HashMap[EntryNum].value;

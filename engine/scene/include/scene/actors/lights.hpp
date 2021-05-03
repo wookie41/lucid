@@ -29,7 +29,7 @@ namespace lucid::scene
     {
       public:
 
-        CLight(const FDString& InName, const IActor* InParent, CWorld* InWorld) : IActor(InName, InParent, InWorld)
+        CLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : IActor(InName, InParent, InWorld)
         {
         };
 
@@ -70,7 +70,7 @@ namespace lucid::scene
     class CDirectionalLight : public CLight
     {
       public:
-        CDirectionalLight(const FDString& InName, const IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
+        CDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
 
         virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
         virtual void SetupShader(gpu::CShader* InShader) const override;
@@ -96,7 +96,7 @@ namespace lucid::scene
     class CSpotLight : public CLight
     {
     public:
-        CSpotLight(const FDString& InName, const IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
+        CSpotLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
         
         virtual ELightType GetType() const override { return ELightType::SPOT; }
 
@@ -128,7 +128,7 @@ namespace lucid::scene
     {
       public:
 
-        CPointLight(const FDString& InName, const IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
+        CPointLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
         
         virtual ELightType GetType() const override { return ELightType::POINT; }
 

@@ -66,7 +66,7 @@ namespace lucid::resources
         inline u32 Length() const { return ResourcesHashMap.GetLength(); }
         inline R* GetByIndex(const u32& Index)
         {
-            return ResourcesHashMap.Get(Index);
+            return ResourcesHashMap.GetByIndex(Index);
         }
         
         inline FHashMap<UUID, R*>& GetResourcesHashMap() const { return ResourcesHashMap; }

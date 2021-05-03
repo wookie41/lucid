@@ -1,7 +1,6 @@
 #include "scene/actors/lights.hpp"
 
-#include <engine/engine.hpp>
-
+#include "engine/engine.hpp"
 
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/shader.hpp"
@@ -18,10 +17,10 @@ namespace lucid::scene
     static const FSString LIGHT_COLOR{ "uLightColor" };
 
     static const FSString LIGHT_SPACE_MATRIX("uLightMatrix");
-    
+
     static const FSString LIGHT_NEAR_PLANE{ "uLightNearPlane" };
     static const FSString LIGHT_FAR_PLANE{ "uLightFarPlane" };
-    
+
     static const FSString LIGHT_SPACE_MATRIX_0{ "uLightMatrices[0]" };
     static const FSString LIGHT_SPACE_MATRIX_1{ "uLightMatrices[1]" };
     static const FSString LIGHT_SPACE_MATRIX_2{ "uLightMatrices[2]" };
@@ -38,8 +37,9 @@ namespace lucid::scene
     static const FSString LIGHT_SHADOW_MAP("uLightShadowMap");
     static const FSString LIGHT_CASTS_SHADOWS("uLightCastsShadows");
     static const FSString LIGHT_SHADOW_CUBE("uLightShadowCube");
-    
-    inline glm::mat4 CreateLightSpaceMatrix(const glm::vec3& Position, const glm::vec3& LightUp, const LightSettings& MatrixSettings)
+
+    inline glm::mat4
+    CreateLightSpaceMatrix(const glm::vec3& Position, const glm::vec3& LightUp, const LightSettings& MatrixSettings)
     {
         const glm::mat4 viewMatrix = glm::lookAt(Position, glm::vec3{ 0 }, LightUp);
         const glm::mat4 projectionMatrix = glm::ortho(MatrixSettings.Left,
@@ -62,6 +62,22 @@ namespace lucid::scene
     void CLight::UIDrawActorDetails()
     {
         IActor::UIDrawActorDetails();
+        switch (GetType())
+        {
+        case ELightType::DIRECTIONAL:
+            ImGui::Text("Directional light");
+
+            break;
+        case ELightType::SPOT:
+            ImGui::Text("Spot light");
+
+            break;
+        case ELightType::POINT:
+            ImGui::Text("Point light");
+
+            break;
+        }
+
         ImGui::SliderFloat3("Light color", &Color.r, 0, 1);
 
         bool bCastsShadow = ShadowMap != nullptr;
@@ -84,16 +100,13 @@ namespace lucid::scene
     }
 #endif
 
-    float CLight::GetVerticalMidPoint() const
-    {
-        return 0;
-    }
+    float CLight::GetVerticalMidPoint() const { return 0; }
 
     void CLight::_SaveToResourceFile(const FString& InFilePath)
     {
         // Light data is written directly to the world file
     }
-    
+
     /////////////////////////////////////
     //        Directional light        //
     /////////////////////////////////////
@@ -133,7 +146,7 @@ namespace lucid::scene
         ImGui::SliderFloat3("Light up", &LightUp.x, 0, 1);
     }
 #endif
-    
+
     /////////////////////////////////////
     //            Spot light           //
     /////////////////////////////////////
@@ -165,10 +178,7 @@ namespace lucid::scene
         }
     }
 
-    void CSpotLight::SetupShadowMapShader(gpu::CShader* InShader)
-    {
-        InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
-    }
+    void CSpotLight::SetupShadowMapShader(gpu::CShader* InShader) { InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix); }
 
 #if DEVELOPMENT
     void CSpotLight::UIDrawActorDetails()
@@ -184,30 +194,36 @@ namespace lucid::scene
         ImGui::SliderFloat("OuterCutOffRad", &OuterCutOffRad, 0, 2);
     }
 #endif
-    
+
     /////////////////////////////////////
     //           Point light           //
     /////////////////////////////////////
-    
+
     void CPointLight::UpdateLightSpaceMatrix(const LightSettings& LightSettings)
     {
         const float ShadowMapWidth = (float)ShadowMap->GetShadowMapTexture()->GetWidth();
         const float ShadowMapHeight = (float)ShadowMap->GetShadowMapTexture()->GetHeight();
-        
+
         glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.f), ShadowMapWidth / ShadowMapHeight, NearPlane, FarPlane);
 
         LightSpaceMatrices[0] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix *
+          glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
         LightSpaceMatrices[1] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix *
+          glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
         LightSpaceMatrices[2] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 1.0, 0.0 }, glm::vec3{ 0.0, 0.0, 1.0 });
+          projectionMatrix *
+          glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 1.0, 0.0 }, glm::vec3{ 0.0, 0.0, 1.0 });
         LightSpaceMatrices[3] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, -1.0, 0.0 }, glm::vec3{ 0.0, 0.0, -1.0 });
+          projectionMatrix *
+          glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, -1.0, 0.0 }, glm::vec3{ 0.0, 0.0, -1.0 });
         LightSpaceMatrices[4] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 0.0, 1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix *
+          glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 0.0, 1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
         LightSpaceMatrices[5] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 0.0, -1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix *
+          glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 0.0, -1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
     }
 
     void CPointLight::SetupShader(gpu::CShader* InShader) const
@@ -244,11 +260,10 @@ namespace lucid::scene
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_2, LightSpaceMatrices[2]);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_3, LightSpaceMatrices[3]);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_4, LightSpaceMatrices[4]);
-        InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);        
-        InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);        
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);
     }
 
-    
 #if DEVELOPMENT
     void CPointLight::UIDrawActorDetails()
     {
@@ -261,5 +276,4 @@ namespace lucid::scene
         ImGui::SliderFloat("Far plane", &FarPlane, 5, 100);
     }
 #endif
-    
 } // namespace lucid::scene
