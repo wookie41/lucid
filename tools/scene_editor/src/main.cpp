@@ -523,6 +523,7 @@ void UIDrawResourceBrowserWindow()
                         GSceneEditorState.FileDialog.SetTypeFilters({ ".obj" });
                         GSceneEditorState.bShowFileDialog = true;
                         GSceneEditorState.OnFileSelected = &ImportMesh;
+                        GSceneEditorState.FileDialog.ClearSelected();
                         GSceneEditorState.FileDialog.Open();
                     }
 
@@ -532,6 +533,7 @@ void UIDrawResourceBrowserWindow()
                         GSceneEditorState.FileDialog.SetTypeFilters({ ".png", ".jpg", ".jpeg" });
                         GSceneEditorState.OnFileSelected = &ImportTexture;
                         GSceneEditorState.bShowFileDialog = true;
+                        GSceneEditorState.FileDialog.ClearSelected();
                         GSceneEditorState.FileDialog.Open();
                     }
 
