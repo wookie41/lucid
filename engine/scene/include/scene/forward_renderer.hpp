@@ -65,7 +65,7 @@ namespace lucid::scene
 #if DEVELOPMENT
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
         void GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const;
-        void RenderWithDefaultMaterial(const CStaticMesh* InStaticMesh, const CLight* InLight, const FRenderView* InRenderView);
+        void RenderWithDefaultMaterial(const resources::CMeshResource* InMeshResource, const u16& InSubMeshIndex, const CLight* InLight, const FRenderView* InRenderView, const glm::mat4& InModelMatrix);
 #endif
 
         u32 MaxNumOfDirectionalLights;

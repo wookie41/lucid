@@ -1,13 +1,10 @@
 #include "engine/engine.hpp"
 
 #include "devices/gpu/framebuffer.hpp"
-#include "devices/gpu/init.hpp"
 #include "devices/gpu/gpu.hpp"
 #include "devices/gpu/texture.hpp"
 #include "devices/gpu/viewport.hpp"
-#include "devices/gpu/shaders_manager.hpp"
-
-#include "misc/basic_shapes.hpp"
+#include "devices/gpu/texture_enums.hpp"
 
 #include "platform/input.hpp"
 #include "platform/window.hpp"
@@ -19,6 +16,9 @@
 #include "scene/blinn_phong_material.hpp"
 #include "scene/actors/static_mesh.hpp"
 #include "scene/world.hpp"
+#include "scene/flat_material.hpp"
+#include "scene/material.hpp"
+#include "scene/actors/actor_enums.hpp"
 
 #include "resources/texture_resource.hpp"
 #include "resources/mesh_resource.hpp"
@@ -32,13 +32,12 @@
 #include "schemas/json.hpp"
 #include "misc/actor_thumbs.hpp"
 
+#include "sole/sole.hpp"
+
 #include <algorithm>
 #include <stdio.h>
-#include <devices/gpu/texture_enums.hpp>
-#include <scene/flat_material.hpp>
-#include <scene/material.hpp>
-#include <scene/actors/actor_enums.hpp>
-#include <sole/sole.hpp>
+#include <scene/actors/actor.hpp>
+
 
 #include "imgui_lucid.h"
 
@@ -111,9 +110,10 @@ struct FSceneEditorState
     bool bIsImportingTexture = false;
     bool bFailedToImportResource = false;
 
-    resources::CMeshResource* ClickedMeshResource = nullptr;
-    resources::CTextureResource* ClickedTextureResource = nullptr;
-    scene::CMaterial* ClickedMaterialAsset = nullptr;
+    resources::CMeshResource*       ClickedMeshResource = nullptr;
+    resources::CTextureResource*    ClickedTextureResource = nullptr;
+    scene::CMaterial*               ClickedMaterialAsset = nullptr;
+    scene::IActor*                  ClickedActorAsset = nullptr;
 
     bool bDisableCameraMovement = false;
 
@@ -151,6 +151,7 @@ void UIDrawMeshContextMenu();
 void UIDrawTextureContextMenu();
 void UIDrawMaterialContextMenu();
 void UIDrawMaterialCreationMenu();
+void UIDrawActorAssetContextMenu();
 void UIDrawActorResourceCreationMenu();
 
 void ImportTexture(const std::filesystem::path& SelectedFilePath);
@@ -646,6 +647,10 @@ void UIDrawResourceBrowserWindow()
     {
         UIDrawMaterialContextMenu();
     }
+    else if (GSceneEditorState.ClickedActorAsset)
+    {
+        UIDrawActorAssetContextMenu();
+    }
     else if (GSceneEditorState.TypeOfMaterialToCreate != scene::EMaterialType::NONE)
     {
         UIDrawMaterialCreationMenu();
@@ -673,16 +678,19 @@ void UIDrawResourceBrowserWindow()
                         {
                             GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::FLAT;
                             GSceneEditorState.PickedShader = nullptr;
+                            GSceneEditorState.bDisableCameraMovement = true;
                         }
                         if (ImGui::MenuItem("Blinn Phong"))
                         {
                             GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::BLINN_PHONG;
                             GSceneEditorState.PickedShader = nullptr;
+                            GSceneEditorState.bDisableCameraMovement = true;
                         }
                         if (ImGui::MenuItem("Blinn Phong Maps"))
                         {
                             GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::BLINN_PHONG_MAPS;
                             GSceneEditorState.PickedShader = nullptr;
+                            GSceneEditorState.bDisableCameraMovement = true;
                         }
                         ImGui::EndMenu();
                     }
@@ -692,6 +700,7 @@ void UIDrawResourceBrowserWindow()
                         if (ImGui::MenuItem("Static mesh"))
                         {
                             GSceneEditorState.TypeOfActorToCreate = scene::EActorType::STATIC_MESH;
+                            GSceneEditorState.bDisableCameraMovement = true;
                         }
                         ImGui::EndMenu();
                     }
@@ -783,13 +792,18 @@ void UIDrawResourceBrowserWindow()
                         ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount + (4 * CurrentRowItemsCount), 2);
                     }
 
-                    if (ImGui::Button(*GEngine.GetActorsResources().GetByIndex(i)->Name, ResourceItemSize) &&
-                        !GSceneEditorState.EditedStaticMesh)
+                    scene::IActor* ActorAsset = GEngine.GetActorsResources().GetByIndex(i);
+                    if (ImGui::Button(*ActorAsset->Name, ResourceItemSize) && !GSceneEditorState.EditedStaticMesh)
                     {
                         if (auto* StaticMeshActor = dynamic_cast<scene::CStaticMesh*>(GEngine.GetActorsResources().GetByIndex(i)))
                         {
                             GSceneEditorState.EditedStaticMesh = StaticMeshActor;
                         }
+                    }
+
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+                    {
+                        GSceneEditorState.ClickedActorAsset = ActorAsset;
                     }
                 }
             }
@@ -1175,7 +1189,8 @@ void UIDrawMaterialCreationMenu()
                         assert(0);
                     }
 
-                    GEngine.GetMaterialsHolder().Add(CreatedMaterial->GetID(), CreatedMaterial);
+
+                    GEngine.AddMaterialAsset(CreatedMaterial, GSceneEditorState.TypeOfMaterialToCreate, CreatedMaterialPath, false);
                     GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::NONE;
                     GSceneEditorState.PickedShader = nullptr;
                     ImGui::CloseCurrentPopup();
@@ -1244,7 +1259,7 @@ void UIDrawActorResourceCreationMenu()
                 CreatedActor->ResourceId = sole::uuid4();
                 CreatedActor->ResourcePath = CreatedActorPath;
 
-                GEngine.GetActorsResources().Add(CreatedActor->ResourceId, CreatedActor);
+                GEngine.AddActorAsset(CreatedActor);
                 GSceneEditorState.TypeOfActorToCreate = scene::EActorType::UNKNOWN;
                 ImGui::CloseCurrentPopup();
                 GSceneEditorState.bDisableCameraMovement = false;
@@ -1277,6 +1292,28 @@ void UIDrawMaterialContextMenu()
     if (ImGui::Button("Close"))
     {
         GSceneEditorState.ClickedTextureResource = nullptr;
+        GSceneEditorState.bDisableCameraMovement = false;
+        ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+}
+
+void UIDrawActorAssetContextMenu()
+{
+    UIOpenPopup("Actor asset actions");
+
+    if (ImGui::Button("Remove"))
+    {
+        GEngine.RemoveActorAsset(GSceneEditorState.ClickedActorAsset);
+        GSceneEditorState.ClickedActorAsset = nullptr;
+        GSceneEditorState.bDisableCameraMovement = false;
+        ImGui::CloseCurrentPopup();
+    }
+
+    if (ImGui::Button("Close"))
+    {
+        GSceneEditorState.ClickedActorAsset = nullptr;
         GSceneEditorState.bDisableCameraMovement = false;
         ImGui::CloseCurrentPopup();
     }

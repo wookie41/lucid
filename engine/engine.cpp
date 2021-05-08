@@ -192,8 +192,8 @@ namespace lucid
 
                 break;
             }
-                default:
-                    assert(0);
+            default:
+                assert(0);
             }
 
             if (LoadedMaterial)
@@ -294,6 +294,15 @@ namespace lucid
         WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
     }
 
+    void CEngine::AddMaterialAsset(scene::CMaterial* InMaterial,
+                                   const scene::EMaterialType& InMaterialType,
+                                   const FDString& InMaterialPath,
+                                   const bool& InbIsDefault)
+    {
+        MaterialsHolder.Add(InMaterial->GetID(), InMaterial);
+        MaterialDatabase.Entries.push_back({ InMaterial->GetID(), InMaterialPath, EFileFormat::Json, InMaterialType, InbIsDefault });
+    }
+
     void CEngine::RemoveMaterialAsset(scene::CMaterial* InMaterial)
     {
         MaterialDatabase.Entries.erase(std::remove_if(
@@ -307,6 +316,30 @@ namespace lucid
           }));
 
         MaterialsHolder.Remove(InMaterial->GetID());
-        WriteToJSONFile(ResourceDatabase, "assets/databases/materials.json");
+        WriteToJSONFile(MaterialDatabase, "assets/databases/materials.json");
     }
+
+    void CEngine::RemoveActorAsset(scene::IActor* InActorResource)
+    {
+        ActorDatabase.Entries.erase(
+          std::remove_if(ActorDatabase.Entries.begin(), ActorDatabase.Entries.end(), [&](const FActorDatabaseEntry& Entry) {
+              if (Entry.ActorId == InActorResource->ResourceId)
+              {
+                  remove(*Entry.ActorPath);
+                  return true;
+              }
+              return false;
+          }));
+
+        ActorResourceById.Remove(InActorResource->ResourceId);
+        WriteToJSONFile(ResourceDatabase, "assets/databases/actors.json");
+    }
+
+    void CEngine::AddActorAsset(scene::IActor* InActorResource)
+    {
+        ActorDatabase.Entries.push_back(
+          { InActorResource->ResourceId, InActorResource->ResourcePath, InActorResource->GetActorType() });
+        ActorResourceById.Add(InActorResource->ResourceId, InActorResource);
+    }
+
 } // namespace lucid

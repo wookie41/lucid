@@ -2,7 +2,6 @@
 
 #include <resources/mesh_resource.hpp>
 
-
 #include "devices/gpu/shaders_manager.hpp"
 #include "engine/engine.hpp"
 
@@ -30,9 +29,9 @@
 
 namespace lucid::scene
 {
-    static const glm::mat4 IDENTITY_MATRIX { 1 };
-    static const glm::vec3 WORLD_UP { 0, 1, 0 };
-    
+    static const glm::mat4 IDENTITY_MATRIX{ 1 };
+    static const glm::vec3 WORLD_UP{ 0, 1, 0 };
+
     static const u8 NO_LIGHT = 0;
     static const FSString LIGHT_TYPE("uLight.Type");
 
@@ -75,7 +74,7 @@ namespace lucid::scene
 
     static const FSString GAMMA("uGamma");
     static const FSString SCENE_TEXTURE("uSceneTexture");
-    
+
 #if DEVELOPMENT
     static const FSString ACTOR_ID("uActorId");
 #endif
@@ -95,7 +94,7 @@ namespace lucid::scene
         if (UnitCubeVAO == nullptr)
         {
             UnitCubeVAO = misc::CreateCubeVAO();
-        }   
+        }
 
         HitMapShader = GEngine.GetShadersManager().GetShaderByName("Hitmap");
         BillboardHitMapShader = GEngine.GetShadersManager().GetShaderByName("BillboardHitmap");
@@ -108,7 +107,7 @@ namespace lucid::scene
         BillboardShader = GEngine.GetShadersManager().GetShaderByName("Billboard");
         FlatShader = GEngine.GetShadersManager().GetShaderByName("Flat");
         GammaCorrectionShader = GEngine.GetShadersManager().GetShaderByName("GammaCorrection");
-        
+
         // Prepare pipeline states
         ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor{ 0 };
         ShadowMapGenerationPipelineState.ClearDepthBufferValue = 0;
@@ -158,7 +157,7 @@ namespace lucid::scene
         HitMapGenerationPipelineState = SkyboxPipelineState;
         HitMapGenerationPipelineState.IsDepthBufferReadOnly = false;
         HitMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
-        
+
         GammaCorrectionPipelineState.ClearColorBufferColor = FColor{ 0 };
         GammaCorrectionPipelineState.ClearDepthBufferValue = 0;
         GammaCorrectionPipelineState.IsDepthTestEnabled = false;
@@ -167,7 +166,7 @@ namespace lucid::scene
         GammaCorrectionPipelineState.IsCullingEnabled = false;
         GammaCorrectionPipelineState.IsSRGBFramebufferEnabled = false;
         GammaCorrectionPipelineState.IsDepthBufferReadOnly = true;
-        
+
         // Create the framebuffers
         ShadowMapFramebuffer = gpu::CreateFramebuffer(FSString{ "ShadowmapFramebuffer" });
         PrepassFramebuffer = gpu::CreateFramebuffer(FSString{ "PrepassFramebuffer" });
@@ -177,7 +176,8 @@ namespace lucid::scene
         FrameResultFramebuffer = gpu::CreateFramebuffer(FSString{ "FameResultFramebuffer" });
 
         // Create a common depth-stencil attachment for both framebuffers
-        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
+        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(
+          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
 
         // Create render targets in which we'll store some additional information during the depth prepass
         CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -262,7 +262,7 @@ namespace lucid::scene
 
         // Setup the lighting pass framebuffer
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        
+
         LightingPassColorBuffer->Bind();
         LightingPassColorBuffer->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
         LightingPassColorBuffer->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
@@ -329,12 +329,12 @@ namespace lucid::scene
 
         // Setup the framebuffer which will hold the final result
         FrameResultTexture = gpu::CreateEmpty2DTexture(ResultResolution.x,
-                                                            ResultResolution.y,
-                                                            gpu::ETextureDataType::FLOAT,
-                                                            gpu::ETextureDataFormat::RGBA,
-                                                            gpu::ETexturePixelFormat::RGBA,
-                                                            0,
-                                                            FSString{ "FrameResult" });
+                                                       ResultResolution.y,
+                                                       gpu::ETextureDataType::FLOAT,
+                                                       gpu::ETextureDataFormat::RGBA,
+                                                       gpu::ETexturePixelFormat::RGBA,
+                                                       0,
+                                                       FSString{ "FrameResult" });
         FrameResultTexture->Bind();
         FrameResultTexture->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
         FrameResultTexture->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
@@ -348,7 +348,7 @@ namespace lucid::scene
         LightsBillboardsPipelineState.ClearDepthBufferValue = 0;
         LightsBillboardsPipelineState.IsDepthTestEnabled = true;
         LightsBillboardsPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
-        LightsBillboardsPipelineState.IsBlendingEnabled = true; 
+        LightsBillboardsPipelineState.IsBlendingEnabled = true;
         LightsBillboardsPipelineState.BlendFunctionSrc = gpu::EBlendFunction::SRC_ALPHA;
         LightsBillboardsPipelineState.BlendFunctionAlphaSrc = gpu::EBlendFunction::SRC_ALPHA;
         LightsBillboardsPipelineState.BlendFunctionDst = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
@@ -366,8 +366,9 @@ namespace lucid::scene
                                                   0,
                                                   FSString{ "HitMapTexture" });
 
-        HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(
-          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { ResultResolution.x, ResultResolution.y }, FSString{ "HitMapRenderbuffer" });
+        HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8,
+                                                                 { ResultResolution.x, ResultResolution.y },
+                                                                 FSString{ "HitMapRenderbuffer" });
 
         HitMapFramebuffer = gpu::CreateFramebuffer(FSString{ "HitMapMapFramebuffer" });
         HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -385,7 +386,8 @@ namespace lucid::scene
 
         CachedHitMap.Width = ResultResolution.x;
         CachedHitMap.Height = ResultResolution.y;
-        CachedHitMap.CachedTextureData = (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
+        CachedHitMap.CachedTextureData = (u32*)malloc(
+          HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
         Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
 
         LightBulbTexture = GEngine.GetTexturesHolder().Get(sole::rebuild("abd835d6-6aa9-4140-9442-9afe04a2b999"))->TextureHandle;
@@ -479,7 +481,7 @@ namespace lucid::scene
                         for (u16 SubMeshIdx = 0; SubMeshIdx < MeshResource->SubMeshes.GetLength(); ++SubMeshIdx)
                         {
                             MeshResource->SubMeshes[SubMeshIdx]->VAO->Bind();
-                            MeshResource->SubMeshes[SubMeshIdx]->VAO->Draw();   
+                            MeshResource->SubMeshes[SubMeshIdx]->VAO->Draw();
                         }
                     }
                     else
@@ -492,7 +494,7 @@ namespace lucid::scene
                     for (u16 SubMeshIdx = 0; SubMeshIdx < StaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++SubMeshIdx)
                     {
                         StaticMesh->GetMeshResource()->SubMeshes[SubMeshIdx]->VAO->Bind();
-                        StaticMesh->GetMeshResource()->SubMeshes[SubMeshIdx]->VAO->Draw();   
+                        StaticMesh->GetMeshResource()->SubMeshes[SubMeshIdx]->VAO->Draw();
                     }
 #endif
                 }
@@ -530,11 +532,11 @@ namespace lucid::scene
 #if DEVELOPMENT
                         if (j >= StaticMesh->GetNumMaterialSlots() || StaticMesh->GetMaterialSlot(j) == nullptr)
                         {
-                            LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing material slot %d", *StaticMesh->Name, j);
-                            RenderWithDefaultMaterial(StaticMesh, nullptr, InRenderView);
+                            LUCID_LOG(
+                              ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at slot %d", *StaticMesh->Name, j);
+                            RenderWithDefaultMaterial(StaticMesh->MeshResource, j, nullptr, InRenderView, ModelMatrix);
                             PrepassShader->Use();
-                            SetupRendererWideUniforms(PrepassShader, InRenderView);
-                            break;
+                            continue;
                         }
 #endif
                         StaticMesh->GetMaterialSlot(j)->SetupShader(PrepassShader);
@@ -556,7 +558,6 @@ namespace lucid::scene
                     StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
                 }
 #endif
-                
             }
         }
 
@@ -621,8 +622,11 @@ namespace lucid::scene
             RenderLightContribution(&LastUsedShader, InScene->AllLights[i], InScene, InRenderView);
         }
     }
-    
-    void CForwardRenderer::RenderLightContribution(gpu::CShader** LastShader, const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView)
+
+    void CForwardRenderer::RenderLightContribution(gpu::CShader** LastShader,
+                                                   const CLight* InLight,
+                                                   const FRenderScene* InScene,
+                                                   const FRenderView* InRenderView)
     {
         for (u32 i = 0; i < arrlen(InScene->StaticMeshes); ++i)
         {
@@ -658,14 +662,17 @@ namespace lucid::scene
         InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
     }
 
-    void CForwardRenderer::RenderStaticMesh(gpu::CShader** LastShader, const CStaticMesh* InStaticMesh, const CLight* InLight, const FRenderView* InRenderView)
+    void CForwardRenderer::RenderStaticMesh(gpu::CShader** LastShader,
+                                            const CStaticMesh* InStaticMesh,
+                                            const CLight* InLight,
+                                            const FRenderView* InRenderView)
     {
         const glm::mat4 ModelMatrix = InStaticMesh->CalculateModelMatrix();
 
 #if DEVELOPMENT
         if (InStaticMesh->GetMeshResource() == nullptr)
         {
-            RenderWithDefaultMaterial(InStaticMesh, InLight, InRenderView);
+            RenderWithDefaultMaterial(nullptr, -1, InLight, InRenderView, ModelMatrix);
             *LastShader = GEngine.GetDefaultMaterial()->GetShader();
             return;
         }
@@ -677,7 +684,7 @@ namespace lucid::scene
             if (j >= InStaticMesh->GetNumMaterialSlots() || InStaticMesh->GetMaterialSlot(j) == nullptr)
             {
                 LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at slot %d", *InStaticMesh->Name, j);
-                RenderWithDefaultMaterial(InStaticMesh, InLight, InRenderView);
+                RenderWithDefaultMaterial(InStaticMesh->MeshResource, j, InLight, InRenderView, ModelMatrix);
                 *LastShader = GEngine.GetDefaultMaterial()->GetShader();
                 continue;
             }
@@ -692,10 +699,10 @@ namespace lucid::scene
                 *LastShader = Material->GetShader();
                 SetupRendererWideUniforms(*LastShader, InRenderView);
             }
-            
+
             if (InLight)
             {
-                InLight->SetupShader(*LastShader);                    
+                InLight->SetupShader(*LastShader);
             }
 
             (*LastShader)->SetMatrix(MODEL_MATRIX, ModelMatrix);
@@ -705,7 +712,7 @@ namespace lucid::scene
 
             InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
             InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
-        }        
+        }
     }
 
     inline void CForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
@@ -733,15 +740,13 @@ namespace lucid::scene
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         // Keep it camera-oriented
-        const glm::mat4 BillboardMatrix = {
-            { InRenderView->Camera->RightVector, 0},
-            { InRenderView->Camera->UpVector, 0},
-            { -InRenderView->Camera->FrontVector, 0},
-            { 0, 0, 0, 1 } 
-        };
+        const glm::mat4 BillboardMatrix = { { InRenderView->Camera->RightVector, 0 },
+                                            { InRenderView->Camera->UpVector, 0 },
+                                            { -InRenderView->Camera->FrontVector, 0 },
+                                            { 0, 0, 0, 1 } };
 
         BillboardShader->Use();
-        BillboardShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix); 
+        BillboardShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
         BillboardShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
         BillboardShader->UseTexture(BILLBOARD_TEXTURE, LightBulbTexture);
         BillboardShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
@@ -796,32 +801,30 @@ namespace lucid::scene
                     UnitCubeVAO->Bind();
                     UnitCubeVAO->Draw();
                 }
-            }            
+            }
         }
 
         // Render lights quads
         ScreenWideQuadVAO->Bind();
 
         // Keep it camera-oriented
-        const glm::mat4 BillboardMatrix = {
-            { InRenderView->Camera->RightVector, 0},
-            { InRenderView->Camera->UpVector, 0},
-            { -InRenderView->Camera->FrontVector, 0},
-            { 0, 0, 0, 1 }
-        };
+        const glm::mat4 BillboardMatrix = { { InRenderView->Camera->RightVector, 0 },
+                                            { InRenderView->Camera->UpVector, 0 },
+                                            { -InRenderView->Camera->FrontVector, 0 },
+                                            { 0, 0, 0, 1 } };
 
         BillboardHitMapShader->Use();
-        BillboardHitMapShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix); 
+        BillboardHitMapShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
         BillboardHitMapShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
         BillboardHitMapShader->UseTexture(BILLBOARD_TEXTURE, LightBulbTexture);
         BillboardHitMapShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
         BillboardHitMapShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
         BillboardHitMapShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
-        
+
         for (int i = 0; i < arrlen(InScene->AllLights); ++i)
         {
             CLight* Light = InScene->AllLights[i];
-            
+
             BillboardHitMapShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
             BillboardHitMapShader->SetUInt(ACTOR_ID, Light->Id);
 
@@ -829,11 +832,15 @@ namespace lucid::scene
         }
 
         // Get the result
-        HitMapFramebuffer->ReadPixels(0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), CachedHitMap.CachedTextureData);
+        HitMapFramebuffer->ReadPixels(
+          0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), CachedHitMap.CachedTextureData);
     }
 
-    
-    void CForwardRenderer::RenderWithDefaultMaterial(const CStaticMesh* InStaticMesh, const CLight* InLight, const FRenderView* InRenderView)
+    void CForwardRenderer::RenderWithDefaultMaterial(const resources::CMeshResource* InMeshResource,
+                                                     const u16& InSubMeshIndex,
+                                                     const CLight* InLight,
+                                                     const FRenderView* InRenderView,
+                                                     const glm::mat4& InModelMatrix)
     {
         CMaterial* DefaultMaterial = GEngine.GetDefaultMaterial();
         DefaultMaterial->GetShader()->Use();
@@ -841,20 +848,28 @@ namespace lucid::scene
         SetupRendererWideUniforms(DefaultMaterial->GetShader(), InRenderView);
         if (InLight)
         {
-            InLight->SetupShader(DefaultMaterial->GetShader());            
+            InLight->SetupShader(DefaultMaterial->GetShader());
         }
         else
         {
             DefaultMaterial->GetShader()->SetInt(LIGHT_TYPE, NO_LIGHT);
         }
+        DefaultMaterial->GetShader()->SetMatrix(MODEL_MATRIX, InModelMatrix);
         DefaultMaterial->SetupShader(DefaultMaterial->GetShader());
 
-        UnitCubeVAO->Bind();
-        UnitCubeVAO->Draw();
+        if (InMeshResource)
+        {
+            InMeshResource->SubMeshes[InSubMeshIndex]->VAO->Bind();
+            InMeshResource->SubMeshes[InSubMeshIndex]->VAO->Draw();
+        }
+        else
+        {
+            UnitCubeVAO->Bind();
+            UnitCubeVAO->Draw();
+        }
     }
 
 #endif
-
 
     void CForwardRenderer::DoGammaCorrection(gpu::CTexture* InTexture)
     {
