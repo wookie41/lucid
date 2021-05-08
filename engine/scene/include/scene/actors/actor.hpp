@@ -79,6 +79,11 @@ namespace lucid::scene
         CWorld*                 World; // World that this actor is in
         FArray<IActor*>         Children { 1, true };
 
+    protected:
+
+        IActor const*           BaseActorAsset = nullptr;
+        bool                    bBaseActorAssetChanged = false;
+        
         virtual ~IActor() = default;    
 
 

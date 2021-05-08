@@ -17,6 +17,7 @@ namespace lucid
         FArray<T> Copy() const;
 
         void Add(const T& Element);
+        void RemoveLast();
         void Free();
 
         inline u32 GetLength() const { return Length; }

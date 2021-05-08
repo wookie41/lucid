@@ -48,6 +48,12 @@ namespace lucid
     }
 
     template <typename T>
+    void FArray<T>::RemoveLast()
+    {
+        --Length;
+    }
+    
+    template <typename T>
     void FArray<T>::Free()
     {
         free(ArrayPointer);

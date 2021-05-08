@@ -37,13 +37,16 @@ namespace lucid
         }
     }
 
-    void ImGuiMeshResourcePicker(const char* InLabel, resources::CMeshResource** OutMeshResource)
+    void ImGuiMeshResourcePicker(const char* InLabel, resources::CMeshResource** OutMeshResource, const bool& bAllowNull)
     {
         if (ImGui::BeginListBox(InLabel, ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
         {
-            if (ImGui::Selectable("-- None --", *OutMeshResource == nullptr))
+            if (bAllowNull)
             {
-                *OutMeshResource = nullptr;
+                if (ImGui::Selectable("-- None --", *OutMeshResource == nullptr))
+                {
+                    *OutMeshResource = nullptr;
+                }                
             }
 
             for (int i = 0; i < GEngine.GetMeshesHolder().Length(); ++i)
@@ -144,15 +147,10 @@ namespace lucid
         ImGui::End();
     }
 
-    void ImGuiActorResourcePicker(const char* InLabel, scene::IActor** OutActor)
+    void ImGuiActorAssetPicker(const char* InLabel, scene::IActor const** OutActor)
     {
         if (ImGui::BeginListBox(InLabel, ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
         {
-            if (ImGui::Selectable("-- None --", *OutActor == nullptr))
-            {
-                *OutActor = nullptr;
-            }
-
             auto& ActorResources = GEngine.GetActorsResources();
             for (int i = 0; i < ActorResources.GetLength(); ++i)
             {

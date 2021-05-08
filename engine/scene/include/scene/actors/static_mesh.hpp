@@ -40,9 +40,10 @@ namespace lucid::scene
 #if DEVELOPMENT
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
+
     protected:
         virtual void    _SaveToResourceFile(const FString& InFilePath) override;
-        void            UpdateMaterialSlots();
+        void            UpdateMaterialSlots(CStaticMesh const* BaseStaticMesh);
     public:
 #endif
 
@@ -53,7 +54,5 @@ namespace lucid::scene
         bool                        bReverseNormals = false;
 
         FArray<CMaterial*>          MaterialSlots { 1, true };
-
-        CStaticMesh const*          BaseStaticMesh = nullptr;
     };
 } // namespace lucid::scene
