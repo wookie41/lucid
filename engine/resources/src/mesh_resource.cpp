@@ -290,8 +290,8 @@ namespace lucid::resources
 
     static Assimp::Importer AssimpImporter;
 
-    static constexpr u32 ASSIMP_DEFAULT_FLAGS = aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace |
-                                                aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices |aiProcess_Triangulate;
+    static constexpr u32 ASSIMP_DEFAULT_FLAGS = aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace |
+                                                aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_Triangulate;
 
     /* Helper structure used when importing the mesh */
     struct FSubMeshInfo
@@ -328,13 +328,18 @@ namespace lucid::resources
                                                          const FString& MeshName,
                                                          const FString& TextureTypeName);
 
-    CMeshResource* ImportMesh(const FString& InMeshFilePath, const FString& InMeshResourceFilePath, const FString& MeshName)
+    CMeshResource* ImportMesh(const FString& InMeshFilePath, const FString& InMeshResourceFilePath, const FString& MeshName, const bool& InbFilpUVs)
     {
 #ifndef NDEBUG
         real StartTime = platform::GetCurrentTimeSeconds();
 #endif
 
-        const aiScene* Root = AssimpImporter.ReadFile(*InMeshFilePath, ASSIMP_DEFAULT_FLAGS);
+        auto AssimpFlags = ASSIMP_DEFAULT_FLAGS;
+        if (InbFilpUVs)
+        {
+            AssimpFlags |= aiProcess_FlipUVs;
+        }
+        const aiScene* Root = AssimpImporter.ReadFile(*InMeshFilePath, AssimpFlags);
 
         LUCID_LOG(
           ELogLevel::INFO, "Reading mesh with assimp %s took %f", *InMeshFilePath, platform::GetCurrentTimeSeconds() - StartTime);

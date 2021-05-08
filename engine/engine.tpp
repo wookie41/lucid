@@ -36,6 +36,7 @@ namespace lucid
                 
                 BaseActorResource = TActor::CreateActor(nullptr, nullptr, BaseActorResourceDescription);
                 BaseActorResource->ResourceId = ActorResourceId;
+                BaseActorResource->ResourcePath = ActorResourceInfo.ResourceFilePath;
                 
                 ActorResourceById.Add(ActorResourceId, BaseActorResource);
             }

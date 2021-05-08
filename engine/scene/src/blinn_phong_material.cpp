@@ -30,7 +30,7 @@ namespace lucid::scene
     {
         Shader->SetInt(SHININESS, Shininess);
         Shader->SetVector(DIFFUSE_COLOR, DiffuseColor);
-        Shader->SetVector(DIFFUSE_COLOR, SpecularColor);
+        Shader->SetVector(SPECULAR_COLOR, SpecularColor);
     };
 
     CBlinnPhongMaterial* CBlinnPhongMaterial::CreateMaterial(const FBlinnPhongMaterialDescription& Description,
@@ -71,7 +71,7 @@ namespace lucid::scene
 
     void CBlinnPhongMaterial::UIDrawMaterialEditor()
     {
-        ImGui::Text("Blinn Phong material: %s", *Name);
+        ImGui::Text("%s <Blinn Phong>", *Name);
         ImGui::InputInt("Shininess", (int*)&Shininess);
         ImGui::DragFloat3("Diffuse color", &DiffuseColor.r, 0.005, 0, 1);
         ImGui::DragFloat3("Specular color", &SpecularColor.r, 0.005, 0, 1);
@@ -98,7 +98,7 @@ namespace lucid::scene
     void CBlinnPhongMapsMaterial::SetupShader(gpu::CShader* Shader)
     {
         Shader->SetInt(SHININESS, Shininess);
-        if (DiffuseMap->TextureHandle)
+        if (DiffuseMap)
         {
             Shader->UseTexture(DIFFUSE_MAP, DiffuseMap->TextureHandle);            
         }
@@ -176,7 +176,11 @@ namespace lucid::scene
         {
             BlinnPhongMapsMaterialDescription.DiffuseTextureID = DiffuseMap->GetID();
         }
-
+        else
+        {
+            BlinnPhongMapsMaterialDescription.DiffuseTextureID = sole::INVALID_UUID;
+        }
+        
         if (SpecularMap)
         {
             BlinnPhongMapsMaterialDescription.SpecularTextureID = SpecularMap->GetID();
@@ -184,16 +188,25 @@ namespace lucid::scene
         else
         {
             BlinnPhongMapsMaterialDescription.SpecularColor = VecToFloat3(SpecularColor);
+            BlinnPhongMapsMaterialDescription.SpecularTextureID = sole::INVALID_UUID;
         }
 
         if (NormalMap)
         {
             BlinnPhongMapsMaterialDescription.NormalTextureID = NormalMap->GetID();
         }
+        else
+        {
+            BlinnPhongMapsMaterialDescription.NormalTextureID = sole::INVALID_UUID;
+        }
 
         if (DisplacementMap)
         {
             BlinnPhongMapsMaterialDescription.DisplacementTextureID = DisplacementMap->GetID();
+        }
+        else
+        {
+            BlinnPhongMapsMaterialDescription.DisplacementTextureID = sole::INVALID_UUID;
         }
 
         switch (InFileFormat)
@@ -211,7 +224,7 @@ namespace lucid::scene
     
     void CBlinnPhongMapsMaterial::UIDrawMaterialEditor()
     {
-        ImGui::Text("Blinn Phong Maps material: %s", *Name);
+        ImGui::Text("%s <Blinn Phong Maps>", *Name);
         ImGui::InputInt("Shininess", (int*)&Shininess);
         ImGui::DragFloat3("Fallback Specular color", &SpecularColor.r, 0.005, 0, 1);
 

@@ -32,7 +32,7 @@ void main()
 {
     vec3 toViewN = normalize(uViewPos - fsIn.FragPos);
     vec2 ScreenSpaceCoords = (gl_FragCoord.xy / uViewportSize);
-    float AmbientOcclusion = texture(uAmbientOcclusion, ScreenSpaceCoords).r;
+    float AmbientOcclusion = 1;
 
     vec2 textureCoords = fsIn.TextureCoords;
     if (uMaterialHasDisplacementMap)
@@ -44,7 +44,7 @@ void main()
             discard;
         }
     }
-
+    
     vec3 normal;
     if (uMaterialHasNormalMap)
     {
@@ -59,6 +59,7 @@ void main()
     vec3 specularColor = uMaterialHasSpecularMap ? texture(uMaterialSpecularMap, textureCoords).rgb : uMaterialSpecularColor; 
 
     vec3 ambient = diffuseColor * uAmbientStrength * AmbientOcclusion;
+    
     float shadowFactor = 1.0;
 
     LightContribution lightCntrb;
@@ -78,6 +79,7 @@ void main()
         lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, uMaterialShininess);
     }
     
-    vec3 fragColor = (diffuseColor * lightCntrb.Diffuse) + (specularColor * lightCntrb.Specular);
+    vec3 fragColor = (diffuseColor * lightCntrb.Diffuse) + specularColor * lightCntrb.Specular;
     oFragColor = vec4((ambient * lightCntrb.Attenuation) + (fragColor * shadowFactor), 1);
 }
+

@@ -1,0 +1,8 @@
+{
+    "Id": "d047f8d5-c84f-4268-9c50-9720bae38eb0",
+    "Name": "Nanosuit_arms",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
+    "SpecularTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
+    "NormalTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5"
+}

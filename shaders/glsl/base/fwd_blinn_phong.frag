@@ -2,7 +2,7 @@
 
 in VS_OUT
 {
-    vec3 Normal;
+    vec3 InterpolatedNormal;
     vec3 FragPos;
 }
 fsIn;
@@ -19,7 +19,7 @@ out vec4 oFragColor;
 
 void main()
 {
-    vec3 normal = normalize(fsIn.Normal);
+    vec3 normal = normalize(fsIn.InterpolatedNormal);
     vec3 toViewN = normalize(uViewPos - fsIn.FragPos);
 
     vec3 ambient = uMaterialDiffuseColor * uAmbientStrength;

@@ -11,11 +11,6 @@
             "ActorType": 1
         },
         {
-            "ActorId": "6c61f7da-7642-4523-b760-8a93d9d0f734",
-            "ActorPath": "assets/actors/Nano.asset",
-            "ActorType": 1
-        },
-        {
             "ActorId": "dfd87123-806f-4656-a086-2ec636e29fbc",
             "ActorPath": "assets/actors/ArcticSkybox.asset",
             "ActorType": 2

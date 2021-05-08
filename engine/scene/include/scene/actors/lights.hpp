@@ -142,8 +142,8 @@ namespace lucid::scene
 
         glm::mat4 LightSpaceMatrices[6];
 
-        float NearPlane = 1.f;
-        float FarPlane  = 25.f;
+        float CachedNearPlane = 1.f;
+        float CachedFarPlane  = 25.f;
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;

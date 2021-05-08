@@ -41,7 +41,8 @@ namespace lucid::scene
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
     protected:
-        virtual void _SaveToResourceFile(const FString& InFilePath) override;
+        virtual void    _SaveToResourceFile(const FString& InFilePath) override;
+        void            UpdateMaterialSlots();
     public:
 #endif
 

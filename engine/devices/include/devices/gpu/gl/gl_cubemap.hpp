@@ -34,12 +34,13 @@ namespace lucid::gpu
         virtual void Bind() override;
         virtual void Free() override;
 
-        virtual void SetMinFilter(const MinTextureFilter& Filter) override;
-        virtual void SetMagFilter(const MagTextureFilter& Filter) override;
-        virtual void SetWrapSFilter(const WrapTextureFilter& Filter) override;
-        virtual void SetWrapTFilter(const WrapTextureFilter& Filter) override;
-        virtual void SetWrapRFilter(const WrapTextureFilter& Filter) override;
-
+        virtual void SetMinFilter(const EMinTextureFilter& Filter) override;
+        virtual void SetMagFilter(const EMagTextureFilter& Filter) override;
+        virtual void SetWrapSFilter(const EWrapTextureFilter& Filter) override;
+        virtual void SetWrapTFilter(const EWrapTextureFilter& Filter) override;
+        virtual void SetWrapRFilter(const EWrapTextureFilter& Filter) override;
+        virtual void SetBorderColor(const FColor& InColor) override;
+        
         virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) override;
 
       private:

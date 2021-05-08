@@ -55,8 +55,8 @@ namespace lucid
         Framebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         ThumbTexture->Bind();
-        ThumbTexture->SetMinFilter(gpu::MinTextureFilter::NEAREST);
-        ThumbTexture->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+        ThumbTexture->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+        ThumbTexture->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
 
         Framebuffer->SetupColorAttachment(0, ThumbTexture);
 

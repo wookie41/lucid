@@ -360,7 +360,7 @@ namespace lucid::gpu
 
         for (u32 i = 0; i < TextureBindings.GetLength(); ++i)
         {
-            if (TextureBindings[i]->BoundTexture != nullptr)
+            if ( TextureBindings[i]->BoundTexture != nullptr)
             {
                 gpu::Info.ActiveTextureUnit = TextureBindings[i]->TextureIndex;
                 glActiveTexture(GL_TEXTURE0 + TextureBindings[i]->TextureIndex);

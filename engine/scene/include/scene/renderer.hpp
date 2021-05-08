@@ -153,9 +153,9 @@ namespace lucid::scene
         };
 
         const LightSettings LightSettingsByQuality[3] = {
-            { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 5.f },
-            { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 15.f },
-            { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 30.f }
+            { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 10.f },
+            { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 35.f },
+            { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 70.f }
         };
 
 #if DEVELOPMENT

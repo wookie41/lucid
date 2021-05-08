@@ -1,8 +1,5 @@
 ﻿#include "scene/actors/actor.hpp"
-
-#include <engine/engine.hpp>
-
-
+#include "engine/engine.hpp"
 #include "imgui.h"
 
 namespace lucid::scene
@@ -16,11 +13,19 @@ namespace lucid::scene
             SaveToResourceFile();
         }
 
-        ImGui::DragFloat3("Translation", &Transform.Translation.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
-        ImGui::DragFloat3("Scale", &Transform.Scale.r, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
-        ImGui::DragFloat4("Rotation (Quat)", &Transform.Rotation.x, 0.005f, -1, 1);
-        ImGui::Checkbox("Visible", &bVisible);
-        ImGui::Spacing();
+        // Don't allow do modify translation and similar things on actor resources
+        if (!ResourcePath.GetLength())
+        {
+            static glm::vec3 EulerRotation { glm::degrees(eulerAngles(Transform.Rotation).x), glm::degrees(eulerAngles(Transform.Rotation).y), glm::degrees(eulerAngles(Transform.Rotation).z) };
+            
+            ImGui::DragFloat3("Translation (x, y, z)", &Transform.Translation.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
+            ImGui::DragFloat3("Scale (x, y, z)", &Transform.Scale.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
+            ImGui::DragFloat3("Rotation", &EulerRotation.x, 0.1f, -360, 360);
+            ImGui::Checkbox("Visible", &bVisible);
+            ImGui::Spacing();
+
+            Transform.Rotation = glm::quat({ glm::radians(EulerRotation.x), glm::radians(EulerRotation.y), glm::radians(EulerRotation.z) });
+        }        
     }
 
     void IActor::SaveToResourceFile(const FString& InActorResourceName)
@@ -43,7 +48,7 @@ namespace lucid::scene
             ActorResourceFilePath = ResourcePath;
         }
 
-        SaveToResourceFile(ActorResourceFilePath);
+        _SaveToResourceFile(ActorResourceFilePath);
     }
 
 } // namespace lucid::scene

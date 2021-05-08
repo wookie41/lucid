@@ -54,7 +54,7 @@ namespace lucid::scene
 #if DEVELOPMENT
      void CFlatMaterial::UIDrawMaterialEditor()
     {
-        ImGui::Text("Flat material: %s", *Name);
+        ImGui::Text("%s <Flat material>", *Name);
         ImGui::DragFloat4("Color", &Color.r, 0.005, 0, 1);
     }
 #endif

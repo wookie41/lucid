@@ -2,7 +2,7 @@
     "Id": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9",
     "Name": "BackpackMaterial",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "b5ecb9f5-bea8-415d-92f7-a3c898643c6d",
-    "SpecularTextureID": "585304b8-c936-463c-8ac4-890b2f380686",
-    "NormalTextureID": "fdf89caa-15ef-4820-8742-4bf0131b8c38"
+    "DiffuseTextureID": "1a3f3618-e99b-4553-a87d-3015d8a4ef3b",
+    "SpecularTextureID": "dcf66b65-c0d0-47cd-9f30-6a64b64eec35",
+    "NormalTextureID": "45d22688-6e14-4627-af1f-f897de96024a"
 }

@@ -24,11 +24,12 @@ namespace lucid::gpu
         inline u32 GetWidth() const { return Width; }
         inline u32 GetHeight() const { return Height; }
 
-        virtual void SetMinFilter(const MinTextureFilter& Filter) = 0;
-        virtual void SetMagFilter(const MagTextureFilter& Filter) = 0;
-        virtual void SetWrapSFilter(const WrapTextureFilter& Filter) = 0;
-        virtual void SetWrapTFilter(const WrapTextureFilter& Filter) = 0;
-        virtual void SetWrapRFilter(const WrapTextureFilter& Filter) = 0;
+        virtual void SetMinFilter(const EMinTextureFilter& Filter) = 0;
+        virtual void SetMagFilter(const EMagTextureFilter& Filter) = 0;
+        virtual void SetWrapSFilter(const EWrapTextureFilter& Filter) = 0;
+        virtual void SetWrapTFilter(const EWrapTextureFilter& Filter) = 0;
+        virtual void SetWrapRFilter(const EWrapTextureFilter& Filter) = 0;
+        virtual void SetBorderColor(const FColor& InColor) = 0;
 
         virtual ETextureDataType GetAttachmentDataType() const override { return TextureDataType; }
 

@@ -115,12 +115,18 @@ namespace lucid
             ImGui::EndListBox();
         }
     }
-    
+
     void ImGuiShowMaterialEditor(scene::CMaterial* InMaterial, bool* OutbOpen)
     {
+        static scene::CMaterial* CurrMaterial = nullptr;
+        if (CurrMaterial == nullptr)
+        {
+            CurrMaterial = InMaterial;
+        }
+
         ImGui::SetNextWindowSize({ 600, 0 });
         ImGui::Begin("Material editor", OutbOpen);
-
+        
         if (InMaterial)
         {
             InMaterial->UIDrawMaterialEditor();
@@ -129,7 +135,40 @@ namespace lucid
         {
             ImGui::Text("-- No material selected --");
         }
+
+        if (OutbOpen)
+        {
+            CurrMaterial = nullptr;
+        }
+
         ImGui::End();
+    }
+
+    void ImGuiActorResourcePicker(const char* InLabel, scene::IActor** OutActor)
+    {
+        if (ImGui::BeginListBox(InLabel, ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
+        {
+            if (ImGui::Selectable("-- None --", *OutActor == nullptr))
+            {
+                *OutActor = nullptr;
+            }
+
+            auto& ActorResources = GEngine.GetActorsResources();
+            for (int i = 0; i < ActorResources.GetLength(); ++i)
+            {
+                scene::IActor* CurrActor = ActorResources.GetByIndex(i);
+                if (ImGui::Selectable(*CurrActor->Name, *OutActor == CurrActor))
+                {
+                    *OutActor = CurrActor;
+                }
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (*OutActor == CurrActor)
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndListBox();
+        }
     }
 
 } // namespace lucid

@@ -31,21 +31,33 @@ namespace lucid::scene
         IActor::UIDrawActorDetails();
 
         ImGui::Text("Static mesh:");
-        ImGui::Checkbox("Reverse normals", &bReverseNormals);
-        resources::CMeshResource* OldMesh = MeshResource;
         
-        ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
+        // Don't allow do modify translation and similar things on actor resources
+        if (!ResourcePath.GetLength())
+        {
+            CStaticMesh const* NewBaseStaticMesh = BaseStaticMesh;
+            IActor** NewBaseActor = (IActor**)(&NewBaseStaticMesh);
+            
+            ImGui::Text("Base actor resource");
+            ImGuiActorResourcePicker("Base actor resource", NewBaseActor);
 
+            if ((*NewBaseActor) != BaseStaticMesh && (*NewBaseActor)->GetActorType() == EActorType::STATIC_MESH)
+            {
+                if(auto* NewStaticMesh = dynamic_cast<scene::CStaticMesh const*>(*NewBaseActor))
+                {
+                    BaseStaticMesh = NewStaticMesh;
+                    MeshResource = BaseStaticMesh->MeshResource;
+                    UpdateMaterialSlots();
+                }
+            }
+            ImGui::Checkbox("Reverse normals", &bReverseNormals);
+        }
+
+        resources::CMeshResource* OldMesh = MeshResource;
+        ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
         if (MeshResource != OldMesh && MeshResource)
         {
-            const auto NumSubMeshes = MeshResource->SubMeshes.GetLength();
-            MeshResource = MeshResource;
-            MaterialSlots.Free();
-            MaterialSlots = FArray <CMaterial*>{ NumSubMeshes, true };
-            for (int i = 0; i < NumSubMeshes; ++i)
-            {
-                MaterialSlots.Add(nullptr);
-            }
+            UpdateMaterialSlots();
         }
         else
         {
@@ -58,7 +70,6 @@ namespace lucid::scene
         for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
             auto MaterialSlotEditorLabel = SPrintf("static_mesh_material_%d", i);
-
             if (ImGui::TreeNode(*MaterialSlotEditorLabel, "Material slot %d:", i))
             {
                 if(ImGui::Button("Edit"))
@@ -66,7 +77,7 @@ namespace lucid::scene
                     CurrentlyEditedMaterial = *MaterialSlots[i];
                 }
 
-                if(CurrentlyEditedMaterial)
+                if (CurrentlyEditedMaterial)
                 {
                     ImGuiShowMaterialEditor(*MaterialSlots[i], &bMaterialEditorOpen);
                     if (!bMaterialEditorOpen)
@@ -79,6 +90,7 @@ namespace lucid::scene
                 ImGuiMaterialPicker(*MaterialSlotEditorLabel, MaterialSlots[i]);
                 ImGui::TreePop();
             }
+
 
             MaterialSlotEditorLabel.Free();
         }
@@ -111,10 +123,11 @@ namespace lucid::scene
         }
         else
         {
-            OutDescription.MeshResourceId.Value = MeshResource->GetID();
+            OutDescription.MeshResourceId.Value = MeshResource ? MeshResource->GetID() : sole::INVALID_UUID;
+            OutDescription.MeshResourceId.bChanged = true;
             for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
             {
-                OutDescription.MaterialIds.push_back({(*MaterialSlots[i])->GetID(), true});
+                OutDescription.MaterialIds.push_back({*MaterialSlots[i] ? (*MaterialSlots[i])->GetID() : sole::INVALID_UUID, true});
             }
         }
 
@@ -132,7 +145,8 @@ namespace lucid::scene
     {
         FStaticMeshDescription StaticMeshDescription;
         FillDescription(StaticMeshDescription);
-        WriteToJSONFile(StaticMeshDescription, *InFilePath);        
+        WriteToJSONFile(StaticMeshDescription, *InFilePath);
+        GEngine.GetActorsDatabase().Entries.push_back({ResourceId, ResourcePath, EActorType::STATIC_MESH});
     }
     
 #endif
@@ -202,4 +216,24 @@ namespace lucid::scene
 
         return StaticMesh;
     }
+
+    void CStaticMesh::UpdateMaterialSlots()
+    {
+        const auto NumSubMeshes = MeshResource->SubMeshes.GetLength();
+        MaterialSlots.Free();
+        MaterialSlots = FArray <CMaterial*>{ NumSubMeshes, true };
+        for (int i = 0; i < NumSubMeshes; ++i)
+        {
+            if (BaseStaticMesh)
+            {
+                MaterialSlots.Add(BaseStaticMesh->GetMaterialSlot(i));
+            }
+            else
+            {
+                MaterialSlots.Add(nullptr);
+            }
+        }
+    }
+
+    
 } // namespace lucid::scene

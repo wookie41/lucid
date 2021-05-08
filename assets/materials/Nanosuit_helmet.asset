@@ -1,0 +1,8 @@
+{
+    "Id": "0268d87a-e936-4223-b03a-3a8b3d276ef8",
+    "Name": "Nanosuit_helmet",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
+    "SpecularTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
+    "NormalTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5"
+}

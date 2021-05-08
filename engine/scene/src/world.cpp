@@ -190,8 +190,6 @@ namespace lucid::scene
             PointLight->Constant = PointLightEntry.Constant; 
             PointLight->Linear = PointLightEntry.Linear; 
             PointLight->Quadratic = PointLightEntry.Quadratic; 
-            PointLight->NearPlane = PointLightEntry.NearPlane; 
-            PointLight->FarPlane = PointLightEntry.FarPlane; 
             
             World->AddPointLight(PointLight);
         }
@@ -202,10 +200,9 @@ namespace lucid::scene
     void CWorld::CreateWorldDescription(FWorldDescription& OutWorldDescription) const
     {
         // Save static meshes
-        FStaticMeshDescription StaticMeshEntry;
         for (u32 i = 0; i < arrlen(StaticMeshes); ++i)
         {
-            StaticMeshEntry = {};
+            FStaticMeshDescription StaticMeshEntry;
             const CStaticMesh* StaticMesh = StaticMeshes[i];
             StaticMesh->FillDescription(StaticMeshEntry);
             OutWorldDescription.StaticMeshes.push_back(StaticMeshEntry);
@@ -218,10 +215,9 @@ namespace lucid::scene
         }
 
         // Save dir lights
-        FDirectionalLightEntry DirLightEntry;
         for (u32 i = 0; i < arrlen(DirectionalLights); ++i)
         {
-            DirLightEntry = {};
+            FDirectionalLightEntry DirLightEntry;
             const CDirectionalLight* DirLight = DirectionalLights[i];
             DirLightEntry.Id = DirLight->Id;
             DirLightEntry.ParentId = DirLight->Parent ? DirLight->Parent->Id : 0;
@@ -238,11 +234,10 @@ namespace lucid::scene
         }
 
         // Save spot lights
-        FSpotLightEntry SpotLightEntry;
         for (u32 i = 0; i < arrlen(SpotLights); ++i)
         {
-            SpotLightEntry = {};
             const CSpotLight* SpotLight = SpotLights[i];
+            FSpotLightEntry SpotLightEntry;
             SpotLightEntry.Id = SpotLight->Id;
             SpotLightEntry.ParentId = SpotLight->Parent ? SpotLight->Parent->Id : 0;
             SpotLightEntry.Color = VecToFloat3(SpotLight->Color);
@@ -262,22 +257,19 @@ namespace lucid::scene
         }
 
         // Save point lights
-        FPointLightEntry PointLightEntry;
         for (u32 i = 0; i < arrlen(PointLights); ++i)
         {
-            PointLightEntry = {};
             const CPointLight* PointLight = PointLights[i];
+            FPointLightEntry PointLightEntry;
             PointLightEntry.Id = PointLight->Id;
             PointLightEntry.ParentId = PointLight->Parent ? PointLight->Parent->Id : 0;
             PointLightEntry.Color = VecToFloat3(PointLight->Color);
             PointLightEntry.Quality = PointLight->Quality;
             PointLightEntry.Name = PointLight->Name;
-            SpotLightEntry.Postion = VecToFloat3(PointLight->Transform.Translation);
+            PointLightEntry.Postion = VecToFloat3(PointLight->Transform.Translation);
             PointLightEntry.Constant = PointLight->Constant;
             PointLightEntry.Linear = PointLight->Linear;
             PointLightEntry.Quadratic = PointLight->Quadratic;
-            PointLightEntry.NearPlane = PointLight->NearPlane;
-            PointLightEntry.FarPlane = PointLight->FarPlane;
             PointLightEntry.bCastsShadow = PointLight->ShadowMap != nullptr;
 
             OutWorldDescription.PointLights.push_back(PointLightEntry);

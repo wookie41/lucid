@@ -1,12 +1,11 @@
 {
-    "Name": "ArcticSkybox",
     "RightFaceTextureID": {
         "bChanged": true,
-        "Value": "a0a74314-fbf7-4682-af9f-5ca551832b74"
+        "Value": "b269661e-a6e3-42f3-8767-d4c77fd48845"
     },
     "LeftFaceTextureID": {
         "bChanged": true,
-        "Value": "b269661e-a6e3-42f3-8767-d4c77fd48845"
+        "Value": "a0a74314-fbf7-4682-af9f-5ca551832b74"
     },
     "TopFaceTextureID": {
         "bChanged": true,

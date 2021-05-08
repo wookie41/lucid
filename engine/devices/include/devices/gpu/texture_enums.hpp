@@ -10,14 +10,14 @@ namespace lucid::gpu
         UNSIGNED_INT
     };
 
-    enum class TextureType : u8
+    enum class ETextureType : u8
     {
         ONE_DIMENSIONAL,
         TWO_DIMENSIONAL,
         THREE_DIMENSIONAL
     };
 
-    enum class MinTextureFilter : u8
+    enum class EMinTextureFilter : u8
     {
         NEAREST,
         LINEAR,
@@ -27,17 +27,18 @@ namespace lucid::gpu
         LINEAR_MIPMAP_LINEAR
     };
 
-    enum class MagTextureFilter : u8
+    enum class EMagTextureFilter : u8
     {
         NEAREST,
         LINEAR
     };
 
-    enum class WrapTextureFilter : u8
+    enum class EWrapTextureFilter : u8
     {
         CLAMP_TO_EDGE,
         MIRRORED_REPEAT,
-        REPEAT
+        REPEAT,
+        CLAMP_TO_BORDER
     };
 
     enum class ETextureDataFormat :  u8

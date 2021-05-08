@@ -3,13 +3,13 @@
     "Name": "FlatBlinnPhongMaterial",
     "ShaderName": "BlinnPhong",
     "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
+        0.7450000047683716,
+        0.5400000214576721,
+        0.3199999928474426
     ],
     "DiffuseColor": [
-        -86.0,
-        14.0,
+        1.0,
+        1.0,
         1.0
     ]
 }

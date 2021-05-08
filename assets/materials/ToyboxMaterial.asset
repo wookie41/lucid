@@ -3,7 +3,11 @@
     "Name": "ToyboyxMaterial",
     "ShaderName": "BlinnPhongMaps",
     "DiffuseTextureID": "76206f90-1209-40af-b94c-785bbee012e4",
-    "SpecularTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
-    "NormalTextureID": "0d95ff69-79d8-4e03-bafd-3ed739171538",
-    "DisplacementTextureID": "d7ea00c8-0d67-4700-8146-b8e01e61fae2"
+    "NormalTextureID": "1d4915a7-6846-4655-9a7d-5b1ccb157f6b",
+    "DisplacementTextureID": "07dbb98d-e5a8-494a-ad29-71a47db96de8",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
 }

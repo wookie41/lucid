@@ -10,7 +10,8 @@ namespace lucid
 
     namespace scene
     {
-        class CMaterial;        
+        class CMaterial;
+        class IActor;
     }
 
     namespace gpu
@@ -25,4 +26,5 @@ namespace lucid
     void ImGuiMaterialPicker(const char* InLabel, scene::CMaterial** OutMaterial);
     void ImGuiShadersPicker(const char* InLabel, gpu::CShader** OutShader);
     void ImGuiShowMaterialEditor(scene::CMaterial* InMaterial, bool* OutbOpen);
+    void ImGuiActorResourcePicker(const char* InLabel, scene::IActor** OutActor);
 }

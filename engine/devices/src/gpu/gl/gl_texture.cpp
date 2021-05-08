@@ -15,7 +15,7 @@
 namespace lucid::gpu
 {
     // Texture
-    static GLuint CreateGLTexture(const TextureType& TextureType,
+    static GLuint CreateGLTexture(const ETextureType& TextureType,
                                   const GLint& MipMapLevel,
                                   const glm::ivec3& TextureSize,
                                   const GLenum& DataType,
@@ -28,20 +28,20 @@ namespace lucid::gpu
         GLenum textureTarget;
         switch (TextureType)
         {
-        case TextureType::ONE_DIMENSIONAL:
+        case ETextureType::ONE_DIMENSIONAL:
             textureTarget = GL_TEXTURE_1D;
             glBindTexture(GL_TEXTURE_1D, textureHandle);
             glTexImage1D(GL_TEXTURE_1D, MipMapLevel, DataFormat, TextureSize.x, 0, PixelFormat, DataType, TextureData);
             break;
 
-        case TextureType::TWO_DIMENSIONAL:
+        case ETextureType::TWO_DIMENSIONAL:
             textureTarget = GL_TEXTURE_2D;
             glBindTexture(GL_TEXTURE_2D, textureHandle);
             glTexImage2D(
               GL_TEXTURE_2D, MipMapLevel, DataFormat, TextureSize.x, TextureSize.y, 0, PixelFormat, DataType, TextureData);
             break;
 
-        case TextureType::THREE_DIMENSIONAL:
+        case ETextureType::THREE_DIMENSIONAL:
             textureTarget = GL_TEXTURE_3D;
             glBindTexture(GL_TEXTURE_3D, textureHandle);
             glTexImage3D(GL_TEXTURE_3D,
@@ -84,7 +84,7 @@ namespace lucid::gpu
         const GLenum GLPixelFormat = TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
         const GLenum GLDataType = TO_GL_TEXTURE_DATA_TYPE(InDataType);
 
-        GLuint GLTextureHandle = CreateGLTexture(TextureType::TWO_DIMENSIONAL,
+        GLuint GLTextureHandle = CreateGLTexture(ETextureType::TWO_DIMENSIONAL,
                                                  MipMapLevel,
                                                  glm::ivec3{ Width, Height, 0 },
                                                  GLDataType,
@@ -118,7 +118,7 @@ namespace lucid::gpu
         const GLenum GLPixelFormat = TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
         const GLenum GLDataType = TO_GL_TEXTURE_DATA_TYPE(InDataType);
 
-        GLuint GLTextureHandle = CreateGLTexture(TextureType::TWO_DIMENSIONAL,
+        GLuint GLTextureHandle = CreateGLTexture(ETextureType::TWO_DIMENSIONAL,
                                                  MipMapLevel,
                                                  glm::ivec3{ Width, Height, 0 },
                                                  GLDataType,
@@ -166,31 +166,31 @@ namespace lucid::gpu
 
     void CGLTexture::Free() { glDeleteTextures(1, &GLTextureHandle); }
 
-    void CGLTexture::SetMinFilter(const MinTextureFilter& Filter)
+    void CGLTexture::SetMinFilter(const EMinTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(GLTextureTarget, GL_TEXTURE_MIN_FILTER, TO_GL_MIN_FILTER(Filter));
     }
 
-    void CGLTexture::SetMagFilter(const MagTextureFilter& Filter)
+    void CGLTexture::SetMagFilter(const EMagTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(GLTextureTarget, GL_TEXTURE_MAG_FILTER, TO_GL_MAG_FILTER(Filter));
     }
 
-    void CGLTexture::SetWrapSFilter(const WrapTextureFilter& Filter)
+    void CGLTexture::SetWrapSFilter(const EWrapTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(GLTextureTarget, GL_TEXTURE_WRAP_S, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void CGLTexture::SetWrapTFilter(const WrapTextureFilter& Filter)
+    void CGLTexture::SetWrapTFilter(const EWrapTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(GLTextureTarget, GL_TEXTURE_WRAP_T, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void CGLTexture::SetWrapRFilter(const WrapTextureFilter& Filter)
+    void CGLTexture::SetWrapRFilter(const EWrapTextureFilter& Filter)
     {
         assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
         glTexParameteri(GLTextureTarget, GL_TEXTURE_WRAP_R, TO_GL_WRAP_FILTER(Filter));
@@ -234,6 +234,12 @@ namespace lucid::gpu
         return ImGui::ImageButton((ImTextureID)GLTextureHandle, InImageSize, {0, 1}, {1, 0}, 1);
     }
 
+    void CGLTexture::SetBorderColor(const FColor& InColor)
+    {
+        assert(GPUState->BoundTextures[gpu::Info.ActiveTextureUnit] == this);
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &InColor.r);  
+    }
+    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Cubemap
@@ -243,7 +249,13 @@ namespace lucid::gpu
                             ETexturePixelFormat InPixelFormat,
                             ETextureDataType DataType,
                             const void* FaceTexturesData[6],
-                            const FString& InName)
+                            const FString& InName,
+                            const EMinTextureFilter& InMinFilter,
+                            const EMagTextureFilter& InMagFilter,
+                            const EWrapTextureFilter& InWrapS,
+                            const EWrapTextureFilter& InWrapT,
+                            const EWrapTextureFilter& InWrapR,
+                            const FColor& InBorderColor)
     {
         GLuint handle;
         glGenTextures(1, &handle);
@@ -261,12 +273,13 @@ namespace lucid::gpu
 
         // Default sampling parameters
 
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, TO_GL_MIN_FILTER(InMinFilter));
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TO_GL_MAG_FILTER(InMagFilter));
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, TO_GL_WRAP_FILTER(InWrapS));
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TO_GL_WRAP_FILTER(InWrapT));
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, TO_GL_WRAP_FILTER(InWrapR));
+        glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, &InBorderColor.r);
+        
         auto* GLCubemap = new CGLCubemap(handle, Width, Height, InName, DataType, InPixelFormat);
         GLCubemap->SetObjectName();
         return GLCubemap;
@@ -327,31 +340,31 @@ namespace lucid::gpu
         glDeleteTextures(1, &glCubemapHandle);
     }
 
-    void CGLCubemap::SetMinFilter(const MinTextureFilter& Filter)
+    void CGLCubemap::SetMinFilter(const EMinTextureFilter& Filter)
     {
         assert(GPUState->Cubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, TO_GL_MIN_FILTER(Filter));
     }
 
-    void CGLCubemap::SetMagFilter(const MagTextureFilter& Filter)
+    void CGLCubemap::SetMagFilter(const EMagTextureFilter& Filter)
     {
         assert(GPUState->Cubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TO_GL_MAG_FILTER(Filter));
     }
 
-    void CGLCubemap::SetWrapSFilter(const WrapTextureFilter& Filter)
+    void CGLCubemap::SetWrapSFilter(const EWrapTextureFilter& Filter)
     {
         assert(GPUState->Cubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void CGLCubemap::SetWrapTFilter(const WrapTextureFilter& Filter)
+    void CGLCubemap::SetWrapTFilter(const EWrapTextureFilter& Filter)
     {
         assert(GPUState->Cubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void CGLCubemap::SetWrapRFilter(const WrapTextureFilter& Filter)
+    void CGLCubemap::SetWrapRFilter(const EWrapTextureFilter& Filter)
     {
         assert(GPUState->Cubemap == this);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, TO_GL_WRAP_FILTER(Filter));
@@ -361,4 +374,11 @@ namespace lucid::gpu
     {
         assert(0); // @TODO implement when actually needed
     }
+
+    void CGLCubemap::SetBorderColor(const FColor& InColor)
+    {
+        assert(GPUState->Cubemap == this);
+        glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, &InColor.r);  
+    }
+
 } // namespace lucid::gpu

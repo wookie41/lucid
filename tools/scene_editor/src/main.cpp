@@ -37,6 +37,7 @@
 #include <devices/gpu/texture_enums.hpp>
 #include <scene/flat_material.hpp>
 #include <scene/material.hpp>
+#include <scene/actors/actor_enums.hpp>
 #include <sole/sole.hpp>
 
 #include "imgui_lucid.h"
@@ -131,8 +132,14 @@ struct FSceneEditorState
     EMaterialType TypeOfMaterialToCreate = EMaterialType::NONE;
     gpu::CShader* PickedShader = nullptr;
     scene::CMaterial* EditedMaterial = nullptr;
+
+    scene::EActorType TypeOfActorToCreate = scene::EActorType::UNKNOWN;
     scene::CStaticMesh* EditedStaticMesh = nullptr;
 
+    bool GenericBoolParam0 = false;
+    bool GenericBoolParam1 = false;
+
+    int ResourceItemsPerRow = 12;
 } GSceneEditorState;
 
 void InitializeSceneEditor();
@@ -151,6 +158,7 @@ void UIDrawTextureImporter();
 void UIDrawMeshContextMenu();
 void UIDrawTextureContextMenu();
 void UIDrawMaterialCreationMenu();
+void UIDrawActorResourceCreationMenu();
 
 void ImportTexture(const std::filesystem::path& SelectedFilePath);
 void ImportMesh(const std::filesystem::path& SelectedFilePath);
@@ -176,7 +184,7 @@ int main(int argc, char** argv)
 
     scene::FRenderView RenderView;
     RenderView.Camera = GSceneEditorState.CurrentCamera; // @TODO is this needed???
-    RenderView.Viewport = { 0, 0, 1920, 1080 }; // @TODO Engine level variable
+    RenderView.Viewport = { 0, 0, 1280, 720 }; // @TODO Engine level variable
 
     while (IsRunning)
     {
@@ -192,36 +200,36 @@ int main(int argc, char** argv)
             break;
         }
 
-        while (dt > platform::SimulationStep)
+        if (dt > platform::SimulationStep)
         {
             dt -= platform::SimulationStep;
             HandleCameraMovement(dt);
+
+            // Render the scene to off-screen framebuffer
+            GSceneEditorState.Window->Prepare();
+            GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
+
+            GSceneEditorState.Window->ImgUiStartNewFrame();
+            {
+                UISetupDockspace();
+                ImGui::ShowDemoWindow();
+                UIDrawSceneWindow();
+                UIDrawResourceBrowserWindow();
+                UIDrawSceneHierarchyWindow();
+                UIDrawActorDetailsWindow();
+                UIDrawFileDialog();
+            }
+
+            GSceneEditorState.Window->Clear();
+            GSceneEditorState.Window->ImgUiDrawFrame();
+            GSceneEditorState.Window->Swap();
+
+            // Allow ImGui viewports to update
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+
+            HandleActorDrag();
         }
-
-        // Render the scene to off-screen framebuffer
-        GSceneEditorState.Window->Prepare();
-        GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
-
-        GSceneEditorState.Window->ImgUiStartNewFrame();
-        {
-            UISetupDockspace();
-            ImGui::ShowDemoWindow();
-            UIDrawSceneWindow();
-            UIDrawResourceBrowserWindow();
-            UIDrawSceneHierarchyWindow();
-            UIDrawActorDetailsWindow();
-            UIDrawFileDialog();
-        }
-
-        GSceneEditorState.Window->Clear();
-        GSceneEditorState.Window->ImgUiDrawFrame();
-        GSceneEditorState.Window->Swap();
-
-        // Allow ImGui viewports to update
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-
-        HandleActorDrag();
     }
 
     GSceneEditorState.World->SaveToJSONFile("assets/worlds/Demo.asset");
@@ -318,7 +326,7 @@ void InitializeSceneEditor()
     // Configure the camera
     GSceneEditorState.PerspectiveCamera.AspectRatio =
       GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
-    GSceneEditorState.PerspectiveCamera.Position = { 0, 0, 3 };
+    GSceneEditorState.PerspectiveCamera.Position = { 0, 0, 0 };
     GSceneEditorState.PerspectiveCamera.Yaw = -90.f;
     GSceneEditorState.PerspectiveCamera.UpdateCameraVectors();
 
@@ -369,7 +377,7 @@ void HandleCameraMovement(const float& DeltaTime)
     if (IsMouseButtonPressed(RIGHT))
     {
         GSceneEditorState.CurrentlyDraggedActor = nullptr;
-        GSceneEditorState.CurrentCamera->AddRotation(-MousePos.DeltaX * 17.5 * DeltaTime, MousePos.DeltaY * 17.5 * DeltaTime);
+        GSceneEditorState.CurrentCamera->AddRotation(-MousePos.DeltaX * .9f, MousePos.DeltaY * .9f);
     }
 }
 
@@ -496,14 +504,13 @@ void UIDrawResourceBrowserWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_MenuBar;
 
-    const int ResourceItemsPerRow = 8;
     float ResourceItemWidth = 0;
     ImVec2 ResourceItemSize;
     int CurrentRowItemsCount = 0;
 
     ImGui::Begin(RESOURCES_BROWSER, nullptr, WindowFlags);
     {
-        ResourceItemWidth = (ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow) - 8;
+        ResourceItemWidth = (ImGui::GetContentRegionAvailWidth() / GSceneEditorState.ResourceItemsPerRow) - 8;
         ResourceItemSize = { ResourceItemWidth, ResourceItemWidth };
 
         // Menu bar
@@ -548,7 +555,7 @@ void UIDrawResourceBrowserWindow()
             for (int i = 0; i < GEngine.GetTexturesHolder().Length(); ++i)
             {
                 resources::CTextureResource* TextureResource = GEngine.GetTexturesHolder().GetByIndex(i);
-                if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
+                if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % GSceneEditorState.ResourceItemsPerRow) == 0)
                 {
                     CurrentRowItemsCount = 0;
                 }
@@ -581,7 +588,7 @@ void UIDrawResourceBrowserWindow()
             for (int i = 0; i < GEngine.GetMeshesHolder().Length(); ++i)
             {
                 resources::CMeshResource* MeshResource = GEngine.GetMeshesHolder().GetByIndex(i);
-                if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
+                if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % GSceneEditorState.ResourceItemsPerRow) == 0)
                 {
                     CurrentRowItemsCount = 0;
                 }
@@ -631,11 +638,15 @@ void UIDrawResourceBrowserWindow()
     {
         UIDrawMaterialCreationMenu();
     }
+    else if (GSceneEditorState.TypeOfActorToCreate != scene::EActorType::UNKNOWN)
+    {
+        UIDrawActorResourceCreationMenu();
+    }
 
     // Asset browser
     ImGui::Begin(ASSETS_BROWSER, nullptr, WindowFlags);
     {
-        ResourceItemWidth = (ImGui::GetContentRegionAvailWidth() / ResourceItemsPerRow) - 8;
+        ResourceItemWidth = (ImGui::GetContentRegionAvailWidth() / GSceneEditorState.ResourceItemsPerRow) - 8;
         ResourceItemSize = { ResourceItemWidth, ResourceItemWidth };
         if (ImGui::BeginMenuBar())
         {
@@ -664,8 +675,13 @@ void UIDrawResourceBrowserWindow()
                         ImGui::EndMenu();
                     }
 
-                    if (ImGui::MenuItem("Actor"))
+                    if (ImGui::BeginMenu("Actor"))
                     {
+                        if (ImGui::MenuItem("Static mesh"))
+                        {
+                            GSceneEditorState.TypeOfActorToCreate = scene::EActorType::STATIC_MESH;
+                        }
+                        ImGui::EndMenu();
                     }
 
                     ImGui::EndMenu();
@@ -690,13 +706,14 @@ void UIDrawResourceBrowserWindow()
                     if (!bMaterialEditorOpen)
                     {
                         GSceneEditorState.EditedMaterial = nullptr;
+                        bMaterialEditorOpen = true;
                     }
                 }
                 CurrentRowItemsCount = 0;
                 ImGui::Text("Materials:");
                 for (u32 i = 0; i < GEngine.GetMaterialsHolder().GetLength(); ++i, ++CurrentRowItemsCount)
                 {
-                    if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
+                    if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % GSceneEditorState.ResourceItemsPerRow) == 0)
                     {
                         CurrentRowItemsCount = 0;
                     }
@@ -722,19 +739,11 @@ void UIDrawResourceBrowserWindow()
                     if (!bActorEditorOpen)
                     {
                         GSceneEditorState.EditedStaticMesh = nullptr;
+                        bActorEditorOpen = true;
                     }
                     else
                     {
-                        ImGui::Text(*GSceneEditorState.EditedStaticMesh->Name);
-                        ImGuiMeshResourcePicker("Mesh resource", &GSceneEditorState.EditedStaticMesh->MeshResource);
-                        for (int i = 0; i < GSceneEditorState.EditedStaticMesh->GetNumMaterialSlots(); ++i)
-                        {
-                            auto MaterialSlotEditorLabel = SPrintf("actor_resource_material_%d", i);
-                            ImGui::Text("Select different:");
-                            ImGuiMaterialPicker(*MaterialSlotEditorLabel, GSceneEditorState.EditedStaticMesh->MaterialSlots[i]);
-
-                            MaterialSlotEditorLabel.Free();
-                        }   
+                        GSceneEditorState.EditedStaticMesh->UIDrawActorDetails();
                     }
 
                     ImGui::End();
@@ -744,7 +753,7 @@ void UIDrawResourceBrowserWindow()
                 ImGui::Text("Actors:");
                 for (u32 i = 0; i < GEngine.GetActorsResources().GetLength(); ++i, ++CurrentRowItemsCount)
                 {
-                    if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % ResourceItemsPerRow) == 0)
+                    if (CurrentRowItemsCount > 0 && (CurrentRowItemsCount % GSceneEditorState.ResourceItemsPerRow) == 0)
                     {
                         CurrentRowItemsCount = 0;
                     }
@@ -785,6 +794,7 @@ void UIDrawMeshImporter()
     ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
     {
         ImGui::InputText("Mesh name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
+        ImGui::Checkbox("Flip UVs", &GSceneEditorState.GenericBoolParam0);
         if (ImGui::Button("Import"))
         {
             GSceneEditorState.bAssetNameMissing = false;
@@ -802,8 +812,10 @@ void UIDrawMeshImporter()
 
                 // Import the mesh
                 FDString MeshName = CopyToString(GSceneEditorState.AssetNameBuffer);
-                resources::CMeshResource* ImportedMesh =
-                  resources::ImportMesh(GSceneEditorState.PathToSelectedFile, { IMPORTED_MESH_FILE_PATH }, MeshName);
+                resources::CMeshResource* ImportedMesh = resources::ImportMesh(GSceneEditorState.PathToSelectedFile,
+                                                                               { IMPORTED_MESH_FILE_PATH },
+                                                                               MeshName,
+                                                                               GSceneEditorState.GenericBoolParam0);
 
                 if (!ImportedMesh)
                 {
@@ -863,6 +875,8 @@ void UIDrawTextureImporter()
     ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
     {
         ImGui::InputText("Texture name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
+        ImGui::Checkbox("Flip UVs", &GSceneEditorState.GenericBoolParam0);
+        ImGui::Checkbox("Perform gamma correction", &GSceneEditorState.GenericBoolParam1);
         if (ImGui::Button("Import"))
         {
             GSceneEditorState.bAssetNameMissing = false;
@@ -886,9 +900,9 @@ void UIDrawTextureImporter()
                 {
                     ImportedTexture = resources::ImportTexture(GSceneEditorState.PathToSelectedFile,
                                                                { IMPORTED_TEXTURE_FILE_PATH },
-                                                               true,
+                                                               GSceneEditorState.GenericBoolParam1,
                                                                gpu::ETextureDataType::UNSIGNED_BYTE,
-                                                               true,
+                                                               GSceneEditorState.GenericBoolParam0,
                                                                true,
                                                                TextureName);
                 }
@@ -896,7 +910,7 @@ void UIDrawTextureImporter()
                 {
                     ImportedTexture = resources::ImportTexture(GSceneEditorState.PathToSelectedFile,
                                                                { IMPORTED_TEXTURE_FILE_PATH },
-                                                               true,
+                                                               GSceneEditorState.GenericBoolParam1,
                                                                gpu::ETextureDataType::UNSIGNED_BYTE,
                                                                true,
                                                                true,
@@ -1168,6 +1182,80 @@ void UIDrawMaterialCreationMenu()
                     GSceneEditorState.bDisableCameraMovement = false;
                 }
             }
+        }
+        if (GSceneEditorState.PickedShader)
+        {
+            ImGui::SameLine();
+        }
+        if (ImGui::Button("Cancel"))
+        {
+            GSceneEditorState.TypeOfMaterialToCreate = EMaterialType::NONE;
+            GSceneEditorState.PickedShader = nullptr;
+            ImGui::CloseCurrentPopup();
+            GSceneEditorState.bDisableCameraMovement = false;
+        }
+    }
+    ImGui::EndPopup();
+}
+
+void UIDrawActorResourceCreationMenu()
+{
+    if (!ImGui::IsPopupOpen(POPUP_WINDOW))
+    {
+        ImGui::OpenPopup(POPUP_WINDOW);
+    }
+
+    ImGui::SetNextWindowPos({ GSceneEditorState.Window->GetPosition().x + GSceneEditorState.Window->GetWidth() * 0.5f,
+                              GSceneEditorState.Window->GetPosition().y + GSceneEditorState.Window->GetHeight() * 0.5f },
+                            ImGuiCond_Always,
+                            { 0.5f, 0.5f });
+    ImGui::SetNextWindowSize({ 500, 0 });
+    ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
+    {
+
+        ImGui::InputText("Actor resource name name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
+        if (ImGui::Button("Create"))
+        {
+            if (strnlen_s(GSceneEditorState.AssetNameBuffer, 256) == 0)
+            {
+                GSceneEditorState.bAssetNameMissing = true;
+            }
+            else
+            {
+                auto CreatedActorPath = SPrintf("assets/actors/%s.asset", GSceneEditorState.AssetNameBuffer);
+
+                scene::IActor* CreatedActor;
+                switch (GSceneEditorState.TypeOfActorToCreate)
+                {
+                case scene::EActorType::STATIC_MESH:
+                {
+                    GSceneEditorState.bDisableCameraMovement = true;
+                    CreatedActor = new scene::CStaticMesh{ CopyToString(GSceneEditorState.AssetNameBuffer),
+                                                           nullptr,
+                                                           nullptr,
+                                                           nullptr,
+                                                           scene::EStaticMeshType::STATIONARY };
+                    break;
+                }
+                default:
+                    assert(0);
+                }
+
+                CreatedActor->ResourceId = sole::uuid4();
+                CreatedActor->ResourcePath = CreatedActorPath;
+
+                GEngine.GetActorsResources().Add(CreatedActor->ResourceId, CreatedActor);
+                GSceneEditorState.TypeOfActorToCreate = scene::EActorType::UNKNOWN;
+                ImGui::CloseCurrentPopup();
+                GSceneEditorState.bDisableCameraMovement = false;
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel"))
+        {
+            GSceneEditorState.TypeOfActorToCreate = scene::EActorType::UNKNOWN;
+            ImGui::CloseCurrentPopup();
+            GSceneEditorState.bDisableCameraMovement = false;
         }
     }
     ImGui::EndPopup();

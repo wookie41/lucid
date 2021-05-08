@@ -1,6 +1,8 @@
 ﻿#include "scene/renderer.hpp"
 
 #include <stb_ds.h>
+#include <devices/gpu/texture_enums.hpp>
+
 
 #include "devices/gpu/cubemap.hpp"
 #include "devices/gpu/shader.hpp"
@@ -61,7 +63,13 @@ namespace lucid::scene
                                                                  gpu::ETexturePixelFormat::DEPTH_COMPONENT,
                                                                  gpu::ETextureDataType::FLOAT,
                                                                  nullptr,
-                                                                 FSString{ "ShadowCubemap" });
+                                                                 FSString{ "ShadowCubemap" },
+                                                                 gpu::EMinTextureFilter::LINEAR,
+                                                                 gpu::EMagTextureFilter::LINEAR,
+                                                                 gpu::EWrapTextureFilter::CLAMP_TO_BORDER,
+                                                                 gpu::EWrapTextureFilter::CLAMP_TO_BORDER,
+                                                                 gpu::EWrapTextureFilter::CLAMP_TO_BORDER,
+                                                                 {1, 1, 1, 1});
 
             auto* ShadowMap = new CShadowMap(arrlen(CreatedShadowMaps), ShadowMapTexture, DefaultShadowMapQuality);
             arrput(CreatedShadowMaps, ShadowMap);
@@ -76,10 +84,11 @@ namespace lucid::scene
                                                                     FSString{ "ShadowMap" });
 
         ShadowMapTexture->Bind();
-        ShadowMapTexture->SetWrapSFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
-        ShadowMapTexture->SetWrapTFilter(lucid::gpu::WrapTextureFilter::CLAMP_TO_EDGE);
-        ShadowMapTexture->SetMinFilter(lucid::gpu::MinTextureFilter::NEAREST);
-        ShadowMapTexture->SetMagFilter(lucid::gpu::MagTextureFilter::NEAREST);
+        ShadowMapTexture->SetWrapSFilter(lucid::gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
+        ShadowMapTexture->SetWrapTFilter(lucid::gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
+        ShadowMapTexture->SetMinFilter(lucid::gpu::EMinTextureFilter::NEAREST);
+        ShadowMapTexture->SetMagFilter(lucid::gpu::EMagTextureFilter::NEAREST);
+        ShadowMapTexture->SetBorderColor({1, 1, 1, 1});
 
         auto* ShadowMap = new CShadowMap(arrlen(CreatedShadowMaps), ShadowMapTexture, DefaultShadowMapQuality);
         arrput(CreatedShadowMaps, ShadowMap);

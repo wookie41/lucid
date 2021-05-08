@@ -5,7 +5,7 @@
     STRUCT_FIELD(UUID, BaseActorResourceId, sole::INVALID_UUID, "Id of the base actor resource that this actor is an instance of")	
     STRUCT_STATIC_ARRAY(float, Postion, 3, {0 COMMA 0 COMMA 0 }, "Position of the actor")	
     STRUCT_STATIC_ARRAY(float, Scale, 3, {1 COMMA 1 COMMA 1 }, "Scale of the actor")	
-    STRUCT_STATIC_ARRAY(float, Rotation, 4, { 0 COMMA 0 COMMA 0 COMMA 0 }, "Rotation (quat) of the actor")
+    STRUCT_STATIC_ARRAY(float, Rotation, 4, { 0 COMMA 0 COMMA 0 COMMA 1 }, "Rotation (quat x, y, z, w) of the actor")
     STRUCT_FIELD(bool, bVisible, false, "")	    
 STRUCT_END()
 
@@ -57,8 +57,6 @@ STRUCT_INHERIT_BEGIN(lucid, FPointLightEntry, lucid::FLightEntry, "")
     STRUCT_FIELD(float, Constant, 0, "")	
     STRUCT_FIELD(float, Linear, 0, "")	
     STRUCT_FIELD(float, Quadratic, 0, "")	
-    STRUCT_FIELD(float, NearPlane, 1, "")	
-    STRUCT_FIELD(float, FarPlane, 25, "")	
 STRUCT_END()
 
 STRUCT_BEGIN(lucid, FWorldDescription, "Listing of all the things in the world")

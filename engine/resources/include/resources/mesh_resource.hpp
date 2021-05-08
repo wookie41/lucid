@@ -67,7 +67,7 @@ namespace lucid::resources
      *  Loads the mesh from the given directory, requires that
      *  textures are stored in the same directory as the model file
      */
-    CMeshResource* ImportMesh(const FString& MeshFilePath, const FString& InMeshFilePath, const FString& MeshName);
+    CMeshResource* ImportMesh(const FString& MeshFilePath, const FString& InMeshFilePath, const FString& MeshName, const bool& InbFilpUVs);
 
     CMeshResource* LoadMesh(const FString& FilePath);    
 } // namespace lucid::resources

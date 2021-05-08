@@ -78,7 +78,7 @@ namespace lucid
 
     inline glm::quat Float4ToQuat(const std::array<float, 4>& Values)
     {
-        return { Values[0], Values[1], Values[2], Values[3] };
+        return { Values[3], Values[0], Values[1], Values[2] };
     }
 
     inline std::array<float, 3> VecToFloat3(const glm::vec3& Vec)

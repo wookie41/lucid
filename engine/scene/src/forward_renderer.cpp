@@ -199,13 +199,13 @@ namespace lucid::scene
         PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         CurrentFrameVSNormalMap->Bind();
-        CurrentFrameVSNormalMap->SetMinFilter(gpu::MinTextureFilter::NEAREST);
-        CurrentFrameVSNormalMap->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+        CurrentFrameVSNormalMap->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+        CurrentFrameVSNormalMap->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
         PrepassFramebuffer->SetupColorAttachment(0, CurrentFrameVSNormalMap);
 
         CurrentFrameVSPositionMap->Bind();
-        CurrentFrameVSPositionMap->SetMinFilter(gpu::MinTextureFilter::NEAREST);
-        CurrentFrameVSPositionMap->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+        CurrentFrameVSPositionMap->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+        CurrentFrameVSPositionMap->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
         PrepassFramebuffer->SetupColorAttachment(1, CurrentFrameVSPositionMap);
 
         DepthStencilRenderBuffer->Bind();
@@ -226,8 +226,8 @@ namespace lucid::scene
                                                0,
                                                FSString{ "SSAOResult" });
         SSAOResult->Bind();
-        SSAOResult->SetMinFilter(gpu::MinTextureFilter::NEAREST);
-        SSAOResult->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+        SSAOResult->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+        SSAOResult->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
 
         // Create texture for the blurred SSAO result
         SSAOBlurred = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -238,8 +238,8 @@ namespace lucid::scene
                                                 0,
                                                 FSString{ "SSOBlurred" });
         SSAOBlurred->Bind();
-        SSAOBlurred->SetMinFilter(gpu::MinTextureFilter::NEAREST);
-        SSAOBlurred->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+        SSAOBlurred->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+        SSAOBlurred->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
 
         // Setup a SSAO framebuffer
         SSAOFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -264,8 +264,8 @@ namespace lucid::scene
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         
         LightingPassColorBuffer->Bind();
-        LightingPassColorBuffer->SetMinFilter(gpu::MinTextureFilter::NEAREST);
-        LightingPassColorBuffer->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+        LightingPassColorBuffer->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+        LightingPassColorBuffer->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
         LightingPassFramebuffer->SetupColorAttachment(0, LightingPassColorBuffer);
 
         DepthStencilRenderBuffer->Bind();
@@ -322,8 +322,8 @@ namespace lucid::scene
                                          0,
                                          FSString{ "SSAONoise" });
         SSAONoise->Bind();
-        SSAONoise->SetWrapSFilter(gpu::WrapTextureFilter::REPEAT);
-        SSAONoise->SetWrapTFilter(gpu::WrapTextureFilter::REPEAT);
+        SSAONoise->SetWrapSFilter(gpu::EWrapTextureFilter::REPEAT);
+        SSAONoise->SetWrapTFilter(gpu::EWrapTextureFilter::REPEAT);
         SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
         SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
 
@@ -336,8 +336,8 @@ namespace lucid::scene
                                                             0,
                                                             FSString{ "FrameResult" });
         FrameResultTexture->Bind();
-        FrameResultTexture->SetMinFilter(gpu::MinTextureFilter::NEAREST);
-        FrameResultTexture->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+        FrameResultTexture->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+        FrameResultTexture->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
 
         FrameResultFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         FrameResultFramebuffer->SetupColorAttachment(0, FrameResultTexture);
@@ -373,8 +373,8 @@ namespace lucid::scene
         HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         HitMapTexture->Bind();
-        HitMapTexture->SetMinFilter(gpu::MinTextureFilter::NEAREST);
-        HitMapTexture->SetMagFilter(gpu::MagTextureFilter::NEAREST);
+        HitMapTexture->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+        HitMapTexture->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
 
         HitMapFramebuffer->SetupColorAttachment(0, HitMapTexture);
 
@@ -433,7 +433,6 @@ namespace lucid::scene
         ShadowMapFramebuffer->DisableReadWriteBuffers();
 
         u8 PrevShadowMapQuality = 255;
-        gpu::CShader* PrevShadowMapShader = nullptr;
 
         for (int i = 0; i < arrlen(InSceneToRender->AllLights); ++i)
         {
@@ -449,11 +448,7 @@ namespace lucid::scene
             Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
 
             gpu::CShader* CurrentShadowMapShader = Light->GetType() == ELightType::POINT ? ShadowCubeMapShader : ShadowMapShader;
-            if (CurrentShadowMapShader != PrevShadowMapShader)
-            {
-                PrevShadowMapShader = CurrentShadowMapShader;
-                CurrentShadowMapShader->Use();
-            }
+            CurrentShadowMapShader->Use();
 
             Light->SetupShadowMapShader(CurrentShadowMapShader);
 
@@ -532,6 +527,15 @@ namespace lucid::scene
                 {
                     for (u16 j = 0; j < MeshResource->SubMeshes.GetLength(); ++j)
                     {
+#if DEVELOPMENT
+                        if (j >= StaticMesh->GetNumMaterialSlots() || StaticMesh->GetMaterialSlot(j) == nullptr)
+                        {
+                            LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing material slot %d", *StaticMesh->Name, j);
+                            continue;
+                        }
+#endif
+                        StaticMesh->GetMaterialSlot(j)->SetupShader(PrepassShader);
+
                         StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
                         StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
                     }
@@ -684,10 +688,11 @@ namespace lucid::scene
                 Material->GetShader()->Use();
                 *LastShader = Material->GetShader();
                 SetupRendererWideUniforms(*LastShader, InRenderView);
-                if (InLight)
-                {
-                    InLight->SetupShader(*LastShader);                    
-                }
+            }
+            
+            if (InLight)
+            {
+                InLight->SetupShader(*LastShader);                    
             }
 
             (*LastShader)->SetMatrix(MODEL_MATRIX, ModelMatrix);

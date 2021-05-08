@@ -43,6 +43,12 @@ namespace lucid::gpu
                             ETexturePixelFormat InPixelFormat,
                             ETextureDataType DataType,
                             const void* FaceTexturesData[6],
-                            const FString& InName);
+                            const FString& InName,
+                            const EMinTextureFilter& InMinFilter,
+                            const EMagTextureFilter& InMagFilter,
+                            const EWrapTextureFilter& InWrapS,
+                            const EWrapTextureFilter& InWrapT,
+                            const EWrapTextureFilter& InWrapR,
+                            const FColor& InBorderColor);
 
 } // namespace lucid::gpu

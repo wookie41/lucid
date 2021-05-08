@@ -20,9 +20,9 @@ namespace lucid
     void CEngine::Load##Suffix(TDYNAMICARRAY<FMaterialDatabaseEntry> Entries)                             \
     {                                                                                                     \
         bool bSuccess = false;                                                                            \
-        TMaterialDescription MaterialDescription;                                                         \
         for (FMaterialDatabaseEntry Entry : Entries)                                                      \
         {                                                                                                 \
+            TMaterialDescription MaterialDescription;                                                     \
             switch (Entry.FileFormat)                                                                     \
             {                                                                                             \
             case EFileFormat::Json:                                                                       \
@@ -74,8 +74,8 @@ namespace lucid
         // Setup the renderer
         auto* ForwardRenderer = new scene::CForwardRenderer{ 32, 4 };
         ForwardRenderer->AmbientStrength = 0.05;
-        ForwardRenderer->NumSamplesPCF = 20;
-        ForwardRenderer->ResultResolution = { 1920, 1080 };
+        ForwardRenderer->NumSamplesPCF = 25;
+        ForwardRenderer->ResultResolution = { 1280, 720 };
         Renderer = ForwardRenderer;
     }
 
@@ -222,5 +222,14 @@ namespace lucid
         }
 
         WriteToJSONFile(MaterialDatabase, "assets/databases/materials.json");
+
+        ActorDatabase.Entries.clear();
+
+        for (u32 i = 0; i < ActorResourceById.GetLength(); ++i)
+        {
+            ActorResourceById.GetByIndex(i)->SaveToResourceFile();
+        }
+        
+        WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
     }
 } // namespace lucid

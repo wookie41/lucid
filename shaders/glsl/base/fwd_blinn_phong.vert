@@ -12,7 +12,7 @@ uniform bool uReverseNormals;
 
 out VS_OUT
 {
-    vec3 Normal;
+    vec3 InterpolatedNormal;
     vec3 FragPos;
 }
 vsOut;
@@ -23,7 +23,7 @@ void main()
     vec4 FragPos = uModel * vec4(aPosition, 1);
 
     vsOut.FragPos = FragPos.xyz;
-    vsOut.Normal = normalMatrix * (uReverseNormals ? -1.0 * aNormal : aNormal);
+    vsOut.InterpolatedNormal = normalMatrix * (uReverseNormals ? -1.0 * aNormal : aNormal);
 
     gl_Position = uProjection * uView * FragPos;
 }

@@ -6,11 +6,6 @@
             "Path": "assets/textures/BrickDiffuse.asset"
         },
         {
-            "Id": "848401ec-e072-490b-b87a-3ab0e58309bb",
-            "Name": "BrickNormal",
-            "Path": "assets/textures/BrickNormal.asset"
-        },
-        {
             "Id": "76206f90-1209-40af-b94c-785bbee012e4",
             "Name": "WoodDiffuse",
             "Path": "assets/textures/WoodDiffuse.asset"
@@ -20,16 +15,6 @@
             "Name": "Blank",
             "Path": "assets/textures/Blank.asset",
             "bIsDefault": true
-        },
-        {
-            "Id": "0d95ff69-79d8-4e03-bafd-3ed739171538",
-            "Name": "ToyboxNormal",
-            "Path": "assets/textures/ToyboxNormal.asset"
-        },
-        {
-            "Id": "d7ea00c8-0d67-4700-8146-b8e01e61fae2",
-            "Name": "ToyboxDisplacement",
-            "Path": "assets/textures/ToyboxDisplacement.asset"
         },
         {
             "Id": "abd835d6-6aa9-4140-9442-9afe04a2b999",
@@ -67,273 +52,47 @@
             "Path": "assets/textures/SkyboxBack.asset"
         },
         {
-            "Id": "cb125c49-0688-4a20-aa19-a02e2d45884f",
+            "Id": "1a3f3618-e99b-4553-a87d-3015d8a4ef3b",
+            "Name": "Backpack_Texture_diffuse",
+            "Path": "assets/textures/Backpack_Texture_diffuse.asset"
+        },
+        {
+            "Id": "dcf66b65-c0d0-47cd-9f30-6a64b64eec35",
+            "Name": "Backpack_Texture_specular",
+            "Path": "assets/textures/Backpack_Texture_specular.asset"
+        },
+        {
+            "Id": "52be623b-5640-4020-b36f-55635a36b2fc",
+            "Name": "Backpack",
+            "Path": "assets/meshes/Backpack.asset",
+            "Type": 1
+        },
+        {
+            "Id": "a4de1f51-6768-40a7-bf74-e025f59b05f4",
             "Name": "Cube",
             "Path": "assets/meshes/Cube.asset",
             "Type": 1,
             "bIsDefault": true
         },
         {
-            "Id": "aa016f2f-8bfb-44d9-8e4f-ed4d16ae0e19",
-            "Name": "Nano_Texture_arm_dif",
-            "Path": "assets/textures/Nano_Texture_arm_dif.asset"
+            "Id": "c149c93d-348c-439e-b140-98f6f13afe34",
+            "Name": "BrickNormal",
+            "Path": "assets/textures/BrickNormal.asset"
         },
         {
-            "Id": "4228e653-0fd9-4a7e-83bf-6c94ca77f795",
-            "Name": "Nano_Texture_arm_showroom_spec",
-            "Path": "assets/textures/Nano_Texture_arm_showroom_spec.asset"
+            "Id": "07dbb98d-e5a8-494a-ad29-71a47db96de8",
+            "Name": "ToyboxDisplacement",
+            "Path": "assets/textures/ToyboxDisplacement.asset"
         },
         {
-            "Id": "22dfac18-0b02-44a0-975c-a9a653e144d9",
-            "Name": "Nano_Texture_arm_showroom_ddn",
-            "Path": "assets/textures/Nano_Texture_arm_showroom_ddn.asset"
+            "Id": "1d4915a7-6846-4655-9a7d-5b1ccb157f6b",
+            "Name": "ToyboxNormal",
+            "Path": "assets/textures/ToyboxNormal.asset"
         },
         {
-            "Id": "ff7d5f75-3c6d-4f0c-8366-1b7e68337ed1",
-            "Name": "Nano_Texture_body_dif",
-            "Path": "assets/textures/Nano_Texture_body_dif.asset"
-        },
-        {
-            "Id": "e6c0e190-5e8a-4a3a-9804-3fa06f905933",
-            "Name": "Nano_Texture_body_showroom_spec",
-            "Path": "assets/textures/Nano_Texture_body_showroom_spec.asset"
-        },
-        {
-            "Id": "1c8ef2fa-dfc4-4b5a-931d-22483950f6d7",
-            "Name": "Nano_Texture_body_showroom_ddn",
-            "Path": "assets/textures/Nano_Texture_body_showroom_ddn.asset"
-        },
-        {
-            "Id": "9091a377-4648-4b2d-91fe-f06b6d285bf5",
-            "Name": "Nano_Texture_glass_dif",
-            "Path": "assets/textures/Nano_Texture_glass_dif.asset"
-        },
-        {
-            "Id": "86f4a951-89a2-4257-aab5-2260eaf9d3cb",
-            "Name": "Nano_Texture_glass_ddn",
-            "Path": "assets/textures/Nano_Texture_glass_ddn.asset"
-        },
-        {
-            "Id": "f92221cb-6096-4b37-8af8-9e928262511e",
-            "Name": "Nano_Texture_hand_dif",
-            "Path": "assets/textures/Nano_Texture_hand_dif.asset"
-        },
-        {
-            "Id": "1a0ada8d-1fef-4daa-92b5-033c874e6e31",
-            "Name": "Nano_Texture_hand_showroom_spec",
-            "Path": "assets/textures/Nano_Texture_hand_showroom_spec.asset"
-        },
-        {
-            "Id": "b754b543-9add-4bed-9e44-092af2d4687e",
-            "Name": "Nano_Texture_hand_showroom_ddn",
-            "Path": "assets/textures/Nano_Texture_hand_showroom_ddn.asset"
-        },
-        {
-            "Id": "85b79966-ca92-471e-899f-e49064243982",
-            "Name": "Nano_Texture_helmet_diff",
-            "Path": "assets/textures/Nano_Texture_helmet_diff.asset"
-        },
-        {
-            "Id": "ccf20451-6783-41a3-b390-c1148f3efc41",
-            "Name": "Nano_Texture_helmet_showroom_spec",
-            "Path": "assets/textures/Nano_Texture_helmet_showroom_spec.asset"
-        },
-        {
-            "Id": "3fc9e445-86bd-4d12-a74f-9b81ff56fced",
-            "Name": "Nano_Texture_helmet_showroom_ddn",
-            "Path": "assets/textures/Nano_Texture_helmet_showroom_ddn.asset"
-        },
-        {
-            "Id": "2d67b30a-c7cb-4365-8c2d-5c0418bbc679",
-            "Name": "Nano_Texture_leg_dif",
-            "Path": "assets/textures/Nano_Texture_leg_dif.asset"
-        },
-        {
-            "Id": "3b578b8f-fcb2-4c52-ba0b-71eca961f6d6",
-            "Name": "Nano_Texture_leg_showroom_spec",
-            "Path": "assets/textures/Nano_Texture_leg_showroom_spec.asset"
-        },
-        {
-            "Id": "5acb6a6c-9a4b-4ce8-87df-065615b0f040",
-            "Name": "Nano_Texture_leg_showroom_ddn",
-            "Path": "assets/textures/Nano_Texture_leg_showroom_ddn.asset"
-        },
-        {
-            "Id": "9a84b959-8a9e-4fa5-a854-2b610b2d937f",
-            "Name": "Nano",
-            "Path": "assets/meshes/Nano.asset",
-            "Type": 1
-        },
-        {
-            "Id": "0400fa40-8d54-483d-9458-96101bab3a0d",
-            "Name": "Sponza_Texture_textures/lion",
-            "Path": "assets/textures/Sponza_Texture_textures/lion.asset"
-        },
-        {
-            "Id": "8ead95bd-dd4b-4f1e-bcab-6725ee43898d",
-            "Name": "Sponza_Texture_textures/background",
-            "Path": "assets/textures/Sponza_Texture_textures/background.asset"
-        },
-        {
-            "Id": "c63204aa-386e-4144-af06-06b14262fbcd",
-            "Name": "Sponza_Texture_textures/vase_plant",
-            "Path": "assets/textures/Sponza_Texture_textures/vase_plant.asset"
-        },
-        {
-            "Id": "801731a7-8c53-4e0c-aee3-b3df1815d75d",
-            "Name": "Sponza_Texture_textures/sponza_arch_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_arch_diff.asset"
-        },
-        {
-            "Id": "a084f572-9057-4f23-91e9-eeb2fbb95c9a",
-            "Name": "Sponza_Texture_textures/spnza_bricks_a_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/spnza_bricks_a_diff.asset"
-        },
-        {
-            "Id": "aebe8a94-efad-435a-85e5-9b1d1244c165",
-            "Name": "Sponza_Texture_textures/sponza_ceiling_a_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_ceiling_a_diff.asset"
-        },
-        {
-            "Id": "ec0c585a-c89d-4775-9fe8-5c2693b3b8ac",
-            "Name": "Sponza_Texture_textures/chain_texture",
-            "Path": "assets/textures/Sponza_Texture_textures/chain_texture.asset"
-        },
-        {
-            "Id": "b5e13e22-1e0f-418c-b146-731acdf89b22",
-            "Name": "Sponza_Texture_textures/sponza_column_a_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_column_a_diff.asset"
-        },
-        {
-            "Id": "2894d79d-ebdc-4624-888e-f43bc3da7079",
-            "Name": "Sponza_Texture_textures/sponza_column_b_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_column_b_diff.asset"
-        },
-        {
-            "Id": "09eb564e-6fd4-41b3-a086-b4449aaa0c48",
-            "Name": "Sponza_Texture_textures/sponza_column_c_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_column_c_diff.asset"
-        },
-        {
-            "Id": "816fbd73-3dd6-4ee9-9069-83cbaca10b03",
-            "Name": "Sponza_Texture_textures/sponza_details_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_details_diff.asset"
-        },
-        {
-            "Id": "2b60c77f-34ca-4795-a422-8257c8933f11",
-            "Name": "Sponza_Texture_textures/sponza_fabric_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_fabric_diff.asset"
-        },
-        {
-            "Id": "d2ad059c-a4e3-4746-b3e5-c4a39d4858e7",
-            "Name": "Sponza_Texture_textures/sponza_curtain_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_curtain_diff.asset"
-        },
-        {
-            "Id": "e99fb7f2-54aa-4cd9-807f-554928156bf9",
-            "Name": "Sponza_Texture_textures/sponza_fabric_blue_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_fabric_blue_diff.asset"
-        },
-        {
-            "Id": "d51943d8-826e-4856-9d1b-53279f5fb0e2",
-            "Name": "Sponza_Texture_textures/sponza_fabric_green_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_fabric_green_diff.asset"
-        },
-        {
-            "Id": "3a00f520-0e9f-41fa-ab97-ff352707a025",
-            "Name": "Sponza_Texture_textures/sponza_curtain_green_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_curtain_green_diff.asset"
-        },
-        {
-            "Id": "2f02a47a-73cd-4f32-8d87-3c6ae17eecdf",
-            "Name": "Sponza_Texture_textures/sponza_curtain_blue_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_curtain_blue_diff.asset"
-        },
-        {
-            "Id": "16bd93da-2e55-4537-ad05-a66f7d01497d",
-            "Name": "Sponza_Texture_textures/sponza_flagpole_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_flagpole_diff.asset"
-        },
-        {
-            "Id": "789e417e-602d-4414-a89a-34d3b1dd2404",
-            "Name": "Sponza_Texture_textures/sponza_floor_a_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_floor_a_diff.asset"
-        },
-        {
-            "Id": "c920377d-17e0-48e2-922a-2902e2cdf256",
-            "Name": "Sponza_Texture_textures/sponza_thorn_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_thorn_diff.asset"
-        },
-        {
-            "Id": "67a9d7d7-73a6-435a-a236-3cd92f53e3db",
-            "Name": "Sponza_Texture_textures/sponza_roof_diff",
-            "Path": "assets/textures/Sponza_Texture_textures/sponza_roof_diff.asset"
-        },
-        {
-            "Id": "17cff024-259a-4275-8cd0-b202fd258051",
-            "Name": "Sponza_Texture_textures/vase_dif",
-            "Path": "assets/textures/Sponza_Texture_textures/vase_dif.asset"
-        },
-        {
-            "Id": "ea834f73-0549-4b0b-aab6-e0067ec44792",
-            "Name": "Sponza_Texture_textures/vase_hanging",
-            "Path": "assets/textures/Sponza_Texture_textures/vase_hanging.asset"
-        },
-        {
-            "Id": "ff905bfa-3d1d-4152-b20b-c07364355c4a",
-            "Name": "Sponza_Texture_textures/vase_round",
-            "Path": "assets/textures/Sponza_Texture_textures/vase_round.asset"
-        },
-        {
-            "Id": "640334ce-eef4-466f-93b8-735150c10d28",
-            "Name": "nanosuit_arm_refl",
-            "Path": "assets/textures/nanosuit_arm_refl.asset"
-        },
-        {
-            "Id": "a875c6d9-1e6b-4ffd-9ef7-4212e78daee2",
-            "Name": "nansuit_body_refl",
-            "Path": "assets/textures/nansuit_body_refl.asset"
-        },
-        {
-            "Id": "1aa63fa2-e95c-47c8-8785-459ea13ef0e2",
-            "Name": "nanosuit_hand_refl",
-            "Path": "assets/textures/nanosuit_hand_refl.asset"
-        },
-        {
-            "Id": "dc8b7bc2-2ec4-41e3-a025-ab1acb0b4033",
-            "Name": "nanosuit_glass_refl",
-            "Path": "assets/textures/nanosuit_glass_refl.asset"
-        },
-        {
-            "Id": "961acc95-2e8a-421f-80e9-93d73bf1b207",
-            "Name": "nanosuit_helmet_refl",
-            "Path": "assets/textures/nanosuit_helmet_refl.asset"
-        },
-        {
-            "Id": "2b1b561b-6c1c-40ca-a6c0-5e7b7fee180f",
-            "Name": "nanosuit_leg_refl",
-            "Path": "assets/textures/nanosuit_leg_refl.asset"
-        },
-        {
-            "Id": "b5ecb9f5-bea8-415d-92f7-a3c898643c6d",
-            "Name": "Backpack_Texture_diffuse",
-            "Path": "assets/textures/Backpack_Texture_diffuse.asset"
-        },
-        {
-            "Id": "585304b8-c936-463c-8ac4-890b2f380686",
-            "Name": "Backpack_Texture_specular",
-            "Path": "assets/textures/Backpack_Texture_specular.asset"
-        },
-        {
-            "Id": "fdf89caa-15ef-4820-8742-4bf0131b8c38",
-            "Name": "Backpack_Texture_normal",
-            "Path": "assets/textures/Backpack_Texture_normal.asset"
-        },
-        {
-            "Id": "790b6bf1-e1c3-4fdf-8861-2518a016ea61",
-            "Name": "Backpack",
-            "Path": "assets/meshes/Backpack.asset",
-            "Type": 1
+            "Id": "45d22688-6e14-4627-af1f-f897de96024a",
+            "Name": "Backpack_Normal",
+            "Path": "assets/textures/Backpack_Normal.asset"
         }
     ]
 }
