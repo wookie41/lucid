@@ -240,3 +240,10 @@ rapidjson::Value MakeJSONValue(const lucid::InstancedVariable<T>& value, rapidjs
     }
     return ret;
 }
+
+rapidjson::Value MakeJSONValue(const lucid::scene::EMaterialType& value, rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value ret;
+    ret.SetInt(static_cast<uint8_t>(value));
+    return ret;
+}

@@ -1,8 +1,0 @@
-{
-    "Id": "e34c1127-ae45-4f53-8827-026a67e26509",
-    "Name": "Nanosuit_Glasses",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
-    "SpecularTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
-    "NormalTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5"
-}

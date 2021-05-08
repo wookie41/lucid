@@ -24,13 +24,13 @@ STRUCT_INHERIT_BEGIN(lucid, FBlinnPhongMapsMaterialDescription, lucid::FMaterial
 STRUCT_END()
 
 STRUCT_BEGIN(lucid, FMaterialDatabaseEntry, "")
+    STRUCT_FIELD(UUID, Id, sole::INVALID_UUID, "Id of the material")	
     STRUCT_FIELD(FDString, MaterialPath, "", "")
     STRUCT_FIELD(EFileFormat, FileFormat, lucid::EFileFormat::Json, "")
+    STRUCT_FIELD(lucid::scene::EMaterialType, MaterialType, lucid::scene::EMaterialType::NONE, "Type of the material")
     STRUCT_FIELD(bool, bDefault, false, "should this material be used when as a default one, e.x. when mesh is missing a material")
 STRUCT_END()
 
 STRUCT_BEGIN(lucid, FMaterialDatabase, "")
-    STRUCT_DYNAMIC_ARRAY(FMaterialDatabaseEntry, FlatMaterials,  "")
-    STRUCT_DYNAMIC_ARRAY(FMaterialDatabaseEntry, BlinnPhongMaterials,  "")
-    STRUCT_DYNAMIC_ARRAY(FMaterialDatabaseEntry, BlinnPhongMapsMaterials,  "")
+    STRUCT_DYNAMIC_ARRAY(FMaterialDatabaseEntry, Entries,  "")
 STRUCT_END()

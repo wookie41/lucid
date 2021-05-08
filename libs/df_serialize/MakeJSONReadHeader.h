@@ -372,3 +372,16 @@ bool JSONRead(lucid::InstancedVariable<R>& value, T& document)
     }
     return false;
 }
+
+template <typename T>
+bool JSONRead(lucid::scene::EMaterialType& value, T& document)
+{
+    if (!document.IsInt())
+    {
+        DFS_LOG("Trying to read a string but it wasn't a string\n");
+        return false;
+    }
+
+    value = static_cast<lucid::scene::EMaterialType>(document.GetInt());
+    return true;
+}

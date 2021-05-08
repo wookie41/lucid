@@ -531,7 +531,10 @@ namespace lucid::scene
                         if (j >= StaticMesh->GetNumMaterialSlots() || StaticMesh->GetMaterialSlot(j) == nullptr)
                         {
                             LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing material slot %d", *StaticMesh->Name, j);
-                            continue;
+                            RenderWithDefaultMaterial(StaticMesh, nullptr, InRenderView);
+                            PrepassShader->Use();
+                            SetupRendererWideUniforms(PrepassShader, InRenderView);
+                            break;
                         }
 #endif
                         StaticMesh->GetMaterialSlot(j)->SetupShader(PrepassShader);

@@ -78,14 +78,12 @@ namespace lucid
         void RemoveMeshResource(resources::CMeshResource* InMesh);
         void RemoveTextureResource(resources::CTextureResource*);
 
+        void RemoveMaterialAsset(scene::CMaterial* InMaterial);
+        
         template <typename TActor, typename TActorDescription>
         TActor* CreateActorInstance(scene::CWorld* InWorld, const TActorDescription& InActorDescription);
     
     protected:
-
-        DECLARE_LOAD_MATERIAL_FUNC(FlatMaterials, FFlatMaterialDescription, scene::CFlatMaterial)
-        DECLARE_LOAD_MATERIAL_FUNC(BlinnPhongMaterials, FBlinnPhongMaterialDescription, scene::CBlinnPhongMaterial)
-        DECLARE_LOAD_MATERIAL_FUNC(BlinnPhongMapsMaterials, FBlinnPhongMapsMaterialDescription, scene::CBlinnPhongMapsMaterial)
         
         scene::CRenderer* Renderer = nullptr;
 

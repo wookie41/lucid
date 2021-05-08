@@ -198,3 +198,8 @@ void BinaryWrite(const lucid::InstancedVariable<T>& value, TDYNAMICARRAY<char>& 
         BinaryWrite(value.Value, output);
     }
 }
+
+void BinaryWrite(const lucid::scene::EMaterialType& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(static_cast<uint8_t>(value), output);
+}

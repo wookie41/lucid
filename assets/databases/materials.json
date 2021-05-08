@@ -1,57 +1,50 @@
 {
-    "FlatMaterials": [
+    "Entries": [
         {
+            "Id": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3",
             "MaterialPath": "assets/materials/FlatWhiteMaterial.asset",
+            "MaterialType": 1,
             "bDefault": true
         },
         {
-            "MaterialPath": "assets/materials/FlatRedMaterial.asset"
+            "Id": "d7c004da-4cc5-4d8f-8bde-b8e26cfcd744",
+            "MaterialPath": "assets/materials/FlatRedMaterial.asset",
+            "MaterialType": 1
         },
         {
-            "MaterialPath": "assets/materials/FlatBlueMaterial.asset"
+            "Id": "e5ff6221-a86c-4cc6-9ef2-958a98492729",
+            "MaterialPath": "assets/materials/FlatBlueMaterial.asset",
+            "MaterialType": 1
         },
         {
-            "MaterialPath": "assets/materials/FlatGreenMaterial.asset"
-        }
-    ],
-    "BlinnPhongMaterials": [
-        {
-            "MaterialPath": "assets/materials/FlatBlinnPhongMaterial.asset"
-        }
-    ],
-    "BlinnPhongMapsMaterials": [
-        {
-            "MaterialPath": "assets/materials/WoodMaterial.asset"
+            "Id": "b61c567e-ee51-4a5a-b80d-aca4cd9f0747",
+            "MaterialPath": "assets/materials/FlatGreenMaterial.asset",
+            "MaterialType": 1
         },
         {
-            "MaterialPath": "assets/materials/BrickMaterial.asset"
+            "Id": "23d2531e-f152-4e17-87e4-f84cde87b018",
+            "MaterialPath": "assets/materials/FlatBlinnPhongMaterial.asset",
+            "MaterialType": 2
         },
         {
-            "MaterialPath": "assets/materials/BackpackMaterial.asset"
+            "Id": "5f13c189-43af-4816-94a9-36a7d8918e71",
+            "MaterialPath": "assets/materials/WoodMaterial.asset",
+            "MaterialType": 3
         },
         {
-            "MaterialPath": "assets/materials/ToyboxMaterial.asset"
+            "Id": "24f49047-090b-4d13-900b-e65f66327148",
+            "MaterialPath": "assets/materials/BrickMaterial.asset",
+            "MaterialType": 3
         },
         {
-            "MaterialPath": "assets/materials/Nanosuit_Body.asset"
+            "Id": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9",
+            "MaterialPath": "assets/materials/BackpackMaterial.asset",
+            "MaterialType": 3
         },
         {
-            "MaterialPath": "assets/materials/Nanosuit_Glasses.asset"
-        },
-        {
-            "MaterialPath": "assets/materials/Nanosuit_legs.asset"
-        },
-        {
-            "MaterialPath": "assets/materials/Nanosuit_arms.asset"
-        },
-        {
-            "MaterialPath": "assets/materials/Nanosuit_hands.asset"
-        },
-        {
-            "MaterialPath": "assets/materials/Nanosuit_cell.asset"
-        },
-        {
-            "MaterialPath": "assets/materials/Nanosuit_helmet.asset"
+            "Id": "19a3eca1-7804-49ee-8b4d-6c1027f06494",
+            "MaterialPath": "assets/materials/ToyboxMaterial.asset",
+            "MaterialType": 3
         }
     ]
 }

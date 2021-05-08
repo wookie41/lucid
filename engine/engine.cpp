@@ -10,47 +10,14 @@
 #include "scene/forward_renderer.hpp"
 
 #define LUCID_SCHEMAS_IMPLEMENTATION
+#include <scene/material.hpp>
+
 #include "schemas/types.hpp"
 #include "schemas/binary.hpp"
 #include "schemas/json.hpp"
 
 namespace lucid
 {
-#define DEFINE_LOAD_MATERIAL_FUNC(Suffix, TMaterialDescription, TMaterial)                                \
-    void CEngine::Load##Suffix(TDYNAMICARRAY<FMaterialDatabaseEntry> Entries)                             \
-    {                                                                                                     \
-        bool bSuccess = false;                                                                            \
-        for (FMaterialDatabaseEntry Entry : Entries)                                                      \
-        {                                                                                                 \
-            TMaterialDescription MaterialDescription;                                                     \
-            switch (Entry.FileFormat)                                                                     \
-            {                                                                                             \
-            case EFileFormat::Json:                                                                       \
-            {                                                                                             \
-                bSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);                    \
-                break;                                                                                    \
-            }                                                                                             \
-            case EFileFormat::Binary:                                                                     \
-            {                                                                                             \
-                bSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);                  \
-                break;                                                                                    \
-            }                                                                                             \
-            }                                                                                             \
-            if (bSuccess)                                                                                 \
-            {                                                                                             \
-                TMaterial* Material = TMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath); \
-                MaterialsHolder.Add(Material->GetID(), Material);                                         \
-                if (Entry.bDefault)                                                                       \
-                {                                                                                         \
-                    DefaultMaterial = Material;                                                           \
-                }                                                                                         \
-            }                                                                                             \
-            else                                                                                          \
-            {                                                                                             \
-                LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);  \
-            }                                                                                             \
-        }                                                                                                 \
-    }
 
     CEngine GEngine;
     EEngineInitError CEngine::InitEngine(const FEngineConfig& InEngineConfig)
@@ -135,9 +102,109 @@ namespace lucid
         ReadFromJSONFile(MaterialDatabase, "assets/databases/materials.json");
 
         // Create materials for the materials definitions
-        LoadFlatMaterials(MaterialDatabase.FlatMaterials);
-        LoadBlinnPhongMaterials(MaterialDatabase.BlinnPhongMaterials);
-        LoadBlinnPhongMapsMaterials(MaterialDatabase.BlinnPhongMapsMaterials);
+        bool bFileReadSuccess = false;
+        scene::CMaterial* LoadedMaterial = nullptr;
+        for (const FMaterialDatabaseEntry& Entry : MaterialDatabase.Entries)
+        {
+            LoadedMaterial = nullptr;
+
+            switch (Entry.MaterialType)
+            {
+            case scene::EMaterialType::FLAT:
+            {
+                FFlatMaterialDescription MaterialDescription;
+                switch (Entry.FileFormat)
+                {
+                case EFileFormat::Json:
+                {
+                    bFileReadSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                case EFileFormat::Binary:
+                {
+                    bFileReadSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                }
+                if (bFileReadSuccess)
+                {
+                    LoadedMaterial = scene::CFlatMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);
+                }
+                else
+                {
+                    LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);
+                }
+
+                break;
+            }
+
+            case scene::EMaterialType::BLINN_PHONG:
+            {
+                FBlinnPhongMaterialDescription MaterialDescription;
+                switch (Entry.FileFormat)
+                {
+                case EFileFormat::Json:
+                {
+                    bFileReadSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                case EFileFormat::Binary:
+                {
+                    bFileReadSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                }
+                if (bFileReadSuccess)
+                {
+                    LoadedMaterial = scene::CBlinnPhongMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);
+                }
+                else
+                {
+                    LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);
+                }
+
+                break;
+            }
+            case scene::EMaterialType::BLINN_PHONG_MAPS:
+            {
+                FBlinnPhongMapsMaterialDescription MaterialDescription;
+                switch (Entry.FileFormat)
+                {
+                case EFileFormat::Json:
+                {
+                    bFileReadSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                case EFileFormat::Binary:
+                {
+                    bFileReadSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                }
+                if (bFileReadSuccess)
+                {
+                    LoadedMaterial = scene::CBlinnPhongMapsMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);
+                }
+                else
+                {
+                    LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);
+                }
+
+                break;
+            }
+                default:
+                    assert(0);
+            }
+
+            if (LoadedMaterial)
+            {
+                MaterialsHolder.Add(LoadedMaterial->GetID(), LoadedMaterial);
+                if (Entry.bDefault)
+                {
+                    DefaultMaterial = LoadedMaterial;
+                }
+            }
+        }
 
         // Load actor database
         ReadFromJSONFile(ActorDatabase, "assets/databases/actors.json");
@@ -198,23 +265,17 @@ namespace lucid
         ResourceDatabase.Entries.erase(std::remove_if(
           ResourceDatabase.Entries.begin(), ResourceDatabase.Entries.end(), [&](const FResourceDatabaseEntry& Entry) {
               return Entry.Id == InMesh->GetID();
-        }));
-        
+          }));
+
         MeshesHolder.Remove(InMesh->GetID());
         remove(*InMesh->GetFilePath());
 
         WriteToJSONFile(ResourceDatabase, "assets/databases/resources.json");
     }
 
-    DEFINE_LOAD_MATERIAL_FUNC(FlatMaterials, FFlatMaterialDescription, scene::CFlatMaterial)
-    DEFINE_LOAD_MATERIAL_FUNC(BlinnPhongMaterials, FBlinnPhongMaterialDescription, scene::CBlinnPhongMaterial)
-    DEFINE_LOAD_MATERIAL_FUNC(BlinnPhongMapsMaterials, FBlinnPhongMapsMaterialDescription, scene::CBlinnPhongMapsMaterial)
-
     void CEngine::Shutdown()
     {
-        MaterialDatabase.FlatMaterials.clear();
-        MaterialDatabase.BlinnPhongMaterials.clear();
-        MaterialDatabase.BlinnPhongMapsMaterials.clear();
+        MaterialDatabase.Entries.clear();
 
         for (u32 i = 0; i < MaterialsHolder.GetLength(); ++i)
         {
@@ -229,7 +290,23 @@ namespace lucid
         {
             ActorResourceById.GetByIndex(i)->SaveToResourceFile();
         }
-        
+
         WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
+    }
+
+    void CEngine::RemoveMaterialAsset(scene::CMaterial* InMaterial)
+    {
+        MaterialDatabase.Entries.erase(std::remove_if(
+          MaterialDatabase.Entries.begin(), MaterialDatabase.Entries.end(), [&](const FMaterialDatabaseEntry& Entry) {
+              if (Entry.Id == InMaterial->GetID())
+              {
+                  remove(*Entry.MaterialPath);
+                  return true;
+              }
+              return false;
+          }));
+
+        MaterialsHolder.Remove(InMaterial->GetID());
+        WriteToJSONFile(ResourceDatabase, "assets/databases/materials.json");
     }
 } // namespace lucid

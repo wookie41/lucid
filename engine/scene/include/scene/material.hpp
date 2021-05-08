@@ -12,9 +12,16 @@ namespace lucid
 {
     enum class EFileFormat : int;
 }
-
 namespace lucid::scene
 {
+    enum class EMaterialType : u8
+    {
+        NONE,
+        FLAT,
+        BLINN_PHONG,
+        BLINN_PHONG_MAPS
+    };
+    
     class CMaterial
     {
       public:

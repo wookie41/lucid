@@ -352,3 +352,14 @@ bool BinaryRead(lucid::InstancedVariable<T>& value, const TDYNAMICARRAY<char>& d
     }
     return false;
 }
+
+bool BinaryRead(lucid::scene::EMaterialType& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    int8_t int_value;
+    if(BinaryRead(int_value, data, offset))
+    {
+        value = static_cast<lucid::scene::EMaterialType>(int_value);
+        return true;
+    }
+    return false;
+}

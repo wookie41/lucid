@@ -48,7 +48,7 @@ namespace lucid::scene
             break;
         }
 
-        GEngine.GetMaterialDatabase().FlatMaterials.push_back({ResourcePath, InFileFormat, GEngine.GetDefaultMaterial() == this});
+        GEngine.GetMaterialDatabase().Entries.push_back({ ID, ResourcePath, InFileFormat, EMaterialType::FLAT, GEngine.GetDefaultMaterial() == this});
     }
 
 #if DEVELOPMENT

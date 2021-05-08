@@ -1,13 +1,9 @@
 {
-    "Id": "4334ce9d-38d0-47d3-b796-a9f572929eea",
-    "Name": "ToyboyxMaterial",
+    "Id": "19a3eca1-7804-49ee-8b4d-6c1027f06494",
+    "Name": "ToyboxMaterial",
     "ShaderName": "BlinnPhongMaps",
     "DiffuseTextureID": "76206f90-1209-40af-b94c-785bbee012e4",
+    "SpecularTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
     "NormalTextureID": "1d4915a7-6846-4655-9a7d-5b1ccb157f6b",
-    "DisplacementTextureID": "07dbb98d-e5a8-494a-ad29-71a47db96de8",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "DisplacementTextureID": "07dbb98d-e5a8-494a-ad29-71a47db96de8"
 }
