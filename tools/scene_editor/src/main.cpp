@@ -167,11 +167,7 @@ int main(int argc, char** argv)
 {
     InitializeSceneEditor();
 
-    gpu::CVertexArray* UnitCubeVAO = misc::CreateCubeVAO();
-    gpu::CVertexArray* QuadVAO = misc::CreateQuadVAO();
-
     // Load textures and meshes used in the demo scene
-
     gpu::SetClearColor(BlackColor);
 
     GSceneEditorState.World = scene::LoadWorldFromJSONFile("assets/worlds/Demo.asset");
@@ -620,7 +616,6 @@ void UIDrawResourceBrowserWindow()
     if (GSceneEditorState.bIsImportingMesh)
     {
         UIDrawMeshImporter();
-        GSceneEditorState.bDisableCameraMovement = true;
     }
     else if (GSceneEditorState.bIsImportingTexture)
     {
@@ -820,6 +815,7 @@ void UIDrawMeshImporter()
                 if (!ImportedMesh)
                 {
                     GSceneEditorState.bFailedToImportResource = true;
+                    GSceneEditorState.bDisableCameraMovement = false;
                     return;
                 }
 
