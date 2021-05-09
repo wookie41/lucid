@@ -32,7 +32,7 @@ void main()
 {
     vec3 toViewN = normalize(uViewPos - fsIn.FragPos);
     vec2 ScreenSpaceCoords = (gl_FragCoord.xy / uViewportSize);
-    float AmbientOcclusion = 1;
+    float AmbientOcclusion = texture(uAmbientOcclusion, ScreenSpaceCoords).r;
 
     vec2 textureCoords = fsIn.TextureCoords;
     if (uMaterialHasDisplacementMap)

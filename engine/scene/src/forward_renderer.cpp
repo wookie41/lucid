@@ -109,8 +109,8 @@ namespace lucid::scene
         GammaCorrectionShader = GEngine.GetShadersManager().GetShaderByName("GammaCorrection");
 
         // Prepare pipeline states
-        ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor{ 0 };
-        ShadowMapGenerationPipelineState.ClearDepthBufferValue = 0;
+        ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor{ 1 };
+        ShadowMapGenerationPipelineState.ClearDepthBufferValue = 1;
         ShadowMapGenerationPipelineState.IsDepthTestEnabled = true;
         ShadowMapGenerationPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
         ShadowMapGenerationPipelineState.IsBlendingEnabled = false;
@@ -128,7 +128,6 @@ namespace lucid::scene
         // PrepassPipelineState.CullMode = gpu::ECullMode::BACK;
         PrepassPipelineState.IsSRGBFramebufferEnabled = false;
         PrepassPipelineState.IsDepthBufferReadOnly = false;
-        PrepassPipelineState.ClearDepthBufferValue = 0.f;
 
         InitialLightLightpassPipelineState.ClearColorBufferColor = FColor{ 0 };
         InitialLightLightpassPipelineState.IsDepthTestEnabled = true;
@@ -144,7 +143,6 @@ namespace lucid::scene
         // InitialLightLightpassPipelineState.CullMode = gpu::ECullMode::BACK;
         InitialLightLightpassPipelineState.IsSRGBFramebufferEnabled = false;
         InitialLightLightpassPipelineState.IsDepthBufferReadOnly = true;
-        InitialLightLightpassPipelineState.ClearDepthBufferValue = 0.f;
 
         LightpassPipelineState = InitialLightLightpassPipelineState;
         LightpassPipelineState.BlendFunctionDst = gpu::EBlendFunction::ONE;
@@ -159,7 +157,6 @@ namespace lucid::scene
         HitMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
 
         GammaCorrectionPipelineState.ClearColorBufferColor = FColor{ 0 };
-        GammaCorrectionPipelineState.ClearDepthBufferValue = 0;
         GammaCorrectionPipelineState.IsDepthTestEnabled = false;
         GammaCorrectionPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
         GammaCorrectionPipelineState.IsBlendingEnabled = false;
@@ -240,6 +237,9 @@ namespace lucid::scene
         SSAOBlurred->Bind();
         SSAOBlurred->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
         SSAOBlurred->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
+        SSAOBlurred->SetWrapSFilter(gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
+        SSAOBlurred->SetWrapTFilter(gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
+        SSAOBlurred->SetBorderColor({1, 1, 1, 1});
 
         // Setup a SSAO framebuffer
         SSAOFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -436,21 +436,25 @@ namespace lucid::scene
 
         u8 PrevShadowMapQuality = 255;
 
+        gpu::CShader* LastShadowMapShader = nullptr;
         for (int i = 0; i < arrlen(InSceneToRender->AllLights); ++i)
         {
             CLight* Light = InSceneToRender->AllLights[i];
-
-            // @TODO This should happen only if light moves
-
+            
             if (!Light->ShadowMap)
             {
                 continue; // Light doesn't cast shadows
             }
 
+            // @TODO This should happen only if light moves
             Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
 
             gpu::CShader* CurrentShadowMapShader = Light->GetType() == ELightType::POINT ? ShadowCubeMapShader : ShadowMapShader;
-            CurrentShadowMapShader->Use();
+            if (CurrentShadowMapShader != LastShadowMapShader)
+            {
+                CurrentShadowMapShader->Use();
+                LastShadowMapShader = CurrentShadowMapShader;
+            }
 
             Light->SetupShadowMapShader(CurrentShadowMapShader);
 

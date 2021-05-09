@@ -45,7 +45,6 @@ namespace lucid::platform
         SDL_GL_MakeCurrent(window, context);
         SDL_CaptureMouse(SDL_FALSE);
         SDL_SetRelativeMouseMode(SDL_FALSE);
-
         // Set initial gpu state for this context
         gpu::DisableDepthTest();
         gpu::DisableBlending();

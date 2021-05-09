@@ -73,8 +73,8 @@ struct FSceneEditorState
     ImGuiID MainDockId = 0;
     ImGuiID SceneDockId = 0;
 
-    u16 EditorWindowWidth = 1280;
-    u16 EditorWindowHeight = 720;
+    u16 EditorWindowWidth = 1920;
+    u16 EditorWindowHeight = 1080;
     float EditorWindowAspectRatio = 1280.f / 720.f;
 
     /** These are updated when drawing ui */
@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 
     scene::FRenderView RenderView;
     RenderView.Camera = GSceneEditorState.CurrentCamera; // @TODO is this needed???
-    RenderView.Viewport = { 0, 0, 1280, 720 }; // @TODO Engine level variable
+    RenderView.Viewport = { 0, 0, 1920, 1080 }; // @TODO Engine level variable
 
     while (IsRunning)
     {

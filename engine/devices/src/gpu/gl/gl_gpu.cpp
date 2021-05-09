@@ -38,7 +38,7 @@ namespace lucid::gpu
 
     void SetClearColor(const FColor& Color) { glClearColor(Color.r, Color.g, Color.b, Color.a); }
 
-    void SetClearDepth(const float& DepthValue) { glClearDepth(DepthValue); }
+    void SetClearDepth(const float& DepthValue) { glClearDepthf(DepthValue); }
 
     /////////////////////////////////////////////////////////
 
@@ -133,7 +133,7 @@ namespace lucid::gpu
         // Depth value
         if (GPUState->PipelineState.ClearDepthBufferValue != InPipelineState.ClearDepthBufferValue)
         {
-            SetClearDepth(GPUState->PipelineState.ClearDepthBufferValue);
+            SetClearDepth(InPipelineState.ClearDepthBufferValue);
         }
 
         // Depth testing

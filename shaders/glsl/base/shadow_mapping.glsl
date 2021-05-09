@@ -54,16 +54,17 @@ float CalculateShadowCubemap(in vec3 FragPos, in vec3 NormalN, in vec3 LightPos)
 
     vec3 toFrag = FragPos - LightPos;
     float distanceToLight = length(toFrag);
-    float viewDistance = length(uViewPos - FragPos);
-    float diskRadius = (1.0 + (viewDistance / uLightFarPlane)) / uLightFarPlane;
     float bias = max(0.05 * (1.0 - dot(NormalN, normalize(toFrag))), 0.005);
     float currentDepth = distanceToLight - bias;
     float shadow = 0;
     float numOfSamples = min(uNumSamplesPCF, 20);
+    float viewDistance = length(uViewPos - FragPos);
+    float diskRadius = (1.0 + (viewDistance / uLightFarPlane)) / uLightFarPlane;
     
     for (int i = 0; i < numOfSamples; i++)
     {
-        float closestDepth = texture(uLightShadowCube, normalize(toFrag + (pcfDirections[i] * diskRadius))).r;
+        vec3 ShadowMapCoords = normalize(toFrag + (pcfDirections[i] * diskRadius));
+        float closestDepth = texture(uLightShadowCube, ShadowMapCoords).r;
         closestDepth *= uLightFarPlane;
         shadow += currentDepth > closestDepth ? 0.0 : 1.0;
     }

@@ -264,6 +264,7 @@ namespace lucid::scene
 
     void CPointLight::SetupShadowMapShader(gpu::CShader* InShader)
     {
+        InShader->SetVector(LIGHT_POSITION, Transform.Translation);
         InShader->SetFloat(LIGHT_FAR_PLANE, CachedFarPlane);
         InShader->SetVector(LIGHT_DIRECTION, Transform.Translation);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_0, LightSpaceMatrices[0]);

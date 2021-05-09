@@ -124,7 +124,7 @@ namespace lucid::gpu
     struct FPipelineState
     {
         FColor  ClearColorBufferColor   = {0, 0, 0, 1};
-        float   ClearDepthBufferValue   = 0;
+        float   ClearDepthBufferValue   = 1;
                 
         bool                IsDepthTestEnabled  = false;
         EDepthTestFunction  DepthTestFunction   = EDepthTestFunction::LEQUAL;
