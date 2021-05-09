@@ -181,11 +181,11 @@ namespace lucid::scene
         }
         else
         {
-            OutDescription.LeftFaceTextureID.Value = FaceTextures[0]->GetID();
-            OutDescription.LeftFaceTextureID.bChanged = true;
-
-            OutDescription.RightFaceTextureID.Value = FaceTextures[1]->GetID();
+            OutDescription.RightFaceTextureID.Value = FaceTextures[0]->GetID();
             OutDescription.RightFaceTextureID.bChanged = true;
+
+            OutDescription.LeftFaceTextureID.Value = FaceTextures[1]->GetID();
+            OutDescription.LeftFaceTextureID.bChanged = true;
 
             OutDescription.TopFaceTextureID.Value = FaceTextures[2]->GetID();
             OutDescription.TopFaceTextureID.bChanged = true;
