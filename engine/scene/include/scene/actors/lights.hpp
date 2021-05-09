@@ -44,8 +44,9 @@ namespace lucid::scene
 
         virtual float GetVerticalMidPoint() const override;
 
-        static  EActorType GetActorTypeStatic() { return EActorType::LIGHT; }
-        virtual EActorType GetActorType() const override { return EActorType::LIGHT; }
+        static  EActorType  GetActorTypeStatic() { return EActorType::LIGHT; }
+        virtual EActorType  GetActorType() const override { return EActorType::LIGHT; }
+        IActor*             CreateActorAsset(const FDString& InName) const override { return nullptr; }
         
         glm::vec3   Color           { 0, 0, 0 };
         u8          Quality         = 1;

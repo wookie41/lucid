@@ -47,27 +47,28 @@ namespace lucid::scene
         }
     }
 
-    void IActor::SaveToResourceFile(const FString& InActorResourceName)
+    void IActor::SaveToResourceFile()
     {
-        FDString ActorResourceFilePath;
-        if (InActorResourceName.GetLength())
+        if (BaseActorAsset)
         {
-            ResourceId = sole::uuid4();
-            ActorResourceFilePath = SPrintf("assets/actors/%s.asset", *InActorResourceName);
+            auto* NewActorAsset = CreateActorAsset(Name.GetCopy());
+            NewActorAsset->ResourceId = sole::uuid4();
+            NewActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *Name);
 
             FActorDatabaseEntry NewEntry;
-            NewEntry.ActorId = ResourceId;
-            NewEntry.ActorPath = ActorResourceFilePath;
+            NewEntry.ActorId = NewActorAsset->ResourceId;
+            NewEntry.ActorPath = NewActorAsset->ResourcePath;
 
-            GEngine.GetActorsDatabase().Entries.push_back(NewEntry);
+            GEngine.AddActorAsset(NewActorAsset);
+
+            BaseActorAsset = NewActorAsset;
+            NewActorAsset->_SaveToResourceFile(NewActorAsset->ResourcePath);
         }
         else
         {
             assert(ResourcePath.GetLength());
-            ActorResourceFilePath = ResourcePath;
+            _SaveToResourceFile(ResourcePath);
         }
-
-        _SaveToResourceFile(ActorResourceFilePath);
     }
 
 } // namespace lucid::scene

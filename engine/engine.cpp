@@ -275,13 +275,6 @@ namespace lucid
 
     void CEngine::Shutdown()
     {
-        for (u32 i = 0; i < MaterialsHolder.GetLength(); ++i)
-        {
-            MaterialsHolder.GetByIndex(i)->SaveToResourceFile(EFileFormat::Json);
-        }
-
-        WriteToJSONFile(MaterialDatabase, "assets/databases/materials.json");
-
         ActorDatabase.Entries.clear();
 
         for (u32 i = 0; i < ActorResourceById.GetLength(); ++i)
@@ -334,8 +327,7 @@ namespace lucid
 
     void CEngine::AddActorAsset(scene::IActor* InActorResource)
     {
-        ActorDatabase.Entries.push_back(
-          { InActorResource->ResourceId, InActorResource->ResourcePath, InActorResource->GetActorType() });
+        ActorDatabase.Entries.push_back({ InActorResource->ResourceId, InActorResource->ResourcePath, InActorResource->GetActorType() });
         ActorResourceById.Add(InActorResource->ResourceId, InActorResource);
     }
 

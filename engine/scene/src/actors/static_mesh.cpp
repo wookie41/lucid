@@ -221,8 +221,7 @@ namespace lucid::scene
             MeshResource = BaseActorResource->MeshResource;
         }
 
-        auto* StaticMesh =
-          new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
+        auto* StaticMesh = new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
         StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
         StaticMesh->Transform.Rotation = Float4ToQuat(InStaticMeshDescription.Rotation);
         StaticMesh->Transform.Scale = Float3ToVec(InStaticMeshDescription.Scale);
@@ -277,4 +276,17 @@ namespace lucid::scene
             MaterialSlots = FArray<CMaterial*>{ 1, true };
         }
     }
+
+
+    IActor* CStaticMesh::CreateActorAsset(const FDString& InName) const
+    {
+        auto* ActorAsset =  new CStaticMesh { InName, nullptr, nullptr, MeshResource, EStaticMeshType::STATIONARY };
+        ActorAsset->MaterialSlots = FArray<CMaterial*>(MaterialSlots.GetLength(), true);
+        for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
+        {
+            ActorAsset->MaterialSlots.Add(GetMaterialSlot(i));
+        }
+        return ActorAsset;
+    }
+
 } // namespace lucid::scene

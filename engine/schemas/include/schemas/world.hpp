@@ -6,7 +6,7 @@
     STRUCT_STATIC_ARRAY(float, Postion, 3, {0 COMMA 0 COMMA 0 }, "Position of the actor")	
     STRUCT_STATIC_ARRAY(float, Scale, 3, {1 COMMA 1 COMMA 1 }, "Scale of the actor")	
     STRUCT_STATIC_ARRAY(float, Rotation, 4, { 0 COMMA 0 COMMA 0 COMMA 1 }, "Rotation (quat x, y, z, w) of the actor")
-    STRUCT_FIELD(bool, bVisible, false, "")	    
+    STRUCT_FIELD(bool, bVisible, true, "")	    
 STRUCT_END()
 
 STRUCT_INHERIT_BEGIN(lucid, FStaticMeshDescription, lucid::FActorEntry, "")

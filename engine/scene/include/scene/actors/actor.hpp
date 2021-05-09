@@ -55,15 +55,15 @@ namespace lucid::scene
          *  If empty, then it means there is already a resource file (under ResourcePath) for this actor present and we simply override it
          *  If not empty, then a new resource file is create
          */
-        void SaveToResourceFile(const FString& InActorResourceName = "");
+        void SaveToResourceFile();
     protected:
         virtual void _SaveToResourceFile(const FString& InActorResourceName) = 0;
     public:
 #endif
 
-        virtual float GetVerticalMidPoint() const = 0;
-
-        virtual EActorType GetActorType() const = 0;
+        virtual float       GetVerticalMidPoint() const = 0;
+        virtual IActor*     CreateActorAsset(const FDString& InName) const = 0;
+        virtual EActorType  GetActorType() const = 0;
 
         /**
          * Unique id for an actor, used e.x. by the renderer when generating the hitmap texture

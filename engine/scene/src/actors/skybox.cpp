@@ -201,4 +201,13 @@ namespace lucid::scene
         }
     }
 
+    IActor* CSkybox::CreateActorAsset(const FDString& InName) const
+    {
+        auto* ActorAsset = new CSkybox { InName, nullptr, nullptr, nullptr, Width, Height, nullptr };
+        for (u8 i = 0; i < 6; ++i)
+        {
+            ActorAsset->FaceTextures[i] = FaceTextures[i];
+        }
+        return ActorAsset;
+    }
 } // namespace lucid::scene

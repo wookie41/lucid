@@ -25,9 +25,11 @@ namespace lucid::scene
 
         virtual float GetVerticalMidPoint() const override;
 
-        static  EActorType GetActorTypeStatic() { return EActorType::SKYBOX; }
-        virtual EActorType GetActorType() const override  { return EActorType::SKYBOX; }
-        static  CSkybox* CreateActor(CSkybox const* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
+        static  EActorType      GetActorTypeStatic() { return EActorType::SKYBOX; }
+        virtual EActorType      GetActorType() const override  { return EActorType::SKYBOX; }
+        static  CSkybox*        CreateActor(CSkybox const* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
+        virtual IActor*         CreateActorAsset(const FDString& InName) const override;
+
 
 #if DEVELOPMENT
         /** Editor stuff */

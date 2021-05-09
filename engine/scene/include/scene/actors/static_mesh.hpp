@@ -33,9 +33,11 @@ namespace lucid::scene
         
         virtual float GetVerticalMidPoint() const override;
 
-        static  EActorType   GetActorTypeStatic() { return EActorType::STATIC_MESH; }
-        virtual EActorType   GetActorType() const override { return EActorType::STATIC_MESH; }
-        static  CStaticMesh* CreateActor(CStaticMesh const* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
+        static  EActorType      GetActorTypeStatic() { return EActorType::STATIC_MESH; }
+        virtual EActorType      GetActorType() const override { return EActorType::STATIC_MESH; }
+        static  CStaticMesh*    CreateActor(CStaticMesh const* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
+        virtual IActor*         CreateActorAsset(const FDString& InName) const override;
+
         
 #if DEVELOPMENT
         /** Editor stuff */

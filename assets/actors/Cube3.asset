@@ -1,19 +1,19 @@
 {
-    "Name": "Backpack",
+    "Name": "Cube3",
     "Rotation": [
         0.0,
-        1.0,
+        0.0,
         0.0,
         0.0
     ],
     "MeshResourceId": {
         "bChanged": true,
-        "Value": "52be623b-5640-4020-b36f-55635a36b2fc"
+        "Value": "a4de1f51-6768-40a7-bf74-e025f59b05f4"
     },
     "MaterialIds": [
         {
             "bChanged": true,
-            "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
+            "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
         }
     ]
 }
