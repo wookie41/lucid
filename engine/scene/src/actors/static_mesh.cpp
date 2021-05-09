@@ -52,16 +52,36 @@ namespace lucid::scene
         if (ResourceId == sole::INVALID_UUID)
         {
             ImGui::Text("Override mesh resource:");
-            ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource, true);
+            ImGui::SameLine();
+            if (ImGui::Button("Revert to base"))
+            {
+                if (auto* BaseStaticMesh = dynamic_cast<CStaticMesh const*>(BaseActorAsset))
+                {
+                    MeshResource = BaseStaticMesh->MeshResource;
+                    UpdateMaterialSlots(BaseStaticMesh);
+                }
+            }
+            ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
         }
         else
         {
             ImGui::Text("Mesh resource:");
-            ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource, false);
+            ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
         }
 
-        if (MeshResource != OldMesh && MeshResource)
+        if (MeshResource != OldMesh)
         {
+            if (MeshResource == nullptr)
+            {
+                if (auto* BaseStaticMesh = dynamic_cast<CStaticMesh const*>(BaseActorAsset))
+                {
+                    MeshResource = BaseStaticMesh->MeshResource;
+                }
+                else
+                {
+                    MeshResource = OldMesh;
+                }
+            }
             UpdateMaterialSlots(nullptr);
         }
         else
@@ -246,7 +266,7 @@ namespace lucid::scene
             MaterialSlots.Free();
             MaterialSlots = FArray<CMaterial*>{ BaseStaticMesh->GetNumMaterialSlots(), true };
 
-            for (int i = 0; i < MaterialSlots.GetLength(); ++i)
+            for (int i = 0; i < BaseStaticMesh->GetNumMaterialSlots(); ++i)
             {
                 MaterialSlots.Add(BaseStaticMesh->GetMaterialSlot(i));
             }

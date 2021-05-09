@@ -1,13 +1,13 @@
 {
     "Entries": [
         {
-            "ActorId": "0abeaa63-b7cd-4493-b939-809986855b30",
-            "ActorPath": "assets/actors/Cube.asset",
+            "ActorId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
+            "ActorPath": "assets/actors/Backpack.asset",
             "ActorType": 1
         },
         {
-            "ActorId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "ActorPath": "assets/actors/Backpack.asset",
+            "ActorId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "ActorPath": "assets/actors/Cube.asset",
             "ActorType": 1
         },
         {

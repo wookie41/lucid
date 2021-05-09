@@ -37,18 +37,10 @@ namespace lucid
         }
     }
 
-    void ImGuiMeshResourcePicker(const char* InLabel, resources::CMeshResource** OutMeshResource, const bool& bAllowNull)
+    void ImGuiMeshResourcePicker(const char* InLabel, resources::CMeshResource** OutMeshResource)
     {
         if (ImGui::BeginListBox(InLabel, ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
         {
-            if (bAllowNull)
-            {
-                if (ImGui::Selectable("-- None --", *OutMeshResource == nullptr))
-                {
-                    *OutMeshResource = nullptr;
-                }                
-            }
-
             for (int i = 0; i < GEngine.GetMeshesHolder().Length(); ++i)
             {
                 resources::CMeshResource* CurrMeshResource = GEngine.GetMeshesHolder().GetByIndex(i);
