@@ -226,6 +226,7 @@ namespace lucid::scene
         StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
         StaticMesh->Transform.Rotation = Float4ToQuat(InStaticMeshDescription.Rotation);
         StaticMesh->Transform.Scale = Float3ToVec(InStaticMeshDescription.Scale);
+        StaticMesh->bVisible = InStaticMeshDescription.bVisible;
         StaticMesh->SetReverseNormals(InStaticMeshDescription.bReverseNormals);
         StaticMesh->BaseActorAsset = BaseActorResource;
 
