@@ -65,8 +65,6 @@ namespace lucid::scene
             WriteToJSONFile(BlinnPhongMaterialDescription, *ResourcePath);
             break;
         }
-
-        GEngine.GetMaterialDatabase().Entries.push_back({ ID, ResourcePath, InFileFormat, EMaterialType::BLINN_PHONG, GEngine.GetDefaultMaterial() == this});
     }
 
     void CBlinnPhongMaterial::UIDrawMaterialEditor()
@@ -218,8 +216,6 @@ namespace lucid::scene
             WriteToJSONFile(BlinnPhongMapsMaterialDescription, *ResourcePath);
             break;
         }
-
-        GEngine.GetMaterialDatabase().Entries.push_back({ ID, ResourcePath, InFileFormat, EMaterialType::BLINN_PHONG_MAPS, GEngine.GetDefaultMaterial() == this});
     }
     
     void CBlinnPhongMapsMaterial::UIDrawMaterialEditor()

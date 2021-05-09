@@ -47,8 +47,6 @@ namespace lucid::scene
             WriteToJSONFile(FlatMaterialDescription, *ResourcePath);
             break;
         }
-
-        GEngine.GetMaterialDatabase().Entries.push_back({ ID, ResourcePath, InFileFormat, EMaterialType::FLAT, GEngine.GetDefaultMaterial() == this});
     }
 
 #if DEVELOPMENT

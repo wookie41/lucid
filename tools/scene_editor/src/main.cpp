@@ -1190,7 +1190,7 @@ void UIDrawMaterialCreationMenu()
                     }
 
 
-                    GEngine.AddMaterialAsset(CreatedMaterial, GSceneEditorState.TypeOfMaterialToCreate, CreatedMaterialPath, false);
+                    GEngine.AddMaterialAsset(CreatedMaterial, GSceneEditorState.TypeOfMaterialToCreate, CreatedMaterialPath);
                     GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::NONE;
                     GSceneEditorState.PickedShader = nullptr;
                     ImGui::CloseCurrentPopup();

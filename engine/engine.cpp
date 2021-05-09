@@ -275,8 +275,6 @@ namespace lucid
 
     void CEngine::Shutdown()
     {
-        MaterialDatabase.Entries.clear();
-
         for (u32 i = 0; i < MaterialsHolder.GetLength(); ++i)
         {
             MaterialsHolder.GetByIndex(i)->SaveToResourceFile(EFileFormat::Json);
@@ -296,11 +294,10 @@ namespace lucid
 
     void CEngine::AddMaterialAsset(scene::CMaterial* InMaterial,
                                    const scene::EMaterialType& InMaterialType,
-                                   const FDString& InMaterialPath,
-                                   const bool& InbIsDefault)
+                                   const FDString& InMaterialPath)
     {
         MaterialsHolder.Add(InMaterial->GetID(), InMaterial);
-        MaterialDatabase.Entries.push_back({ InMaterial->GetID(), InMaterialPath, EFileFormat::Json, InMaterialType, InbIsDefault });
+        MaterialDatabase.Entries.push_back({ InMaterial->GetID(), InMaterialPath, EFileFormat::Json, InMaterialType, false});
     }
 
     void CEngine::RemoveMaterialAsset(scene::CMaterial* InMaterial)
@@ -342,4 +339,33 @@ namespace lucid
         ActorResourceById.Add(InActorResource->ResourceId, InActorResource);
     }
 
+    void CEngine::SetDefaultMaterial(scene::CMaterial* InMaterial)
+    {
+        bool bDefaultSet = false;
+        bool bDefaultUnset = false;
+        
+        for (FMaterialDatabaseEntry& Entry : MaterialDatabase.Entries)
+        {
+            if (Entry.Id == InMaterial->GetID())
+            {
+                Entry.bDefault = true;
+                bDefaultSet = true;
+                if (bDefaultUnset || !DefaultMaterial)
+                {
+                    break;
+                }
+            }
+            else if (DefaultMaterial && DefaultMaterial->GetID() == Entry.Id)
+            {
+                Entry.bDefault = false;
+                bDefaultUnset = true;
+                if (bDefaultSet)
+                {
+                    break;
+                }
+            }
+        }
+
+        DefaultMaterial = InMaterial;
+    }
 } // namespace lucid

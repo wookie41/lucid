@@ -3,13 +3,13 @@
         {
             "Id": "6db33972-fa36-48d4-a1fe-565f4c1ea3a3",
             "MaterialPath": "assets/materials/FlatWhiteMaterial.asset",
-            "MaterialType": 1,
-            "bDefault": true
+            "MaterialType": 1
         },
         {
             "Id": "d7c004da-4cc5-4d8f-8bde-b8e26cfcd744",
             "MaterialPath": "assets/materials/FlatRedMaterial.asset",
-            "MaterialType": 1
+            "MaterialType": 1,
+            "bDefault": true
         },
         {
             "Id": "e5ff6221-a86c-4cc6-9ef2-958a98492729",

@@ -132,6 +132,18 @@ namespace lucid
         
         if (InMaterial)
         {
+            if (ImGui::Button("Save"))
+            {
+                InMaterial->SaveToResourceFile(EFileFormat::Json);
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Make default"))
+            {
+                GEngine.SetDefaultMaterial(InMaterial);
+            }
+            
             InMaterial->UIDrawMaterialEditor();
         }
         else
