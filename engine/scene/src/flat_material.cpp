@@ -5,6 +5,8 @@
 #include "imgui.h"
 #endif
 
+#include <sole/sole.hpp>
+
 #include "devices/gpu/shader.hpp"
 #include "engine/engine.hpp"
 
@@ -30,7 +32,7 @@ namespace lucid::scene
         return Material;
     }
 
-    void CFlatMaterial::SaveToResourceFile(const lucid::EFileFormat& InFileFormat)
+    void CFlatMaterial::InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat)
     {
         FFlatMaterialDescription FlatMaterialDescription;
         FlatMaterialDescription.Id = ID;
@@ -57,4 +59,10 @@ namespace lucid::scene
     }
 #endif
 
+    CMaterial* CFlatMaterial::GetCopy() const
+    {
+        auto* Copy = new CFlatMaterial { ID, Name, ResourcePath, Shader };
+        Copy->Color = Color;
+        return Copy;
+    }
 } // namespace lucid::scene

@@ -14,6 +14,11 @@
             "ActorId": "dfd87123-806f-4656-a086-2ec636e29fbc",
             "ActorPath": "assets/actors/ArcticSkybox.asset",
             "ActorType": 2
+        },
+        {
+            "ActorId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
+            "ActorPath": "assets/actors/TestCube.asset",
+            "ActorType": 1
         }
     ]
 }

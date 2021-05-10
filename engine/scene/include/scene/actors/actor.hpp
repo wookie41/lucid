@@ -42,7 +42,9 @@ namespace lucid::scene
             const auto Translation  = glm::translate(Identity, Transform.Translation);
             const auto Rotation     = glm::mat4_cast(Transform.Rotation);
             const auto Scale        = glm::scale(Identity, Transform.Scale);
+            
             const glm::mat4 ModelMatrix = Translation * Rotation * Scale;
+
             return Parent ? Parent->CalculateModelMatrix() * ModelMatrix : ModelMatrix;
         }
 
@@ -55,15 +57,20 @@ namespace lucid::scene
          *  If empty, then it means there is already a resource file (under ResourcePath) for this actor present and we simply override it
          *  If not empty, then a new resource file is create
          */
-        void SaveToResourceFile();
+        void            SaveToResourceFile();
     protected:
-        virtual void _SaveToResourceFile(const FString& InActorResourceName) = 0;
+        virtual void    InternalSaveToResourceFile(const FString& InActorResourceName) = 0;
     public:
 #endif
 
-        virtual float       GetVerticalMidPoint() const = 0;
-        virtual IActor*     CreateActorAsset(const FDString& InName) const = 0;
         virtual EActorType  GetActorType() const = 0;
+        virtual float       GetVerticalMidPoint() const = 0;
+
+        /** Creates an actor asset from actocr instance so it can be saved to an asset file */
+        virtual IActor*     CreateActorAsset(const FDString& InName) const = 0;
+
+        /** Used when actor asset is referenced for the first time, up to this point no data is loaded for an asset */
+        virtual void        LoadAsset() = 0;
 
         /**
          * Unique id for an actor, used e.x. by the renderer when generating the hitmap texture
@@ -78,10 +85,11 @@ namespace lucid::scene
         FDString                ResourcePath { "" };
         CWorld*                 World; // World that this actor is in
         FArray<IActor*>         Children { 1, true };
+        bool                    bAssetLoaded = false;
 
     protected:
 
-        IActor const*           BaseActorAsset = nullptr;
+        IActor*                 BaseActorAsset = nullptr;
         bool                    bBaseActorAssetChanged = false;
         
         virtual ~IActor() = default;    

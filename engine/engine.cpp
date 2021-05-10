@@ -11,6 +11,7 @@
 
 #define LUCID_SCHEMAS_IMPLEMENTATION
 #include <scene/material.hpp>
+#include <scene/actors/static_mesh.hpp>
 
 #include "schemas/types.hpp"
 #include "schemas/binary.hpp"
@@ -198,6 +199,7 @@ namespace lucid
 
             if (LoadedMaterial)
             {
+                LoadedMaterial->bIsAsset = true;
                 MaterialsHolder.Add(LoadedMaterial->GetID(), LoadedMaterial);
                 if (Entry.bDefault)
                 {
@@ -210,10 +212,21 @@ namespace lucid
         ReadFromJSONFile(ActorDatabase, "assets/databases/actors.json");
         for (const FActorDatabaseEntry& Entry : ActorDatabase.Entries)
         {
-            FActorResourceInfo ActorResourceInfo;
-            ActorResourceInfo.Type = Entry.ActorType;
-            ActorResourceInfo.ResourceFilePath = Entry.ActorPath;
-            ActorResourceInfoById.Add(Entry.ActorId, ActorResourceInfo);
+            switch (Entry.ActorType)
+            {
+            case scene::EActorType::STATIC_MESH:
+            {
+                LoadActorAsset<scene::CStaticMesh, FStaticMeshDescription>(Entry);
+                break;
+            }
+            case scene::EActorType::SKYBOX:
+            {
+                LoadActorAsset<scene::CSkybox, FSkyboxDescription>(Entry);
+                break;
+            }
+            default:
+                LUCID_LOG(ELogLevel::WARN, "Unsupported actor type %d", Entry.ActorType);
+            }
         }
 
         Renderer->Setup();
@@ -229,7 +242,7 @@ namespace lucid
         Entry.bIsDefault = false;
         ResourceDatabase.Entries.push_back(Entry);
         TexturesHolder.Add(InTexture->GetID(), InTexture);
-        WriteToJSONFile(GEngine.GetResourceDatabase(), "assets/databases/resources.json");
+        WriteToJSONFile(ResourceDatabase, "assets/databases/resources.json");
     }
 
     void CEngine::AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath)
@@ -273,24 +286,14 @@ namespace lucid
         WriteToJSONFile(ResourceDatabase, "assets/databases/resources.json");
     }
 
-    void CEngine::Shutdown()
-    {
-        ActorDatabase.Entries.clear();
-
-        for (u32 i = 0; i < ActorResourceById.GetLength(); ++i)
-        {
-            ActorResourceById.GetByIndex(i)->SaveToResourceFile();
-        }
-
-        WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
-    }
+    void CEngine::Shutdown() {}
 
     void CEngine::AddMaterialAsset(scene::CMaterial* InMaterial,
                                    const scene::EMaterialType& InMaterialType,
                                    const FDString& InMaterialPath)
     {
         MaterialsHolder.Add(InMaterial->GetID(), InMaterial);
-        MaterialDatabase.Entries.push_back({ InMaterial->GetID(), InMaterialPath, EFileFormat::Json, InMaterialType, false});
+        MaterialDatabase.Entries.push_back({ InMaterial->GetID(), InMaterialPath, EFileFormat::Json, InMaterialType, false });
     }
 
     void CEngine::RemoveMaterialAsset(scene::CMaterial* InMaterial)
@@ -306,7 +309,7 @@ namespace lucid
           }));
 
         MaterialsHolder.Remove(InMaterial->GetID());
-        WriteToJSONFile(MaterialDatabase, "assets/databases/materials.json");
+        SaveMaterialDatabase();
     }
 
     void CEngine::RemoveActorAsset(scene::IActor* InActorResource)
@@ -322,20 +325,22 @@ namespace lucid
           }));
 
         ActorResourceById.Remove(InActorResource->ResourceId);
-        WriteToJSONFile(ResourceDatabase, "assets/databases/actors.json");
+        WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
     }
 
     void CEngine::AddActorAsset(scene::IActor* InActorResource)
     {
-        ActorDatabase.Entries.push_back({ InActorResource->ResourceId, InActorResource->ResourcePath, InActorResource->GetActorType() });
+        ActorDatabase.Entries.push_back(
+          { InActorResource->ResourceId, InActorResource->ResourcePath, InActorResource->GetActorType() });
         ActorResourceById.Add(InActorResource->ResourceId, InActorResource);
+        WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
     }
 
     void CEngine::SetDefaultMaterial(scene::CMaterial* InMaterial)
     {
         bool bDefaultSet = false;
         bool bDefaultUnset = false;
-        
+
         for (FMaterialDatabaseEntry& Entry : MaterialDatabase.Entries)
         {
             if (Entry.Id == InMaterial->GetID())
@@ -360,4 +365,10 @@ namespace lucid
 
         DefaultMaterial = InMaterial;
     }
+
+    void CEngine::SaveMaterialDatabase()
+    {
+        WriteToJSONFile(MaterialDatabase, "assets/databases/materials.json");
+    }
+
 } // namespace lucid

@@ -2,7 +2,6 @@
 
 #include <devices/gpu/texture_enums.hpp>
 
-
 #include "engine/engine.hpp"
 #include "devices/gpu/cubemap.hpp"
 #include "resources/texture_resource.hpp"
@@ -35,7 +34,7 @@ namespace lucid::scene
                                                           gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
                                                           gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
                                                           gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
-                                                          {0, 0, 0, 0});
+                                                          { 0, 0, 0, 0 });
 
         return new CSkybox{
             CopyToString(*InName, InName.GetLength()), nullptr, InWorld, SkyboxCubemap, InWidth, InHeight, InFaceTextures
@@ -51,9 +50,12 @@ namespace lucid::scene
                      const resources::CTextureResource* InFaceTextures[6])
     : IActor(InName, InParent, InWorld), SkyboxCubemap(InSkyboxCubemap), Width(InWidth), Height(InHeight)
     {
-        for (u8 i = 0; i < 6; ++i)
+        if (InFaceTextures)
         {
-            FaceTextures[i] = InFaceTextures[i];
+            for (u8 i = 0; i < 6; ++i)
+            {
+                FaceTextures[i] = InFaceTextures[i];
+            }
         }
     }
 
@@ -61,8 +63,7 @@ namespace lucid::scene
 
     float CSkybox::GetVerticalMidPoint() const { return 0; }
 
-    CSkybox*
-    CSkybox::CreateActor(CSkybox const* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription)
+    CSkybox* CSkybox::CreateActor(CSkybox* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription)
     {
         const resources::CTextureResource* SkyboxFaces[6];
 
@@ -121,20 +122,17 @@ namespace lucid::scene
         }
 
         auto* Skybox = CreateSkybox(SkyboxFaces, InWorld, SkyboxFaces[0]->Width, SkyboxFaces[0]->Height, "Skybox");
-        if (InWorld)
-        {
-            InWorld->SetSkybox(Skybox);
-        }
+        InWorld->SetSkybox(Skybox);
         Skybox->BaseSkyboxResource = BaseActorResource;
         return Skybox;
     }
 
-    void CSkybox::_SaveToResourceFile(const FString& InFilePath)
+    void CSkybox::InternalSaveToResourceFile(const FString& InFilePath)
     {
         FSkyboxDescription SkyboxDescription;
         FillDescription(SkyboxDescription);
         WriteToJSONFile(SkyboxDescription, *InFilePath);
-        GEngine.GetActorsDatabase().Entries.push_back({ResourceId, ResourcePath, EActorType::SKYBOX});
+        GEngine.GetActorsDatabase().Entries.push_back({ ResourceId, ResourcePath, EActorType::SKYBOX });
     }
 
     void CSkybox::FillDescription(FSkyboxDescription& OutDescription) const
@@ -203,11 +201,39 @@ namespace lucid::scene
 
     IActor* CSkybox::CreateActorAsset(const FDString& InName) const
     {
-        auto* ActorAsset = new CSkybox { InName, nullptr, nullptr, nullptr, Width, Height, nullptr };
+        auto* ActorAsset = new CSkybox{ InName, nullptr, nullptr, nullptr, Width, Height, nullptr };
         for (u8 i = 0; i < 6; ++i)
         {
             ActorAsset->FaceTextures[i] = FaceTextures[i];
         }
         return ActorAsset;
     }
+
+    CSkybox* CSkybox::CreateEmptyActorAsset(const FDString& InName)
+    {
+        auto* ActorAsset = new CSkybox{ InName, nullptr, nullptr, nullptr, 0, 0, nullptr };
+        return ActorAsset;
+    }
+
+    void CSkybox::LoadAsset()
+    {
+        assert(ResourcePath.GetLength());
+
+        FSkyboxDescription SkyboxDescription;
+        if (ReadFromJSONFile(SkyboxDescription, *ResourcePath)) // @TODO strings from here don't get freed
+        {
+            FaceTextures[0] = GEngine.GetTexturesHolder().Get(SkyboxDescription.RightFaceTextureID.Value);
+            FaceTextures[1] = GEngine.GetTexturesHolder().Get(SkyboxDescription.LeftFaceTextureID.Value);
+            FaceTextures[2] = GEngine.GetTexturesHolder().Get(SkyboxDescription.TopFaceTextureID.Value);
+            FaceTextures[3] = GEngine.GetTexturesHolder().Get(SkyboxDescription.BottomFaceTextureID.Value);
+            FaceTextures[4] = GEngine.GetTexturesHolder().Get(SkyboxDescription.FrontFaceTextureID.Value);
+            FaceTextures[5] = GEngine.GetTexturesHolder().Get(SkyboxDescription.BackFaceTextureID.Value);
+        }
+
+        else
+        {
+            LUCID_LOG(ELogLevel::WARN, "Failed to load asset %s - couldn't read file %s", *Name, *ResourcePath)
+        }
+    }
+
 } // namespace lucid::scene

@@ -30,107 +30,109 @@ namespace lucid::scene
     {
         IActor::UIDrawActorDetails();
 
-        ImGui::Text("Static mesh:");
-
-        // Handle actor instance details
-        if (ResourceId == sole::INVALID_UUID)
+        if(ImGui::CollapsingHeader("Static mesh"))
         {
-            // React to BaseActorAsset being changed in IActor::UIDrawActorDetails
-            if (bBaseActorAssetChanged)
+            // Handle actor instance details
+            if (ResourceId == sole::INVALID_UUID)
             {
-                if (auto* NewStaticMesh = dynamic_cast<CStaticMesh const*>(BaseActorAsset))
+                // React to BaseActorAsset being changed in IActor::UIDrawActorDetails
+                if (bBaseActorAssetChanged)
                 {
-                    MeshResource = NewStaticMesh->MeshResource;
-                    UpdateMaterialSlots(NewStaticMesh);
-                }
-            }
-        }
-        ImGui::Checkbox("Reverse normals:", &bReverseNormals);
-
-        resources::CMeshResource* OldMesh = MeshResource;
-
-        if (ResourceId == sole::INVALID_UUID)
-        {
-            ImGui::Text("Override mesh resource:");
-            ImGui::SameLine();
-            if (ImGui::Button("Revert to base"))
-            {
-                if (auto* BaseStaticMesh = dynamic_cast<CStaticMesh const*>(BaseActorAsset))
-                {
-                    MeshResource = BaseStaticMesh->MeshResource;
-                    UpdateMaterialSlots(BaseStaticMesh);
-                }
-            }
-            ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
-        }
-        else
-        {
-            ImGui::Text("Mesh resource:");
-            ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
-        }
-
-        if (MeshResource != OldMesh)
-        {
-            if (MeshResource == nullptr)
-            {
-                if (auto* BaseStaticMesh = dynamic_cast<CStaticMesh const*>(BaseActorAsset))
-                {
-                    MeshResource = BaseStaticMesh->MeshResource;
-                }
-                else
-                {
-                    MeshResource = OldMesh;
-                }
-            }
-            UpdateMaterialSlots(nullptr);
-        }
-        else
-        {
-            MeshResource = OldMesh;
-        }
-
-        static CMaterial* CurrentlyEditedMaterial = nullptr;
-        static bool bMaterialEditorOpen = true;
-
-        // Buttons to add and remove material slots
-        ImGui::Text("Num material slots: %d", GetNumMaterialSlots());
-        ImGui::SameLine(0, 4);
-        if (ImGui::Button("+"))
-        {
-            MaterialSlots.Add(nullptr);
-        }
-        ImGui::SameLine(0, 4);
-        if (ImGui::Button("-"))
-        {
-            MaterialSlots.RemoveLast();
-        }
-
-        // Material editors for material slots
-        for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
-        {
-            auto MaterialSlotEditorLabel = SPrintf("static_mesh_material_%d", i);
-            if (ImGui::TreeNode(*MaterialSlotEditorLabel, "Material slot %d:", i))
-            {
-                if (ImGui::Button("Edit"))
-                {
-                    CurrentlyEditedMaterial = *MaterialSlots[i];
-                }
-
-                if (CurrentlyEditedMaterial)
-                {
-                    ImGuiShowMaterialEditor(*MaterialSlots[i], &bMaterialEditorOpen);
-                    if (!bMaterialEditorOpen)
+                    if (auto* NewStaticMesh = dynamic_cast<CStaticMesh*>(BaseActorAsset))
                     {
-                        CurrentlyEditedMaterial = nullptr;
+                        MeshResource = NewStaticMesh->MeshResource;
+                        UpdateMaterialSlots(NewStaticMesh);
                     }
                 }
+            }
+            ImGui::Checkbox("Reverse normals:", &bReverseNormals);
 
-                ImGui::Text("Select different:");
-                ImGuiMaterialPicker(*MaterialSlotEditorLabel, MaterialSlots[i]);
-                ImGui::TreePop();
+
+            if (ResourceId == sole::INVALID_UUID)
+            {
+                ImGui::Text("Override mesh resource:");
+                ImGui::SameLine();
+                if (ImGui::Button("Revert to base"))
+                {
+                    if (auto* BaseStaticMesh = dynamic_cast<CStaticMesh*>(BaseActorAsset))
+                    {
+                        MeshResource = BaseStaticMesh->MeshResource;
+                        UpdateMaterialSlots(BaseStaticMesh);
+                    }
+                }
+                ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
+            }
+            else
+            {
+                ImGui::Text("Mesh resource:");
+                ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
             }
 
-            MaterialSlotEditorLabel.Free();
+            resources::CMeshResource* OldMesh = MeshResource;
+            if (MeshResource != OldMesh)
+            {
+                if (MeshResource == nullptr)
+                {
+                    if (auto* BaseStaticMesh = dynamic_cast<CStaticMesh const*>(BaseActorAsset))
+                    {
+                        MeshResource = BaseStaticMesh->MeshResource;
+                    }
+                    else
+                    {
+                        MeshResource = OldMesh;
+                    }
+                }
+                UpdateMaterialSlots(nullptr);
+            }
+            else
+            {
+                MeshResource = OldMesh;
+            }
+
+            static CMaterial* CurrentlyEditedMaterial = nullptr;
+            static bool bMaterialEditorOpen = true;
+
+            // Buttons to add and remove material slots
+            ImGui::Text("Num material slots: %d", GetNumMaterialSlots());
+            ImGui::SameLine(0, 4);
+            if (ImGui::Button("+"))
+            {
+                MaterialSlots.Add(nullptr);
+            }
+            ImGui::SameLine(0, 4);
+            if (ImGui::Button("-"))
+            {
+                MaterialSlots.RemoveLast();
+            }
+
+            // Material editors for material slots
+            for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
+            {
+                auto MaterialSlotEditorLabel = SPrintf("static_mesh_material_%d", i);
+                auto* Material = *MaterialSlots[i];
+                if (ImGui::TreeNode(*MaterialSlotEditorLabel, "Material slot %d: %s", i, Material ? *Material->GetName() : "-- None --"))
+                {
+                    if (ImGui::Button("Edit"))
+                    {
+                        CurrentlyEditedMaterial = Material;
+                    }
+
+                    if (CurrentlyEditedMaterial)
+                    {
+                        ImGuiShowMaterialEditor(Material, &bMaterialEditorOpen);
+                        if (!bMaterialEditorOpen)
+                        {
+                            CurrentlyEditedMaterial = nullptr;
+                        }
+                    }
+
+                    ImGui::Text("Select different:");
+                    ImGuiMaterialPicker(*MaterialSlotEditorLabel, MaterialSlots[i]);
+                    ImGui::TreePop();
+                }
+
+                MaterialSlotEditorLabel.Free();
+            }   
         }
     }
 
@@ -181,7 +183,7 @@ namespace lucid::scene
         OutDescription.bReverseNormals = bReverseNormals;
     }
 
-    void CStaticMesh::_SaveToResourceFile(const FString& InFilePath)
+    void CStaticMesh::InternalSaveToResourceFile(const FString& InFilePath)
     {
         FStaticMeshDescription StaticMeshDescription;
         FillDescription(StaticMeshDescription);
@@ -205,10 +207,13 @@ namespace lucid::scene
         return 0;
     }
 
-    CStaticMesh* CStaticMesh::CreateActor(CStaticMesh const* BaseActorResource,
+    CStaticMesh* CStaticMesh::CreateActor(CStaticMesh* BaseActorResource,
                                           CWorld* InWorld,
                                           const FStaticMeshDescription& InStaticMeshDescription)
     {
+        assert(BaseActorResource);
+        assert(InWorld);
+
         auto* Parent = InStaticMeshDescription.ParentId > 0 ? InWorld->GetActorById(InStaticMeshDescription.ParentId) : nullptr;
 
         resources::CMeshResource* MeshResource;
@@ -221,7 +226,8 @@ namespace lucid::scene
             MeshResource = BaseActorResource->MeshResource;
         }
 
-        auto* StaticMesh = new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
+        auto* StaticMesh =
+          new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
         StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
         StaticMesh->Transform.Rotation = Float4ToQuat(InStaticMeshDescription.Rotation);
         StaticMesh->Transform.Scale = Float3ToVec(InStaticMeshDescription.Scale);
@@ -229,32 +235,19 @@ namespace lucid::scene
         StaticMesh->SetReverseNormals(InStaticMeshDescription.bReverseNormals);
         StaticMesh->BaseActorAsset = BaseActorResource;
 
-        if (BaseActorResource)
+        for (u16 i = 0; i < BaseActorResource->GetNumMaterialSlots(); ++i)
         {
-            for (u16 i = 0; i < BaseActorResource->GetNumMaterialSlots(); ++i)
+            if (i < InStaticMeshDescription.MaterialIds.size() && InStaticMeshDescription.MaterialIds[i].bChanged)
             {
-                if (i < InStaticMeshDescription.MaterialIds.size() && InStaticMeshDescription.MaterialIds[i].bChanged)
-                {
-                    StaticMesh->AddMaterial(GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialIds[i].Value));
-                }
-                else
-                {
-                    StaticMesh->AddMaterial(BaseActorResource->GetMaterialSlot(i));
-                }
+                StaticMesh->AddMaterial(GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialIds[i].Value)->GetCopy());
             }
-        }
-        else
-        {
-            for (u16 i = 0; i < InStaticMeshDescription.MaterialIds.size(); ++i)
+            else
             {
-                StaticMesh->AddMaterial(GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialIds[i].Value));
+                StaticMesh->AddMaterial(BaseActorResource->GetMaterialSlot(i)->GetCopy());
             }
         }
 
-        if (InWorld)
-        {
-            InWorld->AddStaticMesh(StaticMesh);
-        }
+        InWorld->AddStaticMesh(StaticMesh);
 
         return StaticMesh;
     }
@@ -263,12 +256,19 @@ namespace lucid::scene
     {
         if (BaseStaticMesh)
         {
+            for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
+            {
+                if (*MaterialSlots[i])
+                {
+                    delete *MaterialSlots[i];
+                }
+            }
             MaterialSlots.Free();
             MaterialSlots = FArray<CMaterial*>{ BaseStaticMesh->GetNumMaterialSlots(), true };
 
             for (int i = 0; i < BaseStaticMesh->GetNumMaterialSlots(); ++i)
             {
-                MaterialSlots.Add(BaseStaticMesh->GetMaterialSlot(i));
+                MaterialSlots.Add(BaseStaticMesh->GetMaterialSlot(i)->GetCopy());
             }
         }
         else
@@ -277,16 +277,41 @@ namespace lucid::scene
         }
     }
 
-
     IActor* CStaticMesh::CreateActorAsset(const FDString& InName) const
     {
-        auto* ActorAsset =  new CStaticMesh { InName, nullptr, nullptr, MeshResource, EStaticMeshType::STATIONARY };
+        auto* ActorAsset = new CStaticMesh{ InName, nullptr, nullptr, MeshResource, EStaticMeshType::STATIONARY };
         ActorAsset->MaterialSlots = FArray<CMaterial*>(MaterialSlots.GetLength(), true);
         for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
-            ActorAsset->MaterialSlots.Add(GetMaterialSlot(i));
+            ActorAsset->MaterialSlots.Add(GEngine.GetMaterialsHolder().Get(GetMaterialSlot(i)->GetID()));
         }
         return ActorAsset;
+    }
+
+    CStaticMesh* CStaticMesh::CreateEmptyActorAsset(const FDString& InName)
+    {
+        auto* EmptyActorAsset = new CStaticMesh{ InName, nullptr, nullptr, nullptr, EStaticMeshType::STATIONARY };
+        EmptyActorAsset->MaterialSlots = FArray<CMaterial*>(1, true);
+        return EmptyActorAsset;
+    }
+
+    void CStaticMesh::LoadAsset()
+    {
+        assert(ResourcePath.GetLength());
+
+        FStaticMeshDescription StaticMeshDescription;
+        if (ReadFromJSONFile(StaticMeshDescription, *ResourcePath)) // @TODO strings from here don't get freed
+        {
+            MeshResource = GEngine.GetMeshesHolder().Get(StaticMeshDescription.MeshResourceId.Value);
+            for (u16 i = 0; i < StaticMeshDescription.MaterialIds.size(); ++i)
+            {
+                MaterialSlots.Add(GEngine.GetMaterialsHolder().Get(StaticMeshDescription.MaterialIds[i].Value));
+            }
+        }
+        else
+        {
+            LUCID_LOG(ELogLevel::WARN, "Failed to load asset %s - couldn't read file %s", *Name, *ResourcePath)
+        }
     }
 
 } // namespace lucid::scene

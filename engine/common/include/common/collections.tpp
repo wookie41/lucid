@@ -50,7 +50,10 @@ namespace lucid
     template <typename T>
     void FArray<T>::RemoveLast()
     {
-        --Length;
+        if (Length)
+        {
+            --Length;
+        }
     }
     
     template <typename T>

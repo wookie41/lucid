@@ -46,7 +46,7 @@ namespace lucid::scene
         return Material;
     }
 
-    void CBlinnPhongMaterial::SaveToResourceFile(const lucid::EFileFormat& InFileFormat)
+    void CBlinnPhongMaterial::InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat)
     {
         FBlinnPhongMaterialDescription BlinnPhongMaterialDescription;
         BlinnPhongMaterialDescription.Id = ID;
@@ -75,6 +75,15 @@ namespace lucid::scene
         ImGui::DragFloat3("Specular color", &SpecularColor.r, 0.005, 0, 1);
     }
 
+    CMaterial* CBlinnPhongMaterial::GetCopy() const
+    {
+        auto* Copy = new CBlinnPhongMaterial { ID, Name, ResourcePath, Shader };
+        Copy->Shininess = Shininess;
+        Copy->DiffuseColor = DiffuseColor;
+        Copy->SpecularColor = SpecularColor;
+        return Copy;
+    }
+    
     /* ---------------------------------------------------------------------------*/
 
     static const FSString DIFFUSE_MAP("uMaterialDiffuseMap");
@@ -163,7 +172,7 @@ namespace lucid::scene
         return Material;
     }
 
-    void CBlinnPhongMapsMaterial::SaveToResourceFile(const lucid::EFileFormat& InFileFormat)
+    void CBlinnPhongMapsMaterial::InternalSaveToResourceFile(const EFileFormat& InFileFormat)
     {
         FBlinnPhongMapsMaterialDescription BlinnPhongMapsMaterialDescription;
         BlinnPhongMapsMaterialDescription.Id = ID;
@@ -236,4 +245,17 @@ namespace lucid::scene
         ImGui::Text("Displacement texture:");
         ImGuiTextureResourcePicker("blinn_phong_maps_displacment", &DisplacementMap);
     }
+
+    CMaterial* CBlinnPhongMapsMaterial::GetCopy() const
+    {
+        auto* Copy = new CBlinnPhongMapsMaterial { ID, Name, ResourcePath, Shader };
+        Copy->Shininess = Shininess;
+        Copy->SpecularColor = SpecularColor;
+        Copy->DiffuseMap = DiffuseMap;
+        Copy->SpecularMap = SpecularMap;
+        Copy->NormalMap = NormalMap;
+        Copy->DisplacementMap = DisplacementMap;
+        return Copy;
+    };
+
 } // namespace lucid::scene

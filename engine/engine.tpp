@@ -1,53 +1,27 @@
 ﻿#pragma once
 
+#include "scene/actors/static_mesh.hpp"
+#include "scene/actors/skybox.hpp"
+
 namespace lucid
 {
     template <typename TActor, typename TActorDescription>
-    TActor* CEngine::CreateActorInstance(scene::CWorld* InWorld, const TActorDescription& InActorDescription)
+    void CEngine::LoadActorAsset(const FActorDatabaseEntry& ActorEntry)
     {
-        if (InActorDescription.BaseActorResourceId == sole::INVALID_UUID)
+        TActorDescription ActorAssetDescription;
+        if (!ReadFromJSONFile(ActorAssetDescription, *ActorEntry.ActorPath)) //@TODO strings don't get freed
         {
-            LUCID_LOG(ELogLevel::WARN, "Failed to create actor '%s'- base resource unknown", *InActorDescription.Name);
-            return nullptr;
-        }
-        
-        const auto ActorResourceId = InActorDescription.BaseActorResourceId;
-        scene::IActor* BaseActorResource = nullptr;
-
-        // Chcek if we've already loaded the actor resource info
-        if (ActorResourceById.Contains(ActorResourceId))
-        {
-            BaseActorResource = ActorResourceById.Get(ActorResourceId);
-        }
-        else
-        {
-            // If not, check if we've got and entry for it and if so, load it
-            if (ActorResourceInfoById.Contains(ActorResourceId))
-            {
-                FActorResourceInfo& ActorResourceInfo = ActorResourceInfoById.Get(ActorResourceId);
-                assert(ActorResourceInfo.Type == TActor::GetActorTypeStatic());
-
-                TActorDescription BaseActorResourceDescription;
-                if(!ReadFromJSONFile(BaseActorResourceDescription, *ActorResourceInfo.ResourceFilePath))
-                {
-                    LUCID_LOG(ELogLevel::WARN, "Failed to create actor '%s' - couldn't load file '%s'", *InActorDescription.Name, *ActorResourceInfo.ResourceFilePath);
-                    return nullptr;
-                }
-                
-                BaseActorResource = TActor::CreateActor(nullptr, nullptr, BaseActorResourceDescription);
-                BaseActorResource->ResourceId = ActorResourceId;
-                BaseActorResource->ResourcePath = ActorResourceInfo.ResourceFilePath;
-                
-                ActorResourceById.Add(ActorResourceId, BaseActorResource);
-            }
-            else
-            {
-                // Fail otherwise
-                LUCID_LOG(ELogLevel::WARN, "Failed to create actor '%s' - no base resource info", *InActorDescription.Name);
-                return nullptr;
-            }
+            LUCID_LOG(ELogLevel::WARN,
+                      "Failed to create actor '%s' - couldn't load file '%s'",
+                      ActorEntry.ActorId.str().c_str(),
+                      *ActorEntry.ActorPath);
+            return;
         }
 
-        return TActor::CreateActor((TActor*)BaseActorResource, InWorld, InActorDescription);
+        auto* ActorAsset = TActor::CreateEmptyActorAsset(ActorAssetDescription.Name);
+        ActorAsset->ResourceId = ActorEntry.ActorId;
+        ActorAsset->ResourcePath = ActorEntry.ActorPath;
+
+        ActorResourceById.Add(ActorEntry.ActorId, ActorAsset);
     }
-}
+} // namespace lucid

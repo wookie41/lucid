@@ -49,36 +49,33 @@ namespace lucid::scene
     void CLight::UIDrawActorDetails()
     {
         IActor::UIDrawActorDetails();
-        switch (GetType())
+        if (ImGui::CollapsingHeader("Light"))
         {
-        case ELightType::DIRECTIONAL:
-            ImGui::Text("Directional light");
-
-            break;
-        case ELightType::SPOT:
-            ImGui::Text("Spot light");
-
-            break;
-        case ELightType::POINT:
-            ImGui::Text("Point light");
-
-            break;
-        }
-
-        ImGui::DragFloat3("Light color", &Color.r, 0, 1);
-
-        bool bCastsShadow = ShadowMap != nullptr;
-        ImGui::Checkbox("Casts shadow", &bCastsShadow);
-        if (bCastsShadow)
-        {
-            if (!ShadowMap)
+            switch (GetType())
             {
-                ShadowMap = GEngine.GetRenderer()->CreateShadowMap(GetType());
+            case ELightType::DIRECTIONAL:
+                ImGui::Text("Light type: Directional light");
+                break;
+            case ELightType::SPOT:
+                ImGui::Text("Light type: Spot light");
+                break;
+            case ELightType::POINT:
+                ImGui::Text("Light type: Point light");
+                break;
             }
-        }
-        else
-        {
-            if (ShadowMap)
+
+            ImGui::DragFloat3("Light color", &Color.r, 0, 1);
+
+            bool bCastsShadow = ShadowMap != nullptr;
+            ImGui::Checkbox("Casts shadow", &bCastsShadow);
+            if (bCastsShadow)
+            {
+                if (!ShadowMap)
+                {
+                    ShadowMap = GEngine.GetRenderer()->CreateShadowMap(GetType());
+                }
+            }
+            else if (ShadowMap)
             {
                 ShadowMap->Free();
                 ShadowMap = nullptr;
@@ -89,7 +86,7 @@ namespace lucid::scene
 
     float CLight::GetVerticalMidPoint() const { return 0; }
 
-    void CLight::_SaveToResourceFile(const FString& InFilePath)
+    void CLight::InternalSaveToResourceFile(const FString& InFilePath)
     {
         // Light data is written directly to the world file
     }
@@ -107,7 +104,7 @@ namespace lucid::scene
                                                       LightSettings.Top,
                                                       LightSettings.Near,
                                                       LightSettings.Far);
-        
+
         LightSpaceMatrix = ProjectionMatrix * ViewMatrix;
     }
 
@@ -137,8 +134,11 @@ namespace lucid::scene
     void CDirectionalLight::UIDrawActorDetails()
     {
         CLight::UIDrawActorDetails();
-        ImGui::DragFloat3("Direction", &Direction.x, 0.001, -1, 1);
-        ImGui::DragFloat3("Light up", &LightUp.x, 0.001, -1, 1);
+        if (ImGui::CollapsingHeader("Directional light"))
+        {
+            ImGui::DragFloat3("Direction", &Direction.x, 0.001, -1, 1);
+            ImGui::DragFloat3("Light up", &LightUp.x, 0.001, -1, 1);
+        }
     }
 #endif
 
@@ -152,7 +152,8 @@ namespace lucid::scene
         const float ShadowMapHeight = (float)ShadowMap->GetShadowMapTexture()->GetHeight();
 
         const glm::mat4 ViewMatrix = glm::lookAt(Transform.Translation, Transform.Translation + Direction, LightUp);
-        const glm::mat4 ProjectionMatrix = glm::perspective(OuterCutOffRad * 2, ShadowMapWidth / ShadowMapHeight, LightSettings.Near, LightSettings.Far);
+        const glm::mat4 ProjectionMatrix =
+          glm::perspective(OuterCutOffRad * 2, ShadowMapWidth / ShadowMapHeight, LightSettings.Near, LightSettings.Far);
         LightSpaceMatrix = ProjectionMatrix * ViewMatrix;
     }
 
@@ -184,21 +185,23 @@ namespace lucid::scene
     void CSpotLight::UIDrawActorDetails()
     {
         CLight::UIDrawActorDetails();
-        ImGui::DragFloat3("Direction", &Direction.x, 0.001, -1, 1);
-        ImGui::DragFloat3("Light up", &LightUp.x, 0.001, -1, 1);
+        if (ImGui::CollapsingHeader("Spot light"))
+        {
+            ImGui::DragFloat3("Direction", &Direction.x, 0.001, -1, 1);
+            ImGui::DragFloat3("Light up", &LightUp.x, 0.001, -1, 1);
 
-        float InnerCutOff = glm::degrees(InnerCutOffRad);
-        float OuterCutOff = glm::degrees(OuterCutOffRad);
-        
-        ImGui::DragFloat("Constant", &Constant, 0.001, 0, 3);
-        ImGui::DragFloat("Linear", &Linear, 0.001,0, 3);
-        ImGui::DragFloat("Quadratic", &Quadratic, 0.001,0, 3);
-        ImGui::DragFloat("Inner Cut Off", &InnerCutOff, 1,0, 90);
-        ImGui::DragFloat("Outer Cut Off", &OuterCutOff, 1,0, 90);
+            float InnerCutOff = glm::degrees(InnerCutOffRad);
+            float OuterCutOff = glm::degrees(OuterCutOffRad);
 
-        InnerCutOffRad = glm::radians(InnerCutOff);;
-        OuterCutOffRad = glm::radians(OuterCutOff);
-        
+            ImGui::DragFloat("Constant", &Constant, 0.001, 0, 3);
+            ImGui::DragFloat("Linear", &Linear, 0.001, 0, 3);
+            ImGui::DragFloat("Quadratic", &Quadratic, 0.001, 0, 3);
+            ImGui::DragFloat("Inner Cut Off", &InnerCutOff, 1, 0, 90);
+            ImGui::DragFloat("Outer Cut Off", &OuterCutOff, 1, 0, 90);
+
+            InnerCutOffRad = glm::radians(InnerCutOff);
+            OuterCutOffRad = glm::radians(OuterCutOff);
+        }
     }
 #endif
 
@@ -214,8 +217,9 @@ namespace lucid::scene
         CachedNearPlane = LightSettings.Near;
         CachedFarPlane = LightSettings.Far;
 
-        const glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.f), ShadowMapWidth / ShadowMapHeight, CachedNearPlane, CachedFarPlane);
-        
+        const glm::mat4 projectionMatrix =
+          glm::perspective(glm::radians(90.f), ShadowMapWidth / ShadowMapHeight, CachedNearPlane, CachedFarPlane);
+
         LightSpaceMatrices[0] =
           projectionMatrix *
           glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
@@ -279,10 +283,12 @@ namespace lucid::scene
     void CPointLight::UIDrawActorDetails()
     {
         CLight::UIDrawActorDetails();
-
-        ImGui::DragFloat("Constant", &Constant, 0.001, 0, 3);
-        ImGui::DragFloat("Linear", &Linear, 0.001, 0, 3);
-        ImGui::DragFloat("Quadratic", &Quadratic, 0.001, 0, 3);
+        if (ImGui::CollapsingHeader("Spot light"))
+        {
+            ImGui::DragFloat("Constant", &Constant, 0.001, 0, 3);
+            ImGui::DragFloat("Linear", &Linear, 0.001, 0, 3);
+            ImGui::DragFloat("Quadratic", &Quadratic, 0.001, 0, 3);
+        }        
     }
 #endif
 } // namespace lucid::scene

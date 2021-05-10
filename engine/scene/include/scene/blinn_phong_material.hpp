@@ -24,13 +24,14 @@ namespace lucid::scene
     class CBlinnPhongMaterial : public CMaterial
     {
       public:
-        static CBlinnPhongMaterial* CreateMaterial(const FBlinnPhongMaterialDescription& Description, const FDString& InResourcePath);
 
         CBlinnPhongMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader);
 
-        virtual void SetupShader(gpu::CShader* Shader) override;
+        static CBlinnPhongMaterial* CreateMaterial(const FBlinnPhongMaterialDescription& Description, const FDString& InResourcePath);
 
-        void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
+        virtual void                SetupShader(gpu::CShader* Shader) override;
+        virtual CMaterial*          GetCopy() const override;
+        virtual EMaterialType       GetType() const override { return EMaterialType::BLINN_PHONG; }
 
         u32 Shininess;
         glm::vec3 DiffuseColor;
@@ -39,7 +40,9 @@ namespace lucid::scene
 #if DEVELOPMENT
         virtual void UIDrawMaterialEditor() override;
 #endif
-        
+
+    protected:
+        void                        InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
     };
     
     /////////////////////////////////////
@@ -50,14 +53,14 @@ namespace lucid::scene
     {
       public:
 
-        static CBlinnPhongMapsMaterial* CreateMaterial(const FBlinnPhongMapsMaterialDescription& Description, const FDString& InResourcePath);        
-        
         CBlinnPhongMapsMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader);
 
-        virtual void SetupShader(gpu::CShader* Shader) override;
+        static CBlinnPhongMapsMaterial* CreateMaterial(const FBlinnPhongMapsMaterialDescription& Description, const FDString& InResourcePath);        
 
-        void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
-        
+        virtual void                    SetupShader(gpu::CShader* Shader) override;
+        virtual CMaterial*              GetCopy() const override;
+        virtual EMaterialType           GetType() const override { return EMaterialType::BLINN_PHONG_MAPS; }
+
         u32 Shininess;
         resources::CTextureResource* DiffuseMap = nullptr;
         resources::CTextureResource* SpecularMap = nullptr;
@@ -69,6 +72,8 @@ namespace lucid::scene
 #if DEVELOPMENT
         virtual void UIDrawMaterialEditor() override;
 #endif
-
+    protected:
+        void                            InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
+        
     };
 } // namespace lucid::scene

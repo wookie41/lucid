@@ -36,11 +36,15 @@ namespace lucid::scene
          * it can use the Material's 'Shader' or provide some other shader as it sees fit - e.x. the renderer
          * will use a shadow map shader to "render" geometry when generating shadow maps
          */
-        virtual void SetupShader(gpu::CShader* InShadder) = 0;
-        inline gpu::CShader* GetShader() const { return Shader; }
-        inline const FString& GetName() const { return Name; };
-        inline const UUID& GetID() const { return ID; };
-        virtual void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) = 0;
+        virtual void            SetupShader(gpu::CShader* InShadder) = 0;
+        inline const UUID&      GetID() const { return ID; };
+        inline const FString&   GetName() const { return Name; };
+        virtual EMaterialType   GetType() const { return EMaterialType::NONE; }
+        inline gpu::CShader*    GetShader() const { return Shader; }
+        virtual void            SaveToResourceFile(const lucid::EFileFormat& InFileFormat);
+        virtual CMaterial*      GetCopy() const = 0;
+
+        void CreateMaterialAsset();
 
         virtual ~CMaterial() = default;
 
@@ -48,11 +52,14 @@ namespace lucid::scene
         virtual void UIDrawMaterialEditor() = 0;
 #endif
     
-      protected:
+        UUID      ID;
+        FDString  Name;
+        FDString  ResourcePath;
+        gpu::CShader*   Shader;
+        bool            bIsAsset = false;
 
-        const UUID ID;
-        const FDString Name;
-        const FDString ResourcePath;
-        gpu::CShader* Shader;
+    protected:
+        virtual void            InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat) = 0;
+
     };
 } // namespace lucid::scene

@@ -45,9 +45,11 @@ namespace lucid::scene
         virtual float GetVerticalMidPoint() const override;
 
         static  EActorType  GetActorTypeStatic() { return EActorType::LIGHT; }
+
         virtual EActorType  GetActorType() const override { return EActorType::LIGHT; }
-        IActor*             CreateActorAsset(const FDString& InName) const override { return nullptr; }
-        
+        virtual IActor*     CreateActorAsset(const FDString& InName) const override { return nullptr; }
+        virtual void        LoadAsset() override { }
+
         glm::vec3   Color           { 0, 0, 0 };
         u8          Quality         = 1;
 
@@ -59,7 +61,7 @@ namespace lucid::scene
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
     protected:
-        virtual void _SaveToResourceFile(const FString& InActorResourceName) override;
+        virtual void InternalSaveToResourceFile(const FString& InActorResourceName) override;
     public:
 #endif  
     };

@@ -1,5 +1,5 @@
 {
-    "Name": "Cube3",
+    "Name": "TestCube",
     "Rotation": [
         0.0,
         0.0,
@@ -13,7 +13,7 @@
     "MaterialIds": [
         {
             "bChanged": true,
-            "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
+            "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
         }
     ]
 }

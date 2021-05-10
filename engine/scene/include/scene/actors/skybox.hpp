@@ -27,16 +27,20 @@ namespace lucid::scene
 
         static  EActorType      GetActorTypeStatic() { return EActorType::SKYBOX; }
         virtual EActorType      GetActorType() const override  { return EActorType::SKYBOX; }
-        static  CSkybox*        CreateActor(CSkybox const* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
         virtual IActor*         CreateActorAsset(const FDString& InName) const override;
+        virtual void            LoadAsset() override;
 
+        static  CSkybox*        CreateActor(CSkybox* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
+
+        /** Creates an empty actor asset that lazily loads it's resources when referenced for the first time */
+        static  CSkybox*        CreateEmptyActorAsset(const FDString& InName);
 
 #if DEVELOPMENT
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
 
     protected:
-        virtual void _SaveToResourceFile(const FString& InFilePath) override;
+        virtual void InternalSaveToResourceFile(const FString& InFilePath) override;
     public:
 #endif
         void FillDescription(FSkyboxDescription& OutDescription) const;

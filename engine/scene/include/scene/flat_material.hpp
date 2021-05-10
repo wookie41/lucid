@@ -14,16 +14,20 @@ namespace lucid::scene
     class CFlatMaterial : public CMaterial
     {
       public:
-        static CFlatMaterial* CreateMaterial(const FFlatMaterialDescription& Description, const FDString& InResourcePath);
 
         CFlatMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader);
 
-        virtual void SetupShader(gpu::CShader* Shader) override;
+        static CFlatMaterial* CreateMaterial(const FFlatMaterialDescription& Description, const FDString& InResourcePath);
 
-        void SaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
+        virtual void            SetupShader(gpu::CShader* Shader) override;
+        virtual CMaterial*      GetCopy() const override;
+        virtual EMaterialType   GetType() const override { return EMaterialType::FLAT; }
         
         FColor Color;
-       
+
+    protected:
+        void                    InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
+
 #if DEVELOPMENT
         virtual void UIDrawMaterialEditor() override;
 #endif

@@ -1,7 +1,6 @@
 ﻿#pragma once
 
-#include <scene/material.hpp>
-
+#include "scene/material.hpp"
 #include "scene/actors/actor.hpp"
 
 #include "common/types.hpp"
@@ -12,6 +11,7 @@
 #include "resources/resources_holder.hpp"
 #include "resources/texture_resource.hpp"
 #include "resources/mesh_resource.hpp"
+
 #include "devices/gpu/shaders_manager.hpp"
 
 namespace lucid
@@ -25,9 +25,6 @@ namespace lucid
         class CBlinnPhongMaterial;
         class CBlinnPhongMapsMaterial;
     } // namespace scene
-
-#define DECLARE_LOAD_MATERIAL_FUNC(Suffix, TMaterialDescription, TMaterial) \
-    void Load##Suffix(TDYNAMICARRAY<FMaterialDatabaseEntry> Entries);
 
     using CTexturesHolder = resources::CResourcesHolder<resources::CTextureResource>;
     using CMeshesHolder = resources::CResourcesHolder<resources::CMeshResource>;
@@ -58,10 +55,11 @@ namespace lucid
 
       public:
         EEngineInitError InitEngine(const FEngineConfig& InEngineConfig);
+        
         void Shutdown();
         void LoadResources();
 
-        inline FResourceDatabase&   GetResourceDatabase() { return ResourceDatabase; }
+        inline FResourceDatabase&       GetResourceDatabase() { return ResourceDatabase; }
         inline FMaterialDatabase&       GetMaterialDatabase() { return MaterialDatabase; }
         inline CTexturesHolder&         GetTexturesHolder() { return TexturesHolder; }
         inline CMeshesHolder&           GetMeshesHolder() { return MeshesHolder; }
@@ -73,6 +71,8 @@ namespace lucid
         inline scene::CMaterial*    GetDefaultMaterial() { return DefaultMaterial; }
         void                        SetDefaultMaterial(scene::CMaterial* InMaterial);
 
+        void                        SaveMaterialDatabase();
+
         inline FHashMap<UUID, scene::IActor*>& GetActorsResources() { return ActorResourceById; }
 
         void AddTextureResource(resources::CTextureResource* InTexture, const FString& InSourcePath);
@@ -81,19 +81,17 @@ namespace lucid
         void RemoveMeshResource(resources::CMeshResource* InMesh);
         void RemoveTextureResource(resources::CTextureResource*);
 
-        void AddMaterialAsset(scene::CMaterial* InMaterial,
-                                   const scene::EMaterialType& InMaterialType,
-                                   const FDString& InMaterialPath);
+        void AddMaterialAsset(scene::CMaterial* InMaterial,const scene::EMaterialType& InMaterialType, const FDString& InMaterialPath);
         void RemoveMaterialAsset(scene::CMaterial* InMaterial);
 
         void AddActorAsset(scene::IActor* InActorResource);
         void RemoveActorAsset(scene::IActor* InActorResource);
-        
-        template <typename TActor, typename TActorDescription>
-        TActor* CreateActorInstance(scene::CWorld* InWorld, const TActorDescription& InActorDescription);
-    
+            
     protected:
-        
+
+        template <typename TActor, typename TActorDescription>
+        void LoadActorAsset(const FActorDatabaseEntry& Entry);
+
         scene::CRenderer* Renderer = nullptr;
 
         gpu::CShadersManager ShadersManager {};
@@ -106,7 +104,6 @@ namespace lucid
         CTexturesHolder  TexturesHolder {};
         CMaterialsHolder MaterialsHolder {};
 
-        FHashMap<UUID, FActorResourceInfo>   ActorResourceInfoById;        
         FHashMap<UUID, scene::IActor*>       ActorResourceById;
 
         scene::CMaterial* DefaultMaterial = nullptr;

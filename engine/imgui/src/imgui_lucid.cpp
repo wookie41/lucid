@@ -151,7 +151,7 @@ namespace lucid
         ImGui::End();
     }
 
-    void ImGuiActorAssetPicker(const char* InLabel, scene::IActor const** OutActor)
+    void ImGuiActorAssetPicker(const char* InLabel, scene::IActor** OutActor)
     {
         if (ImGui::BeginListBox(InLabel, ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
         {

@@ -35,16 +35,21 @@ namespace lucid::scene
 
         static  EActorType      GetActorTypeStatic() { return EActorType::STATIC_MESH; }
         virtual EActorType      GetActorType() const override { return EActorType::STATIC_MESH; }
-        static  CStaticMesh*    CreateActor(CStaticMesh const* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
-        virtual IActor*         CreateActorAsset(const FDString& InName) const override;
 
+        static  CStaticMesh*    CreateActor(CStaticMesh* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
+
+        /** Creates an empty actor asset that lazily loads it's resources when referenced for the first time */
+        static  CStaticMesh*    CreateEmptyActorAsset(const FDString& InName);
+
+        virtual IActor*         CreateActorAsset(const FDString& InName) const override;
+        virtual void            LoadAsset() override;
         
 #if DEVELOPMENT
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
 
     protected:
-        virtual void    _SaveToResourceFile(const FString& InFilePath) override;
+        virtual void    InternalSaveToResourceFile(const FString& InFilePath) override;
         void            UpdateMaterialSlots(CStaticMesh const* BaseStaticMesh);
     public:
 #endif
