@@ -113,12 +113,6 @@ namespace lucid
 
     void ImGuiShowMaterialEditor(scene::CMaterial* InMaterial, bool* OutbOpen)
     {
-        static scene::CMaterial* CurrMaterial = nullptr;
-        if (CurrMaterial == nullptr)
-        {
-            CurrMaterial = InMaterial;
-        }
-
         ImGui::SetNextWindowSize({ 600, 0 });
         ImGui::Begin("Material editor", OutbOpen);
         
@@ -141,11 +135,6 @@ namespace lucid
         else
         {
             ImGui::Text("-- No material selected --");
-        }
-
-        if (OutbOpen)
-        {
-            CurrMaterial = nullptr;
         }
 
         ImGui::End();
