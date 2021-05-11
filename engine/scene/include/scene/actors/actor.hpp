@@ -66,12 +66,18 @@ namespace lucid::scene
         virtual EActorType  GetActorType() const = 0;
         virtual float       GetVerticalMidPoint() const = 0;
         virtual IActor*     CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) = 0;
+        virtual IActor*     CreateCopy() = 0;
 
         /** Creates an actor asset from actocr instance so it can be saved to an asset file */
         virtual IActor*     CreateActorAsset(const FDString& InName) const = 0;
 
         /** Used when actor asset is referenced for the first time, up to this point no data is loaded for an asset */
         virtual void        LoadAsset() = 0;
+
+
+        virtual void        OnRemoveFromWorld();
+
+        virtual ~IActor() = default;
 
         /**
          * Unique id for an actor in the world, used e.x. by the renderer when generating the hitmap texture
@@ -92,9 +98,5 @@ namespace lucid::scene
 
         IActor*                 BaseActorAsset = nullptr;
         IActor*                 PrevBaseActorAsset = nullptr;
-        
-        virtual ~IActor() = default;    
-
-
     };
 } // namespace lucid::scene

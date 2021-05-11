@@ -1,5 +1,7 @@
 #include "scene/actors/lights.hpp"
 
+#include <scene/world.hpp>
+
 #include "engine/engine.hpp"
 
 #include "devices/gpu/texture.hpp"
@@ -142,6 +144,25 @@ namespace lucid::scene
     }
 #endif
 
+    IActor* CDirectionalLight::CreateCopy()
+    {
+        auto* Copy = new CDirectionalLight{ Name, Parent, World };
+        Copy->Direction = Direction;
+        Copy->Color = Color;
+        Copy->LightUp = LightUp;
+        Copy->Quality = Quality;
+        Copy->Transform = Transform;
+        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
+        if (ShadowMap)
+        {
+            ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
+        }
+        World->AddDirectionalLight(Copy);
+        return Copy;
+    }
+
+    void CDirectionalLight::OnRemoveFromWorld() { World->RemoveDirectionalLight(Id); }
+
     /////////////////////////////////////
     //            Spot light           //
     /////////////////////////////////////
@@ -204,6 +225,30 @@ namespace lucid::scene
         }
     }
 #endif
+
+    IActor* CSpotLight::CreateCopy()
+    {
+        auto* Copy = new CSpotLight{ Name, Parent, World };
+        Copy->Direction = Direction;
+        Copy->Color = Color;
+        Copy->LightUp = LightUp;
+        Copy->Quality = Quality;
+        Copy->Constant = Constant;
+        Copy->Linear = Linear;
+        Copy->Quadratic = Quadratic;
+        Copy->InnerCutOffRad = InnerCutOffRad;
+        Copy->OuterCutOffRad = OuterCutOffRad;
+        Copy->Transform = Transform;
+        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
+        if (ShadowMap)
+        {
+            ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::SPOT);
+        }
+        World->AddSpotLight(Copy);
+        return Copy;
+    }
+
+    void CSpotLight::OnRemoveFromWorld() { World->RemoveSpotLight(Id); }
 
     /////////////////////////////////////
     //           Point light           //
@@ -288,7 +333,30 @@ namespace lucid::scene
             ImGui::DragFloat("Constant", &Constant, 0.001, 0, 3);
             ImGui::DragFloat("Linear", &Linear, 0.001, 0, 3);
             ImGui::DragFloat("Quadratic", &Quadratic, 0.001, 0, 3);
-        }        
+        }
     }
 #endif
+
+    IActor* CPointLight::CreateCopy()
+    {
+        auto* Copy = new CPointLight{ Name, Parent, World };
+        Copy->Color = Color;
+        Copy->Quality = Quality;
+        Copy->Constant = Constant;
+        Copy->Linear = Linear;
+        Copy->Quadratic = Quadratic;
+        Copy->CachedNearPlane = CachedNearPlane;
+        Copy->CachedFarPlane = CachedFarPlane;
+        Copy->Transform = Transform;
+        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
+        if (ShadowMap)
+        {
+            ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::POINT);
+        }
+        World->AddPointLight(Copy);
+        return Copy;
+    }
+
+    void CPointLight::OnRemoveFromWorld() { World->RemovePointLight(Id); }
+
 } // namespace lucid::scene

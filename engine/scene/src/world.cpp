@@ -2,7 +2,6 @@
 
 #include <scene/material.hpp>
 
-
 #include "resources/texture_resource.hpp"
 #include "engine/engine.hpp"
 
@@ -28,51 +27,69 @@ namespace lucid::scene
 
     /** Id for the skybox renderable, as there is always only one skybox */
     static const u32 SkyboxRenderableId = 4294967295;
-    
+
     void CWorld::Init() {}
 
     void CWorld::AddStaticMesh(CStaticMesh* InStaticMesh)
     {
         if (AddActor(InStaticMesh))
         {
-            arrput(StaticMeshes, InStaticMesh);            
+            StaticMeshes.Add(InStaticMesh->Id, InStaticMesh);
         }
     }
+
+    void CWorld::RemoveStaticMesh(const u32& InId) { StaticMeshes.Remove(InId); }
 
     void CWorld::AddDirectionalLight(CDirectionalLight* InLight)
     {
         if (AddActor(InLight))
         {
-            arrput(DirectionalLights, InLight);
-            arrput(AllLights, InLight);
+            DirectionalLights.Add(InLight->Id, InLight);
+            AllLights.Add(InLight->Id, InLight);
         }
+    }
+
+    void CWorld::RemoveDirectionalLight(const u32& InId)
+    {
+        DirectionalLights.Remove(InId);
+        AllLights.Remove(InId);
     }
 
     void CWorld::AddSpotLight(CSpotLight* InLight)
     {
         if (AddActor(InLight))
         {
-            arrput(SpotLights, InLight);
-            arrput(AllLights, InLight);
+            SpotLights.Add(InLight->Id, InLight);
+            AllLights.Add(InLight->Id, InLight);
         }
+    }
+    void CWorld::RemoveSpotLight(const u32& InId)
+    {
+        SpotLights.Remove(InId);
+        AllLights.Remove(InId);
     }
 
     void CWorld::AddPointLight(CPointLight* InLight)
     {
         if (AddActor(InLight))
         {
-            arrput(PointLights, InLight);
-            arrput(AllLights, InLight);
+            PointLights.Add(InLight->Id, InLight);
+            AllLights.Add(InLight->Id, InLight);
         }
     }
-    
+    void CWorld::RemovePointLight(const u32& InId)
+    {
+        PointLights.Remove(InId);
+        AllLights.Remove(InId);
+    }
+
     void CWorld::SetSkybox(CSkybox* InSkybox)
     {
         if (Skybox)
         {
             Skybox->Id = 0;
         }
-        
+
         Skybox = InSkybox;
         Skybox->Id = SkyboxRenderableId;
     }
@@ -88,10 +105,7 @@ namespace lucid::scene
         return &StaticRenderScene;
     }
 
-    IActor* CWorld::GetActorById(const u32& InActorId)
-    {
-        return ActorById.Get(InActorId);
-    }
+    IActor* CWorld::GetActorById(const u32& InActorId) { return ActorById.Get(InActorId); }
 
     u32 CWorld::AddActor(IActor* InActor)
     {
@@ -100,13 +114,13 @@ namespace lucid::scene
         {
             if (InActor->Id == 0)
             {
-                InActor->Id = NextActorId++;                
+                InActor->Id = NextActorId++;
             }
             else
             {
                 NextActorId = NextActorId > InActor->Id ? NextActorId : InActor->Id + 1;
             }
-            
+
             ActorById.Add(InActor->Id, InActor);
             LUCID_LOG(ELogLevel::INFO, "Actor '%s' added to the world", *InActor->Name);
             return InActor->Id;
@@ -121,12 +135,12 @@ namespace lucid::scene
         ReadFromJSONFile(WorldDescription, *InFilePath);
         return LoadWorld(WorldDescription);
     }
-    
+
     CWorld* LoadWorldFromBinaryFile(const FString& InFilePath)
     {
         FWorldDescription WorldDescription;
         ReadFromBinaryFile(WorldDescription, *InFilePath);
-        return LoadWorld(WorldDescription);         
+        return LoadWorld(WorldDescription);
     }
 
     CWorld* LoadWorld(const FWorldDescription& InWorldDescription)
@@ -144,7 +158,6 @@ namespace lucid::scene
                 ActorAsset->bAssetLoaded = true;
             }
             CStaticMesh::CreateActor((CStaticMesh*)ActorAsset, World, StaticMeshDescription);
-
         }
 
         if (InWorldDescription.Skybox.BaseActorResourceId != sole::INVALID_UUID)
@@ -160,7 +173,8 @@ namespace lucid::scene
         // Load lights
         for (const FDirectionalLightEntry& DirLightEntry : InWorldDescription.DirectionalLights)
         {
-            CDirectionalLight* DirLight = GEngine.GetRenderer()->CreateDirectionalLight(DirLightEntry.Name, World->GetActorById(DirLightEntry.ParentId), World, DirLightEntry.bCastsShadow);
+            CDirectionalLight* DirLight = GEngine.GetRenderer()->CreateDirectionalLight(
+              DirLightEntry.Name, World->GetActorById(DirLightEntry.ParentId), World, DirLightEntry.bCastsShadow);
 
             DirLight->Id = DirLightEntry.Id;
 
@@ -176,7 +190,8 @@ namespace lucid::scene
 
         for (const FSpotLightEntry& SpotLightEntry : InWorldDescription.SpotLights)
         {
-            CSpotLight* SpotLight = GEngine.GetRenderer()->CreateSpotLight(SpotLightEntry.Name, World->GetActorById(SpotLightEntry.ParentId), World, SpotLightEntry.bCastsShadow);
+            CSpotLight* SpotLight = GEngine.GetRenderer()->CreateSpotLight(
+              SpotLightEntry.Name, World->GetActorById(SpotLightEntry.ParentId), World, SpotLightEntry.bCastsShadow);
 
             SpotLight->Id = SpotLightEntry.Id;
 
@@ -187,18 +202,19 @@ namespace lucid::scene
             SpotLight->Direction = Float3ToVec(SpotLightEntry.Direction);
             SpotLight->LightUp = Float3ToVec(SpotLightEntry.LightUp);
 
-            SpotLight->Constant = SpotLightEntry.Constant; 
-            SpotLight->Linear = SpotLightEntry.Linear; 
-            SpotLight->Quadratic = SpotLightEntry.Quadratic; 
-            SpotLight->InnerCutOffRad = SpotLightEntry.InnerCutOffRad; 
-            SpotLight->OuterCutOffRad = SpotLightEntry.OuterCutOffRad; 
-            
+            SpotLight->Constant = SpotLightEntry.Constant;
+            SpotLight->Linear = SpotLightEntry.Linear;
+            SpotLight->Quadratic = SpotLightEntry.Quadratic;
+            SpotLight->InnerCutOffRad = SpotLightEntry.InnerCutOffRad;
+            SpotLight->OuterCutOffRad = SpotLightEntry.OuterCutOffRad;
+
             World->AddSpotLight(SpotLight);
         }
 
         for (const FPointLightEntry& PointLightEntry : InWorldDescription.PointLights)
         {
-            CPointLight* PointLight = GEngine.GetRenderer()->CreatePointLight(PointLightEntry.Name, World->GetActorById(PointLightEntry.ParentId), World, PointLightEntry.bCastsShadow);
+            CPointLight* PointLight = GEngine.GetRenderer()->CreatePointLight(
+              PointLightEntry.Name, World->GetActorById(PointLightEntry.ParentId), World, PointLightEntry.bCastsShadow);
 
             PointLight->Id = PointLightEntry.Id;
 
@@ -207,10 +223,10 @@ namespace lucid::scene
 
             PointLight->Color = Float3ToVec(PointLightEntry.Color);
 
-            PointLight->Constant = PointLightEntry.Constant; 
-            PointLight->Linear = PointLightEntry.Linear; 
-            PointLight->Quadratic = PointLightEntry.Quadratic; 
-            
+            PointLight->Constant = PointLightEntry.Constant;
+            PointLight->Linear = PointLightEntry.Linear;
+            PointLight->Quadratic = PointLightEntry.Quadratic;
+
             World->AddPointLight(PointLight);
         }
 
@@ -220,10 +236,10 @@ namespace lucid::scene
     void CWorld::CreateWorldDescription(FWorldDescription& OutWorldDescription) const
     {
         // Save static meshes
-        for (u32 i = 0; i < arrlen(StaticMeshes); ++i)
+        for (u32 i = 0; i < StaticMeshes.GetLength(); ++i)
         {
             FStaticMeshDescription StaticMeshEntry;
-            const CStaticMesh* StaticMesh = StaticMeshes[i];
+            const CStaticMesh* StaticMesh = StaticMeshes.GetByIndex(i);
             StaticMesh->FillDescription(StaticMeshEntry);
             OutWorldDescription.StaticMeshes.push_back(StaticMeshEntry);
         }
@@ -235,17 +251,17 @@ namespace lucid::scene
         }
 
         // Save dir lights
-        for (u32 i = 0; i < arrlen(DirectionalLights); ++i)
+        for (u32 i = 0; i < DirectionalLights.GetLength(); ++i)
         {
             FDirectionalLightEntry DirLightEntry;
-            const CDirectionalLight* DirLight = DirectionalLights[i];
+            const CDirectionalLight* DirLight = DirectionalLights.GetByIndex(i);
             DirLightEntry.Id = DirLight->Id;
             DirLightEntry.ParentId = DirLight->Parent ? DirLight->Parent->Id : 0;
             DirLightEntry.Color = VecToFloat3(DirLight->Color);
             DirLightEntry.Quality = DirLight->Quality;
             DirLightEntry.Name = DirLight->Name;
-            DirLightEntry.Postion = { 0, 0, 0};
-            DirLightEntry.Rotation = {0, 0, 0};
+            DirLightEntry.Postion = { 0, 0, 0 };
+            DirLightEntry.Rotation = { 0, 0, 0 };
             DirLightEntry.Direction = VecToFloat3(DirLight->Direction);
             DirLightEntry.LightUp = VecToFloat3(DirLight->LightUp);
             DirLightEntry.bCastsShadow = DirLight->ShadowMap != nullptr;
@@ -254,9 +270,9 @@ namespace lucid::scene
         }
 
         // Save spot lights
-        for (u32 i = 0; i < arrlen(SpotLights); ++i)
+        for (u32 i = 0; i < SpotLights.GetLength(); ++i)
         {
-            const CSpotLight* SpotLight = SpotLights[i];
+            const CSpotLight* SpotLight = SpotLights.GetByIndex(i);
             FSpotLightEntry SpotLightEntry;
             SpotLightEntry.Id = SpotLight->Id;
             SpotLightEntry.ParentId = SpotLight->Parent ? SpotLight->Parent->Id : 0;
@@ -277,9 +293,9 @@ namespace lucid::scene
         }
 
         // Save point lights
-        for (u32 i = 0; i < arrlen(PointLights); ++i)
+        for (u32 i = 0; i < PointLights.GetLength(); ++i)
         {
-            const CPointLight* PointLight = PointLights[i];
+            const CPointLight* PointLight = PointLights.GetByIndex(i);
             FPointLightEntry PointLightEntry;
             PointLightEntry.Id = PointLight->Id;
             PointLightEntry.ParentId = PointLight->Parent ? PointLight->Parent->Id : 0;
@@ -298,7 +314,7 @@ namespace lucid::scene
 
     void CWorld::SaveToJSONFile(const FString& InFilePath) const
     {
-        FWorldDescription WorldDescription {};
+        FWorldDescription WorldDescription{};
         CreateWorldDescription(WorldDescription);
         WriteToJSONFile(WorldDescription, *InFilePath);
     }
@@ -309,4 +325,16 @@ namespace lucid::scene
         CreateWorldDescription(WorldDescription);
         WriteToBinaryFile(WorldDescription, *InFilePath);
     }
+
+    void CWorld::RemoveActorById(const u32& InActorId)
+    {
+        if (ActorById.Contains(InActorId))
+        {
+            IActor* Actor = ActorById.Get(InActorId);
+            Actor->OnRemoveFromWorld();
+            delete Actor;
+            ActorById.Remove(InActorId);
+        }
+    }
+
 } // namespace lucid::scene

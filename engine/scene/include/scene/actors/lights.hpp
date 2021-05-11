@@ -76,9 +76,11 @@ namespace lucid::scene
       public:
         CDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
 
-        virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
-        virtual void SetupShader(gpu::CShader* InShader) const override;
-        virtual void SetupShadowMapShader(gpu::CShader* InShader) override;
+        virtual void        UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
+        virtual void        SetupShader(gpu::CShader* InShader) const override;
+        virtual void        SetupShadowMapShader(gpu::CShader* InShader) override;
+        virtual IActor*     CreateCopy() override;
+        virtual void        OnRemoveFromWorld() override;
 
         virtual ELightType GetType() const override { return ELightType::DIRECTIONAL; }
 
@@ -104,9 +106,11 @@ namespace lucid::scene
         
         virtual ELightType GetType() const override { return ELightType::SPOT; }
 
-        virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
-        virtual void SetupShader(gpu::CShader* InShader) const override;
-        virtual void SetupShadowMapShader(gpu::CShader* InShader) override;
+        virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
+        virtual void    SetupShader(gpu::CShader* InShader) const override;
+        virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
+        virtual IActor* CreateCopy() override;
+        virtual void    OnRemoveFromWorld() override;
 
         glm::vec3 Direction { 0, 0, 0 };
         glm::vec3 LightUp   { 0, 1, 0 };
@@ -136,9 +140,11 @@ namespace lucid::scene
         
         virtual ELightType GetType() const override { return ELightType::POINT; }
 
-        virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
-        virtual void SetupShader(gpu::CShader* InShader) const override;
-        virtual void SetupShadowMapShader(gpu::CShader* InShader) override;
+        virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
+        virtual void    SetupShader(gpu::CShader* InShader) const override;
+        virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
+        virtual IActor* CreateCopy() override;
+        virtual void    OnRemoveFromWorld() override;
 
         float Constant  = 0;
         float Linear    = 0;

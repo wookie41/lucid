@@ -82,4 +82,14 @@ namespace lucid::scene
         }
     }
 
+    void IActor::OnRemoveFromWorld()
+    {
+        for (u32 i = 0; i < Children.GetLength(); ++i)
+        {
+            auto* ChildActor = *Children[i];
+            ChildActor->OnRemoveFromWorld();
+            delete ChildActor;
+        }
+    }
+
 } // namespace lucid::scene

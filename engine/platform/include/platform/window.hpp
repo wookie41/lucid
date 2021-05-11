@@ -38,11 +38,15 @@ namespace lucid::platform
 
         virtual void Destroy() = 0;
 
+        inline bool IsRequestedClose() const {return bRequestedClose ;}
+        
         // Events callbacks
         
         virtual void OnFocusGained() = 0;
         virtual void OnResize(const u16& InWidth, const u16& InHeight) = 0;
-        gpu::FGPUState* GetGPUState() { return &GPUStateForMyContext; };
+        virtual void OnRequestClose() { bRequestedClose = true; }
+
+        gpu::FGPUState* GetGPUState() { return &GPUStateForMyContext; }
         
         virtual ~CWindow() = default;
 
@@ -56,6 +60,7 @@ namespace lucid::platform
 #endif
 
     protected:
+        bool bRequestedClose = false;
         gpu::FGPUState GPUStateForMyContext;
     };
 

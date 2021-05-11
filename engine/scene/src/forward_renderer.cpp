@@ -437,9 +437,9 @@ namespace lucid::scene
         u8 PrevShadowMapQuality = 255;
 
         gpu::CShader* LastShadowMapShader = nullptr;
-        for (int i = 0; i < arrlen(InSceneToRender->AllLights); ++i)
+        for (int i = 0; i < InSceneToRender->AllLights.GetLength(); ++i)
         {
-            CLight* Light = InSceneToRender->AllLights[i];
+            CLight* Light = InSceneToRender->AllLights.GetByIndex(i);
             
             if (!Light->ShadowMap)
             {
@@ -473,9 +473,9 @@ namespace lucid::scene
             gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
 
             // Static geometry
-            for (int i = 0; i < arrlen(InSceneToRender->StaticMeshes); ++i)
+            for (int i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
             {
-                CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes[i];
+                CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes.GetByIndex(i);
                 if (StaticMesh->bVisible)
                 {
                     CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
@@ -521,9 +521,9 @@ namespace lucid::scene
         const glm::vec2 ViewportSize = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
         const glm::vec2 NoiseScale = ViewportSize / NoiseTextureSize;
 
-        for (int i = 0; i < arrlen(InSceneToRender->StaticMeshes); ++i)
+        for (int i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
         {
-            CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes[i];
+            CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes.GetByIndex(i);
             if (StaticMesh->bVisible)
             {
                 const glm::mat4 ModelMatrix = StaticMesh->CalculateModelMatrix();
@@ -610,20 +610,20 @@ namespace lucid::scene
 
     void CForwardRenderer::RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
-        if (arrlen(InScene->AllLights) == 0)
+        if (InScene->AllLights.GetLength() == 0)
         {
             RenderWithoutLights(InScene, InRenderView);
             return;
         }
 
         gpu::CShader* LastUsedShader = nullptr;
-        RenderLightContribution(&LastUsedShader, InScene->AllLights[0], InScene, InRenderView);
+        RenderLightContribution(&LastUsedShader, InScene->AllLights.GetByIndex(0), InScene, InRenderView);
 
         // Switch blending so we render the rest of the lights additively
         gpu::ConfigurePipelineState(LightpassPipelineState);
-        for (int i = 1; i < arrlen(InScene->AllLights); ++i)
+        for (int i = 1; i < InScene->AllLights.GetLength(); ++i)
         {
-            RenderLightContribution(&LastUsedShader, InScene->AllLights[i], InScene, InRenderView);
+            RenderLightContribution(&LastUsedShader, InScene->AllLights.GetByIndex(i), InScene, InRenderView);
         }
     }
 
@@ -632,9 +632,9 @@ namespace lucid::scene
                                                    const FRenderScene* InScene,
                                                    const FRenderView* InRenderView)
     {
-        for (u32 i = 0; i < arrlen(InScene->StaticMeshes); ++i)
+        for (u32 i = 0; i < InScene->StaticMeshes.GetLength(); ++i)
         {
-            RenderStaticMesh(LastShader, InScene->StaticMeshes[i], InLight, InRenderView);
+            RenderStaticMesh(LastShader, InScene->StaticMeshes.GetByIndex(i), InLight, InRenderView);
         }
     }
 
@@ -642,9 +642,9 @@ namespace lucid::scene
     {
         gpu::CShader* LastUserShader = nullptr;
 
-        for (int i = 0; i < arrlen(InScene->StaticMeshes); ++i)
+        for (int i = 0; i < InScene->StaticMeshes.GetLength(); ++i)
         {
-            RenderStaticMesh(&LastUserShader, InScene->StaticMeshes[i], nullptr, InRenderView);
+            RenderStaticMesh(&LastUserShader, InScene->StaticMeshes.GetByIndex(i), nullptr, InRenderView);
         }
     }
 
@@ -758,9 +758,9 @@ namespace lucid::scene
         BillboardShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
         ScreenWideQuadVAO->Bind();
 
-        for (int i = 0; i < arrlen(InScene->AllLights); ++i)
+        for (int i = 0; i < InScene->AllLights.GetLength(); ++i)
         {
-            CLight* Light = InScene->AllLights[i];
+            CLight* Light = InScene->AllLights.GetByIndex(i);
             BillboardShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
             BillboardShader->SetVector(BILLBOARD_COLOR_TINT, Light->Color);
             ScreenWideQuadVAO->Draw();
@@ -785,9 +785,9 @@ namespace lucid::scene
         HitMapShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
 
         // Render static geometry
-        for (int i = 0; i < arrlen(InScene->StaticMeshes); ++i)
+        for (int i = 0; i < InScene->StaticMeshes.GetLength(); ++i)
         {
-            CStaticMesh* StaticMesh = InScene->StaticMeshes[i];
+            CStaticMesh* StaticMesh = InScene->StaticMeshes.GetByIndex(i);
             if (StaticMesh->bVisible)
             {
                 HitMapShader->SetUInt(ACTOR_ID, StaticMesh->Id);
@@ -825,9 +825,9 @@ namespace lucid::scene
         BillboardHitMapShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
         BillboardHitMapShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
 
-        for (int i = 0; i < arrlen(InScene->AllLights); ++i)
+        for (int i = 0; i < InScene->AllLights.GetLength(); ++i)
         {
-            CLight* Light = InScene->AllLights[i];
+            CLight* Light = InScene->AllLights.GetByIndex(i);
 
             BillboardHitMapShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
             BillboardHitMapShader->SetUInt(ACTOR_ID, Light->Id);

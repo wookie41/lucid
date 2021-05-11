@@ -30,6 +30,7 @@ namespace lucid::scene
         virtual IActor*         CreateActorAsset(const FDString& InName) const override;
         virtual void            LoadAsset() override;
         virtual IActor*         CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
+        virtual IActor*         CreateCopy() override { return nullptr;}
 
         static  CSkybox*        CreateActor(CSkybox* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
 

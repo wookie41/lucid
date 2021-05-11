@@ -30,11 +30,21 @@ namespace lucid::scene
 
         void            Init();
         void            AddStaticMesh(CStaticMesh* InStaticMesh);
+        void            RemoveStaticMesh(const u32& InId);
+
         void            AddDirectionalLight(CDirectionalLight* InLight);
+        void            RemoveDirectionalLight(const u32& InId);
+
         void            AddSpotLight(CSpotLight* InLight);
+        void            RemoveSpotLight(const u32& InId);
+
         void            AddPointLight(CPointLight* InLight);
+        void            RemovePointLight(const u32& InId);
+
         void            SetSkybox(CSkybox* InSkybox);
-        
+
+        void            RemoveActorById(const u32& InActorId);
+
         FRenderScene*   MakeRenderScene(CCamera* InCamera);
         IActor*         GetActorById(const u32& InActorId);
 
@@ -50,13 +60,13 @@ namespace lucid::scene
         
         FHashMap<u32, IActor*> ActorById;
 
-        u32                 NextActorId = 1;
-        CStaticMesh**       StaticMeshes = nullptr;
-        CDirectionalLight** DirectionalLights = nullptr;
-        CSpotLight**        SpotLights = nullptr;
-        CPointLight**       PointLights = nullptr;
-        CLight**            AllLights = nullptr;
-        CSkybox*            Skybox = nullptr;
+        u32                                NextActorId;
+        FHashMap<u32, CStaticMesh*>        StaticMeshes;
+        FHashMap<u32, CDirectionalLight*>  DirectionalLights;
+        FHashMap<u32, CSpotLight*>         SpotLights;
+        FHashMap<u32, CPointLight*>        PointLights;
+        FHashMap<u32, CLight*>             AllLights;
+        CSkybox*                           Skybox = nullptr;
     };
 
     CWorld* LoadWorldFromJSONFile(const FString& InFilePath);

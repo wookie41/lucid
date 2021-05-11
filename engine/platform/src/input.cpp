@@ -84,6 +84,9 @@ namespace lucid
                 case SDL_WINDOWEVENT_RESIZED:
                     ActiveWindow->OnResize(event.window.data1, event.window.data2);
                     break;
+                case SDL_WINDOWEVENT_CLOSE:
+                    ActiveWindow->OnRequestClose();
+                    break;
                 }
 
                 continue;

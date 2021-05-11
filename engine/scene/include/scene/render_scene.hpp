@@ -27,11 +27,11 @@ namespace lucid::scene
     {
         FRenderScene() = default;
 
-        CStaticMesh**       StaticMeshes = nullptr;
-        CDirectionalLight** DirectionalLights = nullptr;
-        CSpotLight**        SpotLights = nullptr;
-        CPointLight**       PointLights = nullptr;
-        CLight**            AllLights = nullptr;
-        CSkybox*            Skybox = nullptr;
+        FHashMap<u32, CStaticMesh*>       StaticMeshes;
+        FHashMap<u32, CDirectionalLight*> DirectionalLights;
+        FHashMap<u32, CSpotLight*>        SpotLights;
+        FHashMap<u32, CPointLight*>       PointLights;
+        FHashMap<u32, CLight*>            AllLights;
+        CSkybox*                          Skybox;
     };
 } // namespace lucid::scene

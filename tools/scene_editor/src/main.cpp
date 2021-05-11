@@ -90,6 +90,7 @@ struct FSceneEditorState
     scene::CWorld* World = nullptr;
 
     scene::IActor* CurrentlyDraggedActor = nullptr;
+    scene::IActor* ClipboardActor = nullptr;
     float DistanceToCurrentlyDraggedActor = 0;
 
     scene::CCamera PerspectiveCamera{ scene::ECameraMode::PERSPECTIVE };
@@ -132,12 +133,17 @@ struct FSceneEditorState
     bool GenericBoolParam1 = false;
 
     int ResourceItemsPerRow = 12;
+
+    bool bIsRunning = true;
+
+    float LastActorSpawnTime = 0;
 } GSceneEditorState;
 
 void InitializeSceneEditor();
 
 void HandleCameraMovement(const float& DeltaTime);
 void HandleActorDrag();
+void HandleInput();
 
 void UIOpenPopup();
 void UISetupDockspace();
@@ -167,7 +173,6 @@ int main(int argc, char** argv)
 
     GSceneEditorState.World = scene::LoadWorldFromJSONFile("assets/worlds/Demo.asset");
 
-    bool IsRunning = true;
 
     real now = platform::GetCurrentTimeSeconds();
     real last = 0;
@@ -177,7 +182,7 @@ int main(int argc, char** argv)
     RenderView.Camera = GSceneEditorState.CurrentCamera; // @TODO is this needed???
     RenderView.Viewport = { 0, 0, 1920, 1080 }; // @TODO Engine level variable
 
-    while (IsRunning)
+    while (GSceneEditorState.bIsRunning)
     {
         platform::Update();
         last = now;
@@ -185,11 +190,7 @@ int main(int argc, char** argv)
         dt += now - last;
         ReadEvents(GSceneEditorState.Window);
 
-        if (WasKeyPressed(SDLK_ESCAPE))
-        {
-            IsRunning = false;
-            break;
-        }
+        HandleInput();
 
         if (dt > platform::SimulationStep)
         {
@@ -440,6 +441,39 @@ void HandleActorDrag()
         }
     }
 }
+
+void HandleInput()
+{
+    if (GSceneEditorState.Window->IsRequestedClose())
+    {
+        GSceneEditorState.bIsRunning = false;
+    }
+
+    if (IsKeyPressed(SDLK_c) && IsKeyPressed(SDLK_LCTRL))
+    {
+        if (GSceneEditorState.CurrentlyDraggedActor)
+        {
+            GSceneEditorState.ClipboardActor = GSceneEditorState.CurrentlyDraggedActor; 
+        }
+    }
+
+    if (IsKeyPressed(SDLK_v) && IsKeyPressed(SDLK_LCTRL))
+    {
+        if (GSceneEditorState.ClipboardActor && (platform::GetCurrentTimeSeconds() - GSceneEditorState.LastActorSpawnTime) > 0.5)
+        {
+            GSceneEditorState.LastActorSpawnTime = platform::GetCurrentTimeSeconds();
+            GSceneEditorState.ClipboardActor->CreateCopy();
+        }
+    }
+
+    if (IsKeyPressed(SDLK_DELETE) && GSceneEditorState.CurrentlyDraggedActor)
+    {
+        GSceneEditorState.World->RemoveActorById(GSceneEditorState.CurrentlyDraggedActor->Id);
+        GSceneEditorState.CurrentlyDraggedActor = nullptr;
+    }
+
+}
+
 
 void UIOpenPopup(const char* InTitle)
 {

@@ -62,7 +62,7 @@ namespace lucid
 
         void        Add(const K& Key, const V& Value);
         V&          Get(const K& Key);
-        V&          GetByIndex(const u64& EntryNum);
+        V&          GetByIndex(const u64& EntryNum) const;
         void        Remove(const K& Key);
         bool        Contains(const K& Key);
         u32         GetLength() const;

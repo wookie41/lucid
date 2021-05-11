@@ -37,6 +37,7 @@ namespace lucid::scene
         static  EActorType      GetActorTypeStatic() { return EActorType::STATIC_MESH; }
         virtual EActorType      GetActorType() const override { return EActorType::STATIC_MESH; }
         virtual IActor*         CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
+        virtual IActor*         CreateCopy() override;
 
         static  CStaticMesh*    CreateActor(CStaticMesh* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
 
@@ -45,6 +46,8 @@ namespace lucid::scene
 
         virtual IActor*         CreateActorAsset(const FDString& InName) const override;
         virtual void            LoadAsset() override;
+
+        virtual void            OnRemoveFromWorld() override;
         
 #if DEVELOPMENT
         /** Editor stuff */
@@ -69,5 +72,7 @@ namespace lucid::scene
         bool                        bReverseNormals = false;
 
         FArray<CMaterial*>          MaterialSlots { 1, true };
+
+        CStaticMesh*                BaseStaticMesh = nullptr;
     };
 } // namespace lucid::scene
