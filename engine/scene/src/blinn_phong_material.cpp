@@ -69,7 +69,7 @@ namespace lucid::scene
 
     void CBlinnPhongMaterial::UIDrawMaterialEditor()
     {
-        ImGui::Text("%s <Blinn Phong>", *Name);
+        CMaterial::UIDrawMaterialEditor();
         ImGui::InputInt("Shininess", (int*)&Shininess);
         ImGui::DragFloat3("Diffuse color", &DiffuseColor.r, 0.005, 0, 1);
         ImGui::DragFloat3("Specular color", &SpecularColor.r, 0.005, 0, 1);
@@ -229,7 +229,7 @@ namespace lucid::scene
     
     void CBlinnPhongMapsMaterial::UIDrawMaterialEditor()
     {
-        ImGui::Text("%s <Blinn Phong Maps>", *Name);
+        CMaterial::UIDrawMaterialEditor();
         ImGui::InputInt("Shininess", (int*)&Shininess);
         ImGui::DragFloat3("Fallback Specular color", &SpecularColor.r, 0.005, 0, 1);
 

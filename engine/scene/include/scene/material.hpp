@@ -49,7 +49,7 @@ namespace lucid::scene
         virtual ~CMaterial() = default;
 
 #if DEVELOPMENT
-        virtual void UIDrawMaterialEditor() = 0;
+        virtual void UIDrawMaterialEditor();
 #endif
     
         UUID            ID;
@@ -60,6 +60,8 @@ namespace lucid::scene
 
     protected:
         virtual void            InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat) = 0;
+
+        bool bIsRenaming = false;
 
     };
 } // namespace lucid::scene
