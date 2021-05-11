@@ -3,6 +3,7 @@
 #include "scene/actors/actor.hpp"
 #include "scene/actors/actor_enums.hpp"
 #include "schemas/types.hpp"
+#include "common/collections.hpp"
 
 namespace lucid::resources
 {
@@ -51,6 +52,12 @@ namespace lucid::scene
     protected:
         virtual void    InternalSaveToResourceFile(const FString& InFilePath) override;
         void            UpdateMaterialSlots(CStaticMesh const* BaseStaticMesh);
+        void            HandleBaseAssetMeshResourceChange(resources::CMeshResource* OldMesh);
+        void            HandleBaseAssetNumMaterialsChange(const bool& bAdded);
+        void            HandleBaseAssetMaterialSlotChange(CMaterial* InOldMaterial, const u8& InMaterialSlot);
+
+        FLinkedList<CStaticMesh>     ChildReferences; // actors that specify this actor as their BaseActorAsset, used for propagating changes
+    
     public:
 #endif
 

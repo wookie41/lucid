@@ -1291,7 +1291,7 @@ void UIDrawMaterialContextMenu()
 
     if (ImGui::Button("Close"))
     {
-        GSceneEditorState.ClickedTextureResource = nullptr;
+        GSceneEditorState.ClickedMaterialAsset = nullptr;
         GSceneEditorState.bDisableCameraMovement = false;
         ImGui::CloseCurrentPopup();
     }

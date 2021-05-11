@@ -22,15 +22,15 @@ namespace lucid::scene
             // Don't allow do modify translation and similar things on actor assets
             if (ResourceId == sole::INVALID_UUID)
             {
-                bBaseActorAssetChanged = false;
+                PrevBaseActorAsset = nullptr;
                 IActor* OldBaseActor = BaseActorAsset;
 
                 ImGui::Text("Base actor asset:");
                 ImGuiActorAssetPicker("Base actor asset", &BaseActorAsset);
 
-                if (BaseActorAsset && BaseActorAsset != OldBaseActor && BaseActorAsset->GetActorType() == GetActorType())
+                if (BaseActorAsset && BaseActorAsset != OldBaseActor && BaseActorAsset->GetActorType() == OldBaseActor->GetActorType())
                 {
-                    bBaseActorAssetChanged = true;
+                    PrevBaseActorAsset = OldBaseActor;
                     if (!BaseActorAsset->bAssetLoaded)
                     {
                         BaseActorAsset->LoadAsset();

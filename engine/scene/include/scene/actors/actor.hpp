@@ -90,7 +90,7 @@ namespace lucid::scene
     protected:
 
         IActor*                 BaseActorAsset = nullptr;
-        bool                    bBaseActorAssetChanged = false;
+        IActor*                 PrevBaseActorAsset = nullptr;
         
         virtual ~IActor() = default;    
 

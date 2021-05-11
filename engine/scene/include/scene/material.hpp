@@ -52,9 +52,9 @@ namespace lucid::scene
         virtual void UIDrawMaterialEditor() = 0;
 #endif
     
-        UUID      ID;
-        FDString  Name;
-        FDString  ResourcePath;
+        UUID            ID;
+        FDString        Name;
+        FDString        ResourcePath;
         gpu::CShader*   Shader;
         bool            bIsAsset = false;
 
