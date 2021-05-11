@@ -1,7 +1,7 @@
 #include "scene/forward_renderer.hpp"
 
 #include <resources/mesh_resource.hpp>
-
+#include "GL/glew.h"
 #include "devices/gpu/shaders_manager.hpp"
 #include "engine/engine.hpp"
 
@@ -226,6 +226,16 @@ namespace lucid::scene
         SSAOResult->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
         SSAOResult->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
 
+        // Setup a SSAO framebuffer
+        SSAOFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        SSAOFramebuffer->SetupColorAttachment(0, SSAOResult);
+
+        if (!SSAOFramebuffer->IsComplete())
+        {
+            LUCID_LOG(ELogLevel::ERR, LUCID_TEXT("Failed to setup the SSAO framebuffer"));
+            return;
+        }
+
         // Create texture for the blurred SSAO result
         SSAOBlurred = gpu::CreateEmpty2DTexture(ResultResolution.x,
                                                 ResultResolution.y,
@@ -240,17 +250,7 @@ namespace lucid::scene
         SSAOBlurred->SetWrapSFilter(gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
         SSAOBlurred->SetWrapTFilter(gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
         SSAOBlurred->SetBorderColor({1, 1, 1, 1});
-
-        // Setup a SSAO framebuffer
-        SSAOFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        SSAOFramebuffer->SetupColorAttachment(0, SSAOResult);
-
-        if (!SSAOFramebuffer->IsComplete())
-        {
-            LUCID_LOG(ELogLevel::ERR, LUCID_TEXT("Failed to setup the SSAO framebuffer"));
-            return;
-        }
-
+        
         // Create color attachment for the lighting pass framebuffer
         LightingPassColorBuffer = gpu::CreateEmpty2DTexture(ResultResolution.x,
                                                             ResultResolution.y,
@@ -583,8 +583,9 @@ namespace lucid::scene
         // Blur SSAO
         BlurFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         BlurFramebuffer->SetupColorAttachment(0, SSAOBlurred);
-        gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
-
+        
+        gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR));
+        
         SimpleBlurShader->Use();
         SimpleBlurShader->UseTexture(SIMPLE_BLUR_TEXTURE, SSAOResult);
         SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_X, SimpleBlurXOffset);
@@ -708,7 +709,6 @@ namespace lucid::scene
             {
                 InLight->SetupShader(*LastShader);
             }
-
             (*LastShader)->SetMatrix(MODEL_MATRIX, ModelMatrix);
             (*LastShader)->SetBool(REVERSE_NORMALS, InStaticMesh->GetReverseNormals());
 

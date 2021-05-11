@@ -36,7 +36,7 @@ namespace lucid::gpu
         virtual void SetBool(const FString& InUniformName, const bool& Value) = 0;
 
         virtual void SetVector(const FString& InUniformName, const glm::vec2& Value) = 0;
-        virtual void    SetVector(const FString& InUniformName, const glm::vec3& Value) = 0;
+        virtual void SetVector(const FString& InUniformName, const glm::vec3& Value) = 0;
         virtual void SetVector(const FString& InUniformName, const glm::vec4& Value) = 0;
 
         virtual void SetVector(const FString& InUniformName, const glm::ivec2& Value) = 0;

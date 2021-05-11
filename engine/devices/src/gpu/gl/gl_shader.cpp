@@ -121,6 +121,8 @@ namespace lucid::gpu
 
         char UniformNameBuff[MAX_UNIFORM_VARIABLE_NAME_LENGTH];
 
+        glUseProgram(ShaderProgramID);
+
         for (GLint UniformIdx = 0; UniformIdx < numberOfUniforms; ++UniformIdx)
         {
             //@TODO exclude gl_ prefixed uniforms
@@ -141,9 +143,13 @@ namespace lucid::gpu
                 NewTextureVariable.TextureIndex = texturesCount++;
                 NewTextureVariable.BoundTexture = nullptr;
                 textureBindings.Add(NewTextureVariable);
+
+                glUniform1i(GLUniformLocation, NewTextureVariable.TextureIndex);
+
                 continue;
             }
 
+            
             FUniformVariable NewVariable;
             NewVariable.Location = GLUniformLocation;
             NewVariable.Name = CopyToString(UniformNameBuff, GLUniformNameLength);
