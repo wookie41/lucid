@@ -28,7 +28,9 @@ namespace lucid::scene
     /** Id for the skybox renderable, as there is always only one skybox */
     static const u32 SkyboxRenderableId = 4294967295;
 
-    void CWorld::Init() {}
+    void CWorld::Init()
+    {
+    }
 
     void CWorld::AddStaticMesh(CStaticMesh* InStaticMesh)
     {

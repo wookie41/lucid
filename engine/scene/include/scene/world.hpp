@@ -60,7 +60,7 @@ namespace lucid::scene
         
         FHashMap<u32, IActor*> ActorById;
 
-        u32                                NextActorId;
+        u32                                NextActorId = 1;
         FHashMap<u32, CStaticMesh*>        StaticMeshes;
         FHashMap<u32, CDirectionalLight*>  DirectionalLights;
         FHashMap<u32, CSpotLight*>         SpotLights;
