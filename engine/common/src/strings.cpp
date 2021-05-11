@@ -35,6 +35,12 @@ namespace lucid
     {
         return (char*)CopyBytes(CString, Length + 1);
     }
+    
+    void FString::CopyToBuffer(char* InDestination) const
+    {
+        memcpy(InDestination, CString, Length);
+        InDestination[Length] = '\0';
+    }
 
     /**************************************
     *          Dynamic ANSI String        *
@@ -82,6 +88,15 @@ namespace lucid
     FDString FDString::GetCopy() const
     {
         return CopyToString(CString, Length);
+    }
+
+    void FDString::ReplaceWithBuffer(const char* InBuffer)
+    {
+        Free();
+        Length = strlen(InBuffer);
+        CString = (char*)CopyBytes(InBuffer, Length, Length+ 1);
+        CString[Length] = '\0';
+        UpdateLengthAndCalculateHash(Length);
     }
     
     /**************************************

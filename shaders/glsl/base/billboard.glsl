@@ -11,7 +11,7 @@ vec4 CalculateBillboardPosition()
 {
     vec4 VertexClipPos = uProjection * uView * uBillboardMatrix * vec4(aPosition, 1);
     vec4 BillboardCenterClipPos = uProjection * uView * vec4(uBillboardWorldPos, 1.0);
-    vec4 BillboardHalfSize = vec4((uViewportSize * uBillboardViewportSize) / uViewportSize / 2.0, 0, 0);
+    vec4 BillboardHalfSize = vec4((uViewportSize * uBillboardViewportSize) / uViewportSize / 2.0, 0, 0) * 5;
 
     return BillboardCenterClipPos + (BillboardHalfSize * VertexClipPos);
 }

@@ -189,7 +189,7 @@ namespace lucid::scene
         InShader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(OuterCutOffRad));
         InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
 
-        if (ShadowMap != nullptr)
+        if (ShadowMap)
         {
             InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
             InShader->UseTexture(LIGHT_SHADOW_MAP, ShadowMap->GetShadowMapTexture());
@@ -300,7 +300,7 @@ namespace lucid::scene
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_4, LightSpaceMatrices[4]);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_5, LightSpaceMatrices[5]);
 
-        if (ShadowMap != nullptr)
+        if (ShadowMap)
         {
             InShader->SetBool(LIGHT_CASTS_SHADOWS, true);
             InShader->UseTexture(LIGHT_SHADOW_CUBE, ShadowMap->GetShadowMapTexture());

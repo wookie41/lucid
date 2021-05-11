@@ -85,7 +85,7 @@ namespace lucid::scene
          */
         u32                     Id = 0;
         IActor*                 Parent     = nullptr;
-        const FDString          Name;
+        FDString                Name;
         FTransform3D            Transform;
         bool                    bVisible = true;
         UUID                    ResourceId = sole::INVALID_UUID;
@@ -98,5 +98,9 @@ namespace lucid::scene
 
         IActor*                 BaseActorAsset = nullptr;
         IActor*                 PrevBaseActorAsset = nullptr;
+
+#if DEVELOPMENT
+        bool bRenaming = false;
+#endif
     };
 } // namespace lucid::scene

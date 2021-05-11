@@ -1,0 +1,7 @@
+{
+    "Id": "e0a85470-1407-416e-875a-4c4757a52de3",
+    "Name": "BackpackMaterial_e0a85470-1407-416e-875a-4c4757a52de3",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
+    "SpecularTextureID": "761e8f37-06b1-4af3-8c6c-8a2931dc56f6"
+}

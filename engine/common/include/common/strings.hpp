@@ -19,11 +19,15 @@ namespace lucid
         char operator[](const u32& InIndex) const;
         char* operator*() const { return CString; } 
 
-        char* GetBytesCopy() const;
+        char*   GetBytesCopy() const;
+        void    CopyToBuffer(char* InDestination) const;
+
         inline bool operator==(const FString& InRhs) const { return Hash == InRhs.Hash; };
         inline bool operator!=(const FString& InRhs) const { return Hash != InRhs.Hash; };
+
         inline u32 GetLength() const { return Length; }
         inline u64 GetHash() const { return Hash; }
+
         virtual void Free() {}
 
         virtual ~FString() = default;
@@ -48,6 +52,9 @@ namespace lucid
         void Append(const FString& InString);
         void Append(const char* InString, const u64& InStringLength);
 
+        void ReplaceWithBuffer(const char* InBuffer);
+
+        
         void operator=(const FDString& InRHS);
 
         FDString GetCopy() const;

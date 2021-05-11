@@ -17,7 +17,28 @@ namespace lucid::scene
 
         if (ImGui::CollapsingHeader("Actor"))
         {
-            ImGui::Text(ResourceId == sole::INVALID_UUID ? "Actor name: %s" : "Actor asset name: %s", *Name);
+            static char RenameBuffer[256];
+
+            if (bRenaming)
+            {
+                ImGui::InputText("##Rename Actor", RenameBuffer,255);
+                ImGui::SameLine();
+                if (ImGui::Button("Rename"))
+                {
+                    Name.ReplaceWithBuffer(RenameBuffer);
+                    bRenaming = false;
+                }
+            }
+            else
+            {
+                ImGui::Text(ResourceId == sole::INVALID_UUID ? "Actor name: %s" : "Actor asset name: %s", *Name);
+                ImGui::SameLine();
+                if (ImGui::Button("Rename"))
+                {
+                    Name.CopyToBuffer(RenameBuffer);
+                    bRenaming = true;
+                }
+            }
 
             // Don't allow do modify translation and similar things on actor assets
             if (ResourceId == sole::INVALID_UUID)
@@ -25,21 +46,25 @@ namespace lucid::scene
                 PrevBaseActorAsset = nullptr;
                 IActor* OldBaseActor = BaseActorAsset;
 
-                ImGui::Text("Base actor asset:");
-                ImGuiActorAssetPicker("Base actor asset", &BaseActorAsset);
+                if (BaseActorAsset)
+                {
+                    ImGui::Text("Base actor asset:");
+                    ImGuiActorAssetPicker("Base actor asset", &BaseActorAsset);
 
-                if (BaseActorAsset && BaseActorAsset != OldBaseActor && BaseActorAsset->GetActorType() == OldBaseActor->GetActorType())
-                {
-                    PrevBaseActorAsset = OldBaseActor;
-                    if (!BaseActorAsset->bAssetLoaded)
+                    if (BaseActorAsset && BaseActorAsset != OldBaseActor &&
+                        BaseActorAsset->GetActorType() == OldBaseActor->GetActorType())
                     {
-                        BaseActorAsset->LoadAsset();
-                        BaseActorAsset->bAssetLoaded = true;
+                        PrevBaseActorAsset = OldBaseActor;
+                        if (!BaseActorAsset->bAssetLoaded)
+                        {
+                            BaseActorAsset->LoadAsset();
+                            BaseActorAsset->bAssetLoaded = true;
+                        }
                     }
-                }
-                else
-                {
-                    BaseActorAsset = OldBaseActor;
+                    else
+                    {
+                        BaseActorAsset = OldBaseActor;
+                    }
                 }
 
                 static glm::vec3 EulerRotation{ glm::degrees(eulerAngles(Transform.Rotation).x),

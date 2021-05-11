@@ -152,6 +152,11 @@ namespace lucid::scene
         for (const FStaticMeshDescription& StaticMeshDescription : InWorldDescription.StaticMeshes)
         {
             auto* ActorAsset = GEngine.GetActorsResources().Get(StaticMeshDescription.BaseActorResourceId);
+            if (!ActorAsset)
+            {
+                LUCID_LOG(ELogLevel::WARN, "Failed to create static mesh %s - no base asset", *StaticMeshDescription.Name);
+                continue;;
+            }
             if (!ActorAsset->bAssetLoaded)
             {
                 ActorAsset->LoadAsset();

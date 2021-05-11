@@ -471,7 +471,6 @@ void HandleInput()
         GSceneEditorState.World->RemoveActorById(GSceneEditorState.CurrentlyDraggedActor->Id);
         GSceneEditorState.CurrentlyDraggedActor = nullptr;
     }
-
 }
 
 
