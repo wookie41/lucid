@@ -21,7 +21,7 @@ namespace lucid::scene
                 gpu::CCubemap* InSkyboxCubemap,
                 const u32& InWidth,
                 const u32& InHeight,
-                const resources::CTextureResource* InFaceTextures[6]);
+                resources::CTextureResource const* const InFaceTextures[6]);
 
         virtual float GetVerticalMidPoint() const override;
 
@@ -29,6 +29,7 @@ namespace lucid::scene
         virtual EActorType      GetActorType() const override  { return EActorType::SKYBOX; }
         virtual IActor*         CreateActorAsset(const FDString& InName) const override;
         virtual void            LoadAsset() override;
+        virtual IActor*         CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
 
         static  CSkybox*        CreateActor(CSkybox* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
 
@@ -45,10 +46,10 @@ namespace lucid::scene
 #endif
         void FillDescription(FSkyboxDescription& OutDescription) const;
         
-        u32 Width, Height;
-        gpu::CCubemap* SkyboxCubemap = nullptr;
-        const resources::CTextureResource* FaceTextures[6];
-        CSkybox const* BaseSkyboxResource;
+        u32                                     Width, Height;
+        gpu::CCubemap*                          SkyboxCubemap = nullptr;
+        resources::CTextureResource const*      FaceTextures[6];
+        CSkybox const*                          BaseSkyboxResource;
     };
 
     CSkybox* CreateSkybox(const resources::CTextureResource* FaceTextures[6],

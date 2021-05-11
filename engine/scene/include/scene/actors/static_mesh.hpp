@@ -36,6 +36,7 @@ namespace lucid::scene
 
         static  EActorType      GetActorTypeStatic() { return EActorType::STATIC_MESH; }
         virtual EActorType      GetActorType() const override { return EActorType::STATIC_MESH; }
+        virtual IActor*         CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
 
         static  CStaticMesh*    CreateActor(CStaticMesh* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
 

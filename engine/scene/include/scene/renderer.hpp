@@ -71,7 +71,7 @@ namespace lucid::scene
     /** Stores ids of the objects on the scene, used for picking in tools */
     struct FHitMap
     {
-        inline u32 GetIdAtMousePositon(const glm::vec2& MousePosition) const
+        inline u64 GetIdAtMousePositon(const glm::vec2& MousePosition) const
         {
             if (MousePosition.x > 0 && (int)MousePosition.x < Width &&
                 MousePosition.y > 0 && (int)MousePosition.y < Height)

@@ -313,7 +313,7 @@ namespace lucid::scene
         assert(BaseActorResource);
         assert(InWorld);
 
-        auto* Parent = InStaticMeshDescription.ParentId > 0 ? InWorld->GetActorById(InStaticMeshDescription.ParentId) : nullptr;
+        auto* Parent = InStaticMeshDescription.ParentId == 0 ? nullptr : InWorld->GetActorById(InStaticMeshDescription.ParentId);
 
         resources::CMeshResource* MeshResource;
         if (InStaticMeshDescription.MeshResourceId.bChanged)
@@ -325,8 +325,8 @@ namespace lucid::scene
             MeshResource = BaseActorResource->MeshResource;
         }
 
-        auto* StaticMesh =
-          new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
+        auto* StaticMesh = new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
+        StaticMesh->Id = InStaticMeshDescription.Id;
         StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
         StaticMesh->Transform.Rotation = Float4ToQuat(InStaticMeshDescription.Rotation);
         StaticMesh->Transform.Scale = Float3ToVec(InStaticMeshDescription.Scale);
@@ -416,5 +416,20 @@ namespace lucid::scene
             LUCID_LOG(ELogLevel::WARN, "Failed to load asset %s - couldn't read file %s", *Name, *ResourcePath)
         }
     }
+
+    IActor* CStaticMesh::CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition)
+    {
+        auto* SpawnedMesh = new CStaticMesh { Name.GetCopy(), nullptr, InWorld, MeshResource, Type };
+        for (u8 i = 0; i < MaterialSlots.GetLength(); ++i)
+        {
+            SpawnedMesh->AddMaterial((*MaterialSlots[i])->GetCopy());
+        }
+        SpawnedMesh->Transform.Translation = InSpawnPosition;
+        SpawnedMesh->BaseActorAsset = this;
+        ChildReferences.Add(SpawnedMesh);
+        InWorld->AddStaticMesh(SpawnedMesh);
+        return SpawnedMesh;
+    }
+
 
 } // namespace lucid::scene

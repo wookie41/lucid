@@ -98,7 +98,15 @@ namespace lucid::scene
         // If actor doesn't have an id yet or it's not in the map
         if (InActor->Id == 0 || !ActorById.Contains(InActor->Id))
         {
-            InActor->Id = NextActorId++;
+            if (InActor->Id == 0)
+            {
+                InActor->Id = NextActorId++;                
+            }
+            else
+            {
+                NextActorId = NextActorId > InActor->Id ? NextActorId : InActor->Id + 1;
+            }
+            
             ActorById.Add(InActor->Id, InActor);
             LUCID_LOG(ELogLevel::INFO, "Actor '%s' added to the world", *InActor->Name);
             return InActor->Id;

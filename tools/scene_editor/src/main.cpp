@@ -57,6 +57,7 @@ constexpr char SCENE_HIERARCHY[] = "Scene hierarchy";
 constexpr char MAIN_DOCKSPACE[] = "MainDockSpace";
 constexpr char POPUP_WINDOW[] = "PopupWindow";
 constexpr char ACTOR_DETAILS[] = "Actor Details";
+constexpr char ACTOR_ASSET_DRAG_TYPE[] = "ACTOR_ASSET_DRAG_TYPE";
 
 enum class EImportingTextureType : u8
 {
@@ -501,6 +502,23 @@ void UIDrawSceneWindow()
         // Draw the rendered scene into an image
         GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage(
           { GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
+
+
+        // Handle drag and drop into the viewport
+        if (ImGui::BeginDragDropTargetCustom(GSceneEditorState.ImSceneWindow->Rect(), GSceneEditorState.ImSceneWindow->ID))
+        {
+            if (const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload(ACTOR_ASSET_DRAG_TYPE))
+            {
+                IM_ASSERT(Payload->DataSize == sizeof(sole::uuid));
+                const sole::uuid ActorAssetId = *(sole::uuid*)Payload->Data;
+                if(GEngine.GetActorsResources().Contains(ActorAssetId))
+                {
+                    GEngine.GetActorsResources().Get(ActorAssetId)->CreateActorInstance(GSceneEditorState.World, {0, 0, 0});
+                }
+            }
+
+            ImGui::EndDragDropTarget();
+        }
     }
     ImGui::PopStyleVar(1);
     ImGui::End();
@@ -800,6 +818,17 @@ void UIDrawResourceBrowserWindow()
                             GSceneEditorState.EditedStaticMesh = StaticMeshActor;
                         }
                     }
+                    
+                    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+                    {
+                        // Set payload the pointer to ActorAsset
+                        ImGui::SetDragDropPayload(ACTOR_ASSET_DRAG_TYPE, &ActorAsset->ResourceId, sizeof(sole::uuid));
+
+                        // Display preview (could be anything, e.g. when dragging an image we could decide to display
+                        // the filename and a small preview of the image, etc.)
+                        ImGui::Text(*ActorAsset->Name); 
+                        ImGui::EndDragDropSource();
+                    }
 
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
@@ -1057,7 +1086,7 @@ void UIDrawSceneHierarchyWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
     ImGui::Begin(SCENE_HIERARCHY, nullptr, WindowFlags);
-    {
+    {   
         auto& ActorMap = GSceneEditorState.World->GetActorsMap();
         for (u32 i = 0; i < ActorMap.GetLength(); ++i)
         {

@@ -47,7 +47,7 @@ namespace lucid::scene
                      gpu::CCubemap* InSkyboxCubemap,
                      const u32& InWidth,
                      const u32& InHeight,
-                     const resources::CTextureResource* InFaceTextures[6])
+                     resources::CTextureResource const* const InFaceTextures[6])
     : IActor(InName, InParent, InWorld), SkyboxCubemap(InSkyboxCubemap), Width(InWidth), Height(InHeight)
     {
         if (InFaceTextures)
@@ -235,5 +235,14 @@ namespace lucid::scene
             LUCID_LOG(ELogLevel::WARN, "Failed to load asset %s - couldn't read file %s", *Name, *ResourcePath)
         }
     }
+
+    IActor* CSkybox::CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition)
+    {
+        auto* SpawnedSkybox = new CSkybox { Name.GetCopy(), nullptr, InWorld, SkyboxCubemap, Width, Height, FaceTextures };
+        World->SetSkybox(SpawnedSkybox);
+        SpawnedSkybox->BaseSkyboxResource = this;
+        return SpawnedSkybox;
+    };
+
 
 } // namespace lucid::scene
