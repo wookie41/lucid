@@ -231,7 +231,7 @@ namespace lucid::gpu
 
     bool CGLTexture::ImGuiImageButton(const ImVec2& InImageSize) const
     {
-        return ImGui::ImageButton((ImTextureID)GLTextureHandle, InImageSize, {0, 1}, {1, 0}, 1);
+        return ImGui::ImageButton((ImTextureID)GLTextureHandle, InImageSize, {0, 1}, {1, 0}, 5);
     }
 
     void CGLTexture::SetBorderColor(const FColor& InColor)
@@ -267,8 +267,7 @@ namespace lucid::gpu
 
         for (int i = 0; i < 6; ++i)
         {
-            glTexImage2D(
-              GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GLDataFormat, Width, Height, 0, GLPixelFormat, GLDataType, FaceTexturesData ? FaceTexturesData[i] : nullptr);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GLDataFormat, Width, Height, 0, GLPixelFormat, GLDataType, FaceTexturesData ? FaceTexturesData[i] : nullptr);
         }
 
         // Default sampling parameters
@@ -278,7 +277,7 @@ namespace lucid::gpu
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, TO_GL_WRAP_FILTER(InWrapS));
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TO_GL_WRAP_FILTER(InWrapT));
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, TO_GL_WRAP_FILTER(InWrapR));
-        // glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, &InBorderColor.r);
+        glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, &InBorderColor.r);
         
         auto* GLCubemap = new CGLCubemap(handle, Width, Height, InName, DataType, InPixelFormat);
         GLCubemap->SetObjectName();

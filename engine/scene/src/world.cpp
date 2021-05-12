@@ -111,24 +111,17 @@ namespace lucid::scene
 
     u32 CWorld::AddActor(IActor* InActor)
     {
-        // If actor doesn't have an id yet or it's not in the map
-        if (InActor->Id == 0 || !ActorById.Contains(InActor->Id))
+        if (InActor->Id == 0)
         {
-            if (InActor->Id == 0)
-            {
-                InActor->Id = NextActorId++;
-            }
-            else
-            {
-                NextActorId = NextActorId > InActor->Id ? NextActorId : InActor->Id + 1;
-            }
-
-            ActorById.Add(InActor->Id, InActor);
-            LUCID_LOG(ELogLevel::INFO, "Actor '%s' added to the world", *InActor->Name);
-            return InActor->Id;
+            InActor->Id = NextActorId++;
         }
-        LUCID_LOG(ELogLevel::WARN, "Duplicate actor '%s', id %d", *InActor->Name, InActor->Id)
-        return 0;
+        else
+        {
+            NextActorId = NextActorId > InActor->Id ? NextActorId : InActor->Id + 1;
+        }
+        ActorById.Add(InActor->Id, InActor);
+        LUCID_LOG(ELogLevel::INFO, "Actor '%s' added to the world", *InActor->Name);
+        return InActor->Id;
     }
 
     CWorld* LoadWorldFromJSONFile(const FString& InFilePath)
@@ -333,15 +326,17 @@ namespace lucid::scene
         WriteToBinaryFile(WorldDescription, *InFilePath);
     }
 
-    void CWorld::RemoveActorById(const u32& InActorId)
+    IActor* CWorld::RemoveActorById(const u32& InActorId)
     {
         if (ActorById.Contains(InActorId))
         {
             IActor* Actor = ActorById.Get(InActorId);
             Actor->OnRemoveFromWorld();
-            delete Actor;
             ActorById.Remove(InActorId);
+            return Actor;
         }
+
+        return nullptr;
     }
 
 } // namespace lucid::scene

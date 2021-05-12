@@ -40,6 +40,9 @@ namespace lucid::scene
 
         void AddRotation(real YawOffset, real PitchOffset, const bool& constrainPitch = true);
 
+        glm::vec3 GetMouseRayInViewSpace(const glm::vec2& InMousePosNDC, const float InT = 1) const;
+        glm::vec3 GetMouseRayInWorldSpace(const glm::vec2& InMousePosNDC, const float InT = 1) const;
+
         real NearPlane = 0.1;
         real FarPlane = 100.0;
 

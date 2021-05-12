@@ -51,7 +51,7 @@ namespace lucid::scene
         virtual void        LoadAsset() override { assert(0); }
         virtual IActor*     CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override { assert(0); return nullptr; };
 
-        glm::vec3   Color           { 0, 0, 0 };
+        glm::vec3   Color           { 1, 1, 1 };
         u8          Quality         = 1;
 
         CShadowMap* ShadowMap       = nullptr;
@@ -80,11 +80,13 @@ namespace lucid::scene
         virtual void        SetupShader(gpu::CShader* InShader) const override;
         virtual void        SetupShadowMapShader(gpu::CShader* InShader) override;
         virtual IActor*     CreateCopy() override;
+
+        virtual void        OnAddToWorld(CWorld* InWorld) override;
         virtual void        OnRemoveFromWorld() override;
 
         virtual ELightType GetType() const override { return ELightType::DIRECTIONAL; }
 
-        glm::vec3 Direction = { 0, 0, 0 };
+        glm::vec3 Direction = { 0, 0, -1 };
         glm::vec3 LightUp{ 0, 1, 0 };
         glm::mat4 LightSpaceMatrix{ 1 };
         
@@ -110,18 +112,20 @@ namespace lucid::scene
         virtual void    SetupShader(gpu::CShader* InShader) const override;
         virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
         virtual IActor* CreateCopy() override;
+
+        virtual void    OnAddToWorld(CWorld* InWorld) override;
         virtual void    OnRemoveFromWorld() override;
 
-        glm::vec3 Direction { 0, 0, 0 };
+        glm::vec3 Direction { 0, 0, -1 };
         glm::vec3 LightUp   { 0, 1, 0 };
 
         glm::mat4 LightSpaceMatrix { 1 };
 
-        float Constant       = 0;
-        float Linear         = 0;
-        float Quadratic      = 0;
-        float InnerCutOffRad = 0;
-        float OuterCutOffRad = 0;
+        float Constant  = 0.2;
+        float Linear    = 0.1;
+        float Quadratic = 1/6;
+        float InnerCutOffRad = 0.523598776; // 30 deg
+        float OuterCutOffRad = 0.785398163; // 45 deg
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;
@@ -144,11 +148,13 @@ namespace lucid::scene
         virtual void    SetupShader(gpu::CShader* InShader) const override;
         virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
         virtual IActor* CreateCopy() override;
+
+        virtual void    OnAddToWorld(CWorld* InWorld) override;
         virtual void    OnRemoveFromWorld() override;
 
-        float Constant  = 0;
-        float Linear    = 0;
-        float Quadratic = 0;
+        float Constant  = 0.2;
+        float Linear    = 0.1;
+        float Quadratic = 0.015;
 
         glm::mat4 LightSpaceMatrices[6];
 

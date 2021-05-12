@@ -47,6 +47,7 @@ namespace lucid::scene
         virtual IActor*         CreateActorAsset(const FDString& InName) const override;
         virtual void            LoadAsset() override;
 
+        virtual void            OnAddToWorld(CWorld* InWorld) override;
         virtual void            OnRemoveFromWorld() override;
         
 #if DEVELOPMENT

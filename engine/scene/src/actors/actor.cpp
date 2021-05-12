@@ -65,6 +65,8 @@ namespace lucid::scene
                     {
                         BaseActorAsset = OldBaseActor;
                     }
+
+                    ImGui::Text("Parent: %s", Parent ? Parent->Name : "None");
                 }
 
                 static glm::vec3 EulerRotation{ glm::degrees(eulerAngles(Transform.Rotation).x),
@@ -107,13 +109,22 @@ namespace lucid::scene
         }
     }
 
+    void IActor::OnAddToWorld(CWorld* InWorld)
+    {
+        for (u32 i = 0; i < Children.GetLength(); ++i)
+        {
+            auto* ChildActor = *Children[i];
+            ChildActor->OnAddToWorld(InWorld);
+        }
+        World = InWorld;
+    }
+    
     void IActor::OnRemoveFromWorld()
     {
         for (u32 i = 0; i < Children.GetLength(); ++i)
         {
             auto* ChildActor = *Children[i];
             ChildActor->OnRemoveFromWorld();
-            delete ChildActor;
         }
     }
 

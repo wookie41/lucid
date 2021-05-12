@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <scene/actors/actor.hpp>
-
+#include <scene/actors/lights.hpp>
 
 #include "imgui_lucid.h"
 
@@ -57,12 +57,21 @@ constexpr char SCENE_HIERARCHY[] = "Scene hierarchy";
 constexpr char MAIN_DOCKSPACE[] = "MainDockSpace";
 constexpr char POPUP_WINDOW[] = "PopupWindow";
 constexpr char ACTOR_DETAILS[] = "Actor Details";
+constexpr char COMMON_ACTORS[] = "Common actors";
 constexpr char ACTOR_ASSET_DRAG_TYPE[] = "ACTOR_ASSET_DRAG_TYPE";
+constexpr char COMMON_ACTOR_DRAG_TYPE[] = "COMMON_ACTOR_DRAG_TYPE";
 
 enum class EImportingTextureType : u8
 {
     JPG,
     PNG
+};
+
+enum class ECommonActorType : u8
+{
+    DIRECTIONAL_LIGHT,
+    SPOT_LIGHT,
+    POINT_LIGHT
 };
 
 struct FSceneEditorState
@@ -90,7 +99,9 @@ struct FSceneEditorState
     scene::CWorld* World = nullptr;
 
     scene::IActor* CurrentlyDraggedActor = nullptr;
+    scene::IActor* LastDeletedActor = nullptr;
     scene::IActor* ClipboardActor = nullptr;
+    
     float DistanceToCurrentlyDraggedActor = 0;
 
     scene::CCamera PerspectiveCamera{ scene::ECameraMode::PERSPECTIVE };
@@ -112,10 +123,10 @@ struct FSceneEditorState
     bool bIsImportingTexture = false;
     bool bFailedToImportResource = false;
 
-    resources::CMeshResource*       ClickedMeshResource = nullptr;
-    resources::CTextureResource*    ClickedTextureResource = nullptr;
-    scene::CMaterial*               ClickedMaterialAsset = nullptr;
-    scene::IActor*                  ClickedActorAsset = nullptr;
+    resources::CMeshResource* ClickedMeshResource = nullptr;
+    resources::CTextureResource* ClickedTextureResource = nullptr;
+    scene::CMaterial* ClickedMaterialAsset = nullptr;
+    scene::IActor* ClickedActorAsset = nullptr;
 
     bool bDisableCameraMovement = false;
 
@@ -160,9 +171,21 @@ void UIDrawMaterialContextMenu();
 void UIDrawMaterialCreationMenu();
 void UIDrawActorAssetContextMenu();
 void UIDrawActorResourceCreationMenu();
+void UIDrawCommonActorsWindow();
+
+void UIDrawDraggableImage(const char* InDragDropId,
+                          gpu::CTexture* InTexture,
+                          const char* InLabel,
+                          const ImVec2& InSize,
+                          const char* InDragDataType,
+                          const void* InData,
+                          const u32& InDataSize);
 
 void ImportTexture(const std::filesystem::path& SelectedFilePath);
 void ImportMesh(const std::filesystem::path& SelectedFilePath);
+
+glm::vec2 GetMouseScreenSpacePos();
+glm::vec2 GetMouseNDCPos();
 
 int main(int argc, char** argv)
 {
@@ -172,7 +195,6 @@ int main(int argc, char** argv)
     gpu::SetClearColor(BlackColor);
 
     GSceneEditorState.World = scene::LoadWorldFromJSONFile("assets/worlds/Demo.asset");
-
 
     real now = platform::GetCurrentTimeSeconds();
     real last = 0;
@@ -209,6 +231,7 @@ int main(int argc, char** argv)
                 UIDrawResourceBrowserWindow();
                 UIDrawSceneHierarchyWindow();
                 UIDrawActorDetailsWindow();
+                UIDrawCommonActorsWindow();
                 UIDrawFileDialog();
             }
 
@@ -289,10 +312,13 @@ void InitializeSceneEditor()
             ImGuiID SceneHierarchyDockId;
             ImGuiID ActorDetailsDockId;
             ImGuiID SceneWindowDockId;
+            ImGuiID CommonActorsDockId;
             SceneWindowDockId =
               ImGui::DockBuilderSplitNode(GSceneEditorState.MainDockId, ImGuiDir_Left, 0.75f, nullptr, &SceneHierarchyDockId);
             SceneWindowDockId =
               ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Up, 0.7f, nullptr, &ResourceBrowserWindowDockId);
+            SceneWindowDockId =
+              ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Right, 0.9f, nullptr, &CommonActorsDockId);
             SceneHierarchyDockId =
               ImGui::DockBuilderSplitNode(SceneHierarchyDockId, ImGuiDir_Up, 0.5f, nullptr, &ActorDetailsDockId);
 
@@ -302,6 +328,7 @@ void InitializeSceneEditor()
             ImGui::DockBuilderDockWindow(ASSETS_BROWSER, ResourceBrowserWindowDockId);
             ImGui::DockBuilderDockWindow(SCENE_HIERARCHY, SceneHierarchyDockId);
             ImGui::DockBuilderDockWindow(ACTOR_DETAILS, ActorDetailsDockId);
+            ImGui::DockBuilderDockWindow(COMMON_ACTORS, CommonActorsDockId);
 
             // Submit the layout
             ImGui::DockBuilderFinish(GSceneEditorState.MainDockId);
@@ -375,13 +402,12 @@ void HandleCameraMovement(const float& DeltaTime)
 
 void HandleActorDrag()
 {
-    const ImVec2 MousePositionAbs = ImGui::GetMousePos();
-    const ImVec2 SceneWindowPos = GSceneEditorState.SceneWindowPos;
-    const ImVec2 MousePosRelative = { MousePositionAbs.x - SceneWindowPos.x, MousePositionAbs.y - SceneWindowPos.y };
+    const glm::vec2 MouseNDCPos = GetMouseNDCPos();
+    const glm::vec2 MouseScreenSpacePos = GetMouseScreenSpacePos();
 
     // Check if we're outside the scene window
-    if (MousePosRelative.x < 0 || MousePosRelative.x > GSceneEditorState.SceneWindowWidth || MousePositionAbs.y < 0 ||
-        MousePosRelative.y > GSceneEditorState.SceneWindowHeight)
+    if (MouseScreenSpacePos.x < 0 || MouseScreenSpacePos.x > GSceneEditorState.SceneWindowWidth || MouseScreenSpacePos.y < 0 ||
+        MouseScreenSpacePos.y > GSceneEditorState.SceneWindowHeight)
     {
         return;
     }
@@ -398,8 +424,8 @@ void HandleActorDrag()
         const scene::FHitMap& CachedHitMap = GEngine.GetRenderer()->GetCachedHitMap();
 
         // Adjust mouse postion based on hitmap texture size
-        const float RatioX = MousePosRelative.x / GSceneEditorState.SceneWindowWidth;
-        const float RatioY = MousePosRelative.y / GSceneEditorState.SceneWindowHeight;
+        const float RatioX = MouseScreenSpacePos.x / GSceneEditorState.SceneWindowWidth;
+        const float RatioY = MouseScreenSpacePos.y / GSceneEditorState.SceneWindowHeight;
 
         const glm::vec2 AdjustedMousePos = { ((float)CachedHitMap.Width) * RatioX, ((float)CachedHitMap.Height) * RatioY };
 
@@ -415,6 +441,7 @@ void HandleActorDrag()
                   GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
                 GSceneEditorState.DistanceToCurrentlyDraggedActor = ActorPosView.z;
                 GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
+                return;
             }
 
             // Actor pos from world to view space
@@ -422,13 +449,7 @@ void HandleActorDrag()
                                      glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
 
             // Get the mouse ray in view space from mouse pos
-            const glm::vec2 MouseRayNDC = 2.f * glm::vec2{ MousePosRelative.x / GSceneEditorState.SceneWindowWidth,
-                                                           1 - (MousePosRelative.y / GSceneEditorState.SceneWindowHeight) } -
-                                          1.f;
-
-            const glm::vec4 MouseRayClip{ MouseRayNDC, -1, 1 };
-            const glm::vec4 MouseRayView = glm::inverse(GSceneEditorState.CurrentCamera->GetProjectionMatrix()) * MouseRayClip;
-
+            const glm::vec3 MouseRayView = GSceneEditorState.CurrentCamera->GetMouseRayInViewSpace(MouseNDCPos);
             // Calculate actor's position to match mouse view space x/y pos, preserving z
             const float ActorMidPoint = GSceneEditorState.CurrentlyDraggedActor->GetVerticalMidPoint();
 
@@ -453,7 +474,7 @@ void HandleInput()
     {
         if (GSceneEditorState.CurrentlyDraggedActor)
         {
-            GSceneEditorState.ClipboardActor = GSceneEditorState.CurrentlyDraggedActor; 
+            GSceneEditorState.ClipboardActor = GSceneEditorState.CurrentlyDraggedActor;
         }
     }
 
@@ -468,11 +489,24 @@ void HandleInput()
 
     if (IsKeyPressed(SDLK_DELETE) && GSceneEditorState.CurrentlyDraggedActor)
     {
+        if (GSceneEditorState.LastDeletedActor)
+        {
+            delete GSceneEditorState.LastDeletedActor;
+        }
         GSceneEditorState.World->RemoveActorById(GSceneEditorState.CurrentlyDraggedActor->Id);
+        GSceneEditorState.LastDeletedActor = GSceneEditorState.CurrentlyDraggedActor;
         GSceneEditorState.CurrentlyDraggedActor = nullptr;
     }
-}
 
+    if (IsKeyPressed(SDLK_z) && IsKeyPressed(SDLK_LCTRL))
+    {
+        if (GSceneEditorState.LastDeletedActor)
+        {
+            GSceneEditorState.LastDeletedActor->OnAddToWorld(GSceneEditorState.World);
+            GSceneEditorState.LastDeletedActor = nullptr;
+        }
+    }
+}
 
 void UIOpenPopup(const char* InTitle)
 {
@@ -536,7 +570,6 @@ void UIDrawSceneWindow()
         GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage(
           { GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
 
-
         // Handle drag and drop into the viewport
         if (ImGui::BeginDragDropTargetCustom(GSceneEditorState.ImSceneWindow->Rect(), GSceneEditorState.ImSceneWindow->ID))
         {
@@ -544,9 +577,38 @@ void UIDrawSceneWindow()
             {
                 IM_ASSERT(Payload->DataSize == sizeof(sole::uuid));
                 const sole::uuid ActorAssetId = *(sole::uuid*)Payload->Data;
-                if(GEngine.GetActorsResources().Contains(ActorAssetId))
+                if (GEngine.GetActorsResources().Contains(ActorAssetId))
                 {
-                    GEngine.GetActorsResources().Get(ActorAssetId)->CreateActorInstance(GSceneEditorState.World, {0, 0, 0});
+                    const glm::vec2 MouseNDCPos = GetMouseNDCPos();
+                    const glm::vec3 SpawnedActorPos = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(MouseNDCPos, 5);
+                    GEngine.GetActorsResources().Get(ActorAssetId)->CreateActorInstance(GSceneEditorState.World, SpawnedActorPos);
+                }
+            }
+            else if (const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload(COMMON_ACTOR_DRAG_TYPE))
+            {
+                IM_ASSERT(Payload->DataSize == sizeof(ECommonActorType));
+
+                const ECommonActorType CommonActorType = *(ECommonActorType*)Payload->Data;
+                switch (CommonActorType)
+                {
+                case ECommonActorType::DIRECTIONAL_LIGHT:
+                {
+                    auto* LightActor = new scene::CDirectionalLight{ CopyToString("DirectionalLight"), nullptr, GSceneEditorState.World };
+                    GSceneEditorState.World->AddDirectionalLight(LightActor);
+                    break;
+                }
+                case ECommonActorType::SPOT_LIGHT:
+                {
+                    auto* LightActor = new scene::CSpotLight{ CopyToString("SpotLight"), nullptr, GSceneEditorState.World };
+                    GSceneEditorState.World->AddSpotLight(LightActor);
+                    break;
+                }
+                case ECommonActorType::POINT_LIGHT:
+                {
+                    auto* LightActor = new scene::CPointLight{ CopyToString("PointLight"), nullptr, GSceneEditorState.World };
+                    GSceneEditorState.World->AddPointLight(LightActor);
+                    break;
+                }
                 }
             }
 
@@ -658,7 +720,7 @@ void UIDrawResourceBrowserWindow()
                     ImGui::SameLine(ResourceItemWidth * CurrentRowItemsCount + (4 * CurrentRowItemsCount), 2);
                 }
 
-                // Draw mesh thumb and it's name 
+                // Draw mesh thumb and it's name
                 if (MeshResource && MeshResource->Thumb)
                 {
                     ImGui::BeginGroup();
@@ -851,7 +913,7 @@ void UIDrawResourceBrowserWindow()
                             GSceneEditorState.EditedStaticMesh = StaticMeshActor;
                         }
                     }
-                    
+
                     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
                     {
                         // Set payload the pointer to ActorAsset
@@ -859,7 +921,7 @@ void UIDrawResourceBrowserWindow()
 
                         // Display preview (could be anything, e.g. when dragging an image we could decide to display
                         // the filename and a small preview of the image, etc.)
-                        ImGui::Text(*ActorAsset->Name); 
+                        ImGui::Text(*ActorAsset->Name);
                         ImGui::EndDragDropSource();
                     }
 
@@ -1119,8 +1181,8 @@ void UIDrawSceneHierarchyWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
     ImGui::Begin(SCENE_HIERARCHY, nullptr, WindowFlags);
-    {   
-        auto& ActorMap = GSceneEditorState.World->GetActorsMap();
+    {
+        auto ActorMap = GSceneEditorState.World->GetActorsMap();
         for (u32 i = 0; i < ActorMap.GetLength(); ++i)
         {
             auto* Actor = ActorMap.GetByIndex(i);
@@ -1207,7 +1269,6 @@ void UIDrawMaterialCreationMenu()
     ImGui::SetNextWindowSize({ 500, 0 });
     ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
     {
-
         ImGui::InputText("Material name name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
         ImGuiShadersPicker("Material shader", &GSceneEditorState.PickedShader);
         if (GSceneEditorState.PickedShader)
@@ -1251,7 +1312,6 @@ void UIDrawMaterialCreationMenu()
                         assert(0);
                     }
 
-
                     GEngine.AddMaterialAsset(CreatedMaterial, GSceneEditorState.TypeOfMaterialToCreate, CreatedMaterialPath);
                     GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::NONE;
                     GSceneEditorState.PickedShader = nullptr;
@@ -1289,7 +1349,6 @@ void UIDrawActorResourceCreationMenu()
     ImGui::SetNextWindowSize({ 500, 0 });
     ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
     {
-
         ImGui::InputText("Actor resource name name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
         if (ImGui::Button("Create"))
         {
@@ -1338,7 +1397,6 @@ void UIDrawActorResourceCreationMenu()
     ImGui::EndPopup();
 }
 
-
 void UIDrawMaterialContextMenu()
 {
     UIOpenPopup("Material actions");
@@ -1381,4 +1439,101 @@ void UIDrawActorAssetContextMenu()
     }
 
     ImGui::EndPopup();
+}
+
+void UIDrawCommonActorsWindow()
+{
+    ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
+    ImGui::Begin(COMMON_ACTORS, nullptr, WindowFlags);
+    {
+        // Center the item
+        const float HalfWindowWidth = ImGui::GetWindowSize().x / 2.f;
+        const float ImageItemWidth = 64.f;
+        const float ImageItemPosX = HalfWindowWidth - (ImageItemWidth / 2.f);
+        const ImVec2 ImageItemSize{ ImageItemWidth, ImageItemWidth };
+
+        // Directional light
+        {
+            ImGui::SetCursorPosX(ImageItemPosX);
+            const auto TypeOfActorToSpawn = ECommonActorType::DIRECTIONAL_LIGHT;
+            UIDrawDraggableImage("DragDropDirLight",
+                                 GEngine.GetRenderer()->GetLightBulbTexture(),
+                                 "Directional",
+                                 ImageItemSize,
+                                 COMMON_ACTOR_DRAG_TYPE,
+                                 &TypeOfActorToSpawn,
+                                 sizeof(TypeOfActorToSpawn));
+        }
+
+        // Spot light
+        {
+            ImGui::SetCursorPosX(ImageItemPosX);
+            const auto TypeOfActorToSpawn = ECommonActorType::SPOT_LIGHT;
+            UIDrawDraggableImage("DragDropSpotLight",
+                                 GEngine.GetRenderer()->GetLightBulbTexture(),
+                                 "Spot",
+                                 ImageItemSize,
+                                 COMMON_ACTOR_DRAG_TYPE,
+                                 &TypeOfActorToSpawn,
+                                 sizeof(TypeOfActorToSpawn));
+        }
+
+        // Point light
+        {
+            ImGui::SetCursorPosX(ImageItemPosX);
+            const auto TypeOfActorToSpawn = ECommonActorType::POINT_LIGHT;
+            UIDrawDraggableImage("DragDropPointLight",
+                                 GEngine.GetRenderer()->GetLightBulbTexture(),
+                                 "Point",
+                                 ImageItemSize,
+                                 COMMON_ACTOR_DRAG_TYPE,
+                                 &TypeOfActorToSpawn,
+                                 sizeof(TypeOfActorToSpawn));
+        }
+
+        ImGui::End();
+    }
+}
+
+void UIDrawDraggableImage(const char* InDragDropId,
+                          gpu::CTexture* InTexture,
+                          const char* InLabel,
+                          const ImVec2& InSize,
+                          const char* InDragDataType,
+                          const void* InData,
+                          const u32& InDataSize)
+{
+    ImGui::BeginGroup();
+    ImGui::PushID(InDragDropId);
+    InTexture->ImGuiImageButton(InSize);
+    ImGui::PopID();
+
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+    {
+        // Set payload the pointer to ActorAsset
+        ImGui::SetDragDropPayload(InDragDataType, InData, InDataSize);
+
+        // Display preview
+        InTexture->ImGuiDrawToImage({ 16, 16 });
+        ImGui::EndDragDropSource();
+    }
+
+    ImGui::TextCenter(InLabel);
+    ImGui::EndGroup();
+    ImGui::Spacing();
+}
+
+glm::vec2 GetMouseScreenSpacePos()
+{
+    const ImVec2 MousePositionAbs = ImGui::GetMousePos();
+    const ImVec2 SceneWindowPos = GSceneEditorState.SceneWindowPos;
+    return { MousePositionAbs.x - SceneWindowPos.x, MousePositionAbs.y - SceneWindowPos.y };
+}
+
+glm::vec2 GetMouseNDCPos()
+{
+    const glm::vec2 MouseScreenSpacePos = GetMouseScreenSpacePos();
+    return 2.f * glm::vec2{ MouseScreenSpacePos.x / GSceneEditorState.SceneWindowWidth,
+                            1 - (MouseScreenSpacePos.y / GSceneEditorState.SceneWindowHeight) } -
+           1.f;
 }

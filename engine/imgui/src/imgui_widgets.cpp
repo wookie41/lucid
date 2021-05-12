@@ -253,6 +253,24 @@ void ImGui::TextUnformatted(const char* text, const char* text_end)
     TextEx(text, text_end, ImGuiTextFlags_NoWidthForLargeClippedText);
 }
 
+void ImGui::TextCenter(const char* fmt, ...) {
+    
+    va_list args;
+    va_start(args, fmt);
+
+    ImGuiContext& g = *GImGui;
+    const char* text_end = g.TempBuffer + ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
+    
+    float font_size = ImGui::GetFontSize() * (text_end - g.TempBuffer) / 2;
+    ImGui::SetCursorPosX(
+        ImGui::GetWindowSize().x / 2 -
+        font_size + (font_size / 2)
+    );
+
+    TextEx(g.TempBuffer, text_end, ImGuiTextFlags_NoWidthForLargeClippedText);
+    va_end(args);
+}
+
 void ImGui::Text(const char* fmt, ...)
 {
     va_list args;

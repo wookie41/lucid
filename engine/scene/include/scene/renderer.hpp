@@ -130,7 +130,8 @@ namespace lucid::scene
         void        RemoveShadowMap(CShadowMap* InShadowMap);
 
 #if DEVELOPMENT
-        inline const FHitMap& GetCachedHitMap() const { return CachedHitMap; } 
+        inline const FHitMap& GetCachedHitMap() const { return CachedHitMap; }
+        inline gpu::CTexture* GetLightBulbTexture() const { return LightBulbTexture; }
 #endif
         
         virtual ~CRenderer() = default;
@@ -138,8 +139,8 @@ namespace lucid::scene
       protected:
         
         /** Lights and shadow maps arrays */
-        CLight** CreatedLights = nullptr;
-        CShadowMap** CreatedShadowMaps = nullptr;
+        CLight**        CreatedLights = nullptr;
+        CShadowMap**    CreatedShadowMaps = nullptr;
 
         /** Default quality used when creating  shadow maps - 0 lowest */
         u8 DefaultShadowMapQuality = 1;
@@ -159,7 +160,10 @@ namespace lucid::scene
         };
 
 #if DEVELOPMENT
-        FHitMap CachedHitMap;
+        /** Used to visualize light sources in the editor */
+        gpu::CTexture*  LightBulbTexture;
+
+        FHitMap         CachedHitMap;
 #endif
     };
 } // namespace lucid::scene

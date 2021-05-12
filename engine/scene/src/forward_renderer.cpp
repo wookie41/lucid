@@ -32,8 +32,8 @@ namespace lucid::scene
     static const glm::mat4 IDENTITY_MATRIX{ 1 };
     static const glm::vec3 WORLD_UP{ 0, 1, 0 };
 
-    static const u8 NO_LIGHT = 0;
-    static const FSString LIGHT_TYPE("uLight.Type");
+    static const u8         NO_LIGHT = 0;
+    static const FSString   LIGHT_TYPE("uLightType");
 
     static const FSString VIEWPORT_SIZE("uViewportSize");
 
@@ -708,6 +708,10 @@ namespace lucid::scene
             if (InLight)
             {
                 InLight->SetupShader(*LastShader);
+            }
+            else
+            {
+                (*LastShader)->SetInt(LIGHT_TYPE, NO_LIGHT);
             }
             (*LastShader)->SetMatrix(MODEL_MATRIX, ModelMatrix);
             (*LastShader)->SetBool(REVERSE_NORMALS, InStaticMesh->GetReverseNormals());

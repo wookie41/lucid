@@ -100,4 +100,19 @@ namespace lucid::scene
         RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector)); // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
     }
+
+    glm::vec3 CCamera::GetMouseRayInViewSpace(const glm::vec2& InMousePosNDC, const float InT) const
+    {
+        const glm::vec4 MouseRayClip{ InMousePosNDC, -1, 1 };
+        const glm::vec4 MouseRayView = glm::inverse(GetProjectionMatrix()) * MouseRayClip;
+        return glm::normalize(glm::vec3(MouseRayView)) * InT;
+    }
+    
+    glm::vec3 CCamera::GetMouseRayInWorldSpace(const glm::vec2& InMousePosNDC, const float InT) const
+    {
+        const glm::vec4 MouseRayView = glm::vec4(GetMouseRayInViewSpace(InMousePosNDC, InT), 1);
+        return glm::vec3(glm::inverse(GetViewMatrix()) * MouseRayView);
+    }
+
+
 } // namespace lucid::scene

@@ -43,7 +43,7 @@ namespace lucid::scene
 
         void            SetSkybox(CSkybox* InSkybox);
 
-        void            RemoveActorById(const u32& InActorId);
+        IActor*         RemoveActorById(const u32& InActorId);
 
         FRenderScene*   MakeRenderScene(CCamera* InCamera);
         IActor*         GetActorById(const u32& InActorId);

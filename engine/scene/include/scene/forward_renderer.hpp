@@ -145,9 +145,6 @@ namespace lucid::scene
 #if DEVELOPMENT
     public:
 
-        /** Used to visualize light sources in the editor */
-        gpu::CTexture* LightBulbTexture;
-
         glm::vec2 BillboardViewportSize { 0.1, 0.15 };
         
         /**

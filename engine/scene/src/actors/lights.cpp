@@ -66,7 +66,7 @@ namespace lucid::scene
                 break;
             }
 
-            ImGui::DragFloat3("Light color", &Color.r, 0, 1);
+            ImGui::DragFloat3("Light color", &Color.r, 0.01, 0, 1);
 
             bool bCastsShadow = ShadowMap != nullptr;
             ImGui::Checkbox("Casts shadow", &bCastsShadow);
@@ -161,7 +161,17 @@ namespace lucid::scene
         return Copy;
     }
 
-    void CDirectionalLight::OnRemoveFromWorld() { World->RemoveDirectionalLight(Id); }
+    void CDirectionalLight::OnAddToWorld(CWorld* InWorld)
+    {
+        IActor::OnAddToWorld(InWorld);
+        InWorld->AddDirectionalLight(this);
+    }
+    
+    void CDirectionalLight::OnRemoveFromWorld()
+    {
+        IActor::OnRemoveFromWorld();
+        World->RemoveDirectionalLight(Id);
+    }
 
     /////////////////////////////////////
     //            Spot light           //
@@ -248,7 +258,17 @@ namespace lucid::scene
         return Copy;
     }
 
-    void CSpotLight::OnRemoveFromWorld() { World->RemoveSpotLight(Id); }
+    void CSpotLight::OnAddToWorld(CWorld* InWorld)
+    {
+        IActor::OnAddToWorld(InWorld);
+        InWorld->AddSpotLight(this);
+    }
+    
+    void CSpotLight::OnRemoveFromWorld()
+    {
+        IActor::OnRemoveFromWorld();
+        World->RemoveSpotLight(Id);
+    }
 
     /////////////////////////////////////
     //           Point light           //
@@ -357,6 +377,16 @@ namespace lucid::scene
         return Copy;
     }
 
-    void CPointLight::OnRemoveFromWorld() { World->RemovePointLight(Id); }
+    void CPointLight::OnAddToWorld(CWorld* InWorld)
+    {
+        IActor::OnAddToWorld(InWorld);
+        InWorld->AddPointLight(this);
+    }
+    
+    void CPointLight::OnRemoveFromWorld()
+    {
+        IActor::OnRemoveFromWorld();
+        World->RemovePointLight(Id);
+    }
 
 } // namespace lucid::scene

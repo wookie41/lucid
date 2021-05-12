@@ -75,6 +75,7 @@ namespace lucid::scene
         virtual void        LoadAsset() = 0;
 
 
+        virtual void        OnAddToWorld(CWorld* InWorld);
         virtual void        OnRemoveFromWorld();
 
         virtual ~IActor() = default;

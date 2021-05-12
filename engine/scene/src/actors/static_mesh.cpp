@@ -456,6 +456,18 @@ namespace lucid::scene
         return SpawnedMesh;
     }
 
+    void CStaticMesh::OnAddToWorld(CWorld* InWorld)
+    {
+        IActor::OnAddToWorld(InWorld);
+        World->AddStaticMesh(this);
+
+        MaterialSlots = FArray<CMaterial*>(BaseStaticMesh->GetNumMaterialSlots());
+        for (u8 i = 0; i < BaseStaticMesh->GetNumMaterialSlots(); ++i)
+        {
+            MaterialSlots.Add(BaseStaticMesh->GetMaterialSlot(i)->GetCopy());
+        }
+    }
+
     void CStaticMesh::OnRemoveFromWorld()
     {
         IActor::OnRemoveFromWorld();
@@ -468,5 +480,7 @@ namespace lucid::scene
                 delete MaterialSlot;
             }   
         }
+
+        MaterialSlots.Free();
     }
 } // namespace lucid::scene

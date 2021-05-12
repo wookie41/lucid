@@ -75,7 +75,7 @@ void main()
     }
     else if (uLightType == SPOT_LIGHT)
     {
-        shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLightDirection));
+        shadowFactor     = CalculateShadow(fsIn.FragPos, normal, normalize(uLightDirection));
         lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, uMaterialShininess);
     }
     
