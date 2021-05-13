@@ -75,8 +75,8 @@ namespace lucid
 
         inline FHashMap<UUID, scene::IActor*>& GetActorsResources() { return ActorResourceById; }
 
-        void AddTextureResource(resources::CTextureResource* InTexture, const FString& InSourcePath);
-        void AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath);
+        void AddTextureResource(resources::CTextureResource* InTexture);
+        void AddMeshResource(resources::CMeshResource* InMesh);
 
         void RemoveMeshResource(resources::CMeshResource* InMesh);
         void RemoveTextureResource(resources::CTextureResource*);

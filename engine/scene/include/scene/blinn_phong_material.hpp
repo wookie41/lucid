@@ -33,9 +33,9 @@ namespace lucid::scene
         virtual CMaterial*          GetCopy() const override;
         virtual EMaterialType       GetType() const override { return EMaterialType::BLINN_PHONG; }
 
-        u32 Shininess;
-        glm::vec3 DiffuseColor;
-        glm::vec3 SpecularColor;
+        u32 Shininess = 32;
+        glm::vec3 DiffuseColor  { 1, 1, 1 };
+        glm::vec3 SpecularColor { 1, 1, 1 };
 
 #if DEVELOPMENT
         virtual void UIDrawMaterialEditor() override;
@@ -61,13 +61,13 @@ namespace lucid::scene
         virtual CMaterial*              GetCopy() const override;
         virtual EMaterialType           GetType() const override { return EMaterialType::BLINN_PHONG_MAPS; }
 
-        u32 Shininess;
+        u32 Shininess = 32;
         resources::CTextureResource* DiffuseMap = nullptr;
         resources::CTextureResource* SpecularMap = nullptr;
         resources::CTextureResource* NormalMap = nullptr;
         resources::CTextureResource* DisplacementMap = nullptr;
 
-        glm::vec3 SpecularColor; //Fallback when specular map is not used
+        glm::vec3 SpecularColor { 1, 1, 1 }; //Fallback when specular map is not used
 
 #if DEVELOPMENT
         virtual void UIDrawMaterialEditor() override;

@@ -26,6 +26,8 @@ namespace lucid::resources
         
         FMemBuffer VertexDataBuffer;
         FMemBuffer ElementDataBuffer;
+
+        u8  MaterialIndex = 0;
     };
     
     class CMeshResource : public CResource
@@ -63,11 +65,18 @@ namespace lucid::resources
 #endif
     };
 
+    enum class EMeshImportStretegy : u8
+    {
+        SUBMESHES,      // Imports each object as a submesh
+        SINGLE_MESH,    // Squashes all object into a single submesh
+        SPLIT_MESHES,    // Imports all objects as seperate mesh resources
+    };
+    
     /**
      *  Loads the mesh from the given directory, requires that
      *  textures are stored in the same directory as the model file
      */
-    CMeshResource* ImportMesh(const FString& MeshFilePath, const FString& InMeshFilePath, const FString& MeshName, const bool& InbFilpUVs);
+    FArray<CMeshResource*> ImportMesh(const FString& MeshFilePath, const FString& MeshName, const bool& InbFilpUVs, const EMeshImportStretegy& InMeshImportStrategy);
 
     CMeshResource* LoadMesh(const FString& FilePath);    
 } // namespace lucid::resources

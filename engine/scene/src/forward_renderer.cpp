@@ -533,17 +533,17 @@ namespace lucid::scene
                 {
                     for (u16 j = 0; j < MeshResource->SubMeshes.GetLength(); ++j)
                     {
+                        const u16 MaterialIndex = MeshResource->SubMeshes[j]->MaterialIndex;
 #if DEVELOPMENT
-                        if (j >= StaticMesh->GetNumMaterialSlots() || StaticMesh->GetMaterialSlot(j) == nullptr)
+                        if (MaterialIndex >= StaticMesh->GetNumMaterialSlots() || StaticMesh->GetMaterialSlot(MaterialIndex) == nullptr)
                         {
-                            LUCID_LOG(
-                              ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at slot %d", *StaticMesh->Name, j);
+                            LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at submesh %d", *StaticMesh->Name, j);
                             RenderWithDefaultMaterial(StaticMesh->MeshResource, j, nullptr, InRenderView, ModelMatrix);
                             PrepassShader->Use();
                             continue;
                         }
 #endif
-                        StaticMesh->GetMaterialSlot(j)->SetupShader(PrepassShader);
+                        StaticMesh->GetMaterialSlot(MaterialIndex)->SetupShader(PrepassShader);
 
                         StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
                         StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
@@ -685,16 +685,17 @@ namespace lucid::scene
         for (u16 j = 0; j < InStaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
         {
 
+            const u16 MaterialIndex = InStaticMesh->GetMeshResource()->SubMeshes[j]->MaterialIndex;
 #if DEVELOPMENT
-            if (j >= InStaticMesh->GetNumMaterialSlots() || InStaticMesh->GetMaterialSlot(j) == nullptr)
+            if (MaterialIndex >= InStaticMesh->GetNumMaterialSlots() || InStaticMesh->GetMaterialSlot(MaterialIndex) == nullptr)
             {
-                LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at slot %d", *InStaticMesh->Name, j);
+                LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at submesh %d", *InStaticMesh->Name, j);
                 RenderWithDefaultMaterial(InStaticMesh->MeshResource, j, InLight, InRenderView, ModelMatrix);
                 *LastShader = GEngine.GetDefaultMaterial()->GetShader();
                 continue;
             }
 #endif
-            CMaterial* Material = InStaticMesh->GetMaterialSlot(j);
+            CMaterial* Material = InStaticMesh->GetMaterialSlot(MaterialIndex);
 
             // Determine if the material uses a custom shader
             // if yes, then setup the renderer-provided uniforms

@@ -232,7 +232,7 @@ namespace lucid
         Renderer->Setup();
     }
 
-    void CEngine::AddTextureResource(resources::CTextureResource* InTexture, const FString& InSourcePath)
+    void CEngine::AddTextureResource(resources::CTextureResource* InTexture)
     {
         FResourceDatabaseEntry Entry;
         Entry.Id = InTexture->GetID();
@@ -245,7 +245,7 @@ namespace lucid
         WriteToJSONFile(ResourceDatabase, "assets/databases/resources.json");
     }
 
-    void CEngine::AddMeshResource(resources::CMeshResource* InMesh, const FString& InSourcePath)
+    void CEngine::AddMeshResource(resources::CMeshResource* InMesh)
     {
         FResourceDatabaseEntry Entry;
         Entry.Id = InMesh->GetID();
@@ -294,6 +294,7 @@ namespace lucid
     {
         MaterialsHolder.Add(InMaterial->GetID(), InMaterial);
         MaterialDatabase.Entries.push_back({ InMaterial->GetID(), InMaterialPath, EFileFormat::Json, InMaterialType, false });
+        SaveMaterialDatabase();
     }
 
     void CEngine::RemoveMaterialAsset(scene::CMaterial* InMaterial)
@@ -330,8 +331,7 @@ namespace lucid
 
     void CEngine::AddActorAsset(scene::IActor* InActorResource)
     {
-        ActorDatabase.Entries.push_back(
-          { InActorResource->ResourceId, InActorResource->ResourcePath, InActorResource->GetActorType() });
+        ActorDatabase.Entries.push_back({ InActorResource->ResourceId, InActorResource->ResourcePath, InActorResource->GetActorType() });
         ActorResourceById.Add(InActorResource->ResourceId, InActorResource);
         WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
     }

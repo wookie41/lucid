@@ -43,6 +43,6 @@ DerivePointerAlignment: false
 PointerAlignment: Left
 AlwaysBreakTemplateDeclarations: true
 SortIncludes: false
-ColumnLimit: 130
+ColumnLimit: 150
 ExperimentalAutoDetectBinPacking: false
 AllowAllParametersOfDeclarationOnNextLine: false

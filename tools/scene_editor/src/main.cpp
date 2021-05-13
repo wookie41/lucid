@@ -101,7 +101,7 @@ struct FSceneEditorState
     scene::IActor* CurrentlyDraggedActor = nullptr;
     scene::IActor* LastDeletedActor = nullptr;
     scene::IActor* ClipboardActor = nullptr;
-    
+
     float DistanceToCurrentlyDraggedActor = 0;
 
     scene::CCamera PerspectiveCamera{ scene::ECameraMode::PERSPECTIVE };
@@ -303,9 +303,8 @@ void InitializeSceneEditor()
 
             // Create the dockspace
             ImGui::DockSpace(GSceneEditorState.MainDockId, ImVec2(0.0f, 0.0f));
-            ImGui::DockBuilderSetNodeSize(
-              GSceneEditorState.MainDockId,
-              { (float)GSceneEditorState.EditorWindowWidth, (float)GSceneEditorState.EditorWindowHeight });
+            ImGui::DockBuilderSetNodeSize(GSceneEditorState.MainDockId,
+                                          { (float)GSceneEditorState.EditorWindowWidth, (float)GSceneEditorState.EditorWindowHeight });
 
             // Split the dockspace
             ImGuiID ResourceBrowserWindowDockId;
@@ -313,14 +312,10 @@ void InitializeSceneEditor()
             ImGuiID ActorDetailsDockId;
             ImGuiID SceneWindowDockId;
             ImGuiID CommonActorsDockId;
-            SceneWindowDockId =
-              ImGui::DockBuilderSplitNode(GSceneEditorState.MainDockId, ImGuiDir_Left, 0.75f, nullptr, &SceneHierarchyDockId);
-            SceneWindowDockId =
-              ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Up, 0.7f, nullptr, &ResourceBrowserWindowDockId);
-            SceneWindowDockId =
-              ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Right, 0.9f, nullptr, &CommonActorsDockId);
-            SceneHierarchyDockId =
-              ImGui::DockBuilderSplitNode(SceneHierarchyDockId, ImGuiDir_Up, 0.5f, nullptr, &ActorDetailsDockId);
+            SceneWindowDockId = ImGui::DockBuilderSplitNode(GSceneEditorState.MainDockId, ImGuiDir_Left, 0.75f, nullptr, &SceneHierarchyDockId);
+            SceneWindowDockId = ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Up, 0.7f, nullptr, &ResourceBrowserWindowDockId);
+            SceneWindowDockId = ImGui::DockBuilderSplitNode(SceneWindowDockId, ImGuiDir_Right, 0.9f, nullptr, &CommonActorsDockId);
+            SceneHierarchyDockId = ImGui::DockBuilderSplitNode(SceneHierarchyDockId, ImGuiDir_Up, 0.5f, nullptr, &ActorDetailsDockId);
 
             // Attach windows to dockspaces
             ImGui::DockBuilderDockWindow(SCENE_VIEWPORT, SceneWindowDockId);
@@ -343,8 +338,7 @@ void InitializeSceneEditor()
     }
 
     // Configure the camera
-    GSceneEditorState.PerspectiveCamera.AspectRatio =
-      GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
+    GSceneEditorState.PerspectiveCamera.AspectRatio = GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
     GSceneEditorState.PerspectiveCamera.Position = { 0, 0, 0 };
     GSceneEditorState.PerspectiveCamera.Yaw = -90.f;
     GSceneEditorState.PerspectiveCamera.UpdateCameraVectors();
@@ -437,16 +431,15 @@ void HandleActorDrag()
             if (GSceneEditorState.CurrentlyDraggedActor == nullptr)
             {
                 // Remember the actor that we hit and how far from the camera it was on the z axis
-                glm::vec4 ActorPosView =
-                  GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
+                glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
                 GSceneEditorState.DistanceToCurrentlyDraggedActor = ActorPosView.z;
                 GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
                 return;
             }
 
             // Actor pos from world to view space
-            glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() *
-                                     glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
+            glm::vec4 ActorPosView =
+              GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
 
             // Get the mouse ray in view space from mouse pos
             const glm::vec3 MouseRayView = GSceneEditorState.CurrentCamera->GetMouseRayInViewSpace(MouseNDCPos);
@@ -457,8 +450,7 @@ void HandleActorDrag()
             ActorPosView.y = -MouseRayView.y * GSceneEditorState.DistanceToCurrentlyDraggedActor - ActorMidPoint;
 
             // Update actor's position
-            GSceneEditorState.CurrentlyDraggedActor->Transform.Translation =
-              (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
+            GSceneEditorState.CurrentlyDraggedActor->Transform.Translation = (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
         }
     }
 }
@@ -528,8 +520,7 @@ void UISetupDockspace()
 {
     // Create the dockspace window which will occupy the whole editor window
     ImGuiWindowFlags DockspaceWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    DockspaceWindowFlags |=
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    DockspaceWindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     DockspaceWindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -567,8 +558,7 @@ void UIDrawSceneWindow()
         GSceneEditorState.SceneWindowPos.y += SceneWindowPos.y;
 
         // Draw the rendered scene into an image
-        GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage(
-          { GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
+        GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
 
         // Handle drag and drop into the viewport
         if (ImGui::BeginDragDropTargetCustom(GSceneEditorState.ImSceneWindow->Rect(), GSceneEditorState.ImSceneWindow->ID))
@@ -581,7 +571,8 @@ void UIDrawSceneWindow()
                 {
                     const glm::vec2 MouseNDCPos = GetMouseNDCPos();
                     const glm::vec3 SpawnedActorPos = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(MouseNDCPos, 5);
-                    GEngine.GetActorsResources().Get(ActorAssetId)->CreateActorInstance(GSceneEditorState.World, SpawnedActorPos);
+                    auto* SpawnedActor = GEngine.GetActorsResources().Get(ActorAssetId)->CreateActorInstance(GSceneEditorState.World, SpawnedActorPos);
+                    GSceneEditorState.CurrentlyDraggedActor = SpawnedActor;
                 }
             }
             else if (const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload(COMMON_ACTOR_DRAG_TYPE))
@@ -589,26 +580,35 @@ void UIDrawSceneWindow()
                 IM_ASSERT(Payload->DataSize == sizeof(ECommonActorType));
 
                 const ECommonActorType CommonActorType = *(ECommonActorType*)Payload->Data;
+                scene::IActor* SpawnedActor = nullptr;
                 switch (CommonActorType)
                 {
                 case ECommonActorType::DIRECTIONAL_LIGHT:
                 {
                     auto* LightActor = new scene::CDirectionalLight{ CopyToString("DirectionalLight"), nullptr, GSceneEditorState.World };
                     GSceneEditorState.World->AddDirectionalLight(LightActor);
+                    SpawnedActor = LightActor;
                     break;
                 }
                 case ECommonActorType::SPOT_LIGHT:
                 {
                     auto* LightActor = new scene::CSpotLight{ CopyToString("SpotLight"), nullptr, GSceneEditorState.World };
                     GSceneEditorState.World->AddSpotLight(LightActor);
+                    SpawnedActor = LightActor;
                     break;
                 }
                 case ECommonActorType::POINT_LIGHT:
                 {
                     auto* LightActor = new scene::CPointLight{ CopyToString("PointLight"), nullptr, GSceneEditorState.World };
                     GSceneEditorState.World->AddPointLight(LightActor);
+                    SpawnedActor = LightActor;
                     break;
                 }
+                }
+
+                if (SpawnedActor)
+                {
+                    SpawnedActor->Transform.Translation = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(GetMouseNDCPos(), 5);
                 }
             }
 
@@ -954,6 +954,28 @@ void UIDrawMeshImporter()
     {
         ImGui::InputText("Mesh name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
         ImGui::Checkbox("Flip UVs", &GSceneEditorState.GenericBoolParam0);
+
+        static resources::EMeshImportStretegy MeshImportStrategy = resources::EMeshImportStretegy::SUBMESHES;
+        if (ImGui::BeginListBox("Mesh import strategy"))
+        {
+            if (ImGui::Selectable("Submeshes", MeshImportStrategy == resources::EMeshImportStretegy::SUBMESHES))
+            {
+                MeshImportStrategy = resources::EMeshImportStretegy::SUBMESHES;
+            }
+
+            if (ImGui::Selectable("Single mesh", MeshImportStrategy == resources::EMeshImportStretegy::SINGLE_MESH))
+            {
+                MeshImportStrategy = resources::EMeshImportStretegy::SINGLE_MESH;
+            }
+
+            if (ImGui::Selectable("Split meshes", MeshImportStrategy == resources::EMeshImportStretegy::SPLIT_MESHES))
+            {
+                MeshImportStrategy = resources::EMeshImportStretegy::SPLIT_MESHES;
+            }
+
+            ImGui::EndListBox();
+        }
+        
         if (ImGui::Button("Import"))
         {
             GSceneEditorState.bAssetNameMissing = false;
@@ -966,34 +988,21 @@ void UIDrawMeshImporter()
             else
             {
                 // Everything is ok, import the mesh and save it
-                static char IMPORTED_MESH_FILE_PATH[1024];
-                sprintf_s(IMPORTED_MESH_FILE_PATH, 1024, "assets/meshes/%s.asset", GSceneEditorState.AssetNameBuffer);
-
-                // Import the mesh
                 FDString MeshName = CopyToString(GSceneEditorState.AssetNameBuffer);
-                resources::CMeshResource* ImportedMesh = resources::ImportMesh(GSceneEditorState.PathToSelectedFile,
-                                                                               { IMPORTED_MESH_FILE_PATH },
+                FArray<resources::CMeshResource*> ImportedMeshes = resources::ImportMesh(GSceneEditorState.PathToSelectedFile,
                                                                                MeshName,
-                                                                               GSceneEditorState.GenericBoolParam0);
+                                                                               GSceneEditorState.GenericBoolParam0,
+                                                                               MeshImportStrategy);
 
-                if (!ImportedMesh)
+                for (u32 i = 0; i < ImportedMeshes.GetLength(); ++i)
                 {
-                    GSceneEditorState.bFailedToImportResource = true;
-                    GSceneEditorState.bDisableCameraMovement = false;
-                    return;
+                    auto* ImportedMesh = (*ImportedMeshes[i]);
+                    ImportedMesh->LoadDataToVideoMemorySynchronously();
+                    ImportedMesh->LoadDataToVideoMemorySynchronously();
+                    ImportedMesh->Thumb = GEngine.ThumbsGenerator->GenerateMeshThumb(256, 256, ImportedMesh);                    
                 }
 
-                ImportedMesh->LoadDataToVideoMemorySynchronously();
-                ImportedMesh->Thumb = GEngine.ThumbsGenerator->GenerateMeshThumb(256, 256, ImportedMesh);
-
-                // Save it to file
-                FILE* ImportedMeshFile;
-                fopen_s(&ImportedMeshFile, IMPORTED_MESH_FILE_PATH, "wb");
-                ImportedMesh->SaveSynchronously(ImportedMeshFile);
-                fclose(ImportedMeshFile);
-
-                // Update engine resources database
-                GEngine.AddMeshResource(ImportedMesh, GSceneEditorState.PathToSelectedFile);
+                ImportedMeshes.Free();
 
                 // End mesh import
                 GSceneEditorState.bIsImportingMesh = false;
@@ -1090,7 +1099,7 @@ void UIDrawTextureImporter()
                 fclose(ImportedTextureFile);
 
                 // Update engine resources database
-                GEngine.AddTextureResource(ImportedTexture, GSceneEditorState.PathToSelectedFile);
+                GEngine.AddTextureResource(ImportedTexture);
 
                 // End texture import
                 GSceneEditorState.bIsImportingTexture = false;
@@ -1288,24 +1297,21 @@ void UIDrawMaterialCreationMenu()
                     {
                     case scene::EMaterialType::FLAT:
                         GSceneEditorState.bDisableCameraMovement = true;
-                        CreatedMaterial = new scene::CFlatMaterial{ sole::uuid4(),
-                                                                    CopyToString(GSceneEditorState.AssetNameBuffer),
-                                                                    CreatedMaterialPath,
-                                                                    GSceneEditorState.PickedShader };
+                        CreatedMaterial = new scene::CFlatMaterial{
+                            sole::uuid4(), CopyToString(GSceneEditorState.AssetNameBuffer), CreatedMaterialPath, GSceneEditorState.PickedShader
+                        };
                         break;
                     case scene::EMaterialType::BLINN_PHONG:
                         GSceneEditorState.bDisableCameraMovement = true;
-                        CreatedMaterial = new scene::CBlinnPhongMaterial{ sole::uuid4(),
-                                                                          CopyToString(GSceneEditorState.AssetNameBuffer),
-                                                                          CreatedMaterialPath,
-                                                                          GSceneEditorState.PickedShader };
+                        CreatedMaterial = new scene::CBlinnPhongMaterial{
+                            sole::uuid4(), CopyToString(GSceneEditorState.AssetNameBuffer), CreatedMaterialPath, GSceneEditorState.PickedShader
+                        };
                         break;
                     case scene::EMaterialType::BLINN_PHONG_MAPS:
                         GSceneEditorState.bDisableCameraMovement = true;
-                        CreatedMaterial = new scene::CBlinnPhongMapsMaterial{ sole::uuid4(),
-                                                                              CopyToString(GSceneEditorState.AssetNameBuffer),
-                                                                              CreatedMaterialPath,
-                                                                              GSceneEditorState.PickedShader };
+                        CreatedMaterial = new scene::CBlinnPhongMapsMaterial{
+                            sole::uuid4(), CopyToString(GSceneEditorState.AssetNameBuffer), CreatedMaterialPath, GSceneEditorState.PickedShader
+                        };
                         break;
 
                     default:
@@ -1366,11 +1372,8 @@ void UIDrawActorResourceCreationMenu()
                 case scene::EActorType::STATIC_MESH:
                 {
                     GSceneEditorState.bDisableCameraMovement = true;
-                    CreatedActor = new scene::CStaticMesh{ CopyToString(GSceneEditorState.AssetNameBuffer),
-                                                           nullptr,
-                                                           nullptr,
-                                                           nullptr,
-                                                           scene::EStaticMeshType::STATIONARY };
+                    CreatedActor =
+                      new scene::CStaticMesh{ CopyToString(GSceneEditorState.AssetNameBuffer), nullptr, nullptr, nullptr, scene::EStaticMeshType::STATIONARY };
                     break;
                 }
                 default:
@@ -1533,7 +1536,6 @@ glm::vec2 GetMouseScreenSpacePos()
 glm::vec2 GetMouseNDCPos()
 {
     const glm::vec2 MouseScreenSpacePos = GetMouseScreenSpacePos();
-    return 2.f * glm::vec2{ MouseScreenSpacePos.x / GSceneEditorState.SceneWindowWidth,
-                            1 - (MouseScreenSpacePos.y / GSceneEditorState.SceneWindowHeight) } -
+    return 2.f * glm::vec2{ MouseScreenSpacePos.x / GSceneEditorState.SceneWindowWidth, 1 - (MouseScreenSpacePos.y / GSceneEditorState.SceneWindowHeight) } -
            1.f;
 }
