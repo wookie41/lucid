@@ -39,6 +39,8 @@
 #include <scene/actors/actor.hpp>
 #include <scene/actors/lights.hpp>
 
+
+#include "ImGuizmo.h"
 #include "imgui_lucid.h"
 
 using namespace lucid;
@@ -102,8 +104,6 @@ struct FSceneEditorState
     scene::IActor* LastDeletedActor = nullptr;
     scene::IActor* ClipboardActor = nullptr;
 
-    float DistanceToCurrentlyDraggedActor = 0;
-
     scene::CCamera PerspectiveCamera{ scene::ECameraMode::PERSPECTIVE };
     scene::CCamera* CurrentCamera = nullptr;
 
@@ -153,7 +153,8 @@ struct FSceneEditorState
 void InitializeSceneEditor();
 
 void HandleCameraMovement(const float& DeltaTime);
-void HandleActorDrag();
+void DoActorPicking();
+void DrawActiveActorGizmos();
 void HandleInput();
 
 void UIOpenPopup();
@@ -222,11 +223,10 @@ int main(int argc, char** argv)
             // Render the scene to off-screen framebuffer
             GSceneEditorState.Window->Prepare();
             GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
-
+            
             GSceneEditorState.Window->ImgUiStartNewFrame();
-            {
+            {   
                 UISetupDockspace();
-                ImGui::ShowDemoWindow();
                 UIDrawSceneWindow();
                 UIDrawResourceBrowserWindow();
                 UIDrawSceneHierarchyWindow();
@@ -243,7 +243,7 @@ int main(int argc, char** argv)
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
 
-            HandleActorDrag();
+            DoActorPicking();
         }
     }
 
@@ -394,7 +394,7 @@ void HandleCameraMovement(const float& DeltaTime)
     }
 }
 
-void HandleActorDrag()
+void DoActorPicking()
 {
     const glm::vec2 MouseNDCPos = GetMouseNDCPos();
     const glm::vec2 MouseScreenSpacePos = GetMouseScreenSpacePos();
@@ -431,26 +431,8 @@ void HandleActorDrag()
             if (GSceneEditorState.CurrentlyDraggedActor == nullptr)
             {
                 // Remember the actor that we hit and how far from the camera it was on the z axis
-                glm::vec4 ActorPosView = GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ ClickedActor->Transform.Translation, 1 };
-                GSceneEditorState.DistanceToCurrentlyDraggedActor = ActorPosView.z;
                 GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
-                return;
             }
-
-            // Actor pos from world to view space
-            glm::vec4 ActorPosView =
-              GSceneEditorState.CurrentCamera->GetViewMatrix() * glm::vec4{ GSceneEditorState.CurrentlyDraggedActor->Transform.Translation, 1 };
-
-            // Get the mouse ray in view space from mouse pos
-            const glm::vec3 MouseRayView = GSceneEditorState.CurrentCamera->GetMouseRayInViewSpace(MouseNDCPos);
-            // Calculate actor's position to match mouse view space x/y pos, preserving z
-            const float ActorMidPoint = GSceneEditorState.CurrentlyDraggedActor->GetVerticalMidPoint();
-
-            ActorPosView.x = -MouseRayView.x * GSceneEditorState.DistanceToCurrentlyDraggedActor;
-            ActorPosView.y = -MouseRayView.y * GSceneEditorState.DistanceToCurrentlyDraggedActor - ActorMidPoint;
-
-            // Update actor's position
-            GSceneEditorState.CurrentlyDraggedActor->Transform.Translation = (glm::inverse(GSceneEditorState.CurrentCamera->GetViewMatrix()) * ActorPosView);
         }
     }
 }
@@ -559,6 +541,7 @@ void UIDrawSceneWindow()
 
         // Draw the rendered scene into an image
         GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
+
 
         // Handle drag and drop into the viewport
         if (ImGui::BeginDragDropTargetCustom(GSceneEditorState.ImSceneWindow->Rect(), GSceneEditorState.ImSceneWindow->ID))
@@ -1213,6 +1196,15 @@ void UIDrawActorDetailsWindow()
     {
         if (GSceneEditorState.CurrentlyDraggedActor)
         {
+            ImGuizmo::Enable(true);
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetRect(GSceneEditorState.SceneWindowPos.x,
+                              GSceneEditorState.SceneWindowPos.y,
+                              GSceneEditorState.SceneWindowWidth,
+                              GSceneEditorState.SceneWindowHeight);
+
+            ImGuizmo::BeginFrame();            
+            GSceneEditorState.CurrentlyDraggedActor->DrawGizmos(GSceneEditorState.CurrentCamera);
             GSceneEditorState.CurrentlyDraggedActor->UIDrawActorDetails();
         }
         ImGui::End();

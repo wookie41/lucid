@@ -1,0 +1,11 @@
+{
+    "Id": "8409353e-a011-481b-85ec-aa7d0f0be3a3",
+    "Name": "Sponza_vase_round",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "e074909c-1638-43bd-9fa3-f46821a8848e",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

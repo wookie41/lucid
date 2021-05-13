@@ -1,138 +1,123 @@
 {
     "StaticMeshes": [
         {
-            "Id": 1,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
+            "Id": 19,
+            "Name": "Sponza",
+            "BaseActorResourceId": "f1d722a9-af8e-4f7a-9e7f-3b271dc6ce9b",
             "Postion": [
-                -4.680571556091309,
-                0.4551119804382324,
-                6.606811046600342
+                1.0,
+                1.0,
+                1.0
             ],
             "Scale": [
-                2.0,
-                2.0,
-                2.0
-            ],
-            "Rotation": [
-                0.0,
-                -0.9731788635253906,
-                0.0,
-                -0.230049729347229
+                0.009999999776482582,
+                0.009999999776482582,
+                0.009999999776482582
             ],
             "MaterialIds": [
                 {
                     "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 2,
-            "Name": "BrickCube",
-            "BaseActorResourceId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
-            "Postion": [
-                4.172100067138672,
-                -0.11250871419906616,
-                4.557320594787598
-            ],
-            "MaterialIds": [
+                    "Value": "9a5ac21a-3411-4737-980a-55931ace1b2e"
+                },
                 {
                     "bChanged": true,
-                    "Value": "24f49047-090b-4d13-900b-e65f66327148"
-                }
-            ]
-        },
-        {
-            "Id": 3,
-            "Name": "Gigacube",
-            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
-            "Scale": [
-                30.0,
-                30.0,
-                30.0
-            ],
-            "MaterialIds": [
+                    "Value": "369f130b-08b7-4942-9ef2-1983f6163ed4"
+                },
                 {
                     "bChanged": true,
-                    "Value": "5f13c189-43af-4816-94a9-36a7d8918e71"
-                }
-            ],
-            "bReverseNormals": true
-        },
-        {
-            "Id": 4,
-            "Name": "Toybox",
-            "BaseActorResourceId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
-            "Postion": [
-                -6.006997108459473,
-                -2.605623722076416,
-                -6.583926200866699
-            ],
-            "Scale": [
-                2.0,
-                2.0,
-                2.0
-            ],
-            "Rotation": [
-                0.0,
-                -0.9731788635253906,
-                0.0,
-                -0.230049729347229
-            ],
-            "MaterialIds": [
+                    "Value": "a8f8e81a-2a83-468a-bb5c-e4af6414f711"
+                },
                 {
                     "bChanged": true,
-                    "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
-                }
-            ]
-        },
-        {
-            "Id": 5,
-            "Name": "Backpack2",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                9.60269546508789,
-                -3.675967216491699,
-                -8.136394500732422
-            ],
-            "Scale": [
-                1.5,
-                1.5,
-                1.5
-            ],
-            "Rotation": [
-                0.0,
-                -0.37217795848846438,
-                0.0,
-                0.9281613826751709
-            ],
-            "MaterialIds": [
+                    "Value": "8b80b08c-9862-405c-8801-3f7c1b41d1dd"
+                },
                 {
                     "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 18,
-            "Name": "TestCube",
-            "BaseActorResourceId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
-            "Postion": [
-                -10.181564331054688,
-                11.17745590209961,
-                13.569973945617676
-            ],
-            "Rotation": [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "MaterialIds": [
+                    "Value": "bf891c08-2491-4fb3-a876-e512e2ee01de"
+                },
                 {
                     "bChanged": true,
-                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                    "Value": "880b18aa-64b9-4531-95b6-27e88fbc0cdb"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "808729e9-8716-41dc-8183-2f2681669930"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "642b293c-7faa-4900-ab24-c847bccc7766"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "9e78a6b7-4158-488e-8574-47a6d4c0dc8f"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "f66074ef-3bf0-40e8-a702-4c8a6feb7414"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "34cb5fff-a56f-47cc-b88c-ef4530d31b38"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "86edb705-9fb8-472a-b29e-ccc2fb2fd968"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "cb1e890a-adc6-45aa-8c43-9493da0b53e0"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "23d73a25-d21b-49e5-85f6-b720a6fbf94d"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "1f00be76-0ba9-4526-87e5-136052280910"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "b4d5b6f0-4af3-4563-87f9-a3cdf4d9c1ce"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "51c93c4c-0c06-430e-949a-c5dd62864a20"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "4f3ffff5-1af6-4c1a-903a-ac2f72ab909a"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "006453b8-c676-4ba8-9b24-f547c2a8dc75"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "750b8ced-f4b8-4210-beae-c5bf5792ca50"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "810368a2-9b1a-4beb-9f42-4821cc6a1744"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "61e01e08-1ac2-4962-b883-2ad6056a3fc0"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "3025bc53-66c8-4701-920a-f5cae036930f"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "233f841a-ed9b-4024-891c-c26c10ea948f"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "592f55b1-2771-47a6-b986-ba69211965d9"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "8409353e-a011-481b-85ec-aa7d0f0be3a3"
                 }
             ]
         }
@@ -142,17 +127,12 @@
     },
     "SpotLights": [
         {
-            "Id": 6,
-            "Color": [
-                1.0,
-                0.0,
-                1.0
-            ],
+            "Id": 20,
             "Name": "SpotLight",
             "Postion": [
-                -14.311141967773438,
-                0.6749167442321777,
-                -13.936189651489258
+                3.1034724712371828,
+                2.7924084663391115,
+                0.3226463198661804
             ],
             "Rotation": [
                 0.0,
@@ -160,53 +140,15 @@
                 0.0,
                 1.0
             ],
-            "bCastsShadow": true,
             "Direction": [
-                0.17000000178813935,
-                -0.13300000131130219,
-                0.0689999982714653
+                1.0,
+                0.0,
+                0.0
             ],
-            "Constant": 0.04500000178813934,
-            "Linear": 0.2280000001192093,
+            "Constant": 0.20000000298023225,
+            "Linear": 0.10000000149011612,
             "InnerCutOffRad": 0.5235987901687622,
             "OuterCutOffRad": 0.7853981852531433
-        }
-    ],
-    "PointLights": [
-        {
-            "Id": 7,
-            "Color": [
-                0.7599999904632568,
-                0.699999988079071,
-                0.0
-            ],
-            "Name": "PointLight",
-            "Postion": [
-                1.028664469718933,
-                1.248383641242981,
-                -2.5006752014160158
-            ],
-            "bCastsShadow": true,
-            "Constant": 0.20000000298023225,
-            "Linear": 0.15000000596046449,
-            "Quadratic": 0.0010000000474974514
-        },
-        {
-            "Id": 9,
-            "Color": [
-                0.7599999904632568,
-                0.699999988079071,
-                0.0
-            ],
-            "Name": "PointLight",
-            "Postion": [
-                10.11941146850586,
-                1.3882050514221192,
-                2.612949848175049
-            ],
-            "Constant": 0.20000000298023225,
-            "Linear": 0.15000000596046449,
-            "Quadratic": 0.0010000000474974514
         }
     ]
 }

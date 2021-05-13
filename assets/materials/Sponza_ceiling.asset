@@ -1,0 +1,11 @@
+{
+    "Id": "642b293c-7faa-4900-ab24-c847bccc7766",
+    "Name": "Sponza_ceiling",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "c51d41e5-526b-49ec-bdf0-e5b7595d89c4",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

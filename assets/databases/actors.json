@@ -19,6 +19,16 @@
             "ActorId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
             "ActorPath": "assets/actors/TestCube.asset",
             "ActorType": 1
+        },
+        {
+            "ActorId": "f1d722a9-af8e-4f7a-9e7f-3b271dc6ce9b",
+            "ActorPath": "assets/actors/Sponza.asset",
+            "ActorType": 1
+        },
+        {
+            "ActorId": "f1d722a9-af8e-4f7a-9e7f-3b271dc6ce9b",
+            "ActorPath": "assets/actors/Sponza.asset",
+            "ActorType": 1
         }
     ]
 }

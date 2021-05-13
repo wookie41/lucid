@@ -17,7 +17,8 @@ namespace lucid::scene
 {
     class CMaterial;
     class CWorld;
-    
+    class CCamera;
+
     /** Base interface for all things that can be a part of the scene and thus can be rendered */
     class IActor
     {
@@ -51,6 +52,7 @@ namespace lucid::scene
 #if DEVELOPMENT
         /** Editor stuff */
         virtual void UIDrawActorDetails();
+        virtual void DrawGizmos(scene::CCamera const* InCamera);
 
         /**
          *  InActorResourceName will be the name of the resource file to which this actor is saved

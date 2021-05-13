@@ -135,6 +135,8 @@ namespace lucid::scene
 #endif
         
         virtual ~CRenderer() = default;
+
+        glm::uvec2  ResultResolution;
     
       protected:
         

@@ -1,0 +1,11 @@
+{
+    "Id": "810368a2-9b1a-4beb-9f42-4821cc6a1744",
+    "Name": "Sponza_floor",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "3735da03-7cae-4eff-a017-4b8eece9f812",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

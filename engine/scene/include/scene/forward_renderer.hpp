@@ -41,7 +41,6 @@ namespace lucid::scene
         /** Renderer properties, have to be set before the first Setup() call */
         float       AmbientStrength = 0.1;
         int         NumSamplesPCF   = 5;
-        glm::uvec2  ResultResolution;
 
       private:
 

@@ -1,0 +1,10 @@
+{
+    "Id": "8b80b08c-9862-405c-8801-3f7c1b41d1dd",
+    "Name": "Sponza_Material__47",
+    "ShaderName": "BlinnPhongMaps",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

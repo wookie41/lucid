@@ -1,0 +1,11 @@
+{
+    "Id": "a8f8e81a-2a83-468a-bb5c-e4af6414f711",
+    "Name": "Sponza_Material__298",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "0702f0df-148c-4e54-846f-dcf96fd44b78",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}
