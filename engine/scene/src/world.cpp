@@ -143,6 +143,10 @@ namespace lucid::scene
         auto World = new CWorld;
         World->Init();
 
+        // Helper map used to resolve parents once we load the world, needed because parents might be loaded
+        // after children which result in null parents
+        FHashMap<IActor*, u32> UnresolvedParents;
+
         // Load static meshes
         for (const FStaticMeshDescription& StaticMeshDescription : InWorldDescription.StaticMeshes)
         {
@@ -152,12 +156,15 @@ namespace lucid::scene
                 LUCID_LOG(ELogLevel::WARN, "Failed to create static mesh %s - no base asset", *StaticMeshDescription.Name);
                 continue;;
             }
-            if (!ActorAsset->bAssetLoaded)
+
+            ActorAsset->LoadAsset();
+            if (auto* StaticMesh = CStaticMesh::CreateActor((CStaticMesh*)ActorAsset, World, StaticMeshDescription))
             {
-                ActorAsset->LoadAsset();
-                ActorAsset->bAssetLoaded = true;
+                if (StaticMeshDescription.ParentId && !StaticMesh->Parent)
+                {
+                    UnresolvedParents.Add(StaticMesh, StaticMeshDescription.ParentId);
+                }
             }
-            CStaticMesh::CreateActor((CStaticMesh*)ActorAsset, World, StaticMeshDescription);
         }
 
         if (InWorldDescription.Skybox.BaseActorResourceId != sole::INVALID_UUID)
@@ -185,6 +192,11 @@ namespace lucid::scene
             DirLight->Direction = Float3ToVec(DirLightEntry.Direction);
             DirLight->LightUp = Float3ToVec(DirLightEntry.LightUp);
 
+            if (DirLightEntry.ParentId && !DirLight->Parent)
+            {
+                UnresolvedParents.Add(DirLight, DirLightEntry.ParentId);
+            }
+            
             World->AddDirectionalLight(DirLight);
         }
 
@@ -208,6 +220,11 @@ namespace lucid::scene
             SpotLight->InnerCutOffRad = SpotLightEntry.InnerCutOffRad;
             SpotLight->OuterCutOffRad = SpotLightEntry.OuterCutOffRad;
 
+            if (SpotLightEntry.ParentId && !SpotLight->Parent)
+            {
+                UnresolvedParents.Add(SpotLight, SpotLightEntry.ParentId);
+            }
+            
             World->AddSpotLight(SpotLight);
         }
 
@@ -227,9 +244,22 @@ namespace lucid::scene
             PointLight->Linear = PointLightEntry.Linear;
             PointLight->Quadratic = PointLightEntry.Quadratic;
 
+            if (PointLightEntry.ParentId && !PointLight->Parent)
+            {
+                UnresolvedParents.Add(PointLight, PointLightEntry.ParentId);
+            }
+            
             World->AddPointLight(PointLight);
         }
 
+        // Setup parents
+        for (int i = 0; i < UnresolvedParents.GetLength(); ++i)
+        {
+            auto Entry = UnresolvedParents.GetEntryByIndex(i);
+            Entry.key->Parent = World->GetActorById(Entry.value);
+        }
+
+        UnresolvedParents.FreeAll();
         return World;
     }
 

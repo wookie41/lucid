@@ -50,9 +50,16 @@ namespace lucid
         void Remove(T* Element);
         bool Contains(T* Element);
         void Free();
-
+        
         FLinkedListItem<T> Head;
         FLinkedListItem<T>* Tail;
+    };
+
+    template <typename K, typename V>
+    struct FHashMapEntry
+    {
+        K   key;
+        V   value;
     };
 
     template <typename K, typename V>
@@ -60,22 +67,24 @@ namespace lucid
     {
     public:
 
-        void        Add(const K& Key, const V& Value);
-        V&          Get(const K& Key);
-        V&          GetByIndex(const u64& EntryNum) const;
-        void        Remove(const K& Key);
-        bool        Contains(const K& Key);
-        u32         GetLength() const;
-        void        FreeAll();
+        void                    Add(const K& Key, const V& Value);
+        V&                      Get(const K& Key);
+        FHashMapEntry<K, V>&    GetEntryByIndex(const u64& EntryNum) const
+        {
+            assert(EntryNum < GetLength());
+            return HashMap[EntryNum];
+        }
+        V&                      GetByIndex(const u64& EntryNum) const;
+        void                    Remove(const K& Key);
+        bool                    Contains(const K& Key);
+        u32                     GetLength() const;
+        void                    FreeAll();
 
     private:
         
-        struct
-        {
-            K   key;
-            V   value;
-        }* HashMap = NULL;
+        FHashMapEntry<K, V>* HashMap = NULL;
     };
+
 
     template <typename V>
     struct FStringHashMap

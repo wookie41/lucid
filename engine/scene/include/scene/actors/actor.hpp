@@ -51,8 +51,9 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         /** Editor stuff */
-        virtual void UIDrawActorDetails();
-        virtual void DrawGizmos(scene::CCamera const* InCamera);
+        virtual void        UIDrawActorDetails();
+        virtual IActor*     UIDrawHierarchy();
+        virtual void        DrawGizmos(scene::CCamera const* InCamera);
 
         /**
          *  InActorResourceName will be the name of the resource file to which this actor is saved
@@ -94,7 +95,7 @@ namespace lucid::scene
         UUID                    ResourceId = sole::INVALID_UUID;
         FDString                ResourcePath { "" };
         CWorld*                 World; // World that this actor is in
-        FArray<IActor*>         Children { 1, true };
+        FLinkedList<IActor>     Children;
         bool                    bAssetLoaded = false;
 
     protected:

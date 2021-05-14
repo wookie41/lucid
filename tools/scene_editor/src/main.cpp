@@ -100,7 +100,7 @@ struct FSceneEditorState
 
     scene::CWorld* World = nullptr;
 
-    scene::IActor* CurrentlyDraggedActor = nullptr;
+    scene::IActor* CurrentlySelectedActor = nullptr;
     scene::IActor* LastDeletedActor = nullptr;
     scene::IActor* ClipboardActor = nullptr;
 
@@ -233,6 +233,7 @@ int main(int argc, char** argv)
                 UIDrawActorDetailsWindow();
                 UIDrawCommonActorsWindow();
                 UIDrawFileDialog();
+                ImGui::ShowDemoWindow();
             }
 
             GSceneEditorState.Window->Clear();
@@ -389,7 +390,7 @@ void HandleCameraMovement(const float& DeltaTime)
 
     if (IsMouseButtonPressed(RIGHT))
     {
-        GSceneEditorState.CurrentlyDraggedActor = nullptr;
+        GSceneEditorState.CurrentlySelectedActor = nullptr;
         GSceneEditorState.CurrentCamera->AddRotation(-MousePos.DeltaX * .9f, MousePos.DeltaY * .9f);
     }
 }
@@ -428,10 +429,10 @@ void DoActorPicking()
         // Ignore skyboxes
         if (ClickedActor != nullptr && ClickedActor->GetActorType() != scene::EActorType::SKYBOX)
         {
-            if (GSceneEditorState.CurrentlyDraggedActor == nullptr)
+            if (GSceneEditorState.CurrentlySelectedActor == nullptr)
             {
                 // Remember the actor that we hit and how far from the camera it was on the z axis
-                GSceneEditorState.CurrentlyDraggedActor = ClickedActor;
+                GSceneEditorState.CurrentlySelectedActor = ClickedActor;
             }
         }
     }
@@ -446,9 +447,9 @@ void HandleInput()
 
     if (IsKeyPressed(SDLK_c) && IsKeyPressed(SDLK_LCTRL))
     {
-        if (GSceneEditorState.CurrentlyDraggedActor)
+        if (GSceneEditorState.CurrentlySelectedActor)
         {
-            GSceneEditorState.ClipboardActor = GSceneEditorState.CurrentlyDraggedActor;
+            GSceneEditorState.ClipboardActor = GSceneEditorState.CurrentlySelectedActor;
         }
     }
 
@@ -461,15 +462,15 @@ void HandleInput()
         }
     }
 
-    if (IsKeyPressed(SDLK_DELETE) && GSceneEditorState.CurrentlyDraggedActor)
+    if (IsKeyPressed(SDLK_DELETE) && GSceneEditorState.CurrentlySelectedActor)
     {
         if (GSceneEditorState.LastDeletedActor)
         {
             delete GSceneEditorState.LastDeletedActor;
         }
-        GSceneEditorState.World->RemoveActorById(GSceneEditorState.CurrentlyDraggedActor->Id);
-        GSceneEditorState.LastDeletedActor = GSceneEditorState.CurrentlyDraggedActor;
-        GSceneEditorState.CurrentlyDraggedActor = nullptr;
+        GSceneEditorState.World->RemoveActorById(GSceneEditorState.CurrentlySelectedActor->Id);
+        GSceneEditorState.LastDeletedActor = GSceneEditorState.CurrentlySelectedActor;
+        GSceneEditorState.CurrentlySelectedActor = nullptr;
     }
 
     if (IsKeyPressed(SDLK_z) && IsKeyPressed(SDLK_LCTRL))
@@ -555,7 +556,7 @@ void UIDrawSceneWindow()
                     const glm::vec2 MouseNDCPos = GetMouseNDCPos();
                     const glm::vec3 SpawnedActorPos = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(MouseNDCPos, 5);
                     auto* SpawnedActor = GEngine.GetActorsResources().Get(ActorAssetId)->CreateActorInstance(GSceneEditorState.World, SpawnedActorPos);
-                    GSceneEditorState.CurrentlyDraggedActor = SpawnedActor;
+                    GSceneEditorState.CurrentlySelectedActor = SpawnedActor;
                 }
             }
             else if (const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload(COMMON_ACTOR_DRAG_TYPE))
@@ -1180,10 +1181,12 @@ void UIDrawSceneHierarchyWindow()
             auto* Actor = ActorMap.GetByIndex(i);
             if (Actor->Parent)
             {
-                continue;
+                continue; // The parent will handle it
             }
-
-            ImGui::Text(*Actor->Name);
+            if (auto* SelectedActor = Actor->UIDrawHierarchy())
+            {
+                GSceneEditorState.CurrentlySelectedActor = SelectedActor;
+            }
         }
         ImGui::End();
     }
@@ -1194,7 +1197,7 @@ void UIDrawActorDetailsWindow()
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
     if (ImGui::Begin(ACTOR_DETAILS, nullptr, WindowFlags))
     {
-        if (GSceneEditorState.CurrentlyDraggedActor)
+        if (GSceneEditorState.CurrentlySelectedActor)
         {
             ImGuizmo::Enable(true);
             ImGuizmo::SetOrthographic(false);
@@ -1204,8 +1207,8 @@ void UIDrawActorDetailsWindow()
                               GSceneEditorState.SceneWindowHeight);
 
             ImGuizmo::BeginFrame();            
-            GSceneEditorState.CurrentlyDraggedActor->DrawGizmos(GSceneEditorState.CurrentCamera);
-            GSceneEditorState.CurrentlyDraggedActor->UIDrawActorDetails();
+            GSceneEditorState.CurrentlySelectedActor->DrawGizmos(GSceneEditorState.CurrentCamera);
+            GSceneEditorState.CurrentlySelectedActor->UIDrawActorDetails();
         }
         ImGui::End();
     }

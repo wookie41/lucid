@@ -1,123 +1,52 @@
 {
     "StaticMeshes": [
         {
-            "Id": 19,
-            "Name": "Sponza",
-            "BaseActorResourceId": "f1d722a9-af8e-4f7a-9e7f-3b271dc6ce9b",
+            "Id": 22,
+            "ParentId": 23,
+            "Name": "Backpack",
+            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
             "Postion": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "Scale": [
-                0.009999999776482582,
-                0.009999999776482582,
-                0.009999999776482582
+                6.293446063995361,
+                2.303985834121704,
+                -0.44762593507766726
             ],
             "MaterialIds": [
                 {
                     "bChanged": true,
-                    "Value": "9a5ac21a-3411-4737-980a-55931ace1b2e"
-                },
+                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
+                }
+            ]
+        },
+        {
+            "Id": 21,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                1.2996392250061036,
+                -0.5712313055992127,
+                4.6664299964904789
+            ],
+            "MaterialIds": [
                 {
                     "bChanged": true,
-                    "Value": "369f130b-08b7-4942-9ef2-1983f6163ed4"
-                },
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                }
+            ]
+        },
+        {
+            "Id": 23,
+            "ParentId": 21,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                7.335569381713867,
+                3.1461687088012697,
+                2.5456743240356447
+            ],
+            "MaterialIds": [
                 {
                     "bChanged": true,
-                    "Value": "a8f8e81a-2a83-468a-bb5c-e4af6414f711"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "8b80b08c-9862-405c-8801-3f7c1b41d1dd"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "bf891c08-2491-4fb3-a876-e512e2ee01de"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "880b18aa-64b9-4531-95b6-27e88fbc0cdb"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "808729e9-8716-41dc-8183-2f2681669930"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "642b293c-7faa-4900-ab24-c847bccc7766"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "9e78a6b7-4158-488e-8574-47a6d4c0dc8f"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "f66074ef-3bf0-40e8-a702-4c8a6feb7414"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "34cb5fff-a56f-47cc-b88c-ef4530d31b38"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "86edb705-9fb8-472a-b29e-ccc2fb2fd968"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "cb1e890a-adc6-45aa-8c43-9493da0b53e0"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "23d73a25-d21b-49e5-85f6-b720a6fbf94d"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "1f00be76-0ba9-4526-87e5-136052280910"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "b4d5b6f0-4af3-4563-87f9-a3cdf4d9c1ce"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "51c93c4c-0c06-430e-949a-c5dd62864a20"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "4f3ffff5-1af6-4c1a-903a-ac2f72ab909a"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "006453b8-c676-4ba8-9b24-f547c2a8dc75"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "750b8ced-f4b8-4210-beae-c5bf5792ca50"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "810368a2-9b1a-4beb-9f42-4821cc6a1744"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "61e01e08-1ac2-4962-b883-2ad6056a3fc0"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "3025bc53-66c8-4701-920a-f5cae036930f"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "233f841a-ed9b-4024-891c-c26c10ea948f"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "592f55b1-2771-47a6-b986-ba69211965d9"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "8409353e-a011-481b-85ec-aa7d0f0be3a3"
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
                 }
             ]
         }
@@ -130,9 +59,9 @@
             "Id": 20,
             "Name": "SpotLight",
             "Postion": [
-                3.1034724712371828,
-                2.7924084663391115,
-                0.3226463198661804
+                0.0,
+                0.0,
+                -3.519399881362915
             ],
             "Rotation": [
                 0.0,
@@ -140,6 +69,7 @@
                 0.0,
                 1.0
             ],
+            "bCastsShadow": true,
             "Direction": [
                 1.0,
                 0.0,

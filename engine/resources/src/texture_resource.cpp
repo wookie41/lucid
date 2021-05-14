@@ -139,8 +139,7 @@ namespace lucid::resources
 
     void CTextureResource::LoadDataToMainMemorySynchronously()
     {
-        // Check if we already loaded it
-        if (TextureData)
+        if (bLoadedToMainMemory)
         {
             return;
         }
@@ -159,21 +158,25 @@ namespace lucid::resources
         const u64 ReadBytes = fread_s(TextureData, DataSize, 1, DataSize, TextureFile);
         assert(ReadBytes == DataSize);
         fclose(TextureFile);
+
+        bLoadedToMainMemory = true;
     }
 
     void CTextureResource::LoadDataToVideoMemorySynchronously()
     {
-        // For now we require for the data to be loaded in the main memory
-        assert(TextureData);
-
         // Check if we didn't already load it
-        if (TextureHandle)
+        if (bLoadedToVideoMemory)
         {
             return;
         }
 
+        // For now we require for the data to be loaded in the main memory
+        assert(TextureData);
+
         TextureHandle = gpu::Create2DTexture(TextureData, Width, Height, DataType, DataFormat, PixelFormat, 0, Name);
         assert(TextureHandle);
+
+        bLoadedToVideoMemory = true;
     }
 
     void CTextureResource::SaveSynchronously(FILE* ResourceFile) const

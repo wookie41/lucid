@@ -228,7 +228,12 @@ namespace lucid::scene
             if (ChildStaticMeshRef->MeshResource == MeshResource)
             {
                 auto* ChildMaterialSlot = ChildStaticMeshRef->GetMaterialSlot(InMaterialSlot);
-                if (ChildMaterialSlot->GetID() == InOldMaterial->GetID())
+                auto* BaseAssetMaterial = *MaterialSlots[InMaterialSlot];
+                if (!ChildMaterialSlot)
+                {
+                    ChildStaticMeshRef->AddMaterial(BaseAssetMaterial ? BaseAssetMaterial->GetCopy() : nullptr);
+                }
+                else if (ChildMaterialSlot->GetID() == InOldMaterial->GetID())
                 {
                     delete *ChildStaticMeshRef->MaterialSlots[InMaterialSlot];
                     *ChildStaticMeshRef->MaterialSlots[InMaterialSlot] = (*MaterialSlots[InMaterialSlot])->GetCopy();
@@ -408,16 +413,28 @@ namespace lucid::scene
 
     void CStaticMesh::LoadAsset()
     {
+        if (bAssetLoaded)
+        {
+            return;
+        }
+        
         assert(ResourcePath.GetLength());
 
         FStaticMeshDescription StaticMeshDescription;
         if (ReadFromJSONFile(StaticMeshDescription, *ResourcePath)) // @TODO strings from here don't get freed
         {
             MeshResource = GEngine.GetMeshesHolder().Get(StaticMeshDescription.MeshResourceId.Value);
+            
+            MeshResource->LoadDataToMainMemorySynchronously();
+            MeshResource->LoadDataToVideoMemorySynchronously();
+            MeshResource->FreeMainMemory();
+
             for (u16 i = 0; i < StaticMeshDescription.MaterialIds.size(); ++i)
             {
                 MaterialSlots.Add(GEngine.GetMaterialsHolder().Get(StaticMeshDescription.MaterialIds[i].Value));
             }
+
+            bAssetLoaded = true;
         }
         else
         {
@@ -427,6 +444,7 @@ namespace lucid::scene
 
     IActor* CStaticMesh::CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition)
     {
+        LoadAsset();
         auto* SpawnedMesh = new CStaticMesh{Name.GetCopy(), nullptr, InWorld, MeshResource, Type};
         for (u8 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
@@ -435,6 +453,7 @@ namespace lucid::scene
         SpawnedMesh->Transform.Translation = InSpawnPosition;
         SpawnedMesh->BaseActorAsset = this;
         SpawnedMesh->BaseStaticMesh = this;
+        SpawnedMesh->MeshResource = MeshResource;
         ChildReferences.Add(SpawnedMesh);
         InWorld->AddStaticMesh(SpawnedMesh);
         return SpawnedMesh;
