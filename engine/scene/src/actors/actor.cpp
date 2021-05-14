@@ -315,6 +315,7 @@ namespace lucid::scene
         {
             ChildNode->Element->OnRemoveFromWorld();
             ChildNode = ChildNode->Next;
-        }        
+        }
+        Children.Free();
     }
 } // namespace lucid::scene

@@ -51,10 +51,12 @@ namespace lucid::scene
         virtual void        LoadAsset() override { assert(0); }
         virtual IActor*     CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override { assert(0); return nullptr; };
 
-        glm::vec3   Color           { 1, 1, 1 };
-        u8          Quality         = 1;
+        glm::vec3       Color           { 1, 1, 1 };
+        u8              Quality         = 1;
 
-        CShadowMap* ShadowMap       = nullptr;
+        CShadowMap*     ShadowMap       = nullptr;
+
+        bool            bShouldCastShadow = false;
 
         virtual ~CLight() = default;
 

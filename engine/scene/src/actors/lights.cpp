@@ -153,6 +153,7 @@ namespace lucid::scene
         Copy->Quality = Quality;
         Copy->Transform = Transform;
         Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
+        Copy->bShouldCastShadow = bShouldCastShadow;
         if (ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
@@ -165,12 +166,22 @@ namespace lucid::scene
     {
         IActor::OnAddToWorld(InWorld);
         InWorld->AddDirectionalLight(this);
+        if (bShouldCastShadow)
+        {
+            ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
+        }
     }
     
     void CDirectionalLight::OnRemoveFromWorld()
     {
         IActor::OnRemoveFromWorld();
         World->RemoveDirectionalLight(Id);
+        if (ShadowMap)
+        {
+            ShadowMap->Free();
+            delete ShadowMap;
+            ShadowMap = nullptr;
+        }
     }
 
     /////////////////////////////////////
@@ -250,6 +261,7 @@ namespace lucid::scene
         Copy->OuterCutOffRad = OuterCutOffRad;
         Copy->Transform = Transform;
         Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
+        Copy->bShouldCastShadow = bShouldCastShadow;
         if (ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::SPOT);
@@ -262,12 +274,22 @@ namespace lucid::scene
     {
         IActor::OnAddToWorld(InWorld);
         InWorld->AddSpotLight(this);
+        if (bShouldCastShadow)
+        {
+            ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
+        }
     }
     
     void CSpotLight::OnRemoveFromWorld()
     {
         IActor::OnRemoveFromWorld();
         World->RemoveSpotLight(Id);
+        if (ShadowMap)
+        {
+            ShadowMap->Free();
+            delete ShadowMap;
+            ShadowMap = nullptr;
+        }
     }
 
     /////////////////////////////////////
@@ -369,6 +391,7 @@ namespace lucid::scene
         Copy->CachedFarPlane = CachedFarPlane;
         Copy->Transform = Transform;
         Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
+        Copy->bShouldCastShadow = bShouldCastShadow;
         if (ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::POINT);
@@ -381,12 +404,22 @@ namespace lucid::scene
     {
         IActor::OnAddToWorld(InWorld);
         InWorld->AddPointLight(this);
+        if (bShouldCastShadow)
+        {
+            ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
+        }
     }
     
     void CPointLight::OnRemoveFromWorld()
     {
         IActor::OnRemoveFromWorld();
         World->RemovePointLight(Id);
+        if (ShadowMap)
+        {
+            ShadowMap->Free();
+            delete ShadowMap;
+            ShadowMap = nullptr;
+        }
     }
 
 } // namespace lucid::scene

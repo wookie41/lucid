@@ -188,6 +188,7 @@ namespace lucid::scene
             DirLight->Color = Float3ToVec(DirLightEntry.Color);
             DirLight->Direction = Float3ToVec(DirLightEntry.Direction);
             DirLight->LightUp = Float3ToVec(DirLightEntry.LightUp);
+            DirLight->bShouldCastShadow = DirLightEntry.bCastsShadow;
 
             if (DirLightEntry.ParentId && !DirLight->Parent)
             {
@@ -216,6 +217,7 @@ namespace lucid::scene
             SpotLight->Quadratic = SpotLightEntry.Quadratic;
             SpotLight->InnerCutOffRad = SpotLightEntry.InnerCutOffRad;
             SpotLight->OuterCutOffRad = SpotLightEntry.OuterCutOffRad;
+            SpotLight->bShouldCastShadow = SpotLightEntry.bCastsShadow;
 
             if (SpotLightEntry.ParentId && !SpotLight->Parent)
             {
@@ -240,6 +242,7 @@ namespace lucid::scene
             PointLight->Constant = PointLightEntry.Constant;
             PointLight->Linear = PointLightEntry.Linear;
             PointLight->Quadratic = PointLightEntry.Quadratic;
+            PointLight->bShouldCastShadow = PointLightEntry.bCastsShadow;
 
             if (PointLightEntry.ParentId && !PointLight->Parent)
             {
@@ -371,6 +374,28 @@ namespace lucid::scene
         }
 
         return nullptr;
+    }
+
+    void CWorld::Unload()
+    {
+        for (u32 i = 0; i < ActorById.GetLength(); ++i)
+        {
+            IActor* Actor = ActorById.GetByIndex(i);
+            Actor->OnRemoveFromWorld();
+            delete Actor;
+        }
+
+        ActorById.FreeAll();
+        StaticMeshes.FreeAll();
+        DirectionalLights.FreeAll();
+        SpotLights.FreeAll();
+        PointLights.FreeAll();
+        AllLights.FreeAll();
+
+        if (Skybox)
+        {
+            delete Skybox;
+        }
     }
 
 } // namespace lucid::scene

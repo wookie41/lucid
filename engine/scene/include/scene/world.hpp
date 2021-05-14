@@ -52,6 +52,8 @@ namespace lucid::scene
         void            SaveToBinaryFile(const FString& InFilePath) const;
 
         inline FHashMap<u32, IActor*>& GetActorsMap() { return ActorById; }
+
+        void            Unload();
     
     private:
 
