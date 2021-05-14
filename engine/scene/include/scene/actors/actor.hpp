@@ -27,7 +27,7 @@ namespace lucid::scene
         {
             if (Parent)
             {
-                Parent->Children.Add(this);
+                Parent->AddChild(this);
             }
         }
         IActor(const FDString& InName, const IActor& InRHS) : Name(InName)
@@ -51,8 +51,9 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         /** Editor stuff */
-        virtual void UIDrawActorDetails();
-        virtual void DrawGizmos(scene::CCamera const* InCamera);
+        virtual void        UIDrawActorDetails();
+        virtual IActor*     UIDrawHierarchy();
+        virtual void        DrawGizmos(scene::CCamera const* InCamera);
 
         /**
          *  InActorResourceName will be the name of the resource file to which this actor is saved
@@ -66,7 +67,11 @@ namespace lucid::scene
 #endif
 
         virtual EActorType  GetActorType() const = 0;
-        virtual float       GetVerticalMidPoint() const = 0;
+
+        virtual float GetVerticalMidPoint() const = 0;
+        virtual float GetMaxY() const  { return 0; }
+        virtual float GetMaxZ() const  { return 0; }
+        
         virtual IActor*     CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) = 0;
         virtual IActor*     CreateCopy() = 0;
 
@@ -79,6 +84,9 @@ namespace lucid::scene
 
         virtual void        OnAddToWorld(CWorld* InWorld);
         virtual void        OnRemoveFromWorld();
+
+        inline void AddChild(IActor* InChild) { Children.Add(InChild); InChild->Parent = this; }
+        inline void RemoveChild(IActor* InChild) { Children.Remove(InChild); InChild->Parent = nullptr; }
 
         virtual ~IActor() = default;
 
@@ -94,10 +102,11 @@ namespace lucid::scene
         UUID                    ResourceId = sole::INVALID_UUID;
         FDString                ResourcePath { "" };
         CWorld*                 World; // World that this actor is in
-        FArray<IActor*>         Children { 1, true };
-        bool                    bAssetLoaded = false;
 
     protected:
+        FLinkedList<IActor>     Children;
+
+        bool                    bAssetLoaded = false;
 
         IActor*                 BaseActorAsset = nullptr;
         IActor*                 PrevBaseActorAsset = nullptr;

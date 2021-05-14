@@ -20,8 +20,5 @@ namespace lucid::math
         return { RandomFloat(), RandomFloat(), RandomFloat() };
     }
 
-    real Lerp(const real& X, const real& Y, const real& T)
-    {
-        return X + ((Y - X) * T);
-    }
+    real Lerp(const real& X, const real& Y, const real& T);
 }

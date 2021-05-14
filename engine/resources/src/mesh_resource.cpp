@@ -89,6 +89,11 @@ namespace lucid::resources
 
     void CMeshResource::LoadDataToMainMemorySynchronously()
     {
+        if (bLoadedToMainMemory)
+        {
+            return;
+        }
+
         FILE* MeshFile;
         if (fopen_s(&MeshFile, *FilePath, "rb") != 0)
         {
@@ -135,16 +140,19 @@ namespace lucid::resources
 
         // Close the file
         fclose(MeshFile);
+        bLoadedToMainMemory = true;
     }
 
     void CMeshResource::LoadDataToVideoMemorySynchronously()
     {
-        // Check if we didn't load it already
-        if (SubMeshes.GetLength() && SubMeshes[0]->VAO)
+        if (bLoadedToVideoMemory)
         {
             return;
         }
 
+        // For now we require for the data to be loaded in the main memory
+        assert(SubMeshes.GetLength());
+        
         for (u16 i = 0; i < SubMeshes.GetLength(); ++i)
         {
             FSubMesh* SubMesh = SubMeshes[i];
@@ -225,6 +233,8 @@ namespace lucid::resources
 
             MeshAttributes.Free();
         }
+
+        bLoadedToVideoMemory = true;
     }
 
     void CMeshResource::SaveSynchronously(FILE* ResourceFile) const

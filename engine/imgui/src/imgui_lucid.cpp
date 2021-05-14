@@ -65,12 +65,12 @@ namespace lucid
             for (int i = 0; i < GEngine.GetMaterialsHolder().GetLength(); ++i)
             {
                 scene::CMaterial* CurrMaterial = GEngine.GetMaterialsHolder().GetByIndex(i);
-                if (ImGui::Selectable(*CurrMaterial->GetName(), OutMaterial && (*OutMaterial)->GetID() == CurrMaterial->GetID()))
+                if (ImGui::Selectable(*CurrMaterial->GetName(), *OutMaterial && (*OutMaterial)->GetID() == CurrMaterial->GetID()))
                 {
                     *OutMaterial = CurrMaterial;
                 }
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                if (OutMaterial && (*OutMaterial)->GetID() == CurrMaterial->GetID())
+                if (*OutMaterial && (*OutMaterial)->GetID() == CurrMaterial->GetID())
                 {
                     ImGui::SetItemDefaultFocus();
                 }

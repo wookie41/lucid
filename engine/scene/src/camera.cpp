@@ -1,5 +1,10 @@
 #include "scene/camera.hpp"
 
+#include <glm/ext/quaternion_common.hpp>
+#include <misc/math.hpp>
+
+
+
 #include "glm/gtc/matrix_transform.hpp"
 
 namespace lucid::scene
@@ -114,5 +119,46 @@ namespace lucid::scene
         return glm::vec3(glm::inverse(GetViewMatrix()) * MouseRayView);
     }
 
+    void CCamera::FocusOnLocation(const glm::vec3& InLocation, const float& InCameraZTranslation, const float& InCameraYTranslation)
+    {
+        Position = InLocation + glm::vec3 { 0, InCameraZTranslation, InCameraYTranslation };
+        Yaw = -90.f;
+        Pitch = -45;
+        UpdateCameraVectors();
+    }
 
+    
+    void CCamera::Update(const float& DeltaTime)
+    {
+        if (MoveDuration > 0)
+        {
+            if (CurrenteMoveTime > MoveDuration)
+            {
+                MoveDuration = 0;
+                Position = DesiredPos;
+                Yaw = DesiredYaw;
+                Pitch = DesiredPitch;
+            }
+            else
+            {
+                const float T = CurrenteMoveTime / MoveDuration;
+                Position = math::Lerp(Position, DesiredPos, T);
+                Yaw = math::Lerp(Yaw, DesiredYaw, T);
+                Pitch = math::Lerp(Pitch, DesiredPitch, T);
+            }
+
+            UpdateCameraVectors();
+            CurrenteMoveTime += DeltaTime;
+        }
+    }
+
+    void CCamera::MoveToOverTime(const glm::vec3& InLocation, const float& InYaw, const float& InPitch, const float& InDuration)
+    {
+        CurrenteMoveTime = 0;
+        MoveDuration = InDuration;
+        DesiredPos = InLocation;
+        DesiredYaw = InYaw;
+        DesiredPitch = InPitch;
+    }
+    
 } // namespace lucid::scene

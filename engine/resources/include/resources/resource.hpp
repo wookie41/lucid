@@ -70,7 +70,10 @@ namespace lucid::resources
         u64                 DataSize; 
 
         u32                 AssetSerializationVersion = -1;
-       
+
+        bool                bLoadedToMainMemory = false;
+        bool                bLoadedToVideoMemory = false;
+
         bool                IsVideoMemoryFreed = false;
         bool                IsMainMemoryFreed = false;
     };

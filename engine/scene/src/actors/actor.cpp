@@ -10,12 +10,15 @@
 #include <sole/sole.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <scene/world.hpp>
 
 #include "platform/input.hpp"
+#include "platform/util.hpp"
 
 namespace lucid::scene
-
 {
+
+#if DEVELOPMENT
     void IActor::UIDrawActorDetails()
     {
         if (ImGui::Button("Save"))
@@ -23,10 +26,12 @@ namespace lucid::scene
             SaveToResourceFile();
         }
 
+        // Common actor options
         if (ImGui::CollapsingHeader("Actor"))
         {
             static char RenameBuffer[256];
 
+            // Renaming
             if (bRenaming)
             {
                 ImGui::InputText("##Rename Actor", RenameBuffer, 255);
@@ -46,6 +51,8 @@ namespace lucid::scene
                     Name.CopyToBuffer(RenameBuffer);
                     bRenaming = true;
                 }
+
+                ImGui::Spacing();
             }
 
             // Don't allow do modify translation and similar things on actor assets
@@ -56,6 +63,7 @@ namespace lucid::scene
 
                 if (BaseActorAsset)
                 {
+                    // Base asset panel
                     ImGui::Text("Base actor asset:");
                     ImGuiActorAssetPicker("Base actor asset", &BaseActorAsset);
 
@@ -73,12 +81,76 @@ namespace lucid::scene
                         BaseActorAsset = OldBaseActor;
                     }
 
-                    ImGui::Text("Parent: %s", Parent ? Parent->Name : "None");
+                    ImGui::Spacing();
+
+                    // Parent panel
+                    static bool bChangingParent = false;
+                    ImGui::Text("Parent: %s", Parent ? *Parent->Name : "None");
+                    ImGui::SameLine();
+                    if (bChangingParent)
+                    {
+                        if (ImGui::Button("Submit"))
+                        {
+                            bChangingParent = false;
+                        }
+                    }
+                    else
+                    {
+                        if (ImGui::Button("Change parent"))
+                        {
+                            bChangingParent = true;
+                        }
+                    }
+
+                    if (bChangingParent)
+                    {
+                        if (ImGui::BeginListBox("### possible parrents"))
+                        {
+                            if (ImGui::Selectable("None", Parent == nullptr))
+                            {
+                                if (Parent)
+                                {
+                                    Parent->RemoveChild(this);
+                                }
+                                Parent = nullptr;
+                            }
+
+                            for (u32 i = 0; i < World->GetActorsMap().GetLength(); ++i)
+                            {
+                                auto* Actor = World->GetActorsMap().GetByIndex(i);
+                                if (Actor == this)
+                                {
+                                    continue;
+                                }
+                                ImGui::PushID((void*)(intptr_t)Actor->Id);
+                                if (ImGui::Selectable("##actor", Parent == Actor, ImGuiSelectableFlags_AllowItemOverlap | ImGuiSelectableFlags_SpanAllColumns))
+                                {
+                                    if (Parent)
+                                    {
+                                        Parent->RemoveChild(this);
+                                    }
+                                    Parent = Actor;
+                                    Parent->AddChild(this);
+                                }
+                                ImGui::PopID();
+                                ImGui::SameLine();
+                                ImGui::Text(*Actor->Name);
+                                if (Parent == Actor)
+                                {
+                                    ImGui::SetItemDefaultFocus();
+                                }
+                            }
+                            ImGui::EndListBox();
+                        }
+                    }
                 }
 
+                ImGui::Spacing();
+
+                // Transforms panel
                 glm::vec3 EulerRotation{ glm::degrees(eulerAngles(Transform.Rotation).x),
-                                                glm::degrees(eulerAngles(Transform.Rotation).y),
-                                                glm::degrees(eulerAngles(Transform.Rotation).z) };
+                                         glm::degrees(eulerAngles(Transform.Rotation).y),
+                                         glm::degrees(eulerAngles(Transform.Rotation).z) };
 
                 ImGui::DragFloat3("Translation (x, y, z)", &Transform.Translation.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
                 ImGui::DragFloat3("Scale (x, y, z)", &Transform.Scale.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
@@ -91,53 +163,47 @@ namespace lucid::scene
         }
     }
 
-    void IActor::SaveToResourceFile()
+    IActor* IActor::UIDrawHierarchy()
     {
-        if (BaseActorAsset)
+        // Draw a tree when actor has children        
+        if (Children.Head.Element)
         {
-            auto* NewActorAsset = CreateActorAsset(Name.GetCopy());
-            NewActorAsset->ResourceId = sole::uuid4();
-            NewActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *Name);
-
-            FActorDatabaseEntry NewEntry;
-            NewEntry.ActorId = NewActorAsset->ResourceId;
-            NewEntry.ActorPath = NewActorAsset->ResourcePath;
-
-            GEngine.AddActorAsset(NewActorAsset);
-
-            BaseActorAsset = NewActorAsset;
-            NewActorAsset->InternalSaveToResourceFile(NewActorAsset->ResourcePath);
+            IActor* ClickedActor = nullptr;
+            if (ImGui::TreeNode((void*)(intptr_t)Id, *Name))
+            {
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+                {
+                    ClickedActor = this;
+                }
+                auto ChildNode = &Children.Head;
+                while (ChildNode && ChildNode->Element)
+                {
+                    if (auto* ClickedChild = ChildNode->Element->UIDrawHierarchy())
+                    {
+                        ClickedActor = ClickedChild;
+                    }
+                    ChildNode = ChildNode->Next;
+                }
+                ImGui::TreePop();
+            }
+            return ClickedActor;
         }
-        else
+
+        // Otherwise just draw text
+        ImGui::PushID((void*)(intptr_t)Id);
+        if (ImGui::Selectable(*Name))
         {
-            assert(ResourcePath.GetLength());
-            InternalSaveToResourceFile(ResourcePath);
+            ImGui::PopID();
+            return this;
         }
-    }
-
-    void IActor::OnAddToWorld(CWorld* InWorld)
-    {
-        for (u32 i = 0; i < Children.GetLength(); ++i)
-        {
-            auto* ChildActor = *Children[i];
-            ChildActor->OnAddToWorld(InWorld);
-        }
-        World = InWorld;
-    }
-
-    void IActor::OnRemoveFromWorld()
-    {
-        for (u32 i = 0; i < Children.GetLength(); ++i)
-        {
-            auto* ChildActor = *Children[i];
-            ChildActor->OnRemoveFromWorld();
-        }
+        ImGui::PopID();
+        return nullptr;
     }
 
     void IActor::DrawGizmos(CCamera const* InCamera)
     {
-        static ImGuizmo::OPERATION  CurrentGizmoOperation(ImGuizmo::ROTATE);
-        static ImGuizmo::MODE       CurrentGizmoMode(ImGuizmo::WORLD);
+        static ImGuizmo::OPERATION CurrentGizmoOperation(ImGuizmo::ROTATE);
+        static ImGuizmo::MODE CurrentGizmoMode(ImGuizmo::WORLD);
 
         if (IsKeyPressed(SDLK_t))
             CurrentGizmoOperation = ImGuizmo::TRANSLATE;
@@ -154,7 +220,7 @@ namespace lucid::scene
             // if (ImGui::RadioButton("World", CurrentGizmoMode == ImGuizmo::WORLD))
             //     CurrentGizmoMode = ImGuizmo::WORLD;
         }
-        
+
         static bool UseSnap;
         if (ImGui::IsKeyPressed(SDLK_y))
             UseSnap = !UseSnap;
@@ -202,5 +268,54 @@ namespace lucid::scene
                 Transform.Scale = Scale;
             }
         }
+    }
+
+#endif
+
+    void IActor::SaveToResourceFile()
+    {
+        if (BaseActorAsset)
+        {
+            auto* NewActorAsset = CreateActorAsset(Name.GetCopy());
+            NewActorAsset->ResourceId = sole::uuid4();
+            NewActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *Name);
+
+            FActorDatabaseEntry NewEntry;
+            NewEntry.ActorId = NewActorAsset->ResourceId;
+            NewEntry.ActorPath = NewActorAsset->ResourcePath;
+
+            GEngine.AddActorAsset(NewActorAsset);
+
+            BaseActorAsset = NewActorAsset;
+            NewActorAsset->InternalSaveToResourceFile(NewActorAsset->ResourcePath);
+        }
+        else
+        {
+            assert(ResourcePath.GetLength());
+            InternalSaveToResourceFile(ResourcePath);
+        }
+    }
+
+    void IActor::OnAddToWorld(CWorld* InWorld)
+    {
+        auto ChildNode = &Children.Head;
+        while (ChildNode && ChildNode->Element)
+        {
+            ChildNode->Element->OnAddToWorld(InWorld);
+            ChildNode = ChildNode->Next;
+        }        
+
+        World = InWorld;
+    }
+
+    void IActor::OnRemoveFromWorld()
+    {
+        auto ChildNode = &Children.Head;
+        while (ChildNode && ChildNode->Element)
+        {
+            ChildNode->Element->OnRemoveFromWorld();
+            ChildNode = ChildNode->Next;
+        }
+        Children.Free();
     }
 } // namespace lucid::scene

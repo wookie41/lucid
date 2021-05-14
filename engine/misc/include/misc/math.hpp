@@ -22,5 +22,14 @@ namespace lucid::math
     // Returns a random vec3 with components in range <0; 1>
     glm::vec3 RandomVec3();
 
-    real Lerp(const real& X, const real& Y, const real& T);
+    inline real Lerp(const real& X, const real& Y, const real& T)
+    {
+        return X + ((Y - X) * T);
+    }
+    
+    inline glm::vec3 Lerp(glm::vec3 x, glm::vec3 y, float t)
+    {
+        return x * (1.f - t) + y * t;
+    }
+
 } // namespace lucid::misc
