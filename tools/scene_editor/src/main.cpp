@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <stdio.h>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <scene/actors/actor.hpp>
 #include <scene/actors/lights.hpp>
 
@@ -147,7 +148,7 @@ struct FSceneEditorState
 
     bool bIsRunning = true;
 
-    float LastActorSpawnTime = 0;
+    float LastActorSpawnTime    = 0;
 } GSceneEditorState;
 
 void InitializeSceneEditor();
@@ -219,6 +220,7 @@ int main(int argc, char** argv)
         {
             dt -= platform::SimulationStep;
             HandleCameraMovement(dt);
+            GSceneEditorState.CurrentCamera->Update(dt);
 
             // Render the scene to off-screen framebuffer
             GSceneEditorState.Window->Prepare();
@@ -481,6 +483,22 @@ void HandleInput()
             GSceneEditorState.LastDeletedActor = nullptr;
         }
     }
+
+    if (IsKeyPressed(SDLK_c) && GSceneEditorState.CurrentlySelectedActor)
+    {
+            glm::vec3 Skew;
+            glm::vec4 Perspective;
+            glm::vec3 Translation;
+            glm::vec3 Scale;
+            glm::quat Rotation;
+            glm::decompose(GSceneEditorState.CurrentlySelectedActor->CalculateModelMatrix(), Scale, Rotation, Translation, Skew, Perspective);
+            GSceneEditorState.CurrentCamera->MoveToOverTime(
+                Translation + glm::vec3 { 0, GSceneEditorState.CurrentlySelectedActor->GetMaxZ() + 5, GSceneEditorState.CurrentlySelectedActor->GetMaxY() + 5},
+                -90,
+                -45.f,
+                3.f);
+
+    }
 }
 
 void UIOpenPopup(const char* InTitle)
@@ -544,7 +562,7 @@ void UIDrawSceneWindow()
         GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
 
 
-        // Handle drag and drop into the viewport
+        // Handle actor asset drag and drop into the viewport
         if (ImGui::BeginDragDropTargetCustom(GSceneEditorState.ImSceneWindow->Rect(), GSceneEditorState.ImSceneWindow->ID))
         {
             if (const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload(ACTOR_ASSET_DRAG_TYPE))
@@ -559,6 +577,7 @@ void UIDrawSceneWindow()
                     GSceneEditorState.CurrentlySelectedActor = SpawnedActor;
                 }
             }
+            // Handle common actor drag and drop into the viewport
             else if (const ImGuiPayload* Payload = ImGui::AcceptDragDropPayload(COMMON_ACTOR_DRAG_TYPE))
             {
                 IM_ASSERT(Payload->DataSize == sizeof(ECommonActorType));

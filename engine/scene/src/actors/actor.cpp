@@ -13,6 +13,7 @@
 #include <scene/world.hpp>
 
 #include "platform/input.hpp"
+#include "platform/util.hpp"
 
 namespace lucid::scene
 {
@@ -109,7 +110,7 @@ namespace lucid::scene
                             {
                                 if (Parent)
                                 {
-                                    Parent->Children.Remove(this);
+                                    Parent->RemoveChild(this);
                                 }
                                 Parent = nullptr;
                             }
@@ -126,10 +127,10 @@ namespace lucid::scene
                                 {
                                     if (Parent)
                                     {
-                                        Parent->Children.Remove(this);
+                                        Parent->RemoveChild(this);
                                     }
                                     Parent = Actor;
-                                    Parent->Children.Add(this);
+                                    Parent->AddChild(this);
                                 }
                                 ImGui::PopID();
                                 ImGui::SameLine();
@@ -164,7 +165,7 @@ namespace lucid::scene
 
     IActor* IActor::UIDrawHierarchy()
     {
-        // Draw a tree when actor has children
+        // Draw a tree when actor has children        
         if (Children.Head.Element)
         {
             IActor* ClickedActor = nullptr;
@@ -173,14 +174,13 @@ namespace lucid::scene
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
                 {
                     ClickedActor = this;
-                    
                 }
                 auto ChildNode = &Children.Head;
                 while (ChildNode && ChildNode->Element)
                 {
-                    if (ChildNode->Element->UIDrawHierarchy())
+                    if (auto* ClickedChild = ChildNode->Element->UIDrawHierarchy())
                     {
-                        ClickedActor = ChildNode->Element;
+                        ClickedActor = ClickedChild;
                     }
                     ChildNode = ChildNode->Next;
                 }

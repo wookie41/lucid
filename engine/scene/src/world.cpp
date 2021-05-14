@@ -170,10 +170,7 @@ namespace lucid::scene
         if (InWorldDescription.Skybox.BaseActorResourceId != sole::INVALID_UUID)
         {
             auto* ActorAsset = GEngine.GetActorsResources().Get(InWorldDescription.Skybox.BaseActorResourceId);
-            if (!ActorAsset->bAssetLoaded)
-            {
-                ActorAsset->LoadAsset();
-            }
+            ActorAsset->LoadAsset();
             CSkybox::CreateActor((CSkybox*)ActorAsset, World, InWorldDescription.Skybox);
         }
 
@@ -255,8 +252,15 @@ namespace lucid::scene
         // Setup parents
         for (int i = 0; i < UnresolvedParents.GetLength(); ++i)
         {
-            auto Entry = UnresolvedParents.GetEntryByIndex(i);
-            Entry.key->Parent = World->GetActorById(Entry.value);
+            auto ActorToParentID = UnresolvedParents.GetEntryByIndex(i);
+            if (auto* Parent =  World->GetActorById(ActorToParentID.value))
+            {
+                Parent->AddChild(ActorToParentID.key);
+            }
+            else
+            {
+                LUCID_LOG(ELogLevel::WARN, "No parent %d found for actor %s", ActorToParentID.value, *ActorToParentID.key->Name)
+            }
         }
 
         UnresolvedParents.FreeAll();

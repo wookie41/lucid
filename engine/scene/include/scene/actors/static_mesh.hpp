@@ -33,6 +33,9 @@ namespace lucid::scene
         u32                                 GetNumMaterialSlots() const { return MaterialSlots.GetLength(); }
         
         virtual float GetVerticalMidPoint() const override;
+        
+        virtual float GetMaxY() const override { return MeshResource->MaxPosZ * Transform.Scale.y; }
+        virtual float GetMaxZ() const override { return MeshResource->MaxPosZ * Transform.Scale.z;}
 
         static  EActorType      GetActorTypeStatic() { return EActorType::STATIC_MESH; }
         virtual EActorType      GetActorType() const override { return EActorType::STATIC_MESH; }
