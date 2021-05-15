@@ -127,15 +127,24 @@ namespace lucid::scene
     CWorld* LoadWorldFromJSONFile(const FString& InFilePath)
     {
         FWorldDescription WorldDescription;
-        ReadFromJSONFile(WorldDescription, *InFilePath);
-        return LoadWorld(WorldDescription);
+        if (ReadFromJSONFile(WorldDescription, *InFilePath))
+        {
+            return LoadWorld(WorldDescription);            
+        }
+        LUCID_LOG(ELogLevel::WARN, "Failed to load world from JSON file %s", *InFilePath);
+        return nullptr;
     }
 
     CWorld* LoadWorldFromBinaryFile(const FString& InFilePath)
     {
         FWorldDescription WorldDescription;
-        ReadFromBinaryFile(WorldDescription, *InFilePath);
-        return LoadWorld(WorldDescription);
+        if (ReadFromBinaryFile(WorldDescription, *InFilePath))
+        {
+            return LoadWorld(WorldDescription);
+            
+        }
+        LUCID_LOG(ELogLevel::WARN, "Failed to load world from binary file %s", *InFilePath);
+        return nullptr;
     }
 
     CWorld* LoadWorld(const FWorldDescription& InWorldDescription)

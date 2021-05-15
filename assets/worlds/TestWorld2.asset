@@ -43,6 +43,28 @@
                     "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
                 }
             ]
+        },
+        {
+            "Id": 4,
+            "Name": "TestCube",
+            "BaseActorResourceId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
+            "Postion": [
+                5.7793779373168949,
+                -1.355829119682312,
+                -4.739894390106201
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                }
+            ]
         }
     ],
     "SpotLights": [
