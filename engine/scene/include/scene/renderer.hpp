@@ -20,7 +20,7 @@ namespace lucid::scene
 
     struct FRenderView
     {
-        CCamera* Camera;
+        CCamera*       Camera;
         gpu::FViewport Viewport;
     };
 
@@ -56,16 +56,15 @@ namespace lucid::scene
         {
         }
 
-        inline gpu::CTexture*   GetShadowMapTexture() const { return ShadowMapTexture; }
-        inline u8               GetQuality() const { return ShadowMapQuality; }
+        inline gpu::CTexture* GetShadowMapTexture() const { return ShadowMapTexture; }
+        inline u8             GetQuality() const { return ShadowMapQuality; }
 
         virtual void Free() override;
 
       private:
-        u8              ShadowMapQuality;
-        gpu::CTexture*  ShadowMapTexture;
+        u8             ShadowMapQuality;
+        gpu::CTexture* ShadowMapTexture;
     };
-
 
 #if DEVELOPMENT
     /** Stores ids of the objects on the scene, used for picking in tools */
@@ -73,26 +72,35 @@ namespace lucid::scene
     {
         inline u64 GetIdAtMousePositon(const glm::vec2& MousePosition) const
         {
-            if (MousePosition.x > 0 && (int)MousePosition.x < Width &&
-                MousePosition.y > 0 && (int)MousePosition.y < Height)
+            if (MousePosition.x > 0 && (int)MousePosition.x < Width && MousePosition.y > 0 && (int)MousePosition.y < Height)
             {
                 return CachedTextureData[(Width * (Height - (int)MousePosition.y)) + (int)MousePosition.x];
             }
             return 0;
         }
 
-        u32*    CachedTextureData;
-        u32     Width, Height;
+        u32* CachedTextureData;
+        u32  Width, Height;
     };
+
+    /** Stores information about the last rendered frame, populated by the renderer in Render() */
+    struct FRenderStats
+    {
+        float FrameTimeMiliseconds;
+        u32   NumDrawCalls;
+        u64   FrameNumber = 0;
+    };
+
+    extern FRenderStats GRenderStats;
+
 #endif
-    
+
     /////////////////////////////////////
     //            Renderer             //
     /////////////////////////////////////
     class CRenderer
     {
       public:
-
         /////////////////////////////////////
         //        Renderer interface       //
         /////////////////////////////////////
@@ -118,13 +126,16 @@ namespace lucid::scene
          */
         virtual gpu::CFramebuffer* GetResultFramebuffer() = 0;
 
+        /** Stalls the CPU until GPU finished executing all commands of the previous Render() call.  */
+        void WaitForFrameEnd() const { gpu::Finish(); }
+
         /////////////////////////////////////
         //         Lights/ShadowMaps       //
         /////////////////////////////////////
 
-        CDirectionalLight*  CreateDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
-        CSpotLight*         CreateSpotLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
-        CPointLight*        CreatePointLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
+        CDirectionalLight* CreateDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
+        CSpotLight*        CreateSpotLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
+        CPointLight*       CreatePointLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
 
         CShadowMap* CreateShadowMap(const ELightType& InLightType);
         void        RemoveShadowMap(CShadowMap* InShadowMap);
@@ -133,20 +144,19 @@ namespace lucid::scene
         inline const FHitMap& GetCachedHitMap() const { return CachedHitMap; }
         inline gpu::CTexture* GetLightBulbTexture() const { return LightBulbTexture; }
 #endif
-        
+
         virtual ~CRenderer() = default;
 
-        glm::uvec2  ResultResolution;
-    
+        glm::uvec2 ResultResolution;
+
       protected:
-        
         /** Lights and shadow maps arrays */
-        CLight**        CreatedLights = nullptr;
-        CShadowMap**    CreatedShadowMaps = nullptr;
+        CLight**     CreatedLights     = nullptr;
+        CShadowMap** CreatedShadowMaps = nullptr;
 
         /** Default quality used when creating  shadow maps - 0 lowest */
         u8 DefaultShadowMapQuality = 1;
-        u8 DefaultLightQuality = 1;
+        u8 DefaultLightQuality     = 1;
 
         /** Size of a shadow map for a given quality  */
         const glm::ivec2 ShadowMapSizeByQuality[3] = {
@@ -155,17 +165,15 @@ namespace lucid::scene
             { 2048, 2048 },
         };
 
-        const LightSettings LightSettingsByQuality[3] = {
-            { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 10.f },
-            { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 35.f },
-            { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 70.f }
-        };
+        const LightSettings LightSettingsByQuality[3] = { { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 10.f },
+                                                          { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 35.f },
+                                                          { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 70.f } };
 
 #if DEVELOPMENT
         /** Used to visualize light sources in the editor */
-        gpu::CTexture*  LightBulbTexture;
+        gpu::CTexture* LightBulbTexture;
 
-        FHitMap         CachedHitMap;
+        FHitMap CachedHitMap;
 #endif
     };
 } // namespace lucid::scene

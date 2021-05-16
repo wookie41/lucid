@@ -75,6 +75,14 @@ namespace lucid::scene
                             BaseActorAsset->LoadAsset();
                             BaseActorAsset->bAssetLoaded = true;
                         }
+                        
+                        BaseActorAsset->ChildReferences.Add(this);
+                        PrevBaseActorAsset->ChildReferences.Remove(this);
+                        if (PrevBaseActorAsset->ChildReferences.IsEmpty())
+                        {
+                            PrevBaseActorAsset->UnloadAsset();
+                        }
+                            
                     }
                     else
                     {
@@ -303,19 +311,62 @@ namespace lucid::scene
         {
             ChildNode->Element->OnAddToWorld(InWorld);
             ChildNode = ChildNode->Next;
-        }        
-
+        }
         World = InWorld;
+        if (BaseActorAsset)
+        {
+            BaseActorAsset->AddChildReference(this);            
+        }
     }
 
-    void IActor::OnRemoveFromWorld()
+    void IActor::OnRemoveFromWorld(const bool& InbHardRemove)
     {
         auto ChildNode = &Children.Head;
         while (ChildNode && ChildNode->Element)
         {
-            ChildNode->Element->OnRemoveFromWorld();
+            ChildNode->Element->OnRemoveFromWorld(InbHardRemove);
+            if (InbHardRemove)
+            {
+                delete ChildNode->Element;
+            }            
             ChildNode = ChildNode->Next;
+        }
+        if (InbHardRemove)
+        {
+            Children.Free();
+        }
+        if (BaseActorAsset)
+        {
+            BaseActorAsset->RemoveChildReference(this);
+        }
+    }
+
+    void IActor::CleanupAfterRemove()
+    {
+        auto ChildNode = &Children.Head;
+        while (ChildNode && ChildNode->Element)
+        {
+            delete ChildNode->Element;
         }
         Children.Free();
     }
+
+    void IActor::AddChildReference(IActor* InChildReference)
+    {
+        if (ChildReferences.IsEmpty())
+        {
+            LoadAsset();
+        }
+        ChildReferences.Add(InChildReference);
+    }
+
+    void IActor::RemoveChildReference(IActor* InChildReference)
+    {
+        ChildReferences.Remove(InChildReference);
+        if (ChildReferences.IsEmpty())
+        {
+            UnloadAsset();
+        }
+    }
+
 } // namespace lucid::scene

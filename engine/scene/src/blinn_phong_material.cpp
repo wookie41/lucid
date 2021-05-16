@@ -258,4 +258,48 @@ namespace lucid::scene
         return Copy;
     };
 
+    void CBlinnPhongMapsMaterial::LoadResources()
+    {
+        if (DiffuseMap)
+        {
+            DiffuseMap->Acquire(false, true);
+        }
+
+        if (SpecularMap)
+        {
+            SpecularMap->Acquire(false, true);
+        }
+
+        if (NormalMap)
+        {
+            NormalMap->Acquire(false, true);
+        }
+
+        if (DisplacementMap)
+        {
+            DisplacementMap->Acquire(false, true);
+        }
+    }
+    void CBlinnPhongMapsMaterial::UnloadResources()
+    {
+        if (DiffuseMap)
+        {
+            DiffuseMap->Release();
+        }
+
+        if (SpecularMap)
+        {
+            SpecularMap->Release();
+        }
+
+        if (NormalMap)
+        {
+            NormalMap->Release();
+        }
+
+        if (DisplacementMap)
+        {
+            DisplacementMap->Release();
+        }
+    }
 } // namespace lucid::scene

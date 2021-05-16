@@ -64,8 +64,8 @@ namespace lucid::platform
 
     void SDLWindow::Init()
     {
-        GPUStateForMyContext.BoundTextures = new gpu::CTexture*[gpu::Info.MaxTextureUnits];
-        for (int i = 0; i < gpu::Info.MaxTextureUnits; ++i)
+        GPUStateForMyContext.BoundTextures = new gpu::CTexture*[gpu::GGPUInfo.MaxTextureUnits];
+        for (int i = 0; i < gpu::GGPUInfo.MaxTextureUnits; ++i)
         {
             GPUStateForMyContext.BoundTextures[i] = nullptr;
         }
@@ -88,7 +88,7 @@ namespace lucid::platform
 
     void SDLWindow::Prepare()
     {
-        gpu::GPUState = &GPUStateForMyContext; 
+        gpu::GGPUState = &GPUStateForMyContext; 
         SDL_GL_MakeCurrent(MySDLWindow, MyGLContext);
     }
 

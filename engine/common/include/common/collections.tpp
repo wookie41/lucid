@@ -107,7 +107,7 @@ namespace lucid
     void FLinkedList<T>::Remove(T* Element)
     {
         FLinkedListItem<T>* current = &Head;
-        while (current != nullptr)
+        while (current != nullptr && current->Element)
         {
             if (current->Element == Element)
             {
@@ -158,6 +158,12 @@ namespace lucid
             delete current;
             current = tmp;
         }
+    }
+
+    template <typename T>
+    bool FLinkedList<T>::IsEmpty() const
+    {
+        return Head.Element == nullptr;
     }
 
     template <typename K, typename V>

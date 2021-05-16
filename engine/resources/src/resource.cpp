@@ -40,5 +40,40 @@ namespace lucid::resources
         {
             LUCID_LOG(ELogLevel::WARN, "Failed to resave resource %s - couldn't open file", *Name);
         }
-    }    
+    }
+
+    void CResource::Acquire(const bool& InbNeededInMainMemory, const bool& InbNeededInVideoMemory)
+    {
+        bool bLoadedToMainMemoryBefore = bLoadedToMainMemory;
+        
+        if (InbNeededInMainMemory)
+        {
+            LoadDataToMainMemorySynchronously();
+        }
+
+        if (InbNeededInVideoMemory)
+        {
+            LoadDataToVideoMemorySynchronously();
+        }
+
+        // The previous call might load it do main memory first, so lets free it
+        if (bLoadedToMainMemory && !InbNeededInMainMemory && !bLoadedToMainMemoryBefore)
+        {
+            FreeMainMemory();
+        }
+
+        if (RefCount == -1)
+        {
+            RefCount = 1;
+        }
+        else
+        {
+            ++RefCount;    
+        }
+    }
+
+    void CResource::Release()
+    {
+        --RefCount;
+    }
 } // namespace lucid::resources

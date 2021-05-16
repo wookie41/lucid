@@ -2,11 +2,14 @@
 
 #include "devices/gpu/buffer.hpp"
 #include "devices/gpu/texture_enums.hpp"
+
 #include "engine/engine.hpp"
 
 #include "scene/actors/actor.hpp"
 #include "scene/material.hpp"
 #include "scene/blinn_phong_material.hpp"
+#include "scene/actors/actor_enums.hpp"
+#include "scene/actors/static_mesh.hpp"
 
 #include "common/log.hpp"
 #include "common/bytes.hpp"
@@ -25,8 +28,6 @@
 #include "schemas/types.hpp"
 
 #include <filesystem>
-#include <scene/actors/actor_enums.hpp>
-#include <scene/actors/static_mesh.hpp>
 
 namespace lucid::resources
 {
@@ -141,6 +142,7 @@ namespace lucid::resources
         // Close the file
         fclose(MeshFile);
         bLoadedToMainMemory = true;
+        IsVideoMemoryFreed = false;
     }
 
     void CMeshResource::LoadDataToVideoMemorySynchronously()
@@ -151,7 +153,10 @@ namespace lucid::resources
         }
 
         // For now we require for the data to be loaded in the main memory
-        assert(SubMeshes.GetLength());
+        if (!bLoadedToMainMemory)
+        {
+            LoadDataToMainMemorySynchronously();
+        }
         
         for (u16 i = 0; i < SubMeshes.GetLength(); ++i)
         {
@@ -235,6 +240,7 @@ namespace lucid::resources
         }
 
         bLoadedToVideoMemory = true;
+        IsMainMemoryFreed = false;
     }
 
     void CMeshResource::SaveSynchronously(FILE* ResourceFile) const
@@ -291,6 +297,7 @@ namespace lucid::resources
             }
 
             IsMainMemoryFreed = true;
+            bLoadedToMainMemory = false;
         }
     }
 
@@ -300,11 +307,15 @@ namespace lucid::resources
         {
             for (u16 i = 0; i < SubMeshes.GetLength(); ++i)
             {
-                SubMeshes[i]->VertexBuffer->Free();
-                SubMeshes[i]->ElementBuffer->Free();
+                SubMeshes[i]->VAO->Free();
+
+                delete SubMeshes[i]->VAO;
+                delete SubMeshes[i]->VertexBuffer;
+                delete SubMeshes[i]->ElementBuffer;
             }
 
             IsVideoMemoryFreed = true;
+            bLoadedToVideoMemory = false;
         }
     }
 
@@ -574,7 +585,7 @@ namespace lucid::resources
         // Create actors for the meshes
         if (InMeshImportStrategy == EMeshImportStretegy::SPLIT_MESHES)
         {
-            FArray<scene::CMaterial*> ImportedMaterials { Root->mNumMaterials, false };
+            FArray<scene::CMaterial*> ImportedMaterials { 1, true };
 
             // Load materials
             for (int MaterialIndex = 0; MaterialIndex < Root->mNumMaterials; ++MaterialIndex)
@@ -941,10 +952,9 @@ namespace lucid::resources
             break;
         }
 
-        CTextureResource* Texture =
-          ImportTexture(TexturePath, TextureResourceFilePath, bGammaCorrect, gpu::ETextureDataType::UNSIGNED_BYTE, InFlipUV, false, TextureName);
-        Texture->LoadDataToVideoMemorySynchronously();
-
+        CTextureResource* Texture = ImportTexture(TexturePath, TextureResourceFilePath, bGammaCorrect, gpu::ETextureDataType::UNSIGNED_BYTE, InFlipUV, false, TextureName);
+        Texture->FreeMainMemory();
+        
         // Update engine resources database
         GEngine.AddTextureResource(Texture);
 

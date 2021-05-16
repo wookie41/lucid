@@ -50,6 +50,7 @@ namespace lucid
         void Remove(T* Element);
         bool Contains(T* Element);
         void Free();
+        bool IsEmpty() const;
         
         FLinkedListItem<T> Head;
         FLinkedListItem<T>* Tail;

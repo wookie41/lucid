@@ -52,7 +52,7 @@ namespace lucid::resources
         
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
-
+        
         float MinPosX = 0, MaxPosX = 0;
         float MinPosY = 0, MaxPosY = 0;
         float MinPosZ = 0, MaxPosZ = 0;

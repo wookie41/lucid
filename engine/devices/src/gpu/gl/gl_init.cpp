@@ -12,8 +12,7 @@
 
 namespace lucid::gpu
 {
-    FGPUInfo Info;
-    // thread_local FGPUState* GPUState;
+    FGPUInfo GGPUInfo;
 
     void InitGPUInfo();
 
@@ -34,8 +33,8 @@ namespace lucid::gpu
 
         // @TODO later on, this could be loaded from some kind of a ini file or something
         // so we can control the minmum version of OpenGL requried
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
@@ -77,11 +76,11 @@ namespace lucid::gpu
 
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &property);
         LUCID_LOG(ELogLevel::INFO, "Available texture units = %d", property);
-        Info.MaxTextureUnits = property;
+        GGPUInfo.MaxTextureUnits = property;
 
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &property);
         LUCID_LOG(ELogLevel::INFO, "Available draw buffers units = %d", property);
-        Info.MaxColorAttachments = property;
+        GGPUInfo.MaxColorAttachments = property;
     }    
 
     void Shutdown()

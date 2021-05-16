@@ -21,14 +21,17 @@ namespace lucid::scene
                 gpu::CCubemap* InSkyboxCubemap,
                 const u32& InWidth,
                 const u32& InHeight,
-                resources::CTextureResource const* const InFaceTextures[6]);
+                resources::CTextureResource* InFaceTextures[6]);
 
         virtual float GetVerticalMidPoint() const override;
 
         static  EActorType      GetActorTypeStatic() { return EActorType::SKYBOX; }
         virtual EActorType      GetActorType() const override  { return EActorType::SKYBOX; }
+        
         virtual IActor*         CreateActorAsset(const FDString& InName) const override;
         virtual void            LoadAsset() override;
+        virtual void            UnloadAsset() override;
+
         virtual IActor*         CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
         virtual IActor*         CreateCopy() override { return nullptr;}
 
@@ -36,6 +39,9 @@ namespace lucid::scene
 
         /** Creates an empty actor asset that lazily loads it's resources when referenced for the first time */
         static  CSkybox*        CreateEmptyActorAsset(const FDString& InName);
+
+        virtual void                    OnAddToWorld(CWorld* InWorld) override;
+        virtual void                    OnRemoveFromWorld(const bool& InbHardRemove) override;
 
 #if DEVELOPMENT
         /** Editor stuff */
@@ -49,11 +55,11 @@ namespace lucid::scene
         
         u32                                     Width, Height;
         gpu::CCubemap*                          SkyboxCubemap = nullptr;
-        resources::CTextureResource const*      FaceTextures[6];
+        resources::CTextureResource*            FaceTextures[6];
         CSkybox const*                          BaseSkyboxResource;
     };
 
-    CSkybox* CreateSkybox(const resources::CTextureResource* FaceTextures[6],
+    CSkybox* CreateSkybox(resources::CTextureResource* FaceTextures[6],
                           CWorld* InWorld,
                           const u32& InWidth,
                           const u32& InHeight,

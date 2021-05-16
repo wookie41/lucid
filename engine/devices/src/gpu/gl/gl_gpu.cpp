@@ -2,15 +2,14 @@
 
 #include "devices/gpu/shader.hpp"
 #include "GL/glew.h"
+#include "common/log.hpp"
 
 namespace lucid::gpu
 {
     // Buffers functions
     void ClearBuffers(const EGPUBuffer& BuffersToClear)
     {
-        static GLbitfield buffersBits[] = {
-            GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_ACCUM_BUFFER_BIT, GL_STENCIL_BUFFER_BIT
-        };
+        static GLbitfield buffersBits[] = { GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_ACCUM_BUFFER_BIT, GL_STENCIL_BUFFER_BIT };
 
         GLbitfield glBuffersBitField = 0;
         if (BuffersToClear & EGPUBuffer::COLOR)
@@ -44,8 +43,7 @@ namespace lucid::gpu
 
     // Depth test functions
 
-    static const GLenum GL_DEPTH_FUNCTIONS[] = { GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
-                                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS };
+    static const GLenum GL_DEPTH_FUNCTIONS[] = { GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS };
 
     void EnableDepthTest() { glEnable(GL_DEPTH_TEST); }
 
@@ -94,8 +92,7 @@ namespace lucid::gpu
                                   const EBlendFunction& DstAlphaFunction)
 
     {
-        glBlendFuncSeparate(
-          TO_GL_BLEND(SrcFunction), TO_GL_BLEND(DstFunction), TO_GL_BLEND(SrcAlphaFunction), TO_GL_BLEND(DstAlphaFunction));
+        glBlendFuncSeparate(TO_GL_BLEND(SrcFunction), TO_GL_BLEND(DstFunction), TO_GL_BLEND(SrcAlphaFunction), TO_GL_BLEND(DstAlphaFunction));
     }
 
     void EnableBlending() { glEnable(GL_BLEND); }
@@ -125,19 +122,19 @@ namespace lucid::gpu
     void ConfigurePipelineState(const FPipelineState& InPipelineState)
     {
         // Clear color
-        if (GPUState->PipelineState.ClearColorBufferColor != InPipelineState.ClearColorBufferColor)
+        if (GGPUState->PipelineState.ClearColorBufferColor != InPipelineState.ClearColorBufferColor)
         {
             SetClearColor(InPipelineState.ClearColorBufferColor);
         }
 
         // Depth value
-        if (GPUState->PipelineState.ClearDepthBufferValue != InPipelineState.ClearDepthBufferValue)
+        if (GGPUState->PipelineState.ClearDepthBufferValue != InPipelineState.ClearDepthBufferValue)
         {
             SetClearDepth(InPipelineState.ClearDepthBufferValue);
         }
 
         // Depth testing
-        if (GPUState->PipelineState.IsDepthTestEnabled != InPipelineState.IsDepthTestEnabled)
+        if (GGPUState->PipelineState.IsDepthTestEnabled != InPipelineState.IsDepthTestEnabled)
         {
             if (InPipelineState.IsDepthTestEnabled)
             {
@@ -149,8 +146,7 @@ namespace lucid::gpu
                 DisableDepthTest();
             }
         }
-        else if (InPipelineState.IsDepthTestEnabled &&
-                 GPUState->PipelineState.DepthTestFunction != InPipelineState.DepthTestFunction)
+        else if (InPipelineState.IsDepthTestEnabled && GGPUState->PipelineState.DepthTestFunction != InPipelineState.DepthTestFunction)
         {
             SetDepthTestFunction(InPipelineState.DepthTestFunction);
         }
@@ -170,7 +166,7 @@ namespace lucid::gpu
         }
 
         // Culling
-        if (GPUState->PipelineState.IsCullingEnabled != InPipelineState.IsCullingEnabled)
+        if (GGPUState->PipelineState.IsCullingEnabled != InPipelineState.IsCullingEnabled)
         {
             if (InPipelineState.IsCullingEnabled)
             {
@@ -182,14 +178,14 @@ namespace lucid::gpu
                 DisableCullFace();
             }
         }
-        else if (InPipelineState.IsCullingEnabled && GPUState->PipelineState.CullMode != InPipelineState.CullMode)
+        else if (InPipelineState.IsCullingEnabled && GGPUState->PipelineState.CullMode != InPipelineState.CullMode)
         {
             EnableCullFace();
             SetCullMode(InPipelineState.CullMode);
         }
 
         // sRGB framebuffer support
-        if (GPUState->PipelineState.IsSRGBFramebufferEnabled != InPipelineState.IsSRGBFramebufferEnabled)
+        if (GGPUState->PipelineState.IsSRGBFramebufferEnabled != InPipelineState.IsSRGBFramebufferEnabled)
         {
             if (InPipelineState.IsSRGBFramebufferEnabled)
             {
@@ -202,16 +198,44 @@ namespace lucid::gpu
         }
 
         // Depth buffer read-only
-        if (GPUState->PipelineState.IsDepthBufferReadOnly != InPipelineState.IsDepthBufferReadOnly)
+        if (GGPUState->PipelineState.IsDepthBufferReadOnly != InPipelineState.IsDepthBufferReadOnly)
         {
             SetReadOnlyDepthBuffer(InPipelineState.IsDepthBufferReadOnly);
         }
 
-        if (GPUState->PipelineState.Viewport != InPipelineState.Viewport)
+        if (GGPUState->PipelineState.Viewport != InPipelineState.Viewport)
         {
             SetViewport(InPipelineState.Viewport);
         }
 
-        GPUState->PipelineState = InPipelineState;
+        GGPUState->PipelineState = InPipelineState;
+    }
+
+#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX 0x9047
+#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX 0x9049
+
+    FGPUStatus GGPUStatus;
+
+    void QueryDeviceStatus()
+    {
+        GGPUStatus.TotalAvailableVideoMemoryKB   = 0;
+        GGPUStatus.CurrentAvailableVideoMemoryKB = 0;
+
+        if (GL_NVX_gpu_memory_info)
+        {
+            GLint TotalMemKB = 0;
+            glGetIntegerv(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &TotalMemKB);
+
+            GLint CurrentMemKB = 0;
+            glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &CurrentMemKB);
+
+            GGPUStatus.TotalAvailableVideoMemoryKB   = TotalMemKB;
+            GGPUStatus.CurrentAvailableVideoMemoryKB = CurrentMemKB;
+        }
+    }
+
+    void Finish()
+    {
+        glFinish();
     }
 } // namespace lucid::gpu

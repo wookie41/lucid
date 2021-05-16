@@ -22,7 +22,7 @@ namespace lucid::scene
     /** Base interface for all things that can be a part of the scene and thus can be rendered */
     class IActor
     {
-    public:
+      public:
         IActor(const FDString& InName, IActor* InParent, CWorld* InWorld) : Name(InName), Parent(InParent), World(InWorld)
         {
             if (Parent)
@@ -32,18 +32,18 @@ namespace lucid::scene
         }
         IActor(const FDString& InName, const IActor& InRHS) : Name(InName)
         {
-            Parent      =   InRHS.Parent;
-            Transform   =   InRHS.Transform;
-            World       =   InRHS.World;
+            Parent    = InRHS.Parent;
+            Transform = InRHS.Transform;
+            World     = InRHS.World;
         }
 
         glm::mat4 CalculateModelMatrix() const
         {
-            glm::mat4 Identity{ 1 };
-            const auto Translation  = glm::translate(Identity, Transform.Translation);
-            const auto Rotation     = glm::mat4_cast(Transform.Rotation);
-            const auto Scale        = glm::scale(Identity, Transform.Scale);
-            
+            glm::mat4  Identity{ 1 };
+            const auto Translation = glm::translate(Identity, Transform.Translation);
+            const auto Rotation    = glm::mat4_cast(Transform.Rotation);
+            const auto Scale       = glm::scale(Identity, Transform.Scale);
+
             const glm::mat4 ModelMatrix = Translation * Rotation * Scale;
 
             return Parent ? Parent->CalculateModelMatrix() * ModelMatrix : ModelMatrix;
@@ -51,42 +51,64 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         /** Editor stuff */
-        virtual void        UIDrawActorDetails();
-        virtual IActor*     UIDrawHierarchy();
-        virtual void        DrawGizmos(scene::CCamera const* InCamera);
+        virtual void    UIDrawActorDetails();
+        virtual IActor* UIDrawHierarchy();
+        virtual void    DrawGizmos(scene::CCamera const* InCamera);
 
         /**
          *  InActorResourceName will be the name of the resource file to which this actor is saved
          *  If empty, then it means there is already a resource file (under ResourcePath) for this actor present and we simply override it
          *  If not empty, then a new resource file is create
          */
-        void            SaveToResourceFile();
-    protected:
-        virtual void    InternalSaveToResourceFile(const FString& InActorResourceName) = 0;
-    public:
+        void SaveToResourceFile();
+
+      protected:
+        virtual void InternalSaveToResourceFile(const FString& InActorResourceName) = 0;
+
+      public:
 #endif
 
-        virtual EActorType  GetActorType() const = 0;
+        virtual EActorType GetActorType() const = 0;
 
         virtual float GetVerticalMidPoint() const = 0;
-        virtual float GetMaxY() const  { return 0; }
-        virtual float GetMaxZ() const  { return 0; }
-        
-        virtual IActor*     CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) = 0;
-        virtual IActor*     CreateCopy() = 0;
+        virtual float GetMaxY() const { return 0; }
+        virtual float GetMaxZ() const { return 0; }
+
+        virtual IActor* CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) = 0;
+        virtual IActor* CreateCopy()                                                           = 0;
 
         /** Creates an actor asset from actocr instance so it can be saved to an asset file */
-        virtual IActor*     CreateActorAsset(const FDString& InName) const = 0;
+        virtual IActor* CreateActorAsset(const FDString& InName) const = 0;
 
         /** Used when actor asset is referenced for the first time, up to this point no data is loaded for an asset */
-        virtual void        LoadAsset() = 0;
+        virtual void LoadAsset(){};
+        virtual void UnloadAsset() {}
 
+        virtual void OnAddToWorld(CWorld* InWorld);
 
-        virtual void        OnAddToWorld(CWorld* InWorld);
-        virtual void        OnRemoveFromWorld();
+        /**
+         * If HardRemove = true, then this call with also free memory occupied by child actors
+         * Settings this flag to false is useful in the editor when deleting an actor, because we might want to undo the deletion
+         * in which case we don't want to free.
+         * If we're sure that we want to permanently delete the actor an it's children, ten call CleanupAfterRemove()
+         */
+        virtual void OnRemoveFromWorld(const bool& InbHardRemove);
 
-        inline void AddChild(IActor* InChild) { Children.Add(InChild); InChild->Parent = this; }
-        inline void RemoveChild(IActor* InChild) { Children.Remove(InChild); InChild->Parent = nullptr; }
+        virtual void CleanupAfterRemove();
+
+        inline void AddChild(IActor* InChild)
+        {
+            Children.Add(InChild);
+            InChild->Parent = this;
+        }
+        inline void RemoveChild(IActor* InChild)
+        {
+            Children.Remove(InChild);
+            InChild->Parent = nullptr;
+        }
+
+        void AddChildReference(IActor* InChildReference);
+        void RemoveChildReference(IActor* InChildReference);
 
         virtual ~IActor() = default;
 
@@ -94,22 +116,24 @@ namespace lucid::scene
          * Unique id for an actor in the world, used e.x. by the renderer when generating the hitmap texture
          * Starts with 1, 0 = INVALID
          */
-        u32                     Id = 0;
-        IActor*                 Parent     = nullptr;
-        FDString                Name;
-        FTransform3D            Transform;
-        bool                    bVisible = true;
-        UUID                    ResourceId = sole::INVALID_UUID;
-        FDString                ResourcePath { "" };
-        CWorld*                 World; // World that this actor is in
+        u32          Id     = 0;
+        IActor*      Parent = nullptr;
+        FDString     Name;
+        FTransform3D Transform;
+        bool         bVisible   = true;
+        UUID         ResourceId = sole::INVALID_UUID;
+        FDString     ResourcePath{ "" };
+        CWorld*      World; // World that this actor is in
 
-    protected:
-        FLinkedList<IActor>     Children;
+        FLinkedList<IActor> Children;
 
-        bool                    bAssetLoaded = false;
+        /** Actors that specify this actor as their BaseActorAsset, used for propagating changes */
+        FLinkedList<IActor> ChildReferences;
 
-        IActor*                 BaseActorAsset = nullptr;
-        IActor*                 PrevBaseActorAsset = nullptr;
+        bool bAssetLoaded = false;
+
+        IActor* BaseActorAsset     = nullptr;
+        IActor* PrevBaseActorAsset = nullptr;
 
 #if DEVELOPMENT
         bool bRenaming = false;

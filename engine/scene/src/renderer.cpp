@@ -14,6 +14,8 @@ namespace lucid::scene
     //         Lights/ShadowMaps       //
     /////////////////////////////////////
 
+    FRenderStats GRenderStats;
+    
     CDirectionalLight* CRenderer::CreateDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow)
     {
         auto* DirectionalLight = new CDirectionalLight(InName, InParent, InWorld);

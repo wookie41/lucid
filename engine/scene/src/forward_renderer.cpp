@@ -15,6 +15,7 @@
 #include "devices/gpu/gpu.hpp"
 #include "devices/gpu/viewport.hpp"
 #include "devices/gpu/cubemap.hpp"
+#include "devices/gpu/timer.hpp"
 
 #include "scene/actors/lights.hpp"
 #include "scene/blinn_phong_material.hpp"
@@ -32,8 +33,8 @@ namespace lucid::scene
     static const glm::mat4 IDENTITY_MATRIX{ 1 };
     static const glm::vec3 WORLD_UP{ 0, 1, 0 };
 
-    static const u8         NO_LIGHT = 0;
-    static const FSString   LIGHT_TYPE("uLightType");
+    static const u8       NO_LIGHT = 0;
+    static const FSString LIGHT_TYPE("uLightType");
 
     static const FSString VIEWPORT_SIZE("uViewportSize");
 
@@ -96,45 +97,45 @@ namespace lucid::scene
             UnitCubeVAO = misc::CreateCubeVAO();
         }
 
-        HitMapShader = GEngine.GetShadersManager().GetShaderByName("Hitmap");
+        HitMapShader          = GEngine.GetShadersManager().GetShaderByName("Hitmap");
         BillboardHitMapShader = GEngine.GetShadersManager().GetShaderByName("BillboardHitmap");
-        ShadowMapShader = GEngine.GetShadersManager().GetShaderByName("ShadowMap");
-        ShadowCubeMapShader = GEngine.GetShadersManager().GetShaderByName("ShadowCubemap");
-        PrepassShader = GEngine.GetShadersManager().GetShaderByName("ForwardPrepass");
-        SSAOShader = GEngine.GetShadersManager().GetShaderByName("SSAO");
-        SimpleBlurShader = GEngine.GetShadersManager().GetShaderByName("SimpleBlur");
-        SkyboxShader = GEngine.GetShadersManager().GetShaderByName("Skybox");
-        BillboardShader = GEngine.GetShadersManager().GetShaderByName("Billboard");
-        FlatShader = GEngine.GetShadersManager().GetShaderByName("Flat");
+        ShadowMapShader       = GEngine.GetShadersManager().GetShaderByName("ShadowMap");
+        ShadowCubeMapShader   = GEngine.GetShadersManager().GetShaderByName("ShadowCubemap");
+        PrepassShader         = GEngine.GetShadersManager().GetShaderByName("ForwardPrepass");
+        SSAOShader            = GEngine.GetShadersManager().GetShaderByName("SSAO");
+        SimpleBlurShader      = GEngine.GetShadersManager().GetShaderByName("SimpleBlur");
+        SkyboxShader          = GEngine.GetShadersManager().GetShaderByName("Skybox");
+        BillboardShader       = GEngine.GetShadersManager().GetShaderByName("Billboard");
+        FlatShader            = GEngine.GetShadersManager().GetShaderByName("Flat");
         GammaCorrectionShader = GEngine.GetShadersManager().GetShaderByName("GammaCorrection");
 
         // Prepare pipeline states
-        ShadowMapGenerationPipelineState.ClearColorBufferColor = FColor{ 1 };
-        ShadowMapGenerationPipelineState.ClearDepthBufferValue = 1;
-        ShadowMapGenerationPipelineState.IsDepthTestEnabled = true;
-        ShadowMapGenerationPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
-        ShadowMapGenerationPipelineState.IsBlendingEnabled = false;
-        ShadowMapGenerationPipelineState.IsCullingEnabled = false;
+        ShadowMapGenerationPipelineState.ClearColorBufferColor    = FColor{ 1 };
+        ShadowMapGenerationPipelineState.ClearDepthBufferValue    = 1;
+        ShadowMapGenerationPipelineState.IsDepthTestEnabled       = true;
+        ShadowMapGenerationPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
+        ShadowMapGenerationPipelineState.IsBlendingEnabled        = false;
+        ShadowMapGenerationPipelineState.IsCullingEnabled         = false;
         ShadowMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
-        ShadowMapGenerationPipelineState.IsDepthBufferReadOnly = false;
+        ShadowMapGenerationPipelineState.IsDepthBufferReadOnly    = false;
 
         PrepassPipelineState.ClearColorBufferColor = FColor{ 0 };
-        PrepassPipelineState.IsDepthTestEnabled = true;
-        PrepassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
-        PrepassPipelineState.IsBlendingEnabled = false;
-        PrepassPipelineState.IsCullingEnabled = false;
+        PrepassPipelineState.IsDepthTestEnabled    = true;
+        PrepassPipelineState.DepthTestFunction     = gpu::EDepthTestFunction::LEQUAL;
+        PrepassPipelineState.IsBlendingEnabled     = false;
+        PrepassPipelineState.IsCullingEnabled      = false;
         // @TODO
         // PrepassPipelineState.IsCullingEnabled = false;
         // PrepassPipelineState.CullMode = gpu::ECullMode::BACK;
         PrepassPipelineState.IsSRGBFramebufferEnabled = false;
-        PrepassPipelineState.IsDepthBufferReadOnly = false;
+        PrepassPipelineState.IsDepthBufferReadOnly    = false;
 
         InitialLightLightpassPipelineState.ClearColorBufferColor = FColor{ 0 };
-        InitialLightLightpassPipelineState.IsDepthTestEnabled = true;
-        InitialLightLightpassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::EQUAL;
-        InitialLightLightpassPipelineState.IsBlendingEnabled = true;
-        InitialLightLightpassPipelineState.BlendFunctionSrc = gpu::EBlendFunction::ONE;
-        InitialLightLightpassPipelineState.BlendFunctionDst = gpu::EBlendFunction::ZERO;
+        InitialLightLightpassPipelineState.IsDepthTestEnabled    = true;
+        InitialLightLightpassPipelineState.DepthTestFunction     = gpu::EDepthTestFunction::EQUAL;
+        InitialLightLightpassPipelineState.IsBlendingEnabled     = true;
+        InitialLightLightpassPipelineState.BlendFunctionSrc      = gpu::EBlendFunction::ONE;
+        InitialLightLightpassPipelineState.BlendFunctionDst      = gpu::EBlendFunction::ZERO;
         InitialLightLightpassPipelineState.BlendFunctionAlphaSrc = gpu::EBlendFunction::ONE;
         InitialLightLightpassPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ZERO;
         // @TODO
@@ -142,42 +143,42 @@ namespace lucid::scene
         // InitialLightLightpassPipelineState.IsCullingEnabled = true;
         // InitialLightLightpassPipelineState.CullMode = gpu::ECullMode::BACK;
         InitialLightLightpassPipelineState.IsSRGBFramebufferEnabled = false;
-        InitialLightLightpassPipelineState.IsDepthBufferReadOnly = true;
+        InitialLightLightpassPipelineState.IsDepthBufferReadOnly    = true;
 
-        LightpassPipelineState = InitialLightLightpassPipelineState;
-        LightpassPipelineState.BlendFunctionDst = gpu::EBlendFunction::ONE;
+        LightpassPipelineState                       = InitialLightLightpassPipelineState;
+        LightpassPipelineState.BlendFunctionDst      = gpu::EBlendFunction::ONE;
         LightpassPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ONE;
 
-        SkyboxPipelineState = LightpassPipelineState;
+        SkyboxPipelineState                   = LightpassPipelineState;
         SkyboxPipelineState.IsBlendingEnabled = false;
         SkyboxPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
 
-        HitMapGenerationPipelineState = SkyboxPipelineState;
-        HitMapGenerationPipelineState.IsDepthBufferReadOnly = false;
+        HitMapGenerationPipelineState                          = SkyboxPipelineState;
+        HitMapGenerationPipelineState.IsDepthBufferReadOnly    = false;
         HitMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
 
-        GammaCorrectionPipelineState.ClearColorBufferColor = FColor{ 0 };
-        GammaCorrectionPipelineState.IsDepthTestEnabled = false;
-        GammaCorrectionPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
-        GammaCorrectionPipelineState.IsBlendingEnabled = false;
-        GammaCorrectionPipelineState.IsCullingEnabled = false;
+        GammaCorrectionPipelineState.ClearColorBufferColor    = FColor{ 0 };
+        GammaCorrectionPipelineState.IsDepthTestEnabled       = false;
+        GammaCorrectionPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
+        GammaCorrectionPipelineState.IsBlendingEnabled        = false;
+        GammaCorrectionPipelineState.IsCullingEnabled         = false;
         GammaCorrectionPipelineState.IsSRGBFramebufferEnabled = false;
-        GammaCorrectionPipelineState.IsDepthBufferReadOnly = true;
+        GammaCorrectionPipelineState.IsDepthBufferReadOnly    = true;
 
         // Create the framebuffers
-        ShadowMapFramebuffer = gpu::CreateFramebuffer(FSString{ "ShadowmapFramebuffer" });
-        PrepassFramebuffer = gpu::CreateFramebuffer(FSString{ "PrepassFramebuffer" });
+        ShadowMapFramebuffer    = gpu::CreateFramebuffer(FSString{ "ShadowmapFramebuffer" });
+        PrepassFramebuffer      = gpu::CreateFramebuffer(FSString{ "PrepassFramebuffer" });
         LightingPassFramebuffer = gpu::CreateFramebuffer(FSString{ "LightingPassFramebuffer" });
-        SSAOFramebuffer = gpu::CreateFramebuffer(FSString{ "SSAOFramebuffer" });
-        BlurFramebuffer = gpu::CreateFramebuffer(FSString{ "BlueFramebuffer" });
-        FrameResultFramebuffer = gpu::CreateFramebuffer(FSString{ "FameResultFramebuffer" });
+        SSAOFramebuffer         = gpu::CreateFramebuffer(FSString{ "SSAOFramebuffer" });
+        BlurFramebuffer         = gpu::CreateFramebuffer(FSString{ "BlueFramebuffer" });
+        FrameResultFramebuffer  = gpu::CreateFramebuffer(FSString{ "FameResultFramebuffer" });
 
         // Create a common depth-stencil attachment for both framebuffers
-        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(
-          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
+        DepthStencilRenderBuffer =
+          gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
 
         // Create render targets in which we'll store some additional information during the depth prepass
-        CurrentFrameVSNormalMap = gpu::CreateEmpty2DTexture(ResultResolution.x,
+        CurrentFrameVSNormalMap   = gpu::CreateEmpty2DTexture(ResultResolution.x,
                                                             ResultResolution.y,
                                                             gpu::ETextureDataType::FLOAT,
                                                             gpu::ETextureDataFormat::RGB16F,
@@ -249,8 +250,8 @@ namespace lucid::scene
         SSAOBlurred->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
         SSAOBlurred->SetWrapSFilter(gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
         SSAOBlurred->SetWrapTFilter(gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
-        SSAOBlurred->SetBorderColor({1, 1, 1, 1});
-        
+        SSAOBlurred->SetBorderColor({ 1, 1, 1, 1 });
+
         // Create color attachment for the lighting pass framebuffer
         LightingPassColorBuffer = gpu::CreateEmpty2DTexture(ResultResolution.x,
                                                             ResultResolution.y,
@@ -290,12 +291,12 @@ namespace lucid::scene
             // Transform x and y to [-1, 1], keep z [0, 1] so the we sample around a hemisphere
             Sample.x = Sample.x * 2.0 - 1.0;
             Sample.y = Sample.y * 2.0 - 1.0;
-            Sample = glm::normalize(Sample);
+            Sample   = glm::normalize(Sample);
             Sample *= math::RandomFloat();
 
             // Use an accelerating interpolation function so there are more samples close to the fragment
             float Scale = (float)i / (float)NumSSAOSamples;
-            Scale = math::Lerp(0.1, 1.0f, Scale * Scale);
+            Scale       = math::Lerp(0.1, 1.0f, Scale * Scale);
             Sample *= Scale;
 
             // Send the sample to the shader
@@ -308,19 +309,13 @@ namespace lucid::scene
         glm::vec2 Noise[16];
         for (i8 i = 0; i < 16; ++i)
         {
-            Noise[i] = math::RandomVec2();
+            Noise[i]   = math::RandomVec2();
             Noise[i].x = Noise[i].x * 2.0 - 1.0;
             Noise[i].y = Noise[i].y * 2.0 - 1.0;
         }
 
-        SSAONoise = gpu::Create2DTexture(Noise,
-                                         4,
-                                         4,
-                                         gpu::ETextureDataType::FLOAT,
-                                         gpu::ETextureDataFormat::RG32F,
-                                         gpu::ETexturePixelFormat::RG,
-                                         0,
-                                         FSString{ "SSAONoise" });
+        SSAONoise = gpu::Create2DTexture(
+          Noise, 4, 4, gpu::ETextureDataType::FLOAT, gpu::ETextureDataFormat::RG32F, gpu::ETexturePixelFormat::RG, 0, FSString{ "SSAONoise" });
         SSAONoise->Bind();
         SSAONoise->SetWrapSFilter(gpu::EWrapTextureFilter::REPEAT);
         SSAONoise->SetWrapTFilter(gpu::EWrapTextureFilter::REPEAT);
@@ -344,18 +339,18 @@ namespace lucid::scene
 
 #if DEVELOPMENT
 
-        LightsBillboardsPipelineState.ClearColorBufferColor = FColor{ 0 };
-        LightsBillboardsPipelineState.ClearDepthBufferValue = 0;
-        LightsBillboardsPipelineState.IsDepthTestEnabled = true;
-        LightsBillboardsPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
-        LightsBillboardsPipelineState.IsBlendingEnabled = true;
-        LightsBillboardsPipelineState.BlendFunctionSrc = gpu::EBlendFunction::SRC_ALPHA;
-        LightsBillboardsPipelineState.BlendFunctionAlphaSrc = gpu::EBlendFunction::SRC_ALPHA;
-        LightsBillboardsPipelineState.BlendFunctionDst = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
-        LightsBillboardsPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
-        LightsBillboardsPipelineState.IsCullingEnabled = false;
+        LightsBillboardsPipelineState.ClearColorBufferColor    = FColor{ 0 };
+        LightsBillboardsPipelineState.ClearDepthBufferValue    = 0;
+        LightsBillboardsPipelineState.IsDepthTestEnabled       = true;
+        LightsBillboardsPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
+        LightsBillboardsPipelineState.IsBlendingEnabled        = true;
+        LightsBillboardsPipelineState.BlendFunctionSrc         = gpu::EBlendFunction::SRC_ALPHA;
+        LightsBillboardsPipelineState.BlendFunctionAlphaSrc    = gpu::EBlendFunction::SRC_ALPHA;
+        LightsBillboardsPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
+        LightsBillboardsPipelineState.BlendFunctionAlphaDst    = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
+        LightsBillboardsPipelineState.IsCullingEnabled         = false;
         LightsBillboardsPipelineState.IsSRGBFramebufferEnabled = false;
-        LightsBillboardsPipelineState.IsDepthBufferReadOnly = false;
+        LightsBillboardsPipelineState.IsDepthBufferReadOnly    = false;
 
         // HitMap generation
         HitMapTexture = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -366,9 +361,8 @@ namespace lucid::scene
                                                   0,
                                                   FSString{ "HitMapTexture" });
 
-        HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8,
-                                                                 { ResultResolution.x, ResultResolution.y },
-                                                                 FSString{ "HitMapRenderbuffer" });
+        HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(
+          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { ResultResolution.x, ResultResolution.y }, FSString{ "HitMapRenderbuffer" });
 
         HitMapFramebuffer = gpu::CreateFramebuffer(FSString{ "HitMapMapFramebuffer" });
         HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
@@ -384,13 +378,17 @@ namespace lucid::scene
 
         HitMapFramebuffer->IsComplete();
 
-        CachedHitMap.Width = ResultResolution.x;
+        CachedHitMap.Width  = ResultResolution.x;
         CachedHitMap.Height = ResultResolution.y;
-        CachedHitMap.CachedTextureData = (u32*)malloc(
-          HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
+        CachedHitMap.CachedTextureData =
+          (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
         Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
 
-        LightBulbTexture = GEngine.GetTexturesHolder().Get(sole::rebuild("abd835d6-6aa9-4140-9442-9afe04a2b999"))->TextureHandle;
+        auto* LightBulbTextureResource = GEngine.GetTexturesHolder().Get(sole::rebuild("abd835d6-6aa9-4140-9442-9afe04a2b999"));
+        LightBulbTextureResource->Acquire(false, true);
+        LightBulbTexture = LightBulbTextureResource->TextureHandle;
+
+        FrameTimer = gpu::CreateTimer("FameTimer");
 #endif
     }
 
@@ -413,6 +411,12 @@ namespace lucid::scene
     {
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
 
+#if DEVELOPMENT
+        GRenderStats.NumDrawCalls = 0;
+        ++GRenderStats.FrameNumber;
+        FrameTimer->StartTimer();
+#endif
+
         gpu::SetViewport(InRenderView->Viewport);
 
         GenerateShadowMaps(InSceneToRender);
@@ -424,6 +428,10 @@ namespace lucid::scene
         GenerateHitmap(InSceneToRender, InRenderView);
 #endif
         DoGammaCorrection(LightingPassColorBuffer);
+
+#if DEVELOPMENT
+        GRenderStats.FrameTimeMiliseconds = FrameTimer->EndTimer();
+#endif
     }
 
     void CForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender)
@@ -440,7 +448,7 @@ namespace lucid::scene
         for (int i = 0; i < InSceneToRender->AllLights.GetLength(); ++i)
         {
             CLight* Light = InSceneToRender->AllLights.GetByIndex(i);
-            
+
             if (!Light->ShadowMap)
             {
                 continue; // Light doesn't cast shadows
@@ -462,10 +470,7 @@ namespace lucid::scene
             if (Light->ShadowMap->GetQuality() != PrevShadowMapQuality)
             {
                 PrevShadowMapQuality = Light->ShadowMap->GetQuality();
-                gpu::SetViewport({ 0,
-                                   0,
-                                   (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].x,
-                                   (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].y });
+                gpu::SetViewport({ 0, 0, (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].x, (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].y });
             }
 
             // Setup light's shadow map texture
@@ -518,8 +523,8 @@ namespace lucid::scene
         SetupRendererWideUniforms(PrepassShader, InRenderView);
 
         const glm::vec2 NoiseTextureSize = { SSAONoise->GetWidth(), SSAONoise->GetHeight() };
-        const glm::vec2 ViewportSize = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
-        const glm::vec2 NoiseScale = ViewportSize / NoiseTextureSize;
+        const glm::vec2 ViewportSize     = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
+        const glm::vec2 NoiseScale       = ViewportSize / NoiseTextureSize;
 
         for (int i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
         {
@@ -583,9 +588,9 @@ namespace lucid::scene
         // Blur SSAO
         BlurFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         BlurFramebuffer->SetupColorAttachment(0, SSAOBlurred);
-        
+
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR));
-        
+
         SimpleBlurShader->Use();
         SimpleBlurShader->UseTexture(SIMPLE_BLUR_TEXTURE, SSAOResult);
         SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_X, SimpleBlurXOffset);
@@ -628,10 +633,10 @@ namespace lucid::scene
         }
     }
 
-    void CForwardRenderer::RenderLightContribution(gpu::CShader** LastShader,
-                                                   const CLight* InLight,
+    void CForwardRenderer::RenderLightContribution(gpu::CShader**      LastShader,
+                                                   const CLight*       InLight,
                                                    const FRenderScene* InScene,
-                                                   const FRenderView* InRenderView)
+                                                   const FRenderView*  InRenderView)
     {
         for (u32 i = 0; i < InScene->StaticMeshes.GetLength(); ++i)
         {
@@ -667,9 +672,9 @@ namespace lucid::scene
         InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
     }
 
-    void CForwardRenderer::RenderStaticMesh(gpu::CShader** LastShader,
+    void CForwardRenderer::RenderStaticMesh(gpu::CShader**     LastShader,
                                             const CStaticMesh* InStaticMesh,
-                                            const CLight* InLight,
+                                            const CLight*      InLight,
                                             const FRenderView* InRenderView)
     {
         const glm::mat4 ModelMatrix = InStaticMesh->CalculateModelMatrix();
@@ -749,10 +754,9 @@ namespace lucid::scene
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         // Keep it camera-oriented
-        const glm::mat4 BillboardMatrix = { { InRenderView->Camera->RightVector, 0 },
-                                            { InRenderView->Camera->UpVector, 0 },
-                                            { -InRenderView->Camera->FrontVector, 0 },
-                                            { 0, 0, 0, 1 } };
+        const glm::mat4 BillboardMatrix = {
+            { InRenderView->Camera->RightVector, 0 }, { InRenderView->Camera->UpVector, 0 }, { -InRenderView->Camera->FrontVector, 0 }, { 0, 0, 0, 1 }
+        };
 
         BillboardShader->Use();
         BillboardShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
@@ -817,10 +821,9 @@ namespace lucid::scene
         ScreenWideQuadVAO->Bind();
 
         // Keep it camera-oriented
-        const glm::mat4 BillboardMatrix = { { InRenderView->Camera->RightVector, 0 },
-                                            { InRenderView->Camera->UpVector, 0 },
-                                            { -InRenderView->Camera->FrontVector, 0 },
-                                            { 0, 0, 0, 1 } };
+        const glm::mat4 BillboardMatrix = {
+            { InRenderView->Camera->RightVector, 0 }, { InRenderView->Camera->UpVector, 0 }, { -InRenderView->Camera->FrontVector, 0 }, { 0, 0, 0, 1 }
+        };
 
         BillboardHitMapShader->Use();
         BillboardHitMapShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
@@ -841,15 +844,14 @@ namespace lucid::scene
         }
 
         // Get the result
-        HitMapFramebuffer->ReadPixels(
-          0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), CachedHitMap.CachedTextureData);
+        HitMapFramebuffer->ReadPixels(0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), CachedHitMap.CachedTextureData);
     }
 
     void CForwardRenderer::RenderWithDefaultMaterial(const resources::CMeshResource* InMeshResource,
-                                                     const u16& InSubMeshIndex,
-                                                     const CLight* InLight,
-                                                     const FRenderView* InRenderView,
-                                                     const glm::mat4& InModelMatrix)
+                                                     const u16&                      InSubMeshIndex,
+                                                     const CLight*                   InLight,
+                                                     const FRenderView*              InRenderView,
+                                                     const glm::mat4&                InModelMatrix)
     {
         CMaterial* DefaultMaterial = GEngine.GetDefaultMaterial();
         DefaultMaterial->GetShader()->Use();

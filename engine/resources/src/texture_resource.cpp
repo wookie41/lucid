@@ -160,6 +160,7 @@ namespace lucid::resources
         fclose(TextureFile);
 
         bLoadedToMainMemory = true;
+        bLoadedToMainMemory = false;
     }
 
     void CTextureResource::LoadDataToVideoMemorySynchronously()
@@ -171,12 +172,16 @@ namespace lucid::resources
         }
 
         // For now we require for the data to be loaded in the main memory
-        assert(TextureData);
+        if (!bLoadedToMainMemory)
+        {
+            LoadDataToMainMemorySynchronously();
+        }
 
         TextureHandle = gpu::Create2DTexture(TextureData, Width, Height, DataType, DataFormat, PixelFormat, 0, Name);
         assert(TextureHandle);
 
         bLoadedToVideoMemory = true;
+        IsVideoMemoryFreed = false;
     }
 
     void CTextureResource::SaveSynchronously(FILE* ResourceFile) const
@@ -200,18 +205,21 @@ namespace lucid::resources
 
     void CTextureResource::FreeMainMemory()
     {
-        if (!IsMainMemoryFreed)
+        if (bLoadedToMainMemory && !IsMainMemoryFreed)
         {
-            IsMainMemoryFreed = true;
             free(TextureData);
+            IsMainMemoryFreed = true;
+            bLoadedToMainMemory = false;
         }
     }
     void CTextureResource::FreeVideoMemory()
     {
-        if (!IsVideoMemoryFreed)
+        if (bLoadedToVideoMemory && !IsVideoMemoryFreed)
         {
             TextureHandle->Free();
+            delete TextureHandle;
             IsVideoMemoryFreed = true;
+            bLoadedToVideoMemory = false;
         }
     }
 

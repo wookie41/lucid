@@ -44,6 +44,10 @@ namespace lucid::scene
         virtual void            SaveToResourceFile(const lucid::EFileFormat& InFileFormat);
         virtual CMaterial*      GetCopy() const = 0;
 
+        /** Methods used to manage textures and other resources referenced by the material */
+        virtual void LoadResources() {};
+        virtual void UnloadResources() {};
+
         void CreateMaterialAsset();
 
         virtual ~CMaterial() = default;

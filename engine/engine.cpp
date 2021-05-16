@@ -10,8 +10,8 @@
 #include "scene/forward_renderer.hpp"
 
 #define LUCID_SCHEMAS_IMPLEMENTATION
-#include <scene/material.hpp>
-#include <scene/actors/static_mesh.hpp>
+#include "scene/material.hpp"
+#include "scene/actors/static_mesh.hpp"
 
 #include "schemas/types.hpp"
 #include "schemas/binary.hpp"
@@ -45,6 +45,9 @@ namespace lucid
         ForwardRenderer->NumSamplesPCF = 25;
         ForwardRenderer->ResultResolution = { 1920, 1080 };
         Renderer = ForwardRenderer;
+
+        EngineObjects.Add(&MeshesHolder);
+        EngineObjects.Add(&TexturesHolder);
     }
 
     void CEngine::LoadResources()
@@ -69,10 +72,10 @@ namespace lucid
             {
                 if (resources::CMeshResource* LoadedMesh = resources::LoadMesh(Entry.Path))
                 {
-                    LoadedMesh->LoadDataToMainMemorySynchronously();
-                    LoadedMesh->LoadDataToVideoMemorySynchronously();
+                    LoadedMesh->Acquire(false, true);
                     LoadedMesh->Thumb = ThumbsGenerator->GenerateMeshThumb(256, 256, LoadedMesh);
                     GEngine.GetMeshesHolder().Add(Entry.Id, LoadedMesh);
+                    LoadedMesh->Release();
 
                     if (Entry.bIsDefault)
                     {
@@ -85,8 +88,6 @@ namespace lucid
             {
                 if (resources::CTextureResource* LoadedTexture = resources::LoadTexture(Entry.Path))
                 {
-                    LoadedTexture->LoadDataToMainMemorySynchronously();
-                    LoadedTexture->LoadDataToVideoMemorySynchronously();
                     GEngine.GetTexturesHolder().Add(Entry.Id, LoadedTexture);
 
                     if (Entry.bIsDefault)
@@ -371,4 +372,25 @@ namespace lucid
         WriteToJSONFile(MaterialDatabase, "assets/databases/materials.json");
     }
 
+    void CEngine::BeginFrame()
+    {
+        gpu::QueryDeviceStatus();
+
+        auto Node = &EngineObjects.Head;
+        while (Node && Node->Element)
+        {
+            Node->Element->OnFrameBegin();
+            Node = Node->Next;
+        }
+    }
+
+    void CEngine::EndFrame()
+    {
+        auto Node = &EngineObjects.Head;
+        while (Node && Node->Element)
+        {
+            Node->Element->OnFrameEnd();
+            Node = Node->Next;
+        }
+    }
 } // namespace lucid

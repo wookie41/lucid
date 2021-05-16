@@ -1,0 +1,34 @@
+{
+    "StaticMeshes": [
+        {
+            "Id": 2,
+            "Name": "TestCube",
+            "BaseActorResourceId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
+            "Postion": [
+                -3.283271312713623,
+                2.631695508956909,
+                -3.017899990081787
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "24f49047-090b-4d13-900b-e65f66327148"
+                }
+            ]
+        }
+    ],
+    "PointLights": [
+        {
+            "Id": 1,
+            "Name": "PointLight",
+            "Postion": [
+                -1.6816651821136475,
+                0.9278479814529419,
+                -4.616394996643066
+            ],
+            "Constant": 0.20000000298023225,
+            "Linear": 0.10000000149011612,
+            "Quadratic": 0.014999999664723874
+        }
+    ]
+}

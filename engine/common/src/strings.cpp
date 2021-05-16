@@ -74,7 +74,11 @@ namespace lucid
         Hash = InRHS.Hash;
     }
 
-    void FDString::Free() { free(CString); }
+    void FDString::Free()
+    {
+        Length = 0;
+        free(CString);
+    }
 
     void FDString::Resize(const u32& NewLength)
     {

@@ -1,8 +1,10 @@
 #pragma once
 
 #include "common/strings.hpp"
-#include "resources/resource.hpp"
 #include "common/collections.hpp"
+#include "common/object.hpp"
+
+#include "resources/resource.hpp"
 
 #include <type_traits>
 #include <cassert>
@@ -11,7 +13,7 @@ namespace lucid::resources
 {
     
     template <typename R, typename = std::enable_if<std::is_base_of<CResource, R>::value>>
-    class CResourcesHolder
+    class CResourcesHolder : public IEngineObject
     {
       public:
         
@@ -47,6 +49,7 @@ namespace lucid::resources
                 Resource->FreeMainMemory();
                 Resource->FreeVideoMemroy();
                 ResourcesHashMap.Remove(InId);
+                delete Resource;
             }
         }
 
@@ -57,8 +60,10 @@ namespace lucid::resources
         {
             for (u32 idx = 0; idx < ResourcesHashMap.GetLength(); ++idx)
             {
-                ResourcesHashMap.Get(idx)->FreeMainMemory();
-                ResourcesHashMap.Get(idx)->FreeVideoMemory();
+                auto* Resource = ResourcesHashMap.Get(idx);
+                Resource->FreeMainMemory();
+                Resource->FreeVideoMemory();
+                delete Resource;
             }
             ResourcesHashMap.FreeAll();
         }
@@ -70,6 +75,22 @@ namespace lucid::resources
         }
         
         inline FHashMap<UUID, R*>& GetResourcesHashMap() const { return ResourcesHashMap; }
+
+        void OnFrameBegin() override
+        {
+            for (u32 i = 0; i < ResourcesHashMap.GetLength(); ++i)
+            {
+                auto* Resource = ResourcesHashMap.GetByIndex(i);
+                if (Resource->GetRefCount() == 0)
+                {
+                    LUCID_LOG(ELogLevel::INFO, "RefCount of %s dropped to 0, releasing it", *Resource->GetName());
+                    Resource->FreeMainMemory();
+                    Resource->FreeVideoMemory();
+
+                    Resource->MarkAsFreed();
+                }
+            }
+        }
     
       private:
         R*                      DefaultResource = nullptr;

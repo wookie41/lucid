@@ -86,7 +86,23 @@ namespace lucid
 
         void AddActorAsset(scene::IActor* InActorResource);
         void RemoveActorAsset(scene::IActor* InActorResource);
-            
+
+        // @TODO There will be called internally by the engien
+        void BeginFrame();
+
+        // @TODO This doesn't guarantee that the frame has finished rendering
+        void EndFrame();
+
+        inline void AddEngineObject(IEngineObject* InEngineObject)
+        {
+            EngineObjects.Add(InEngineObject);
+        }
+
+        inline void RemoveEngineObject(IEngineObject* InEngineObject)
+        {
+            EngineObjects.Remove(InEngineObject);
+        }
+
     protected:
 
         template <typename TActor, typename TActorDescription>
@@ -107,6 +123,8 @@ namespace lucid
         FHashMap<UUID, scene::IActor*>       ActorResourceById;
 
         scene::CMaterial* DefaultMaterial = nullptr;
+
+        FLinkedList<IEngineObject> EngineObjects;
 
 #if DEVELOPMENT
     public:

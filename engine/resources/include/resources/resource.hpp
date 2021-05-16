@@ -49,6 +49,13 @@ namespace lucid::resources
         inline const UUID&      GetID() const { return ID; }
         inline const FString&   GetName() const { return Name; }
         inline const FString&   GetFilePath() const { return FilePath; }
+        inline u32              GetRefCount() const { return RefCount; }
+        
+        void Acquire(const bool& InbNeededInMainMemory, const bool& InbNeededInVideoMemory);
+        void Release();
+
+        /** Called from CResourceHolder */
+        inline void MarkAsFreed() { RefCount = -1; }
         
         virtual ~CResource() = default;
 
@@ -76,6 +83,8 @@ namespace lucid::resources
 
         bool                IsVideoMemoryFreed = false;
         bool                IsMainMemoryFreed = false;
+
+        u32 RefCount = 0;
     };
 
     template <typename R, typename = std::enable_if<std::is_base_of<CResource, R>::value>>

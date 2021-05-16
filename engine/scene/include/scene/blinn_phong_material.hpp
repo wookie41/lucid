@@ -61,6 +61,9 @@ namespace lucid::scene
         virtual CMaterial*              GetCopy() const override;
         virtual EMaterialType           GetType() const override { return EMaterialType::BLINN_PHONG_MAPS; }
 
+        virtual void LoadResources();
+        virtual void UnloadResources();
+        
         u32 Shininess = 32;
         resources::CTextureResource* DiffuseMap = nullptr;
         resources::CTextureResource* SpecularMap = nullptr;

@@ -166,7 +166,15 @@ namespace lucid::gpu
     };
 
     void ConfigurePipelineState(const FPipelineState& InPipelineState);
+
+    struct FGPUStatus
+    {
+        u64 TotalAvailableVideoMemoryKB;
+        u64 CurrentAvailableVideoMemoryKB;
+    };
     
+    void QueryDeviceStatus();
+
     struct FGPUInfo
     {
         u32 ActiveTextureUnit = 0;
@@ -174,8 +182,9 @@ namespace lucid::gpu
         u32 MaxColorAttachments = 0;
     };
 
-    extern FGPUInfo Info;
-    inline thread_local FGPUState* GPUState;
+    extern FGPUInfo                 GGPUInfo;
+    extern FGPUStatus               GGPUStatus;
+    inline thread_local FGPUState*  GGPUState;
 
     /** Forces all of the command to finish before the next on is executed */
     void Finish();

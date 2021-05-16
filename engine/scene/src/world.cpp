@@ -372,12 +372,12 @@ namespace lucid::scene
         WriteToBinaryFile(WorldDescription, *InFilePath);
     }
 
-    IActor* CWorld::RemoveActorById(const u32& InActorId)
+    IActor* CWorld::RemoveActorById(const u32& InActorId, const bool& InbHardRemove)
     {
         if (ActorById.Contains(InActorId))
         {
             IActor* Actor = ActorById.Get(InActorId);
-            Actor->OnRemoveFromWorld();
+            Actor->OnRemoveFromWorld(InbHardRemove);
             ActorById.Remove(InActorId);
             return Actor;
         }
@@ -390,7 +390,7 @@ namespace lucid::scene
         for (u32 i = 0; i < ActorById.GetLength(); ++i)
         {
             IActor* Actor = ActorById.GetByIndex(i);
-            Actor->OnRemoveFromWorld();
+            Actor->OnRemoveFromWorld(true);
             delete Actor;
         }
 
@@ -403,6 +403,7 @@ namespace lucid::scene
 
         if (Skybox)
         {
+            Skybox->OnRemoveFromWorld(true);
             delete Skybox;
         }
     }

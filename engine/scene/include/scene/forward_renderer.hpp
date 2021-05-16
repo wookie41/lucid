@@ -15,6 +15,7 @@ namespace lucid::gpu
     class CShader;
     class CTexture;
     class CRenderbuffer;
+    class CTimer;
 }; // namespace lucid::gpu
 
 namespace lucid::scene
@@ -27,8 +28,7 @@ namespace lucid::scene
     {
       public:
         // Make sure that 'MaxNumOfDirectionalLights" matches the define in the shader
-        CForwardRenderer(const u32& InMaxNumOfDirectionalLights,
-                        const u8& InNumSSAOSamples);
+        CForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples);
 
         virtual void Setup() override;
         virtual void Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView) override;
@@ -39,11 +39,10 @@ namespace lucid::scene
         virtual ~CForwardRenderer() = default;
 
         /** Renderer properties, have to be set before the first Setup() call */
-        float       AmbientStrength = 0.1;
-        int         NumSamplesPCF   = 5;
+        float AmbientStrength = 0.1;
+        int   NumSamplesPCF   = 5;
 
       private:
-
         void GenerateShadowMaps(FRenderScene* InSceneToRender);
         void Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
         void LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
@@ -54,8 +53,12 @@ namespace lucid::scene
         void RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView);
 
         void RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView);
-        inline void RenderLightContribution(gpu::CShader** LastShader, const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
-        void RenderStaticMesh(gpu::CShader** LastShader, const scene::CStaticMesh* InStaticMesh, const scene::CLight* InLight, const FRenderView* InRenderView);
+        inline void
+             RenderLightContribution(gpu::CShader** LastShader, const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
+        void RenderStaticMesh(gpu::CShader**            LastShader,
+                              const scene::CStaticMesh* InStaticMesh,
+                              const scene::CLight*      InLight,
+                              const FRenderView*        InRenderView);
 
         void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
@@ -64,20 +67,24 @@ namespace lucid::scene
 #if DEVELOPMENT
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
         void GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const;
-        void RenderWithDefaultMaterial(const resources::CMeshResource* InMeshResource, const u16& InSubMeshIndex, const CLight* InLight, const FRenderView* InRenderView, const glm::mat4& InModelMatrix);
+        void RenderWithDefaultMaterial(const resources::CMeshResource* InMeshResource,
+                                       const u16&                      InSubMeshIndex,
+                                       const CLight*                   InLight,
+                                       const FRenderView*              InRenderView,
+                                       const glm::mat4&                InModelMatrix);
 #endif
 
-        u32 MaxNumOfDirectionalLights;
+        u32   MaxNumOfDirectionalLights;
         float Gamma = 2.2;
 
         gpu::CShader* FlatShader;
-        
+
         /** VAO used when doing post-processing */
-        gpu::CVertexArray*  ScreenWideQuadVAO = nullptr;
+        gpu::CVertexArray* ScreenWideQuadVAO = nullptr;
 
         /** VAO used when rendering skybox */
-        gpu::CVertexArray*  UnitCubeVAO = nullptr;
-        
+        gpu::CVertexArray* UnitCubeVAO = nullptr;
+
         /** Preconfigured pipeline states */
         gpu::FPipelineState ShadowMapGenerationPipelineState;
         gpu::FPipelineState PrepassPipelineState;
@@ -94,9 +101,9 @@ namespace lucid::scene
         gpu::CShader* BillboardShader;
         gpu::CShader* GammaCorrectionShader;
 
-        u8 NumSSAOSamples = 64;
-        float SSAOBias = 0.025;
-        float SSAORadius = 0.5;
+        u8    NumSSAOSamples = 64;
+        float SSAOBias       = 0.025;
+        float SSAORadius     = 0.5;
 
         /** Blur shader */
         gpu::CShader* SimpleBlurShader;
@@ -106,7 +113,7 @@ namespace lucid::scene
 
         /** Framebuffer when generating shadow maps*/
         gpu::CFramebuffer* ShadowMapFramebuffer;
-        
+
         /** Framebuffer used for when doing the depth-only prepass */
         gpu::CFramebuffer* PrepassFramebuffer;
 
@@ -128,7 +135,7 @@ namespace lucid::scene
         /** Texture in which the result of blurring the SSAOResult texture will be stored */
         gpu::CTexture* SSAOBlurred;
 
-        gpu::CTexture* LightingPassColorBuffer;
+        gpu::CTexture*      LightingPassColorBuffer;
         gpu::CRenderbuffer* DepthStencilRenderBuffer;
 
         /** Generated in the depth prepass so we can later use it when calculating SSAO and things like that (VS - View Space) */
@@ -138,30 +145,30 @@ namespace lucid::scene
         gpu::CTexture* CurrentFrameVSPositionMap;
 
         /** Holds the final frame after post-processing, tone-mapping and gamma correction */
-        gpu::CFramebuffer*  FrameResultFramebuffer;
-        gpu::CTexture*      FrameResultTexture;
-        
-#if DEVELOPMENT
-    public:
+        gpu::CFramebuffer* FrameResultFramebuffer;
+        gpu::CTexture*     FrameResultTexture;
 
-        glm::vec2 BillboardViewportSize { 0.1, 0.15 };
-        
+#if DEVELOPMENT
+      public:
+        glm::vec2 BillboardViewportSize{ 0.1, 0.15 };
+
         /**
-        *  Shader that saves ids of the objects in the scene to a texture
-        *  so it can be later used for picking, used only for tools
-        */
-        gpu::CShader* HitMapShader = nullptr;
+         *  Shader that saves ids of the objects in the scene to a texture
+         *  so it can be later used for picking, used only for tools
+         */
+        gpu::CShader* HitMapShader          = nullptr;
         gpu::CShader* BillboardHitMapShader = nullptr;
 
-    private:
-        
+      private:
         gpu::FPipelineState LightsBillboardsPipelineState;
-        
-        /** Used to render ids of the objects in the scene so we can do nice mouse picking in the tools */ 
+
+        /** Used to render ids of the objects in the scene so we can do nice mouse picking in the tools */
         gpu::CTexture*      HitMapTexture;
         gpu::CFramebuffer*  HitMapFramebuffer;
         gpu::FPipelineState HitMapGenerationPipelineState;
         gpu::CRenderbuffer* HitMapDepthStencilRenderbuffer;
+
+        gpu::CTimer* FrameTimer = nullptr;
 #endif
     };
 

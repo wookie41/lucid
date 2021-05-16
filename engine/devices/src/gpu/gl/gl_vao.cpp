@@ -1,5 +1,6 @@
 #include "devices/gpu/gl/gl_vao.hpp"
 
+#include "devices/gpu/shader.hpp"
 #include "devices/gpu/buffer.hpp"
 #include "devices/gpu/gl/gl_common.hpp"
 #include "devices/gpu/gpu.hpp"
@@ -130,7 +131,6 @@ namespace lucid::gpu
     void CGLVertexArray::Free()
     {
         assert(GLVAOHandle && VertexBuffer); // double free
-        glDeleteVertexArrays(1, &GLVAOHandle);
 
         if (AutoDestroyBuffers)
         {
@@ -140,15 +140,16 @@ namespace lucid::gpu
                 ElementBuffer->Free();
                 ElementBuffer = nullptr;
             }
+            VertexBuffer = nullptr;
         }
 
+        glDeleteVertexArrays(1, &GLVAOHandle);
         GLVAOHandle = 0;
-        VertexBuffer = nullptr;
     }
 
     void CGLVertexArray::Bind()
     {
-        GPUState->VAO = this;
+        GGPUState->VAO = this;
         glBindVertexArray(GLVAOHandle);
     }
 
@@ -185,7 +186,6 @@ namespace lucid::gpu
         if (ElementBuffer)
         {
             glDrawElementsInstanced(GL_DRAW_MODES[DrawMode], count, GL_UNSIGNED_INT, nullptr, InstancesCount);
-            ;
         }
         else
         {

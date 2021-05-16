@@ -48,7 +48,6 @@ namespace lucid::scene
 
         virtual EActorType  GetActorType() const override { return EActorType::LIGHT; }
         virtual IActor*     CreateActorAsset(const FDString& InName) const override { assert(0); return nullptr; }
-        virtual void        LoadAsset() override { assert(0); }
         virtual IActor*     CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override { assert(0); return nullptr; };
 
         glm::vec3       Color           { 1, 1, 1 };
@@ -84,7 +83,7 @@ namespace lucid::scene
         virtual IActor*     CreateCopy() override;
 
         virtual void        OnAddToWorld(CWorld* InWorld) override;
-        virtual void        OnRemoveFromWorld() override;
+        virtual void        OnRemoveFromWorld(const bool& InbHardRemove) override;
 
         virtual ELightType GetType() const override { return ELightType::DIRECTIONAL; }
 
@@ -116,7 +115,7 @@ namespace lucid::scene
         virtual IActor* CreateCopy() override;
 
         virtual void    OnAddToWorld(CWorld* InWorld) override;
-        virtual void    OnRemoveFromWorld() override;
+        virtual void    OnRemoveFromWorld(const bool& InbHardRemove) override;
 
         glm::vec3 Direction { 0, 0, -1 };
         glm::vec3 LightUp   { 0, 1, 0 };
@@ -152,7 +151,7 @@ namespace lucid::scene
         virtual IActor* CreateCopy() override;
 
         virtual void    OnAddToWorld(CWorld* InWorld) override;
-        virtual void    OnRemoveFromWorld() override;
+        virtual void    OnRemoveFromWorld(const bool& InbHardRemove) override;
 
         float Constant  = 0.2;
         float Linear    = 0.1;

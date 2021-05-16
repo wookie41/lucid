@@ -103,13 +103,13 @@ namespace lucid::gpu
         switch (BindPoint)
         {
         case EBufferBindPoint::VERTEX:
-            Target = &GPUState->VertexBuffer;
+            Target = &GGPUState->VertexBuffer;
             break;
         case EBufferBindPoint::ELEMENT:
-            Target = &GPUState->ElementBuffer;
+            Target = &GGPUState->ElementBuffer;
             break;
         case EBufferBindPoint::SHADER_STORAGE:
-            Target = &GPUState->ShaderStorageBuffer;
+            Target = &GGPUState->ShaderStorageBuffer;
             break;
         default:
             break;
@@ -146,13 +146,13 @@ namespace lucid::gpu
         switch (CurrentBindPoint)
         {
         case EBufferBindPoint::VERTEX:
-            Target = &GPUState->VertexBuffer;
+            Target = &GGPUState->VertexBuffer;
             break;
         case EBufferBindPoint::ELEMENT:
-            Target = &GPUState->ElementBuffer;
+            Target = &GGPUState->ElementBuffer;
             break;
         case EBufferBindPoint::SHADER_STORAGE:
-            Target = &GPUState->ShaderStorageBuffer;
+            Target = &GGPUState->ShaderStorageBuffer;
             break;
         default:
             break;

@@ -46,3 +46,5 @@ SortIncludes: false
 ColumnLimit: 150
 ExperimentalAutoDetectBinPacking: false
 AllowAllParametersOfDeclarationOnNextLine: false
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true

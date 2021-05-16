@@ -96,7 +96,7 @@ namespace lucid::gpu
 
     bool CGLFramebuffer::IsComplete()
     {
-        assert(GPUState->Framebuffer == this);
+        assert(GGPUState->Framebuffer == this);
         GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         switch (Status)
         {
@@ -128,39 +128,39 @@ namespace lucid::gpu
         return Status == GL_FRAMEBUFFER_COMPLETE;
     }
 
-    void CGLFramebuffer::Bind(const EFramebufferBindMode& Mode) { GLBindFramebuffer(GPUState, this, glFBOHandle, Mode); }
+    void CGLFramebuffer::Bind(const EFramebufferBindMode& Mode) { GLBindFramebuffer(GGPUState, this, glFBOHandle, Mode); }
 
     void CGLFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, IFramebufferAttachment* AttachmentToUse)
     {
-        assert(GPUState->Framebuffer == this && AttachmentIndex < gpu::Info.MaxColorAttachments);
+        assert(GGPUState->Framebuffer == this && AttachmentIndex < gpu::GGPUInfo.MaxColorAttachments);
         colorAttachments[AttachmentIndex] = AttachmentToUse;
         AttachmentToUse->AttachAsColor(AttachmentIndex);
     }
 
     void CGLFramebuffer::SetupDepthAttachment(IFramebufferAttachment* AttachmentToUse)
     {
-        assert(GPUState->Framebuffer == this);
+        assert(GGPUState->Framebuffer == this);
         depthAttachment = AttachmentToUse;
         AttachmentToUse->AttachAsDepth();
     }
 
     void CGLFramebuffer::SetupStencilAttachment(IFramebufferAttachment* AttachmentToUse)
     {
-        assert(GPUState->Framebuffer == this);
+        assert(GGPUState->Framebuffer == this);
         stencilAttachment = AttachmentToUse;
         AttachmentToUse->AttachAsStencil();
     }
 
     void CGLFramebuffer::SetupDepthStencilAttachment(IFramebufferAttachment* AttachmentToUse)
     {
-        assert(GPUState->Framebuffer == this);
+        assert(GGPUState->Framebuffer == this);
         depthStencilAttachment = AttachmentToUse;
         AttachmentToUse->AttachAsStencilDepth();
     }
 
     void CGLFramebuffer::ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels)
     {
-        assert(GPUState->Framebuffer == this);
+        assert(GGPUState->Framebuffer == this);
         glReadPixels(InX,
                      InY,
                      InWidth,
@@ -172,7 +172,7 @@ namespace lucid::gpu
 
     void CGLFramebuffer::DisableReadWriteBuffers()
     {
-        assert(GPUState->Framebuffer == this);
+        assert(GGPUState->Framebuffer == this);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
     }
@@ -191,33 +191,33 @@ namespace lucid::gpu
 
     void CGLRenderbuffer::Bind()
     {
-        if (GPUState->Renderbuffer != this)
+        if (GGPUState->Renderbuffer != this)
         {
             glBindRenderbuffer(GL_RENDERBUFFER, glRBOHandle);
-            GPUState->Renderbuffer = this;
+            GGPUState->Renderbuffer = this;
         }
     }
 
     void CGLRenderbuffer::AttachAsColor(const u8& Index)
     {
-        assert(GPUState->Renderbuffer == this && Index == 0);
+        assert(GGPUState->Renderbuffer == this && Index == 0);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, glRBOHandle);
     }
     void CGLRenderbuffer::AttachAsStencil()
     {
-        assert(GPUState->Renderbuffer == this);
+        assert(GGPUState->Renderbuffer == this);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
     };
 
     void CGLRenderbuffer::AttachAsDepth()
     {
-        assert(GPUState->Renderbuffer == this);
+        assert(GGPUState->Renderbuffer == this);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
     };
 
     void CGLRenderbuffer::AttachAsStencilDepth()
     {
-        assert(GPUState->Renderbuffer == this);
+        assert(GGPUState->Renderbuffer == this);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glRBOHandle);
     }
 
@@ -246,14 +246,14 @@ namespace lucid::gpu
 
     void CGLDefaultFramebuffer::DisableReadWriteBuffers()
     {
-        assert(GPUState->Framebuffer == this);
+        assert(GGPUState->Framebuffer == this);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
     }
 
     bool CGLDefaultFramebuffer::IsComplete() { return true; }
 
-    void CGLDefaultFramebuffer::Bind(const EFramebufferBindMode& Mode) { GLBindFramebuffer(GPUState, this, 0, Mode); }
+    void CGLDefaultFramebuffer::Bind(const EFramebufferBindMode& Mode) { GLBindFramebuffer(GGPUState, this, 0, Mode); }
 
     void CGLDefaultFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, IFramebufferAttachment* AttachmentToUse)
     {
@@ -268,7 +268,7 @@ namespace lucid::gpu
 
     void CGLDefaultFramebuffer::ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels)
     {
-        assert(GPUState->Framebuffer == this);
+        assert(GGPUState->Framebuffer == this);
         glReadPixels(InX,
              InY,
              InWidth,

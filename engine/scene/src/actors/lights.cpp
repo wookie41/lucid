@@ -166,15 +166,15 @@ namespace lucid::scene
     {
         IActor::OnAddToWorld(InWorld);
         InWorld->AddDirectionalLight(this);
-        if (bShouldCastShadow)
+        if (bShouldCastShadow && !ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
         }
     }
     
-    void CDirectionalLight::OnRemoveFromWorld()
+    void CDirectionalLight::OnRemoveFromWorld(const bool& InbHardRemove)
     {
-        IActor::OnRemoveFromWorld();
+        IActor::OnRemoveFromWorld(InbHardRemove);
         World->RemoveDirectionalLight(Id);
         if (ShadowMap)
         {
@@ -274,15 +274,15 @@ namespace lucid::scene
     {
         IActor::OnAddToWorld(InWorld);
         InWorld->AddSpotLight(this);
-        if (bShouldCastShadow)
+        if (bShouldCastShadow && !ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
         }
     }
     
-    void CSpotLight::OnRemoveFromWorld()
+    void CSpotLight::OnRemoveFromWorld(const bool& InbHardRemove)
     {
-        IActor::OnRemoveFromWorld();
+        IActor::OnRemoveFromWorld(InbHardRemove);
         World->RemoveSpotLight(Id);
         if (ShadowMap)
         {
@@ -404,15 +404,15 @@ namespace lucid::scene
     {
         IActor::OnAddToWorld(InWorld);
         InWorld->AddPointLight(this);
-        if (bShouldCastShadow)
+        if (bShouldCastShadow && !ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
         }
     }
     
-    void CPointLight::OnRemoveFromWorld()
+    void CPointLight::OnRemoveFromWorld(const bool& InbHardRemove)
     {
-        IActor::OnRemoveFromWorld();
+        IActor::OnRemoveFromWorld(InbHardRemove);
         World->RemovePointLight(Id);
         if (ShadowMap)
         {

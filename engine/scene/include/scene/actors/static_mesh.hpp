@@ -49,9 +49,10 @@ namespace lucid::scene
 
         virtual IActor*         CreateActorAsset(const FDString& InName) const override;
         virtual void            LoadAsset() override;
+        virtual void            UnloadAsset() override;
 
         virtual void            OnAddToWorld(CWorld* InWorld) override;
-        virtual void            OnRemoveFromWorld() override;
+        virtual void            OnRemoveFromWorld(const bool& InbHardRemove) override;
         
 #if DEVELOPMENT
         /** Editor stuff */
@@ -63,8 +64,6 @@ namespace lucid::scene
         void            HandleBaseAssetMeshResourceChange(resources::CMeshResource* OldMesh);
         void            HandleBaseAssetNumMaterialsChange(const bool& bAdded);
         void            HandleBaseAssetMaterialSlotChange(CMaterial* InOldMaterial, const u8& InMaterialSlot);
-
-        FLinkedList<CStaticMesh>     ChildReferences; // actors that specify this actor as their BaseActorAsset, used for propagating changes
     
     public:
 #endif
