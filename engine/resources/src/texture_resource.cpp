@@ -1,28 +1,33 @@
 #include "resources/texture_resource.hpp"
+#include "resources/serialization_versions.hpp"
+
+#include "common/log.hpp"
+
+#include "platform/util.hpp"
+#include "platform/fs.hpp"
+
+#include "devices/gpu/texture.hpp"
+#include "devices/gpu/texture_enums.hpp"
 
 #include "stb_image.h"
-#include "common/log.hpp"
-#include "platform/util.hpp"
-#include "devices/gpu/texture.hpp"
-#include "resources/serialization_versions.hpp"
+#include "stb_image_resize.h"
 
 #include <cassert>
 
 namespace lucid::resources
 {
-#define TEXTURE_RESOURCE_METADATA_SIZE                                                                          \
-    (sizeof(u8) + sizeof(u32) + sizeof(u32) + sizeof(gpu::ETextureDataFormat) + sizeof(gpu::ETextureDataType) + \
-     sizeof(gpu::ETexturePixelFormat))
+#define TEXTURE_RESOURCE_METADATA_SIZE \
+    (sizeof(u8) + sizeof(u32) + sizeof(u32) + sizeof(gpu::ETextureDataFormat) + sizeof(gpu::ETextureDataType) + sizeof(gpu::ETexturePixelFormat))
 
     static bool texturesInitialized;
 
-    CTextureResource* ImportTexture(const FString& InPath,
-                                    const FString& InResourcePath,
-                                    const bool& InPerformGammaCorrection,
+    CTextureResource* ImportTexture(const FString&               InPath,
+                                    const FString&               InResourcePath,
+                                    const bool&                  InPerformGammaCorrection,
                                     const gpu::ETextureDataType& InDataType,
-                                    const bool& InFlipY,
-                                    const bool& InSendToGPU,
-                                    const FString& InName)
+                                    const bool&                  InFlipY,
+                                    const bool&                  InSendToGPU,
+                                    const FString&               InName)
     {
 #ifndef NDEBUG
         real StartTime = platform::GetCurrentTimeSeconds();
@@ -33,12 +38,11 @@ namespace lucid::resources
         stbi_set_flip_vertically_on_load(InFlipY);
 
         stbi_uc* TextureData = stbi_load(*InPath, (int*)&Width, (int*)&Height, (int*)&NumChannels, 0);
-        u64 TextureSize = Width * Height * NumChannels * GetSizeInBytes(InDataType);
+        u64      TextureSize = Width * Height * NumChannels * GetSizeInBytes(InDataType);
 
-        auto* TextureResource =
-          new CTextureResource(sole::uuid4(), InName, InResourcePath, 0, TextureSize, TEXTURE_SERIALIZATION_VERSION);
+        auto* TextureResource = new CTextureResource(sole::uuid4(), InName, InResourcePath, 0, TextureSize, TEXTURE_SERIALIZATION_VERSION);
 
-        TextureResource->bSRGB = InPerformGammaCorrection;
+        TextureResource->bSRGB    = InPerformGammaCorrection;
         TextureResource->DataType = InDataType;
         if (InPerformGammaCorrection)
         {
@@ -94,8 +98,8 @@ namespace lucid::resources
         }
 
         TextureResource->TextureData = TextureData;
-        TextureResource->Width = Width;
-        TextureResource->Height = Height;
+        TextureResource->Width       = Width;
+        TextureResource->Height      = Height;
 
         if (InSendToGPU)
         {
@@ -117,12 +121,12 @@ namespace lucid::resources
         texturesInitialized = true;
     }
 
-    CTextureResource::CTextureResource(const UUID& InID,
+    CTextureResource::CTextureResource(const UUID&    InID,
                                        const FString& InName,
                                        const FString& InFilePath,
-                                       const u64& InOffset,
-                                       const u64& InDataSize,
-                                       const u32& InAssetSerializationVersion)
+                                       const u64&     InOffset,
+                                       const u64&     InDataSize,
+                                       const u32&     InAssetSerializationVersion)
     : CResource(InID, InName, InFilePath, InOffset, InDataSize, InAssetSerializationVersion)
     {
     }
@@ -181,7 +185,7 @@ namespace lucid::resources
         assert(TextureHandle);
 
         bLoadedToVideoMemory = true;
-        IsVideoMemoryFreed = false;
+        IsVideoMemoryFreed   = false;
     }
 
     void CTextureResource::SaveSynchronously(FILE* ResourceFile) const
@@ -208,7 +212,7 @@ namespace lucid::resources
         if (bLoadedToMainMemory && !IsMainMemoryFreed)
         {
             free(TextureData);
-            IsMainMemoryFreed = true;
+            IsMainMemoryFreed   = true;
             bLoadedToMainMemory = false;
         }
     }
@@ -218,7 +222,7 @@ namespace lucid::resources
         {
             TextureHandle->Free();
             delete TextureHandle;
-            IsVideoMemoryFreed = true;
+            IsVideoMemoryFreed   = true;
             bLoadedToVideoMemory = false;
         }
     }
@@ -238,4 +242,76 @@ namespace lucid::resources
     }
 
     void CTextureResource::MigrateToLatestVersion() { Resave(); }
+
+    void CTextureResource::LoadThumbnail()
+    {
+        if (ThumbnailTexture)
+        {
+            return;
+        }
+
+        const float StartTime = platform::GetCurrentTimeSeconds();
+        
+        FDString ThumbPath = SPrintf("%s.th", *FilePath);
+        FMemBuffer ThumbData = platform::ReadFileToBuffer(*ThumbPath);
+        if (ThumbData.Size)
+        {
+            ThumbnailTexture = gpu::Create2DTexture(ThumbData.Pointer,
+                                        32,
+                                        32,
+                                        DataType,
+                                        DataFormat,
+                                        PixelFormat,
+                                        0,
+                                        SPrintf("%s_Thumb", *Name));
+            free(ThumbData.Pointer);
+        }
+
+        ThumbPath.Free();
+
+        LUCID_LOG(ELogLevel::INFO, "Loaded thumbnail for %s done in %f seconds", *Name, platform::GetCurrentTimeSeconds() - StartTime);
+    }
+
+    void CTextureResource::MakeThumbnail()
+    {
+        LUCID_LOG(ELogLevel::INFO, "Making thumbnail for texture %s", *Name);
+        const float StartTime = platform::GetCurrentTimeSeconds();
+        
+        bool  bShouldFreeMainMemory = false;
+        void* ThumbData             = malloc(32 * 32 * gpu::GetNumChannels(PixelFormat));
+
+        if (!bLoadedToMainMemory)
+        {
+            bShouldFreeMainMemory = true;
+            LoadDataToMainMemorySynchronously();
+        }
+
+        stbir_resize_uint8((unsigned char*)TextureData, Width, Height, 0, (unsigned char*)ThumbData, 32, 32, 0, gpu::GetNumChannels(PixelFormat));
+        ThumbnailTexture = gpu::Create2DTexture(ThumbData,
+                                                32,
+                                                32,
+                                                DataType,
+                                                DataFormat,
+                                                PixelFormat,
+                                                0,
+                                                SPrintf("%s_Thumb", *Name));
+
+        FDString ThumbPath = SPrintf("%s.th", *FilePath);
+        FILE*    ThumbFile = fopen(*ThumbPath, "wb");
+
+        fwrite(ThumbData, 1, ThumbnailTexture->GetSizeInBytes(), ThumbFile);
+
+        free(ThumbData);
+        free(TextureData);
+        fclose(ThumbFile);
+        ThumbPath.Free();
+
+        if (bShouldFreeMainMemory)
+        {
+            FreeMainMemory();
+        }
+
+        LUCID_LOG(ELogLevel::INFO, "Thumbnail for %s done in %f seconds", *Name, platform::GetCurrentTimeSeconds() - StartTime);
+    }
+
 } // namespace lucid::resources

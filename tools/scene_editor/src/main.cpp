@@ -833,16 +833,20 @@ void UIDrawResourceBrowserWindow()
                 }
 
                 // Draw texture thumb and it's name
-                if (TextureResource && TextureResource->TextureHandle)
+                if (TextureResource)
                 {
+                    ImGui:ImGui::SetNextItemWidth(ResourceItemWidth);
                     ImGui::BeginGroup();
-                    // TextureResource->TextureHandle->ImGuiImageButton(ResourceItemSize);
+                    if (TextureResource->GetThumbnail())
+                    {
+                        TextureResource->GetThumbnail()->ImGuiImageButton(ResourceItemSize);
+                    }                    
+                    ImGui::Button(*TextureResource->GetName(), { ResourceItemWidth, 0 });
+                    ImGui::EndGroup();
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
                         GSceneEditorState.ClickedTextureResource = TextureResource;
                     }
-                    ImGui::Button(*TextureResource->GetName(), { ResourceItemWidth, 0 });
-                    ImGui::EndGroup();
                     ++CurrentRowItemsCount;
                 }
             }
@@ -867,16 +871,19 @@ void UIDrawResourceBrowserWindow()
                 }
 
                 // Draw mesh thumb and it's name
-                if (MeshResource && MeshResource->Thumb)
+                if (MeshResource)
                 {
                     ImGui::BeginGroup();
-                    MeshResource->Thumb->ImGuiImageButton(ResourceItemSize);
+                    if (MeshResource->GetThumbnail())
+                    {
+                        MeshResource->GetThumbnail()->ImGuiImageButton(ResourceItemSize);
+                    }
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
                         GSceneEditorState.ClickedMeshResource = MeshResource;
                     }
 
-                    ImGui::Button(*MeshResource->GetName(), { ResourceItemWidth, 0 });
+                    ImGui::Button(*MeshResource->GetName(), { ResourceItemWidth, MeshResource->GetThumbnail() ? 0 : ResourceItemWidth });
                     ImGui::EndGroup();
                     ++CurrentRowItemsCount;
                 }
@@ -898,7 +905,7 @@ void UIDrawResourceBrowserWindow()
     {
         UIDrawMeshContextMenu();
     }
-    else if (GSceneEditorState.ClickedMeshResource)
+    else if (GSceneEditorState.ClickedTextureResource)
     {
         UIDrawTextureContextMenu();
     }
@@ -1135,16 +1142,7 @@ void UIDrawMeshImporter()
             {
                 // Everything is ok, import the mesh and save it
                 FDString                          MeshName = CopyToString(GSceneEditorState.AssetNameBuffer);
-                FArray<resources::CMeshResource*> ImportedMeshes =
-                  resources::ImportMesh(GSceneEditorState.PathToSelectedFile, MeshName, GSceneEditorState.GenericBoolParam0, MeshImportStrategy);
-
-                for (u32 i = 0; i < ImportedMeshes.GetLength(); ++i)
-                {
-                    auto* ImportedMesh = (*ImportedMeshes[i]);
-                    ImportedMesh->Acquire(false, true);
-                    ImportedMesh->Thumb = GEngine.ThumbsGenerator->GenerateMeshThumb(256, 256, ImportedMesh);
-                    ImportedMesh->Release();
-                }
+                FArray<resources::CMeshResource*> ImportedMeshes = resources::ImportMesh(GSceneEditorState.PathToSelectedFile, MeshName, GSceneEditorState.GenericBoolParam0, MeshImportStrategy);
 
                 ImportedMeshes.Free();
 

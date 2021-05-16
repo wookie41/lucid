@@ -12,8 +12,9 @@ namespace lucid::gpu
                             const u32& InWidth,
                             const u32& InHeight,
                             const FString& InName,
-                            const ETextureDataType InTextureDataType,
-                            const ETexturePixelFormat InTexturePixelFormat);
+                            const ETextureDataType& InTextureDataType,
+                            const ETextureDataFormat& InTextureDataFormat,
+                            const ETexturePixelFormat& InTexturePixelFormat);
 
         virtual void SetObjectName() override;
 

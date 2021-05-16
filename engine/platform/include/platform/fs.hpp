@@ -1,11 +1,14 @@
 #pragma once
 
+#include "common/bytes.hpp"
+
 #include "common/strings.hpp"
 #include "common/types.hpp"
 
 namespace lucid::platform
-{    
+{
     FDString ReadFile(const char* FilePath, const bool& NullTerminate);
+    FMemBuffer ReadFileToBuffer(const char* FilePath);
     
     /**
      * Adds a listener that is called when files in the directory or the directory itself changes.

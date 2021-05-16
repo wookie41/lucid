@@ -1,5 +1,8 @@
 ﻿#include "imgui_lucid.h"
 
+#include <devices/gpu/texture.hpp>
+
+
 #include "resources/mesh_resource.hpp"
 #include "resources/texture_resource.hpp"
 #include "engine/engine.hpp"
@@ -23,6 +26,11 @@ namespace lucid
             for (int i = 0; i < GEngine.GetTexturesHolder().Length(); ++i)
             {
                 resources::CTextureResource* CurrTexture = GEngine.GetTexturesHolder().GetByIndex(i);
+                if(gpu::CTexture* ThumbTexture = CurrTexture->GetThumbnail())
+                {
+                    ThumbTexture->ImGuiDrawToImage({16, 16});
+                    ImGui::SameLine();
+                }
                 if (ImGui::Selectable(*CurrTexture->GetName(), *OutTextureResource == CurrTexture))
                 {
                     *OutTextureResource = CurrTexture;

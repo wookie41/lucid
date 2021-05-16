@@ -45,6 +45,7 @@ namespace lucid
 
     }
 
+    // @TODO Fix
     gpu::CTexture* CActorThumbsGenerator::GenerateMeshThumb(const u16& InWidth, const u16& InHeight, resources::CMeshResource* MeshResource)
     {
         // Create the texture that will hold the result

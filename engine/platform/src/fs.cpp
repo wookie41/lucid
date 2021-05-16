@@ -53,4 +53,14 @@ namespace lucid::platform
         return FDString { retVal } ;
     }
 
+    FMemBuffer ReadFileToBuffer(const char* FilePath)
+    {
+        FDString Str = ReadFile(FilePath, false);
+        if (Str.GetLength())
+        {
+            return FMemBuffer { *Str, Str.GetLength(), Str.GetLength() };
+        }
+        return {};
+    }
+
 } // namespace lucid::platform

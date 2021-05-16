@@ -72,10 +72,13 @@ namespace lucid
             {
                 if (resources::CMeshResource* LoadedMesh = resources::LoadMesh(Entry.Path))
                 {
-                    LoadedMesh->Acquire(false, true);
-                    LoadedMesh->Thumb = ThumbsGenerator->GenerateMeshThumb(256, 256, LoadedMesh);
                     GEngine.GetMeshesHolder().Add(Entry.Id, LoadedMesh);
-                    LoadedMesh->Release();
+
+                    LoadedMesh->LoadThumbnail();
+                    if (!LoadedMesh->GetThumbnail())
+                    {
+                        LoadedMesh->MakeThumbnail();
+                    }
 
                     if (Entry.bIsDefault)
                     {
@@ -90,6 +93,12 @@ namespace lucid
                 {
                     GEngine.GetTexturesHolder().Add(Entry.Id, LoadedTexture);
 
+                    LoadedTexture->LoadThumbnail();
+                    if (!LoadedTexture->GetThumbnail())
+                    {
+                        LoadedTexture->MakeThumbnail();
+                    }
+                    
                     if (Entry.bIsDefault)
                     {
                         GEngine.GetTexturesHolder().SetDefaultResource(LoadedTexture);

@@ -21,6 +21,7 @@ namespace lucid::gpu
                   const GLenum& InGLTextureDataType,
                   const u64& InSizeInBytes,
                   const ETextureDataType& InDataType,
+                  const ETextureDataFormat& InTextureDataFormat,
                   const ETexturePixelFormat& InPixelFormat);
 
     public:

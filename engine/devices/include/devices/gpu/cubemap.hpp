@@ -15,8 +15,9 @@ namespace lucid::gpu
         CCubemap(const FString& InName,
                  const u32& InWidth,
                  const u32& InHeight,
-                 const ETextureDataType InTextureDataType,
-                 const ETexturePixelFormat InTexturePixelFormat);
+                 const ETextureDataType& InTextureDataType,
+                 const ETextureDataFormat& InTextureDataFormat,
+                 const ETexturePixelFormat& InTexturePixelFormat);
 
         enum class EFace : u8
         {
@@ -39,9 +40,9 @@ namespace lucid::gpu
 
     CCubemap* CreateCubemap(const u32& Width,
                             const u32& Height,
-                            ETextureDataFormat InDataFormat,
-                            ETexturePixelFormat InPixelFormat,
-                            ETextureDataType DataType,
+                            const ETextureDataFormat& InDataFormat,
+                            const ETexturePixelFormat& InPixelFormat,
+                            const ETextureDataType& DataType,
                             const void* FaceTexturesData[6],
                             const FString& InName,
                             const EMinTextureFilter& InMinFilter,

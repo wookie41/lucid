@@ -101,6 +101,7 @@ namespace lucid::gpu
                                          GLDataType,
                                          Width * Height * GetNumChannels(InPixelFormat) * GetSizeInBytes(InDataType),
                                          InDataType,
+                                         InDataFormat,
                                          InPixelFormat);
         GLTexture->SetObjectName();
         return GLTexture;
@@ -135,6 +136,7 @@ namespace lucid::gpu
                                          GLDataFormat,
                                          Width * Height * GetNumChannels(InPixelFormat) * GetSizeInBytes(InDataType),
                                          InDataType,
+                                         InDataFormat,
                                          InPixelFormat);
         GLTexture->SetObjectName();
         return GLTexture;
@@ -149,8 +151,9 @@ namespace lucid::gpu
                            const GLenum& InGLTextureDataType,
                            const u64& InSizeInBytes,
                            const ETextureDataType& InDataType,
+                           const ETextureDataFormat&  InTextureDataFormat,
                            const ETexturePixelFormat& InPixelFormat)
-    : CTexture(InName, InWidth, InHeight, InDataType, InPixelFormat), GLTextureHandle(InGLTextureID),
+    : CTexture(InName, InWidth, InHeight, InDataType, InTextureDataFormat, InPixelFormat), GLTextureHandle(InGLTextureID),
       GLTextureTarget(InGLTextureTarget), GLPixelFormat(InGLPixelFormat), GLTextureDataType(InGLTextureDataType),
       SizeInBytes(InSizeInBytes)
     {
@@ -201,7 +204,7 @@ namespace lucid::gpu
     void CGLTexture::CopyPixels(void* DestBuffer, const u8& MipLevel)
     {
         assert(GGPUState->BoundTextures[gpu::GGPUInfo.ActiveTextureUnit] == this);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, DestBuffer);
+        glGetTexImage(GL_TEXTURE_2D, 0, GLPixelFormat, GLTextureDataType, DestBuffer);
     }
 
     void CGLTexture::AttachAsColor(const uint8_t& Index)
@@ -245,9 +248,9 @@ namespace lucid::gpu
     // Cubemap
     CCubemap* CreateCubemap(const u32& Width,
                             const u32& Height,
-                            ETextureDataFormat InDataFormat,
-                            ETexturePixelFormat InPixelFormat,
-                            ETextureDataType DataType,
+                            const ETextureDataFormat& InDataFormat,
+                            const ETexturePixelFormat& InPixelFormat,
+                            const ETextureDataType& DataType,
                             const void* FaceTexturesData[6],
                             const FString& InName,
                             const EMinTextureFilter& InMinFilter,
@@ -279,7 +282,7 @@ namespace lucid::gpu
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, TO_GL_WRAP_FILTER(InWrapR));
         glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, &InBorderColor.r);
         
-        auto* GLCubemap = new CGLCubemap(handle, Width, Height, InName, DataType, InPixelFormat);
+        auto* GLCubemap = new CGLCubemap(handle, Width, Height, InName, DataType, InDataFormat, InPixelFormat);
         GLCubemap->SetObjectName();
         return GLCubemap;
     }
@@ -288,9 +291,10 @@ namespace lucid::gpu
                            const u32& InWidth,
                            const u32& InHeight,
                            const FString& InName,
-                           const ETextureDataType InTextureDataType,
-                           const ETexturePixelFormat InTexturePixelFormat)
-    : CCubemap(InName, InWidth, InHeight, InTextureDataType, InTexturePixelFormat), glCubemapHandle(Handle)
+                           const ETextureDataType& InTextureDataType,
+                           const ETextureDataFormat& InTextureDataFormat,
+                           const ETexturePixelFormat& InTexturePixelFormat)
+    : CCubemap(InName, InWidth, InHeight, InTextureDataType, InTextureDataFormat, InTexturePixelFormat), glCubemapHandle(Handle)
     {
     }
 
