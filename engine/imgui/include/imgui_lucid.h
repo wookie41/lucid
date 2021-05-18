@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "common/types.hpp"
+
+#include "scene/actors/actor_enums.hpp"
 
 namespace lucid
 {
@@ -27,5 +28,5 @@ namespace lucid
     void ImGuiMaterialPicker(const char* InLabel, scene::CMaterial** OutMaterial);
     void ImGuiShadersPicker(const char* InLabel, gpu::CShader** OutShader);
     void ImGuiShowMaterialEditor(scene::CMaterial* InMaterial, bool* OutbOpen);
-    void ImGuiActorAssetPicker(const char* InLabel, scene::IActor** OutActor);
+    void ImGuiActorAssetPicker(const char* InLabel, scene::IActor** OutActor, const scene::EActorType& InTypeFilter);
 }

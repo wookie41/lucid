@@ -93,6 +93,16 @@ namespace lucid::scene
         // Light data is written directly to the world file
     }
 
+    void CLight::CleanupAfterRemove()
+    {
+        if (ShadowMap)
+        {
+            ShadowMap->Free();
+            delete ShadowMap;
+            ShadowMap = nullptr;
+        }
+    }
+
     /////////////////////////////////////
     //        Directional light        //
     /////////////////////////////////////
@@ -164,7 +174,7 @@ namespace lucid::scene
 
     void CDirectionalLight::OnAddToWorld(CWorld* InWorld)
     {
-        IActor::OnAddToWorld(InWorld);
+        CLight::OnAddToWorld(InWorld);
         InWorld->AddDirectionalLight(this);
         if (bShouldCastShadow && !ShadowMap)
         {
@@ -174,13 +184,11 @@ namespace lucid::scene
     
     void CDirectionalLight::OnRemoveFromWorld(const bool& InbHardRemove)
     {
-        IActor::OnRemoveFromWorld(InbHardRemove);
+        CLight::OnRemoveFromWorld(InbHardRemove);
         World->RemoveDirectionalLight(Id);
-        if (ShadowMap)
+        if (InbHardRemove)
         {
-            ShadowMap->Free();
-            delete ShadowMap;
-            ShadowMap = nullptr;
+            CleanupAfterRemove();
         }
     }
 
@@ -272,7 +280,7 @@ namespace lucid::scene
 
     void CSpotLight::OnAddToWorld(CWorld* InWorld)
     {
-        IActor::OnAddToWorld(InWorld);
+        CLight::OnAddToWorld(InWorld);
         InWorld->AddSpotLight(this);
         if (bShouldCastShadow && !ShadowMap)
         {
@@ -282,13 +290,11 @@ namespace lucid::scene
     
     void CSpotLight::OnRemoveFromWorld(const bool& InbHardRemove)
     {
-        IActor::OnRemoveFromWorld(InbHardRemove);
+        CLight::OnRemoveFromWorld(InbHardRemove);
         World->RemoveSpotLight(Id);
-        if (ShadowMap)
+        if (InbHardRemove)
         {
-            ShadowMap->Free();
-            delete ShadowMap;
-            ShadowMap = nullptr;
+            CleanupAfterRemove();
         }
     }
 
@@ -402,7 +408,7 @@ namespace lucid::scene
 
     void CPointLight::OnAddToWorld(CWorld* InWorld)
     {
-        IActor::OnAddToWorld(InWorld);
+        CLight::OnAddToWorld(InWorld);
         InWorld->AddPointLight(this);
         if (bShouldCastShadow && !ShadowMap)
         {
@@ -412,13 +418,11 @@ namespace lucid::scene
     
     void CPointLight::OnRemoveFromWorld(const bool& InbHardRemove)
     {
-        IActor::OnRemoveFromWorld(InbHardRemove);
+        CLight::OnRemoveFromWorld(InbHardRemove);
         World->RemovePointLight(Id);
-        if (ShadowMap)
+        if (InbHardRemove)
         {
-            ShadowMap->Free();
-            delete ShadowMap;
-            ShadowMap = nullptr;
+            CleanupAfterRemove();
         }
     }
 

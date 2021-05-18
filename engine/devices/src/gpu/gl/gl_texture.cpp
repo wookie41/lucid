@@ -251,7 +251,7 @@ namespace lucid::gpu
                             const ETextureDataFormat& InDataFormat,
                             const ETexturePixelFormat& InPixelFormat,
                             const ETextureDataType& DataType,
-                            const void* FaceTexturesData[6],
+                            resources::CTextureResource* FaceTextures[6],
                             const FString& InName,
                             const EMinTextureFilter& InMinFilter,
                             const EMagTextureFilter& InMagFilter,
@@ -260,6 +260,19 @@ namespace lucid::gpu
                             const EWrapTextureFilter& InWrapR,
                             const FColor& InBorderColor)
     {
+        if (FaceTextures == nullptr)
+        {
+            return nullptr;
+        }
+
+        for (int i = 0; i < 6; ++i)
+        {
+            if (FaceTextures[i] == nullptr)
+            {
+                return nullptr;
+            }
+        }
+
         GLuint handle;
         glGenTextures(1, &handle);
         glBindTexture(GL_TEXTURE_CUBE_MAP, handle);
@@ -270,7 +283,7 @@ namespace lucid::gpu
 
         for (int i = 0; i < 6; ++i)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GLDataFormat, Width, Height, 0, GLPixelFormat, GLDataType, FaceTexturesData ? FaceTexturesData[i] : nullptr);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GLDataFormat, FaceTextures[i]->Width, FaceTextures[i]->Height, 0, GLPixelFormat, GLDataType, FaceTextures[i]->TextureData);
         }
 
         // Default sampling parameters

@@ -1,14 +1,16 @@
 ﻿#include "imgui_lucid.h"
 
-#include <devices/gpu/texture.hpp>
-
+#include "devices/gpu/texture.hpp"
+#include "devices/gpu/shader.hpp"
 
 #include "resources/mesh_resource.hpp"
 #include "resources/texture_resource.hpp"
+
 #include "engine/engine.hpp"
+
+#include "scene/actors/actor_enums.hpp"
 #include "scene/material.hpp"
 
-#include "devices/gpu/shader.hpp"
 
 #include "imgui.h"
 
@@ -143,7 +145,7 @@ namespace lucid
         ImGui::End();
     }
 
-    void ImGuiActorAssetPicker(const char* InLabel, scene::IActor** OutActor)
+    void ImGuiActorAssetPicker(const char* InLabel, scene::IActor** OutActor, const scene::EActorType& InTypeFilter)
     {
         if (ImGui::BeginListBox(InLabel, ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
         {
@@ -151,6 +153,10 @@ namespace lucid
             for (int i = 0; i < ActorResources.GetLength(); ++i)
             {
                 scene::IActor* CurrActor = ActorResources.GetByIndex(i);
+                if (CurrActor->GetActorType() != InTypeFilter)
+                {
+                    continue;
+                }
                 if (ImGui::Selectable(*CurrActor->Name, *OutActor == CurrActor))
                 {
                     *OutActor = CurrActor;

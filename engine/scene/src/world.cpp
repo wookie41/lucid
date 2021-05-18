@@ -25,12 +25,7 @@ namespace lucid::scene
 {
     FRenderScene StaticRenderScene;
 
-    /** Id for the skybox renderable, as there is always only one skybox */
-    static const u32 SkyboxRenderableId = 4294967295;
-
-    void CWorld::Init()
-    {
-    }
+    void CWorld::Init() {}
 
     void CWorld::AddStaticMesh(CStaticMesh* InStaticMesh)
     {
@@ -89,21 +84,26 @@ namespace lucid::scene
     {
         if (Skybox)
         {
-            Skybox->Id = 0;
+            RemoveActorById(Skybox->Id, true);
+        }
+
+        if (InSkybox->Id == 0)
+        {
+            InSkybox->Id = NextActorId++;
         }
 
         Skybox = InSkybox;
-        Skybox->Id = SkyboxRenderableId;
+        ActorById.Add(Skybox->Id, Skybox);
     }
 
     FRenderScene* CWorld::MakeRenderScene(CCamera* InCamera)
     {
-        StaticRenderScene.AllLights = AllLights;
+        StaticRenderScene.AllLights         = AllLights;
         StaticRenderScene.DirectionalLights = DirectionalLights;
-        StaticRenderScene.SpotLights = SpotLights;
-        StaticRenderScene.PointLights = PointLights;
-        StaticRenderScene.StaticMeshes = StaticMeshes;
-        StaticRenderScene.Skybox = Skybox;
+        StaticRenderScene.SpotLights        = SpotLights;
+        StaticRenderScene.PointLights       = PointLights;
+        StaticRenderScene.StaticMeshes      = StaticMeshes;
+        StaticRenderScene.Skybox            = Skybox;
         return &StaticRenderScene;
     }
 
@@ -129,7 +129,7 @@ namespace lucid::scene
         FWorldDescription WorldDescription;
         if (ReadFromJSONFile(WorldDescription, *InFilePath))
         {
-            return LoadWorld(WorldDescription);            
+            return LoadWorld(WorldDescription);
         }
         LUCID_LOG(ELogLevel::WARN, "Failed to load world from JSON file %s", *InFilePath);
         return nullptr;
@@ -141,7 +141,6 @@ namespace lucid::scene
         if (ReadFromBinaryFile(WorldDescription, *InFilePath))
         {
             return LoadWorld(WorldDescription);
-            
         }
         LUCID_LOG(ELogLevel::WARN, "Failed to load world from binary file %s", *InFilePath);
         return nullptr;
@@ -163,7 +162,8 @@ namespace lucid::scene
             if (!ActorAsset)
             {
                 LUCID_LOG(ELogLevel::WARN, "Failed to create static mesh %s - no base asset", *StaticMeshDescription.Name);
-                continue;;
+                continue;
+                ;
             }
 
             ActorAsset->LoadAsset();
@@ -186,78 +186,87 @@ namespace lucid::scene
         // Load lights
         for (const FDirectionalLightEntry& DirLightEntry : InWorldDescription.DirectionalLights)
         {
-            CDirectionalLight* DirLight = GEngine.GetRenderer()->CreateDirectionalLight(
-              DirLightEntry.Name, World->GetActorById(DirLightEntry.ParentId), World, DirLightEntry.bCastsShadow);
+            CDirectionalLight* DirLight =
+              GEngine.GetRenderer()->CreateDirectionalLight(DirLightEntry.Name,
+                                                            DirLightEntry.ParentId ? World->GetActorById(DirLightEntry.ParentId) : nullptr,
+                                                            World,
+                                                            DirLightEntry.bCastsShadow);
 
             DirLight->Id = DirLightEntry.Id;
 
             DirLight->Transform.Translation = Float3ToVec(DirLightEntry.Postion);
-            DirLight->Transform.Rotation = Float4ToQuat(DirLightEntry.Rotation);
+            DirLight->Transform.Rotation    = Float4ToQuat(DirLightEntry.Rotation);
 
-            DirLight->Color = Float3ToVec(DirLightEntry.Color);
-            DirLight->Direction = Float3ToVec(DirLightEntry.Direction);
-            DirLight->LightUp = Float3ToVec(DirLightEntry.LightUp);
+            DirLight->Color             = Float3ToVec(DirLightEntry.Color);
+            DirLight->Direction         = Float3ToVec(DirLightEntry.Direction);
+            DirLight->LightUp           = Float3ToVec(DirLightEntry.LightUp);
             DirLight->bShouldCastShadow = DirLightEntry.bCastsShadow;
 
             if (DirLightEntry.ParentId && !DirLight->Parent)
             {
                 UnresolvedParents.Add(DirLight, DirLightEntry.ParentId);
             }
-            
+
             World->AddDirectionalLight(DirLight);
         }
 
         for (const FSpotLightEntry& SpotLightEntry : InWorldDescription.SpotLights)
         {
-            CSpotLight* SpotLight = GEngine.GetRenderer()->CreateSpotLight(
-              SpotLightEntry.Name, World->GetActorById(SpotLightEntry.ParentId), World, SpotLightEntry.bCastsShadow);
+            CSpotLight* SpotLight =
+              GEngine.GetRenderer()->CreateSpotLight(SpotLightEntry.Name,
+                                                     SpotLightEntry.ParentId ? World->GetActorById(SpotLightEntry.ParentId) : nullptr,
+                                                     World,
+                                                     SpotLightEntry.bCastsShadow);
 
             SpotLight->Id = SpotLightEntry.Id;
 
             SpotLight->Transform.Translation = Float3ToVec(SpotLightEntry.Postion);
-            SpotLight->Transform.Rotation = Float4ToQuat(SpotLightEntry.Rotation);
+            SpotLight->Transform.Rotation    = Float4ToQuat(SpotLightEntry.Rotation);
 
-            SpotLight->Color = Float3ToVec(SpotLightEntry.Color);
+            SpotLight->Color     = Float3ToVec(SpotLightEntry.Color);
             SpotLight->Direction = Float3ToVec(SpotLightEntry.Direction);
-            SpotLight->LightUp = Float3ToVec(SpotLightEntry.LightUp);
+            SpotLight->LightUp   = Float3ToVec(SpotLightEntry.LightUp);
 
-            SpotLight->Constant = SpotLightEntry.Constant;
-            SpotLight->Linear = SpotLightEntry.Linear;
-            SpotLight->Quadratic = SpotLightEntry.Quadratic;
-            SpotLight->InnerCutOffRad = SpotLightEntry.InnerCutOffRad;
-            SpotLight->OuterCutOffRad = SpotLightEntry.OuterCutOffRad;
+            SpotLight->Constant          = SpotLightEntry.Constant;
+            SpotLight->Linear            = SpotLightEntry.Linear;
+            SpotLight->Quadratic         = SpotLightEntry.Quadratic;
+            SpotLight->InnerCutOffRad    = SpotLightEntry.InnerCutOffRad;
+            SpotLight->OuterCutOffRad    = SpotLightEntry.OuterCutOffRad;
             SpotLight->bShouldCastShadow = SpotLightEntry.bCastsShadow;
 
             if (SpotLightEntry.ParentId && !SpotLight->Parent)
             {
                 UnresolvedParents.Add(SpotLight, SpotLightEntry.ParentId);
             }
-            
+
             World->AddSpotLight(SpotLight);
         }
 
         for (const FPointLightEntry& PointLightEntry : InWorldDescription.PointLights)
         {
-            CPointLight* PointLight = GEngine.GetRenderer()->CreatePointLight(
-              PointLightEntry.Name, World->GetActorById(PointLightEntry.ParentId), World, PointLightEntry.bCastsShadow);
+            CPointLight* PointLight =
+              GEngine.GetRenderer()->CreatePointLight(PointLightEntry.Name,
+                                                      PointLightEntry.ParentId ? World->GetActorById(PointLightEntry.ParentId) : nullptr,
+                                                      World,
+                                                      PointLightEntry.bCastsShadow);
 
             PointLight->Id = PointLightEntry.Id;
 
             PointLight->Transform.Translation = Float3ToVec(PointLightEntry.Postion);
-            PointLight->Transform.Rotation = Float4ToQuat(PointLightEntry.Rotation);
+            PointLight->Transform.Rotation    = Float4ToQuat(PointLightEntry.Rotation);
 
             PointLight->Color = Float3ToVec(PointLightEntry.Color);
 
-            PointLight->Constant = PointLightEntry.Constant;
-            PointLight->Linear = PointLightEntry.Linear;
-            PointLight->Quadratic = PointLightEntry.Quadratic;
+            PointLight->Constant          = PointLightEntry.Constant;
+            PointLight->Linear            = PointLightEntry.Linear;
+            PointLight->Quadratic         = PointLightEntry.Quadratic;
             PointLight->bShouldCastShadow = PointLightEntry.bCastsShadow;
 
             if (PointLightEntry.ParentId && !PointLight->Parent)
             {
                 UnresolvedParents.Add(PointLight, PointLightEntry.ParentId);
             }
-            
+
             World->AddPointLight(PointLight);
         }
 
@@ -265,7 +274,7 @@ namespace lucid::scene
         for (int i = 0; i < UnresolvedParents.GetLength(); ++i)
         {
             auto ActorToParentID = UnresolvedParents.GetEntryByIndex(i);
-            if (auto* Parent =  World->GetActorById(ActorToParentID.value))
+            if (auto* Parent = World->GetActorById(ActorToParentID.value))
             {
                 Parent->AddChild(ActorToParentID.key);
             }
@@ -285,7 +294,7 @@ namespace lucid::scene
         for (u32 i = 0; i < StaticMeshes.GetLength(); ++i)
         {
             FStaticMeshDescription StaticMeshEntry;
-            const CStaticMesh* StaticMesh = StaticMeshes.GetByIndex(i);
+            const CStaticMesh*     StaticMesh = StaticMeshes.GetByIndex(i);
             StaticMesh->FillDescription(StaticMeshEntry);
             OutWorldDescription.StaticMeshes.push_back(StaticMeshEntry);
         }
@@ -299,18 +308,18 @@ namespace lucid::scene
         // Save dir lights
         for (u32 i = 0; i < DirectionalLights.GetLength(); ++i)
         {
-            FDirectionalLightEntry DirLightEntry;
+            FDirectionalLightEntry   DirLightEntry;
             const CDirectionalLight* DirLight = DirectionalLights.GetByIndex(i);
-            DirLightEntry.Id = DirLight->Id;
-            DirLightEntry.ParentId = DirLight->Parent ? DirLight->Parent->Id : 0;
-            DirLightEntry.Color = VecToFloat3(DirLight->Color);
-            DirLightEntry.Quality = DirLight->Quality;
-            DirLightEntry.Name = DirLight->Name;
-            DirLightEntry.Postion = { 0, 0, 0 };
-            DirLightEntry.Rotation = { 0, 0, 0 };
-            DirLightEntry.Direction = VecToFloat3(DirLight->Direction);
-            DirLightEntry.LightUp = VecToFloat3(DirLight->LightUp);
-            DirLightEntry.bCastsShadow = DirLight->ShadowMap != nullptr;
+            DirLightEntry.Id                  = DirLight->Id;
+            DirLightEntry.ParentId            = DirLight->Parent ? DirLight->Parent->Id : 0;
+            DirLightEntry.Color               = VecToFloat3(DirLight->Color);
+            DirLightEntry.Quality             = DirLight->Quality;
+            DirLightEntry.Name                = DirLight->Name;
+            DirLightEntry.Postion             = { 0, 0, 0 };
+            DirLightEntry.Rotation            = { 0, 0, 0 };
+            DirLightEntry.Direction           = VecToFloat3(DirLight->Direction);
+            DirLightEntry.LightUp             = VecToFloat3(DirLight->LightUp);
+            DirLightEntry.bCastsShadow        = DirLight->ShadowMap != nullptr;
 
             OutWorldDescription.DirectionalLights.push_back(DirLightEntry);
         }
@@ -319,21 +328,21 @@ namespace lucid::scene
         for (u32 i = 0; i < SpotLights.GetLength(); ++i)
         {
             const CSpotLight* SpotLight = SpotLights.GetByIndex(i);
-            FSpotLightEntry SpotLightEntry;
-            SpotLightEntry.Id = SpotLight->Id;
-            SpotLightEntry.ParentId = SpotLight->Parent ? SpotLight->Parent->Id : 0;
-            SpotLightEntry.Color = VecToFloat3(SpotLight->Color);
-            SpotLightEntry.Quality = SpotLight->Quality;
-            SpotLightEntry.Name = SpotLight->Name;
-            SpotLightEntry.Postion = VecToFloat3(SpotLight->Transform.Translation);
-            SpotLightEntry.Rotation = QuatToFloat4(SpotLight->Transform.Rotation);
-            SpotLightEntry.Direction = VecToFloat3(SpotLight->Direction);
-            SpotLightEntry.Constant = SpotLight->Constant;
-            SpotLightEntry.Linear = SpotLight->Linear;
-            SpotLightEntry.Quadratic = SpotLight->Quadratic;
+            FSpotLightEntry   SpotLightEntry;
+            SpotLightEntry.Id             = SpotLight->Id;
+            SpotLightEntry.ParentId       = SpotLight->Parent ? SpotLight->Parent->Id : 0;
+            SpotLightEntry.Color          = VecToFloat3(SpotLight->Color);
+            SpotLightEntry.Quality        = SpotLight->Quality;
+            SpotLightEntry.Name           = SpotLight->Name;
+            SpotLightEntry.Postion        = VecToFloat3(SpotLight->Transform.Translation);
+            SpotLightEntry.Rotation       = QuatToFloat4(SpotLight->Transform.Rotation);
+            SpotLightEntry.Direction      = VecToFloat3(SpotLight->Direction);
+            SpotLightEntry.Constant       = SpotLight->Constant;
+            SpotLightEntry.Linear         = SpotLight->Linear;
+            SpotLightEntry.Quadratic      = SpotLight->Quadratic;
             SpotLightEntry.InnerCutOffRad = SpotLight->InnerCutOffRad;
             SpotLightEntry.OuterCutOffRad = SpotLight->OuterCutOffRad;
-            SpotLightEntry.bCastsShadow = SpotLight->ShadowMap != nullptr;
+            SpotLightEntry.bCastsShadow   = SpotLight->ShadowMap != nullptr;
 
             OutWorldDescription.SpotLights.push_back(SpotLightEntry);
         }
@@ -342,16 +351,16 @@ namespace lucid::scene
         for (u32 i = 0; i < PointLights.GetLength(); ++i)
         {
             const CPointLight* PointLight = PointLights.GetByIndex(i);
-            FPointLightEntry PointLightEntry;
-            PointLightEntry.Id = PointLight->Id;
-            PointLightEntry.ParentId = PointLight->Parent ? PointLight->Parent->Id : 0;
-            PointLightEntry.Color = VecToFloat3(PointLight->Color);
-            PointLightEntry.Quality = PointLight->Quality;
-            PointLightEntry.Name = PointLight->Name;
-            PointLightEntry.Postion = VecToFloat3(PointLight->Transform.Translation);
-            PointLightEntry.Constant = PointLight->Constant;
-            PointLightEntry.Linear = PointLight->Linear;
-            PointLightEntry.Quadratic = PointLight->Quadratic;
+            FPointLightEntry   PointLightEntry;
+            PointLightEntry.Id           = PointLight->Id;
+            PointLightEntry.ParentId     = PointLight->Parent ? PointLight->Parent->Id : 0;
+            PointLightEntry.Color        = VecToFloat3(PointLight->Color);
+            PointLightEntry.Quality      = PointLight->Quality;
+            PointLightEntry.Name         = PointLight->Name;
+            PointLightEntry.Postion      = VecToFloat3(PointLight->Transform.Translation);
+            PointLightEntry.Constant     = PointLight->Constant;
+            PointLightEntry.Linear       = PointLight->Linear;
+            PointLightEntry.Quadratic    = PointLight->Quadratic;
             PointLightEntry.bCastsShadow = PointLight->ShadowMap != nullptr;
 
             OutWorldDescription.PointLights.push_back(PointLightEntry);
@@ -379,6 +388,12 @@ namespace lucid::scene
             IActor* Actor = ActorById.Get(InActorId);
             Actor->OnRemoveFromWorld(InbHardRemove);
             ActorById.Remove(InActorId);
+
+            if (Skybox && InActorId == Skybox->Id)
+            {
+                Skybox = nullptr;
+            }
+            
             return Actor;
         }
 
@@ -400,12 +415,6 @@ namespace lucid::scene
         SpotLights.FreeAll();
         PointLights.FreeAll();
         AllLights.FreeAll();
-
-        if (Skybox)
-        {
-            Skybox->OnRemoveFromWorld(true);
-            delete Skybox;
-        }
     }
 
 } // namespace lucid::scene

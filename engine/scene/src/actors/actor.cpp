@@ -21,11 +21,14 @@ namespace lucid::scene
 #if DEVELOPMENT
     void IActor::UIDrawActorDetails()
     {
-        if (ImGui::Button("Save"))
+        if (!BaseActorAsset)
         {
-            SaveToResourceFile();
+            if (ImGui::Button("Save"))
+            {
+                SaveToResourceFile();
+            }
         }
-
+        
         // Common actor options
         if (ImGui::CollapsingHeader("Actor"))
         {
@@ -58,14 +61,14 @@ namespace lucid::scene
             // Don't allow do modify translation and similar things on actor assets
             if (ResourceId == sole::INVALID_UUID)
             {
-                PrevBaseActorAsset = nullptr;
+                PrevBaseActorAsset   = nullptr;
                 IActor* OldBaseActor = BaseActorAsset;
 
                 if (BaseActorAsset)
                 {
                     // Base asset panel
                     ImGui::Text("Base actor asset:");
-                    ImGuiActorAssetPicker("Base actor asset", &BaseActorAsset);
+                    ImGuiActorAssetPicker("Base actor asset", &BaseActorAsset, GetActorType());
 
                     if (BaseActorAsset && BaseActorAsset != OldBaseActor && BaseActorAsset->GetActorType() == OldBaseActor->GetActorType())
                     {
@@ -75,14 +78,13 @@ namespace lucid::scene
                             BaseActorAsset->LoadAsset();
                             BaseActorAsset->bAssetLoaded = true;
                         }
-                        
+
                         BaseActorAsset->ChildReferences.Add(this);
                         PrevBaseActorAsset->ChildReferences.Remove(this);
                         if (PrevBaseActorAsset->ChildReferences.IsEmpty())
                         {
                             PrevBaseActorAsset->UnloadAsset();
                         }
-                            
                     }
                     else
                     {
@@ -92,88 +94,94 @@ namespace lucid::scene
                     ImGui::Spacing();
 
                     // Parent panel
-                    static bool bChangingParent = false;
-                    ImGui::Text("Parent: %s", Parent ? *Parent->Name : "None");
-                    ImGui::SameLine();
-                    if (bChangingParent)
+                    if (bParentable)
                     {
-                        if (ImGui::Button("Submit"))
+                        static bool bChangingParent = false;
+                        ImGui::Text("Parent: %s", Parent ? *Parent->Name : "None");
+                        ImGui::SameLine();
+                        if (bChangingParent)
                         {
-                            bChangingParent = false;
-                        }
-                    }
-                    else
-                    {
-                        if (ImGui::Button("Change parent"))
-                        {
-                            bChangingParent = true;
-                        }
-                    }
-
-                    if (bChangingParent)
-                    {
-                        if (ImGui::BeginListBox("### possible parrents"))
-                        {
-                            if (ImGui::Selectable("None", Parent == nullptr))
+                            if (ImGui::Button("Submit"))
                             {
-                                if (Parent)
-                                {
-                                    Parent->RemoveChild(this);
-                                }
-                                Parent = nullptr;
+                                bChangingParent = false;
                             }
-
-                            for (u32 i = 0; i < World->GetActorsMap().GetLength(); ++i)
+                        }
+                        else
+                        {
+                            if (ImGui::Button("Change parent"))
                             {
-                                auto* Actor = World->GetActorsMap().GetByIndex(i);
-                                if (Actor == this)
-                                {
-                                    continue;
-                                }
-                                ImGui::PushID((void*)(intptr_t)Actor->Id);
-                                if (ImGui::Selectable("##actor", Parent == Actor, ImGuiSelectableFlags_AllowItemOverlap | ImGuiSelectableFlags_SpanAllColumns))
+                                bChangingParent = true;
+                            }
+                        }
+
+                        if (bChangingParent)
+                        {
+                            if (ImGui::BeginListBox("### possible parrents"))
+                            {
+                                if (ImGui::Selectable("None", Parent == nullptr))
                                 {
                                     if (Parent)
                                     {
                                         Parent->RemoveChild(this);
                                     }
-                                    Parent = Actor;
-                                    Parent->AddChild(this);
+                                    Parent = nullptr;
                                 }
-                                ImGui::PopID();
-                                ImGui::SameLine();
-                                ImGui::Text(*Actor->Name);
-                                if (Parent == Actor)
+
+                                for (u32 i = 0; i < World->GetActorsMap().GetLength(); ++i)
                                 {
-                                    ImGui::SetItemDefaultFocus();
+                                    auto* Actor = World->GetActorsMap().GetByIndex(i);
+                                    if (Actor == this)
+                                    {
+                                        continue;
+                                    }
+                                    ImGui::PushID((void*)(intptr_t)Actor->Id);
+                                    if (ImGui::Selectable(
+                                          "##actor", Parent == Actor, ImGuiSelectableFlags_AllowItemOverlap | ImGuiSelectableFlags_SpanAllColumns))
+                                    {
+                                        if (Parent)
+                                        {
+                                            Parent->RemoveChild(this);
+                                        }
+                                        Parent = Actor;
+                                        Parent->AddChild(this);
+                                    }
+                                    ImGui::PopID();
+                                    ImGui::SameLine();
+                                    ImGui::Text(*Actor->Name);
+                                    if (Parent == Actor)
+                                    {
+                                        ImGui::SetItemDefaultFocus();
+                                    }
                                 }
+                                ImGui::EndListBox();
                             }
-                            ImGui::EndListBox();
                         }
                     }
                 }
 
-                ImGui::Spacing();
-
                 // Transforms panel
-                glm::vec3 EulerRotation{ glm::degrees(eulerAngles(Transform.Rotation).x),
-                                         glm::degrees(eulerAngles(Transform.Rotation).y),
-                                         glm::degrees(eulerAngles(Transform.Rotation).z) };
+                if (bMovable)
+                {
+                    ImGui::Spacing();
+                    glm::vec3 EulerRotation{ glm::degrees(eulerAngles(Transform.Rotation).x),
+                                             glm::degrees(eulerAngles(Transform.Rotation).y),
+                                             glm::degrees(eulerAngles(Transform.Rotation).z) };
 
-                ImGui::DragFloat3("Translation (x, y, z)", &Transform.Translation.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
-                ImGui::DragFloat3("Scale (x, y, z)", &Transform.Scale.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
-                ImGui::DragFloat3("Rotation", &EulerRotation.x, 0.1f, -360, 360);
-                ImGui::Checkbox("Visible", &bVisible);
-                ImGui::Spacing();
+                    ImGui::DragFloat3("Translation (x, y, z)", &Transform.Translation.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
+                    ImGui::DragFloat3("Scale (x, y, z)", &Transform.Scale.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
+                    ImGui::DragFloat3("Rotation", &EulerRotation.x, 0.1f, -360, 360);
+                    ImGui::Checkbox("Visible", &bVisible);
+                    ImGui::Spacing();
 
-                Transform.Rotation = glm::quat({ glm::radians(EulerRotation.x), glm::radians(EulerRotation.y), glm::radians(EulerRotation.z) });
+                    Transform.Rotation = glm::quat({ glm::radians(EulerRotation.x), glm::radians(EulerRotation.y), glm::radians(EulerRotation.z) });
+                }
             }
         }
     }
 
     IActor* IActor::UIDrawHierarchy()
     {
-        // Draw a tree when actor has children        
+        // Draw a tree when actor has children
         if (Children.Head.Element)
         {
             IActor* ClickedActor = nullptr;
@@ -210,8 +218,12 @@ namespace lucid::scene
 
     void IActor::DrawGizmos(CCamera const* InCamera)
     {
+        if (!bMovable)
+        {
+            return;
+        }
         static ImGuizmo::OPERATION CurrentGizmoOperation(ImGuizmo::ROTATE);
-        static ImGuizmo::MODE CurrentGizmoMode(ImGuizmo::WORLD);
+        static ImGuizmo::MODE      CurrentGizmoMode(ImGuizmo::WORLD);
 
         if (IsKeyPressed(SDLK_t))
             CurrentGizmoOperation = ImGuizmo::TRANSLATE;
@@ -250,9 +262,9 @@ namespace lucid::scene
         //     break;
         // }
 
-        glm::mat4 ViewMatrix = InCamera->GetViewMatrix();
+        glm::mat4 ViewMatrix       = InCamera->GetViewMatrix();
         glm::mat4 ProjectionMatrix = InCamera->GetProjectionMatrix();
-        glm::mat4 ModelMatrix = CalculateModelMatrix();
+        glm::mat4 ModelMatrix      = CalculateModelMatrix();
 
         if (ImGuizmo::Manipulate(&ViewMatrix[0][0], &ProjectionMatrix[0][0], CurrentGizmoOperation, CurrentGizmoMode, &ModelMatrix[0][0], NULL, NULL))
         {
@@ -284,12 +296,12 @@ namespace lucid::scene
     {
         if (BaseActorAsset)
         {
-            auto* NewActorAsset = CreateActorAsset(Name.GetCopy());
-            NewActorAsset->ResourceId = sole::uuid4();
+            auto* NewActorAsset         = CreateActorAsset(Name.GetCopy());
+            NewActorAsset->ResourceId   = sole::uuid4();
             NewActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *Name);
 
             FActorDatabaseEntry NewEntry;
-            NewEntry.ActorId = NewActorAsset->ResourceId;
+            NewEntry.ActorId   = NewActorAsset->ResourceId;
             NewEntry.ActorPath = NewActorAsset->ResourcePath;
 
             GEngine.AddActorAsset(NewActorAsset);
@@ -315,7 +327,7 @@ namespace lucid::scene
         World = InWorld;
         if (BaseActorAsset)
         {
-            BaseActorAsset->AddChildReference(this);            
+            BaseActorAsset->AddChildReference(this);
         }
     }
 
@@ -328,7 +340,7 @@ namespace lucid::scene
             if (InbHardRemove)
             {
                 delete ChildNode->Element;
-            }            
+            }
             ChildNode = ChildNode->Next;
         }
         if (InbHardRemove)

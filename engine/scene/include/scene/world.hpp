@@ -28,6 +28,7 @@ namespace lucid::scene
 
       public:
         void Init();
+
         void AddStaticMesh(CStaticMesh* InStaticMesh);
         void RemoveStaticMesh(const u32& InId);
 
@@ -40,7 +41,8 @@ namespace lucid::scene
         void AddPointLight(CPointLight* InLight);
         void RemovePointLight(const u32& InId);
 
-        void SetSkybox(CSkybox* InSkybox);
+        void            SetSkybox(CSkybox* InSkybox);
+        inline CSkybox* GetSkybox() const { return Skybox; }
 
         IActor* RemoveActorById(const u32& InActorId, const bool& InbHardRemove);
 
@@ -55,7 +57,6 @@ namespace lucid::scene
         void Unload();
 
       private:
-
         void CreateWorldDescription(FWorldDescription& OutWorldDescription) const;
         u32  AddActor(IActor* InActor);
 

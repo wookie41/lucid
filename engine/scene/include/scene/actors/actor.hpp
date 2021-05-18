@@ -135,6 +135,10 @@ namespace lucid::scene
         IActor* BaseActorAsset     = nullptr;
         IActor* PrevBaseActorAsset = nullptr;
 
+      protected:
+        bool bMovable    = true;
+        bool bParentable = true;
+
 #if DEVELOPMENT
         bool bRenaming = false;
 #endif

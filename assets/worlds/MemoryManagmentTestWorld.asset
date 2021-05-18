@@ -17,6 +17,11 @@
             ]
         }
     ],
+    "Skybox": {
+        "Id": 3,
+        "Name": "TestSkybox",
+        "BaseActorResourceId": "2802c388-b5a0-4c84-aa87-2eb3545ed03f"
+    },
     "PointLights": [
         {
             "Id": 1,

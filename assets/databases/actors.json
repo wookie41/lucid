@@ -29,6 +29,11 @@
             "ActorId": "f1d722a9-af8e-4f7a-9e7f-3b271dc6ce9b",
             "ActorPath": "assets/actors/Sponza.asset",
             "ActorType": 1
+        },
+        {
+            "ActorId": "2802c388-b5a0-4c84-aa87-2eb3545ed03f",
+            "ActorPath": "assets/actors/TestSkybox.asset",
+            "ActorType": 2
         }
     ]
 }

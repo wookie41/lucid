@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "common/types.hpp"
+
 namespace lucid::scene
 {
     enum class EStaticMeshType : u8

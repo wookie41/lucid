@@ -41,18 +41,18 @@ namespace lucid::scene
         virtual EActorType      GetActorType() const override { return EActorType::STATIC_MESH; }
         virtual IActor*         CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
         virtual IActor*         CreateCopy() override;
-
+        
         static  CStaticMesh*    CreateActor(CStaticMesh* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
 
-        /** Creates an empty actor asset that lazily loads it's resources when referenced for the first time */
-        static  CStaticMesh*    CreateEmptyActorAsset(const FDString& InName);
-
+        static  CStaticMesh*    LoadActorAsset(const FStaticMeshDescription& InStaticMeshDescription);
         virtual IActor*         CreateActorAsset(const FDString& InName) const override;
+        
         virtual void            LoadAsset() override;
         virtual void            UnloadAsset() override;
 
         virtual void            OnAddToWorld(CWorld* InWorld) override;
         virtual void            OnRemoveFromWorld(const bool& InbHardRemove) override;
+        virtual void            CleanupAfterRemove() override;
         
 #if DEVELOPMENT
         /** Editor stuff */

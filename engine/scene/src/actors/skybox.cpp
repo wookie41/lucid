@@ -1,30 +1,26 @@
 ﻿#include "scene/actors/skybox.hpp"
-
-#include <devices/gpu/texture_enums.hpp>
-
-#include "engine/engine.hpp"
-#include "devices/gpu/cubemap.hpp"
-#include "resources/texture_resource.hpp"
-#include "schemas/json.hpp"
 #include "scene/world.hpp"
+
+#include "devices/gpu/texture_enums.hpp"
+#include "devices/gpu/cubemap.hpp"
+
+#include "resources/texture_resource.hpp"
+#include "engine/engine.hpp"
+#include "schemas/json.hpp"
+
+#include "imgui_lucid.h"
 
 namespace lucid::scene
 {
     CSkybox*
     CreateSkybox(resources::CTextureResource* InFaceTextures[6], CWorld* InWorld, const u32& InWidth, const u32& InHeight, const FString& InName)
     {
-        const void* FacesData[6];
-        for (u8 i = 0; i < 6; ++i)
-        {
-            FacesData[i] = InFaceTextures[i]->TextureData;
-        }
-
         gpu::CCubemap* SkyboxCubemap = gpu::CreateCubemap(InWidth,
                                                           InHeight,
                                                           gpu::ETextureDataFormat::SRGB,
                                                           gpu::ETexturePixelFormat::RGB,
                                                           gpu::ETextureDataType::UNSIGNED_BYTE,
-                                                          FacesData,
+                                                          InFaceTextures,
                                                           InName,
                                                           gpu::EMinTextureFilter::NEAREST,
                                                           gpu::EMagTextureFilter::NEAREST,
@@ -45,6 +41,9 @@ namespace lucid::scene
                      resources::CTextureResource* InFaceTextures[6])
     : IActor(InName, InParent, InWorld), SkyboxCubemap(InSkyboxCubemap), Width(InWidth), Height(InHeight)
     {
+        bMovable    = false;
+        bParentable = false;
+
         if (InFaceTextures)
         {
             for (u8 i = 0; i < 6; ++i)
@@ -54,7 +53,71 @@ namespace lucid::scene
         }
     }
 
-    void CSkybox::UIDrawActorDetails() {}
+    void CSkybox::UIDrawActorDetails()
+    {
+        IActor::UIDrawActorDetails();
+
+        if (BaseActorAsset)
+        {
+            if (CSkybox* NewBaseSkybox = dynamic_cast<CSkybox*>(PrevBaseActorAsset))
+            {
+                BaseSkyboxResource = NewBaseSkybox;
+                for (u8 i = 0; i < 6; ++i)
+                {
+                    FaceTextures[i] = BaseSkyboxResource->FaceTextures[i];
+                }
+            }
+        }
+        else
+        {
+            resources::CTextureResource* OldTextures[6];
+            for (u8 i = 0; i < 6; ++i)
+            {
+                OldTextures[i] = FaceTextures[i];
+            }
+
+            ImGui::Text("Right");
+            ImGuiTextureResourcePicker("Right face", &FaceTextures[0]);
+
+            ImGui::Text("Left");
+            ImGuiTextureResourcePicker("Left face", &FaceTextures[1]);
+
+            ImGui::Text("Top");
+            ImGuiTextureResourcePicker("Top face", &FaceTextures[2]);
+
+            ImGui::Text("Bottom");
+            ImGuiTextureResourcePicker("Bottom face", &FaceTextures[3]);
+
+            ImGui::Text("Front");
+            ImGuiTextureResourcePicker("Front face", &FaceTextures[4]);
+
+            ImGui::Text("Back");
+            ImGuiTextureResourcePicker("Back face", &FaceTextures[5]);
+
+            auto ChildReference = &ChildReferences.Head;
+            while (ChildReference && ChildReference->Element)
+            {
+                auto* ChildStaticMeshRef = ChildReference->Element;
+                if (auto* SkyboxChildActor = dynamic_cast<CSkybox*>(ChildStaticMeshRef))
+                {
+                    for (u8 i = 0; i < 6; ++i)
+                    {
+                        if (SkyboxChildActor->FaceTextures[i] == OldTextures[i])
+                        {
+                            if (OldTextures[i])
+                            {
+                                OldTextures[i]->Release();
+                            }
+
+                            FaceTextures[i]->Acquire(false, true);
+                            SkyboxChildActor->FaceTextures[i] = FaceTextures[i];
+                        }
+                    }
+                }
+                ChildReference = ChildReference->Next;
+            }
+        }
+    }
 
     float CSkybox::GetVerticalMidPoint() const { return 0; }
 
@@ -65,6 +128,7 @@ namespace lucid::scene
         if (InSkyboxDescription.RightFaceTextureID.bChanged)
         {
             SkyboxFaces[0] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.RightFaceTextureID.Value);
+            SkyboxFaces[0]->Acquire(false, true);
         }
         else
         {
@@ -74,6 +138,7 @@ namespace lucid::scene
         if (InSkyboxDescription.LeftFaceTextureID.bChanged)
         {
             SkyboxFaces[1] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.LeftFaceTextureID.Value);
+            SkyboxFaces[1]->Acquire(false, true);
         }
         else
         {
@@ -83,6 +148,7 @@ namespace lucid::scene
         if (InSkyboxDescription.TopFaceTextureID.bChanged)
         {
             SkyboxFaces[2] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.TopFaceTextureID.Value);
+            SkyboxFaces[2]->Acquire(false, true);
         }
         else
         {
@@ -92,6 +158,7 @@ namespace lucid::scene
         if (InSkyboxDescription.BottomFaceTextureID.bChanged)
         {
             SkyboxFaces[3] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.BottomFaceTextureID.Value);
+            SkyboxFaces[3]->Acquire(false, true);
         }
         else
         {
@@ -101,6 +168,7 @@ namespace lucid::scene
         if (InSkyboxDescription.FrontFaceTextureID.bChanged)
         {
             SkyboxFaces[4] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.FrontFaceTextureID.Value);
+            SkyboxFaces[4]->Acquire(false, true);
         }
         else
         {
@@ -110,6 +178,7 @@ namespace lucid::scene
         if (InSkyboxDescription.BackFaceTextureID.bChanged)
         {
             SkyboxFaces[5] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.BackFaceTextureID.Value);
+            SkyboxFaces[5]->Acquire(false, true);
         }
         else
         {
@@ -118,7 +187,19 @@ namespace lucid::scene
 
         auto* Skybox = CreateSkybox(SkyboxFaces, InWorld, SkyboxFaces[0]->Width, SkyboxFaces[0]->Height, "Skybox");
         InWorld->SetSkybox(Skybox);
+
+        Skybox->Id     = InSkyboxDescription.Id;
+        Skybox->Width  = BaseActorResource->Width;
+        Skybox->Height = BaseActorResource->Height;
+
+        Skybox->BaseActorAsset     = BaseActorResource;
         Skybox->BaseSkyboxResource = BaseActorResource;
+
+        if (BaseActorResource)
+        {
+            BaseActorResource->ChildReferences.Add(Skybox);
+        }
+
         return Skybox;
     }
 
@@ -135,68 +216,73 @@ namespace lucid::scene
         if (BaseSkyboxResource)
         {
             OutDescription.BaseActorResourceId = BaseSkyboxResource->ResourceId;
+            OutDescription.Id = Id;
 
-            if (BaseSkyboxResource->FaceTextures[0] != FaceTextures[0])
-            {
-                OutDescription.RightFaceTextureID.bChanged = true;
-                OutDescription.RightFaceTextureID.Value    = FaceTextures[0]->GetID();
-            }
-
-            if (BaseSkyboxResource->FaceTextures[1] != FaceTextures[1])
-            {
-                OutDescription.LeftFaceTextureID.bChanged = true;
-                OutDescription.LeftFaceTextureID.Value    = FaceTextures[1]->GetID();
-            }
-
-            if (BaseSkyboxResource->FaceTextures[2] != FaceTextures[2])
-            {
-                OutDescription.TopFaceTextureID.bChanged = true;
-                OutDescription.TopFaceTextureID.Value    = FaceTextures[2]->GetID();
-            }
-
-            if (BaseSkyboxResource->FaceTextures[3] != FaceTextures[3])
-            {
-                OutDescription.BottomFaceTextureID.bChanged = true;
-                OutDescription.BottomFaceTextureID.Value    = FaceTextures[3]->GetID();
-            }
-
-            if (BaseSkyboxResource->FaceTextures[4] != FaceTextures[4])
-            {
-                OutDescription.FrontFaceTextureID.bChanged = true;
-                OutDescription.FrontFaceTextureID.Value    = FaceTextures[4]->GetID();
-            }
-
-            if (BaseSkyboxResource->FaceTextures[5] != FaceTextures[5])
-            {
-                OutDescription.BackFaceTextureID.bChanged = true;
-                OutDescription.BackFaceTextureID.Value    = FaceTextures[5]->GetID();
-            }
+            // if (BaseSkyboxResource->FaceTextures[0] != FaceTextures[0])
+            // {
+            //     OutDescription.RightFaceTextureID.bChanged = true;
+            //     OutDescription.RightFaceTextureID.Value    = FaceTextures[0]->GetID();
+            // }
+            //
+            // if (BaseSkyboxResource->FaceTextures[1] != FaceTextures[1])
+            // {
+            //     OutDescription.LeftFaceTextureID.bChanged = true;
+            //     OutDescription.LeftFaceTextureID.Value    = FaceTextures[1]->GetID();
+            // }
+            //
+            // if (BaseSkyboxResource->FaceTextures[2] != FaceTextures[2])
+            // {
+            //     OutDescription.TopFaceTextureID.bChanged = true;
+            //     OutDescription.TopFaceTextureID.Value    = FaceTextures[2]->GetID();
+            // }
+            //
+            // if (BaseSkyboxResource->FaceTextures[3] != FaceTextures[3])
+            // {
+            //     OutDescription.BottomFaceTextureID.bChanged = true;
+            //     OutDescription.BottomFaceTextureID.Value    = FaceTextures[3]->GetID();
+            // }
+            //
+            // if (BaseSkyboxResource->FaceTextures[4] != FaceTextures[4])
+            // {
+            //     OutDescription.FrontFaceTextureID.bChanged = true;
+            //     OutDescription.FrontFaceTextureID.Value    = FaceTextures[4]->GetID();
+            // }
+            //
+            // if (BaseSkyboxResource->FaceTextures[5] != FaceTextures[5])
+            // {
+            //     OutDescription.BackFaceTextureID.bChanged = true;
+            //     OutDescription.BackFaceTextureID.Value    = FaceTextures[5]->GetID();
+            // }
         }
         else
         {
-            OutDescription.RightFaceTextureID.Value    = FaceTextures[0]->GetID();
+            OutDescription.RightFaceTextureID.Value    = FaceTextures && FaceTextures[0] ? FaceTextures[0]->GetID() : sole::INVALID_UUID;
             OutDescription.RightFaceTextureID.bChanged = true;
 
-            OutDescription.LeftFaceTextureID.Value    = FaceTextures[1]->GetID();
+            OutDescription.LeftFaceTextureID.Value    = FaceTextures && FaceTextures[1] ? FaceTextures[1]->GetID() : sole::INVALID_UUID;
             OutDescription.LeftFaceTextureID.bChanged = true;
 
-            OutDescription.TopFaceTextureID.Value    = FaceTextures[2]->GetID();
+            OutDescription.TopFaceTextureID.Value    = FaceTextures && FaceTextures[2] ? FaceTextures[2]->GetID() : sole::INVALID_UUID;
             OutDescription.TopFaceTextureID.bChanged = true;
 
-            OutDescription.BottomFaceTextureID.Value    = FaceTextures[3]->GetID();
+            OutDescription.BottomFaceTextureID.Value    = FaceTextures && FaceTextures[3] ? FaceTextures[3]->GetID() : sole::INVALID_UUID;
             OutDescription.BottomFaceTextureID.bChanged = true;
 
-            OutDescription.FrontFaceTextureID.Value    = FaceTextures[4]->GetID();
+            OutDescription.FrontFaceTextureID.Value    = FaceTextures && FaceTextures[4] ? FaceTextures[4]->GetID() : sole::INVALID_UUID;
             OutDescription.FrontFaceTextureID.bChanged = true;
 
-            OutDescription.BackFaceTextureID.Value    = FaceTextures[5]->GetID();
+            OutDescription.BackFaceTextureID.Value    = FaceTextures && FaceTextures[5] ? FaceTextures[5]->GetID() : sole::INVALID_UUID;
             OutDescription.BackFaceTextureID.bChanged = true;
         }
+
+        OutDescription.Name   = Name;
+        OutDescription.Width  = Width;
+        OutDescription.Height = Height;
     }
 
     IActor* CSkybox::CreateActorAsset(const FDString& InName) const
     {
-        auto* ActorAsset = new CSkybox{ InName, nullptr, nullptr, nullptr, Width, Height, nullptr };
+        auto* ActorAsset = new CSkybox{ InName, nullptr, nullptr, nullptr, Width, Height, { nullptr } };
         for (u8 i = 0; i < 6; ++i)
         {
             ActorAsset->FaceTextures[i] = FaceTextures[i];
@@ -204,9 +290,17 @@ namespace lucid::scene
         return ActorAsset;
     }
 
-    CSkybox* CSkybox::CreateEmptyActorAsset(const FDString& InName)
+    CSkybox* CSkybox::LoadActorAsset(const FSkyboxDescription& InSkyboxDescription)
     {
-        auto* ActorAsset = new CSkybox{ InName, nullptr, nullptr, nullptr, 0, 0, nullptr };
+        auto* ActorAsset            = new CSkybox{ InSkyboxDescription.Name, nullptr, nullptr, nullptr, 0, 0, nullptr };
+        ActorAsset->FaceTextures[0] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.RightFaceTextureID.Value);
+        ActorAsset->FaceTextures[1] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.LeftFaceTextureID.Value);
+        ActorAsset->FaceTextures[2] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.TopFaceTextureID.Value);
+        ActorAsset->FaceTextures[3] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.BottomFaceTextureID.Value);
+        ActorAsset->FaceTextures[4] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.FrontFaceTextureID.Value);
+        ActorAsset->FaceTextures[5] = GEngine.GetTexturesHolder().Get(InSkyboxDescription.BackFaceTextureID.Value);
+        ActorAsset->Width           = InSkyboxDescription.Width;
+        ActorAsset->Width           = InSkyboxDescription.Height;
         return ActorAsset;
     }
 
@@ -215,27 +309,15 @@ namespace lucid::scene
         assert(ResourcePath.GetLength());
 
         FSkyboxDescription SkyboxDescription;
-        if (ReadFromJSONFile(SkyboxDescription, *ResourcePath)) // @TODO strings from here don't get freed
+        for (u8 i = 0; i < 6; ++i)
         {
-            FaceTextures[0] = GEngine.GetTexturesHolder().Get(SkyboxDescription.RightFaceTextureID.Value);
-            FaceTextures[1] = GEngine.GetTexturesHolder().Get(SkyboxDescription.LeftFaceTextureID.Value);
-            FaceTextures[2] = GEngine.GetTexturesHolder().Get(SkyboxDescription.TopFaceTextureID.Value);
-            FaceTextures[3] = GEngine.GetTexturesHolder().Get(SkyboxDescription.BottomFaceTextureID.Value);
-            FaceTextures[4] = GEngine.GetTexturesHolder().Get(SkyboxDescription.FrontFaceTextureID.Value);
-            FaceTextures[5] = GEngine.GetTexturesHolder().Get(SkyboxDescription.BackFaceTextureID.Value);
-
-            for (u8 i = 0; i < 6; ++i)
+            if (FaceTextures[i])
             {
-                if (FaceTextures[i])
-                {
-                    FaceTextures[i]->Acquire(false, true);
-                }
+                FaceTextures[i]->Acquire(false, true);
             }
         }
-        else
-        {
-            LUCID_LOG(ELogLevel::WARN, "Failed to load asset %s - couldn't read file %s", *Name, *ResourcePath)
-        }
+
+        bAssetLoaded = true;
     }
 
     void CSkybox::UnloadAsset()
@@ -247,33 +329,53 @@ namespace lucid::scene
                 FaceTextures[i]->Release();
             }
         }
+
+        bAssetLoaded = false;
     }
 
     IActor* CSkybox::CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition)
     {
-        auto* SpawnedSkybox = new CSkybox{ Name.GetCopy(), nullptr, InWorld, SkyboxCubemap, Width, Height, FaceTextures };
-        World->SetSkybox(SpawnedSkybox);
+        if (!bAssetLoaded)
+        {
+            LoadAsset();
+        }
+
+        if (!bAssetLoaded)
+        {
+            return nullptr;
+        }
+
+        auto* SpawnedSkybox = CreateSkybox(FaceTextures, InWorld, Width, Height, Name.GetCopy());
+
+        scene::CSkybox* CurrentSkybox = InWorld->GetSkybox();
+
+        InWorld->SetSkybox(SpawnedSkybox);
         SpawnedSkybox->BaseSkyboxResource = this;
+
+        if (CurrentSkybox)
+        {
+            delete CurrentSkybox;
+        }
+
         return SpawnedSkybox;
     }
 
     void CSkybox::OnAddToWorld(CWorld* InWorld)
     {
         IActor::OnAddToWorld(InWorld);
-        LoadAsset();
         if (!SkyboxCubemap)
         {
-            const void* FacesData[6];
-            for (u8 i = 0; i < 6; ++i)
+            if (!BaseActorAsset->bAssetLoaded)
             {
-                FacesData[i] = FaceTextures[i]->TextureData;
+                BaseActorAsset->LoadAsset();
             }
+            
             SkyboxCubemap = gpu::CreateCubemap(Width,
                                                Width,
                                                gpu::ETextureDataFormat::SRGB,
                                                gpu::ETexturePixelFormat::RGB,
                                                gpu::ETextureDataType::UNSIGNED_BYTE,
-                                               FacesData,
+                                               FaceTextures,
                                                Name,
                                                gpu::EMinTextureFilter::NEAREST,
                                                gpu::EMagTextureFilter::NEAREST,
@@ -282,17 +384,23 @@ namespace lucid::scene
                                                gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
                                                { 0, 0, 0, 0 });
         }
+        InWorld->SetSkybox(this);
     }
     void CSkybox::OnRemoveFromWorld(const bool& InbHardRemove)
     {
         IActor::OnRemoveFromWorld(InbHardRemove);
-        UnloadAsset();
-
         if (InbHardRemove)
         {
-            SkyboxCubemap->Free();
-            delete SkyboxCubemap;
-            SkyboxCubemap = nullptr;
+            UnloadAsset();
+            CleanupAfterRemove();
         }
     }
+
+    void CSkybox::CleanupAfterRemove()
+    {
+        SkyboxCubemap->Free();
+        delete SkyboxCubemap;
+        SkyboxCubemap = nullptr;
+    }
+
 } // namespace lucid::scene

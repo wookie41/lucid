@@ -138,11 +138,14 @@ struct FSceneEditorState
     gpu::CShader*        PickedShader           = nullptr;
     scene::CMaterial*    EditedMaterial         = nullptr;
 
-    scene::EActorType   TypeOfActorToCreate = scene::EActorType::UNKNOWN;
-    scene::CStaticMesh* EditedStaticMesh    = nullptr;
+    scene::EActorType TypeOfActorToCreate = scene::EActorType::UNKNOWN;
+    scene::IActor*    EditedActorAsset    = nullptr;
 
     bool GenericBoolParam0 = false;
     bool GenericBoolParam1 = false;
+
+    int GenericIntParam0 = 0;
+    int GenericIntParam1 = 0;
 
     int ResourceItemsPerRow = 12;
 
@@ -213,13 +216,15 @@ int main(int argc, char** argv)
 
     while (GSceneEditorState.bIsRunning)
     {
+        GSceneEditorState.Window->Prepare();
+
         if (GSceneEditorState.PendingDeleteWorld)
         {
             GSceneEditorState.PendingDeleteWorld->Unload();
             delete GSceneEditorState.PendingDeleteWorld;
             GSceneEditorState.PendingDeleteWorld = nullptr;
         }
-        
+
         GEngine.BeginFrame();
 
         platform::Update();
@@ -237,12 +242,11 @@ int main(int argc, char** argv)
             GSceneEditorState.CurrentCamera->Update(dt);
 
             // Render the scene to off-screen framebuffer
-            GSceneEditorState.Window->Prepare();
             if (GSceneEditorState.World)
             {
                 GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
             }
-            
+
             GSceneEditorState.Window->ImgUiStartNewFrame();
             {
                 UISetupDockspace();
@@ -444,10 +448,7 @@ void DoActorPicking()
 
         const glm::vec2 AdjustedMousePos = { ((float)CachedHitMap.Width) * RatioX, ((float)CachedHitMap.Height) * RatioY };
 
-        scene::IActor* ClickedActor = GSceneEditorState.World->GetActorById(CachedHitMap.GetIdAtMousePositon(AdjustedMousePos));
-
-        // Ignore skyboxes
-        if (ClickedActor != nullptr && ClickedActor->GetActorType() != scene::EActorType::SKYBOX)
+        if (scene::IActor* ClickedActor = GSceneEditorState.World->GetActorById(CachedHitMap.GetIdAtMousePositon(AdjustedMousePos)))
         {
             if (GSceneEditorState.CurrentlySelectedActor == nullptr)
             {
@@ -555,15 +556,19 @@ void UISetupDockspace()
     {
         if (ImGui::BeginMenu("File"))
         {
+            // World operations
             if (ImGui::MenuItem("Load world"))
             {
                 if (GSceneEditorState.World)
                 {
                     if (GSceneEditorState.WorldFilePath.GetLength())
                     {
+                        GSceneEditorState.ClipboardActor         = nullptr;
+                        GSceneEditorState.CurrentlySelectedActor = nullptr;
+                        GSceneEditorState.LastDeletedActor       = nullptr;
                         GSceneEditorState.World->SaveToJSONFile(GSceneEditorState.WorldFilePath);
                         GSceneEditorState.PendingDeleteWorld = GSceneEditorState.World;
-                        GSceneEditorState.World = nullptr;
+                        GSceneEditorState.World              = nullptr;
                     }
                 }
                 GSceneEditorState.FileDialog.SetTitle("Select a world file");
@@ -625,6 +630,28 @@ void UISetupDockspace()
                     GSceneEditorState.CurrentlySelectedActor = nullptr;
                     GSceneEditorState.LastDeletedActor       = nullptr;
                 }
+            }
+
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help"))
+        {
+            static bool bShowingControlsWindow = false;
+            if (ImGui::MenuItem("Controls") && !bShowingControlsWindow)
+            {
+                bShowingControlsWindow = true;
+            }
+
+            static bool bShowingStatsWindow = false;
+            if (ImGui::MenuItem("Stats") && !bShowingStatsWindow)
+            {
+                bShowingStatsWindow = true;
+            }
+
+            if (bShowingStatsWindow)
+            {
+                ImGui::Begin("Statistics", &bShowingStatsWindow);
+                ImGui::End();
             }
 
             ImGui::EndMenu();
@@ -710,12 +737,11 @@ void UIDrawSceneWindow()
                 {
                     IM_ASSERT(Payload->DataSize == sizeof(sole::uuid));
                     const sole::uuid ActorAssetId = *(sole::uuid*)Payload->Data;
-                    if (GEngine.GetActorsResources().Contains(ActorAssetId))
+                    if (scene::IActor* ActorAsset = GEngine.GetActorsResources().Get(ActorAssetId))
                     {
-                        const glm::vec2 MouseNDCPos     = GetMouseNDCPos();
-                        const glm::vec3 SpawnedActorPos = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(MouseNDCPos, 5);
-                        auto*           SpawnedActor =
-                          GEngine.GetActorsResources().Get(ActorAssetId)->CreateActorInstance(GSceneEditorState.World, SpawnedActorPos);
+                        const glm::vec2 MouseNDCPos              = GetMouseNDCPos();
+                        const glm::vec3 SpawnedActorPos          = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(MouseNDCPos, 5);
+                        auto*           SpawnedActor             = ActorAsset->CreateActorInstance(GSceneEditorState.World, SpawnedActorPos);
                         GSceneEditorState.CurrentlySelectedActor = SpawnedActor;
                     }
                 }
@@ -835,12 +861,13 @@ void UIDrawResourceBrowserWindow()
                 // Draw texture thumb and it's name
                 if (TextureResource)
                 {
-                    ImGui:ImGui::SetNextItemWidth(ResourceItemWidth);
+                ImGui:
+                    ImGui::SetNextItemWidth(ResourceItemWidth);
                     ImGui::BeginGroup();
                     if (TextureResource->GetThumbnail())
                     {
                         TextureResource->GetThumbnail()->ImGuiImageButton(ResourceItemSize);
-                    }                    
+                    }
                     ImGui::Button(*TextureResource->GetName(), { ResourceItemWidth, 0 });
                     ImGui::EndGroup();
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
@@ -968,6 +995,11 @@ void UIDrawResourceBrowserWindow()
                             GSceneEditorState.TypeOfActorToCreate    = scene::EActorType::STATIC_MESH;
                             GSceneEditorState.bDisableCameraMovement = true;
                         }
+                        if (ImGui::MenuItem("Skybox"))
+                        {
+                            GSceneEditorState.TypeOfActorToCreate    = scene::EActorType::SKYBOX;
+                            GSceneEditorState.bDisableCameraMovement = true;
+                        }
                         ImGui::EndMenu();
                     }
 
@@ -1029,17 +1061,17 @@ void UIDrawResourceBrowserWindow()
             if (GSceneEditorState.bShowActorAssets)
             {
                 static bool bActorEditorOpen = true;
-                if (GSceneEditorState.EditedStaticMesh)
+                if (GSceneEditorState.EditedActorAsset)
                 {
                     ImGui::Begin("Actor resource details", &bActorEditorOpen);
                     if (!bActorEditorOpen)
                     {
-                        GSceneEditorState.EditedStaticMesh = nullptr;
+                        GSceneEditorState.EditedActorAsset = nullptr;
                         bActorEditorOpen                   = true;
                     }
                     else
                     {
-                        GSceneEditorState.EditedStaticMesh->UIDrawActorDetails();
+                        GSceneEditorState.EditedActorAsset->UIDrawActorDetails();
                     }
 
                     ImGui::End();
@@ -1059,11 +1091,11 @@ void UIDrawResourceBrowserWindow()
                     }
 
                     scene::IActor* ActorAsset = GEngine.GetActorsResources().GetByIndex(i);
-                    if (ImGui::Button(*ActorAsset->Name, ResourceItemSize) && !GSceneEditorState.EditedStaticMesh)
+                    if (ImGui::Button(*ActorAsset->Name, ResourceItemSize) && !GSceneEditorState.ClickedActorAsset)
                     {
-                        if (auto* StaticMeshActor = dynamic_cast<scene::CStaticMesh*>(GEngine.GetActorsResources().GetByIndex(i)))
+                        if (scene::IActor* ClickedActorAsset = GEngine.GetActorsResources().GetByIndex(i))
                         {
-                            GSceneEditorState.EditedStaticMesh = StaticMeshActor;
+                            GSceneEditorState.EditedActorAsset = ClickedActorAsset;
                         }
                     }
 
@@ -1142,7 +1174,8 @@ void UIDrawMeshImporter()
             {
                 // Everything is ok, import the mesh and save it
                 FDString                          MeshName = CopyToString(GSceneEditorState.AssetNameBuffer);
-                FArray<resources::CMeshResource*> ImportedMeshes = resources::ImportMesh(GSceneEditorState.PathToSelectedFile, MeshName, GSceneEditorState.GenericBoolParam0, MeshImportStrategy);
+                FArray<resources::CMeshResource*> ImportedMeshes =
+                  resources::ImportMesh(GSceneEditorState.PathToSelectedFile, MeshName, GSceneEditorState.GenericBoolParam0, MeshImportStrategy);
 
                 ImportedMeshes.Free();
 
@@ -1512,6 +1545,12 @@ void UIDrawActorResourceCreationMenu()
     ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
     {
         ImGui::InputText("Actor resource name name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
+        if (GSceneEditorState.TypeOfActorToCreate == scene::EActorType::SKYBOX)
+        {
+            ImGui::InputInt("Width", &GSceneEditorState.GenericIntParam0);
+            ImGui::InputInt("Height", &GSceneEditorState.GenericIntParam1);
+        }
+
         if (ImGui::Button("Create"))
         {
             if (strnlen_s(GSceneEditorState.AssetNameBuffer, 256) == 0)
@@ -1533,6 +1572,22 @@ void UIDrawActorResourceCreationMenu()
                     };
                     break;
                 }
+                case scene::EActorType::SKYBOX:
+                {
+                    if (GSceneEditorState.GenericIntParam0 > 0 || GSceneEditorState.GenericIntParam1 > 0)
+                    {
+                        GSceneEditorState.bDisableCameraMovement = true;
+                        CreatedActor                             = new scene::CSkybox{ CopyToString(GSceneEditorState.AssetNameBuffer),
+                                                           nullptr,
+                                                           nullptr,
+                                                           nullptr,
+                                                           (u32)GSceneEditorState.GenericIntParam0,
+                                                           (u32)GSceneEditorState.GenericIntParam1,
+                                                           { nullptr } };
+                    }
+                    break;
+                }
+
                 default:
                     assert(0);
                 }

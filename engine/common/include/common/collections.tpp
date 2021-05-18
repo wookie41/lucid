@@ -111,24 +111,36 @@ namespace lucid
         {
             if (current->Element == Element)
             {
-                if (current->Prev)
-                {
-                    current->Prev->Next = current->Next;
-                }
-                if (current->Next)
-                {
-                    current->Next->Prev = current->Prev;                    
-                }
                 if (current == &Head)
                 {
-                    current->Element = nullptr;
-                    current->Next = nullptr;
-                    Tail = &Head;
+                    if (current->Next)
+                    {
+                        current->Element = current->Next->Element;
+                        current->Next = current->Next->Next;
+                        if (current->Next)
+                        {
+                            delete current->Next->Prev;
+                            current->Next->Prev = current;
+                            Tail = &Head;
+                        }
+                    }
+                    else
+                    {
+                        current->Element = nullptr;
+                        Tail = &Head;
+                    }
+
+                    return;
                 }
-                else
+
+                if (Tail == current)
                 {
-                    delete current;
+                    Tail = current->Next;
                 }
+                
+                current->Prev->Next = current->Next;
+                current->Next->Prev = current->Prev;                    
+                delete current;
                 return;
             }
             current = current->Next;

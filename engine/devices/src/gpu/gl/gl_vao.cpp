@@ -70,7 +70,6 @@ namespace lucid::gpu
         }
 
         vertexArray->Unbind();
-        glBindVertexArray(0);
 
         vertexArray->SetObjectName();
         return vertexArray;

@@ -74,6 +74,7 @@ namespace lucid::resources
 
     void CResource::Release()
     {
+        assert(RefCount);
         --RefCount;
     }
 } // namespace lucid::resources

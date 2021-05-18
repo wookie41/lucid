@@ -15,53 +15,51 @@ namespace lucid::scene
     class CSkybox : public IActor
     {
       public:
-        CSkybox(const FDString& InName,
-                IActor* InParent,
-                CWorld* InWorld,
-                gpu::CCubemap* InSkyboxCubemap,
-                const u32& InWidth,
-                const u32& InHeight,
+        CSkybox(const FDString&              InName,
+                IActor*                      InParent,
+                CWorld*                      InWorld,
+                gpu::CCubemap*               InSkyboxCubemap,
+                const u32&                   InWidth,
+                const u32&                   InHeight,
                 resources::CTextureResource* InFaceTextures[6]);
 
         virtual float GetVerticalMidPoint() const override;
 
-        static  EActorType      GetActorTypeStatic() { return EActorType::SKYBOX; }
-        virtual EActorType      GetActorType() const override  { return EActorType::SKYBOX; }
-        
-        virtual IActor*         CreateActorAsset(const FDString& InName) const override;
-        virtual void            LoadAsset() override;
-        virtual void            UnloadAsset() override;
+        static EActorType  GetActorTypeStatic() { return EActorType::SKYBOX; }
+        virtual EActorType GetActorType() const override { return EActorType::SKYBOX; }
 
-        virtual IActor*         CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
-        virtual IActor*         CreateCopy() override { return nullptr;}
+        virtual void LoadAsset() override;
+        virtual void UnloadAsset() override;
 
-        static  CSkybox*        CreateActor(CSkybox* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
+        virtual IActor* CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
+        virtual IActor* CreateCopy() override { return nullptr; }
 
-        /** Creates an empty actor asset that lazily loads it's resources when referenced for the first time */
-        static  CSkybox*        CreateEmptyActorAsset(const FDString& InName);
+        static CSkybox* CreateActor(CSkybox* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
 
-        virtual void                    OnAddToWorld(CWorld* InWorld) override;
-        virtual void                    OnRemoveFromWorld(const bool& InbHardRemove) override;
+        virtual IActor* CreateActorAsset(const FDString& InName) const override;
+        static CSkybox* LoadActorAsset(const FSkyboxDescription& InSkyboxDescription);
+
+        virtual void OnAddToWorld(CWorld* InWorld) override;
+        virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
+        virtual void CleanupAfterRemove() override;
 
 #if DEVELOPMENT
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
 
-    protected:
+      protected:
         virtual void InternalSaveToResourceFile(const FString& InFilePath) override;
-    public:
+
+      public:
 #endif
         void FillDescription(FSkyboxDescription& OutDescription) const;
-        
-        u32                                     Width, Height;
-        gpu::CCubemap*                          SkyboxCubemap = nullptr;
-        resources::CTextureResource*            FaceTextures[6];
-        CSkybox const*                          BaseSkyboxResource;
+
+        u32                          Width, Height;
+        gpu::CCubemap*               SkyboxCubemap = nullptr;
+        resources::CTextureResource* FaceTextures[6]{ nullptr };
+        CSkybox const*               BaseSkyboxResource = nullptr;
     };
 
-    CSkybox* CreateSkybox(resources::CTextureResource* FaceTextures[6],
-                          CWorld* InWorld,
-                          const u32& InWidth,
-                          const u32& InHeight,
-                          const FString& InName);
+    CSkybox*
+    CreateSkybox(resources::CTextureResource* FaceTextures[6], CWorld* InWorld, const u32& InWidth, const u32& InHeight, const FString& InName);
 } // namespace lucid::scene

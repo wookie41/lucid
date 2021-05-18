@@ -50,6 +50,8 @@ namespace lucid::scene
         virtual IActor*     CreateActorAsset(const FDString& InName) const override { assert(0); return nullptr; }
         virtual IActor*     CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override { assert(0); return nullptr; };
 
+        void CleanupAfterRemove() override;
+
         glm::vec3       Color           { 1, 1, 1 };
         u8              Quality         = 1;
 

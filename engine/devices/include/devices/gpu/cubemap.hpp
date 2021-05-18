@@ -43,7 +43,7 @@ namespace lucid::gpu
                             const ETextureDataFormat& InDataFormat,
                             const ETexturePixelFormat& InPixelFormat,
                             const ETextureDataType& DataType,
-                            const void* FaceTexturesData[6],
+                            resources::CTextureResource* FaceTexture[6],
                             const FString& InName,
                             const EMinTextureFilter& InMinFilter,
                             const EMagTextureFilter& InMagFilter,
