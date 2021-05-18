@@ -1,5 +1,8 @@
 #include "devices/gpu/gl/gl_vao.hpp"
 
+#include <scene/renderer.hpp>
+
+
 #include "devices/gpu/shader.hpp"
 #include "devices/gpu/buffer.hpp"
 #include "devices/gpu/gl/gl_common.hpp"
@@ -168,6 +171,10 @@ namespace lucid::gpu
     {
         u32 count = Count == 0 ? (ElementBuffer == nullptr ? VertexCount : ElementCount) : Count;
 
+#if DEVELOPMENT
+        ++scene::GRenderStats.NumDrawCalls;
+#endif
+        
         if (ElementBuffer)
         {
             glDrawElements(GL_DRAW_MODES[DrawMode], count, GL_UNSIGNED_INT, 0);

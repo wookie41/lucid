@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <scene/renderer.hpp>
 #include <scene/actors/actor.hpp>
 #include <scene/actors/lights.hpp>
 
@@ -158,6 +159,21 @@ struct FSceneEditorState
     bool bSavingWorldToFile = false;
     bool bCreatingNewWorld  = false;
 
+    static constexpr int NumVideoMemoryUsageSamples            = 60 * 5;
+    float                VideoMemoryUsage[NumVideoMemoryUsageSamples] = { 0 };
+    int                  VideoMemoryUsageIndex                 = 0;
+    float                SecondsSinceLastVideoMemorySnapshot   = 0;
+
+    static constexpr int NumDrawCallSamples               = 60 * 5;
+    float                NumDrawCalls[NumDrawCallSamples] = { 0 };
+    int                  NumDrawCallsIndex                = 0;
+
+    static constexpr int NumFrameTimesSamples             = 60 * 5;
+    float                FrameTimes[NumFrameTimesSamples] = { 0 };
+    int                  FrameTimesIndex                  = 0;
+
+    bool bShowingControlsWindow = false;
+    bool bShowingStatsWindow    = false;
 } GSceneEditorState;
 
 void InitializeSceneEditor();
@@ -183,6 +199,8 @@ void UIDrawMaterialCreationMenu();
 void UIDrawActorAssetContextMenu();
 void UIDrawActorResourceCreationMenu();
 void UIDrawCommonActorsWindow();
+void UIDrawHelpWindow();
+void UIDrawStatsWindow();
 
 void UIDrawDraggableImage(const char*    InDragDropId,
                           gpu::CTexture* InTexture,
@@ -238,14 +256,30 @@ int main(int argc, char** argv)
         if (dt > platform::SimulationStep)
         {
             dt -= platform::SimulationStep;
+
             HandleCameraMovement(dt);
+
             GSceneEditorState.CurrentCamera->Update(dt);
+            GSceneEditorState.SecondsSinceLastVideoMemorySnapshot += dt;
+
+            if (GSceneEditorState.SecondsSinceLastVideoMemorySnapshot > 1)
+            {
+                GSceneEditorState.VideoMemoryUsage[GSceneEditorState.VideoMemoryUsageIndex++ % GSceneEditorState.NumVideoMemoryUsageSamples] = float(
+                  gpu::GGPUStatus.TotalAvailableVideoMemoryKB - gpu::GGPUStatus.CurrentAvailableVideoMemoryKB) /
+                  1024.f;
+                GSceneEditorState.SecondsSinceLastVideoMemorySnapshot = 0;
+            }
 
             // Render the scene to off-screen framebuffer
             if (GSceneEditorState.World)
             {
                 GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
             }
+
+            GSceneEditorState.NumDrawCalls[GSceneEditorState.NumDrawCallsIndex++ % GSceneEditorState.NumDrawCallSamples] =
+              scene::GRenderStats.NumDrawCalls;
+            GSceneEditorState.FrameTimes[GSceneEditorState.FrameTimesIndex++ % (GSceneEditorState.NumFrameTimesSamples)] =
+              scene::GRenderStats.FrameTimeMiliseconds;
 
             GSceneEditorState.Window->ImgUiStartNewFrame();
             {
@@ -256,6 +290,7 @@ int main(int argc, char** argv)
                 UIDrawActorDetailsWindow();
                 UIDrawCommonActorsWindow();
                 UIDrawFileDialog();
+                UIDrawStatsWindow();
                 ImGui::ShowDemoWindow();
             }
 
@@ -636,22 +671,14 @@ void UISetupDockspace()
         }
         if (ImGui::BeginMenu("Help"))
         {
-            static bool bShowingControlsWindow = false;
-            if (ImGui::MenuItem("Controls") && !bShowingControlsWindow)
+            if (ImGui::MenuItem("Controls") && !GSceneEditorState.bShowingControlsWindow)
             {
-                bShowingControlsWindow = true;
+                GSceneEditorState.bShowingControlsWindow = true;
             }
 
-            static bool bShowingStatsWindow = false;
-            if (ImGui::MenuItem("Stats") && !bShowingStatsWindow)
+            if (ImGui::MenuItem("Stats") && !GSceneEditorState.bShowingStatsWindow)
             {
-                bShowingStatsWindow = true;
-            }
-
-            if (bShowingStatsWindow)
-            {
-                ImGui::Begin("Statistics", &bShowingStatsWindow);
-                ImGui::End();
+                GSceneEditorState.bShowingStatsWindow = true;
             }
 
             ImGui::EndMenu();
@@ -1577,13 +1604,10 @@ void UIDrawActorResourceCreationMenu()
                     if (GSceneEditorState.GenericIntParam0 > 0 || GSceneEditorState.GenericIntParam1 > 0)
                     {
                         GSceneEditorState.bDisableCameraMovement = true;
-                        CreatedActor                             = new scene::CSkybox{ CopyToString(GSceneEditorState.AssetNameBuffer),
-                                                           nullptr,
-                                                           nullptr,
-                                                           nullptr,
-                                                           (u32)GSceneEditorState.GenericIntParam0,
-                                                           (u32)GSceneEditorState.GenericIntParam1,
-                                                           { nullptr } };
+                        CreatedActor                             = new scene::CSkybox{
+                            CopyToString(GSceneEditorState.AssetNameBuffer), nullptr,    nullptr, nullptr, (u32)GSceneEditorState.GenericIntParam0,
+                            (u32)GSceneEditorState.GenericIntParam1,         { nullptr }
+                        };
                     }
                     break;
                 }
@@ -1757,4 +1781,36 @@ void LoadWorld(const std::filesystem::path& SelectedFilePath)
 {
     GSceneEditorState.WorldFilePath = CopyToString(SelectedFilePath.string().c_str());
     GSceneEditorState.World         = scene::LoadWorldFromJSONFile(GSceneEditorState.WorldFilePath);
+}
+
+void UIDrawHelpWindow() {}
+
+void UIDrawStatsWindow()
+{
+    static FDString MaxVideoMemLabel = SPrintf("Available: %f MB", float(gpu::GGPUStatus.TotalAvailableVideoMemoryKB) / 1024.f);
+
+    if (GSceneEditorState.bShowingStatsWindow)
+    {
+        ImGui::SetNextWindowSize({ 0, 0 });
+        ImGui::Begin("Statistics", &GSceneEditorState.bShowingStatsWindow);
+        ImGui::PlotHistogram("Memory usage (MB) (not accurate yet)",
+                             GSceneEditorState.VideoMemoryUsage,
+                             GSceneEditorState.NumVideoMemoryUsageSamples,
+                             0,
+                             *MaxVideoMemLabel,
+                             0.0f,
+                             float(gpu::GGPUStatus.TotalAvailableVideoMemoryKB) / 1024.f,
+                             ImVec2(0, 100));
+
+        ImGui::Spacing();
+
+        ImGui::PlotHistogram(
+          "Num draw calls", GSceneEditorState.NumDrawCalls, GSceneEditorState.NumDrawCallSamples, 0, NULL, 0.0f, 2000, ImVec2(0, 100));
+
+        ImGui::Spacing();
+
+        ImGui::PlotLines("Frame time (ms)", GSceneEditorState.FrameTimes, GSceneEditorState.NumFrameTimesSamples, 0, NULL, 0.0f, 120, ImVec2(0, 100));
+
+        ImGui::End();
+    }
 }

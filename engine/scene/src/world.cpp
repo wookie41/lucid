@@ -163,7 +163,6 @@ namespace lucid::scene
             {
                 LUCID_LOG(ELogLevel::WARN, "Failed to create static mesh %s - no base asset", *StaticMeshDescription.Name);
                 continue;
-                ;
             }
 
             ActorAsset->LoadAsset();
@@ -415,6 +414,10 @@ namespace lucid::scene
         SpotLights.FreeAll();
         PointLights.FreeAll();
         AllLights.FreeAll();
+        if (Skybox)
+        {
+            Skybox = nullptr;
+        }
     }
 
 } // namespace lucid::scene

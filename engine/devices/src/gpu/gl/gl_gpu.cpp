@@ -211,7 +211,7 @@ namespace lucid::gpu
         GGPUState->PipelineState = InPipelineState;
     }
 
-#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX 0x9047
+#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX  0x9048
 #define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX 0x9049
 
     FGPUStatus GGPUStatus;
@@ -224,7 +224,7 @@ namespace lucid::gpu
         if (GL_NVX_gpu_memory_info)
         {
             GLint TotalMemKB = 0;
-            glGetIntegerv(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &TotalMemKB);
+            glGetIntegerv(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX, &TotalMemKB);
 
             GLint CurrentMemKB = 0;
             glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &CurrentMemKB);

@@ -322,6 +322,10 @@ namespace lucid::scene
 
     void CSkybox::UnloadAsset()
     {
+        if (!bAssetLoaded)
+        {
+            return;
+        }
         for (u8 i = 0; i < 6; ++i)
         {
             if (FaceTextures[i])

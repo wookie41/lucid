@@ -16,12 +16,12 @@ namespace lucid::gpu
 {
     // Texture
     static GLuint CreateGLTexture(const ETextureType& TextureType,
-                                  const GLint& MipMapLevel,
-                                  const glm::ivec3& TextureSize,
-                                  const GLenum& DataType,
-                                  const GLenum& DataFormat,
-                                  const GLenum& PixelFormat,
-                                  void const* TextureData)
+                                  const GLint&        MipMapLevel,
+                                  const glm::ivec3&   TextureSize,
+                                  const GLenum&       DataType,
+                                  const GLenum&       DataFormat,
+                                  const GLenum&       PixelFormat,
+                                  void const*         TextureData)
     {
         GLuint textureHandle;
         glGenTextures(1, &textureHandle);
@@ -37,23 +37,13 @@ namespace lucid::gpu
         case ETextureType::TWO_DIMENSIONAL:
             textureTarget = GL_TEXTURE_2D;
             glBindTexture(GL_TEXTURE_2D, textureHandle);
-            glTexImage2D(
-              GL_TEXTURE_2D, MipMapLevel, DataFormat, TextureSize.x, TextureSize.y, 0, PixelFormat, DataType, TextureData);
+            glTexImage2D(GL_TEXTURE_2D, MipMapLevel, DataFormat, TextureSize.x, TextureSize.y, 0, PixelFormat, DataType, TextureData);
             break;
 
         case ETextureType::THREE_DIMENSIONAL:
             textureTarget = GL_TEXTURE_3D;
             glBindTexture(GL_TEXTURE_3D, textureHandle);
-            glTexImage3D(GL_TEXTURE_3D,
-                         MipMapLevel,
-                         DataFormat,
-                         TextureSize.x,
-                         TextureSize.y,
-                         TextureSize.z,
-                         0,
-                         PixelFormat,
-                         DataType,
-                         TextureData);
+            glTexImage3D(GL_TEXTURE_3D, MipMapLevel, DataFormat, TextureSize.x, TextureSize.y, TextureSize.z, 0, PixelFormat, DataType, TextureData);
             break;
         }
 
@@ -71,26 +61,21 @@ namespace lucid::gpu
         return textureHandle;
     }
 
-    CTexture* Create2DTexture(void* Data,
-                              const uint32_t& Width,
-                              const uint32_t& Height,
-                              const ETextureDataType& InDataType,
-                              const ETextureDataFormat& InDataFormat,
+    CTexture* Create2DTexture(void*                      Data,
+                              const uint32_t&            Width,
+                              const uint32_t&            Height,
+                              const ETextureDataType&    InDataType,
+                              const ETextureDataFormat&  InDataFormat,
                               const ETexturePixelFormat& InPixelFormat,
-                              const int32_t& MipMapLevel,
-                              const FString& InName)
+                              const int32_t&             MipMapLevel,
+                              const FString&             InName)
     {
-        const GLenum GLDataFormat = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
+        const GLenum GLDataFormat  = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
         const GLenum GLPixelFormat = TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
-        const GLenum GLDataType = TO_GL_TEXTURE_DATA_TYPE(InDataType);
+        const GLenum GLDataType    = TO_GL_TEXTURE_DATA_TYPE(InDataType);
 
-        GLuint GLTextureHandle = CreateGLTexture(ETextureType::TWO_DIMENSIONAL,
-                                                 MipMapLevel,
-                                                 glm::ivec3{ Width, Height, 0 },
-                                                 GLDataType,
-                                                 GLDataFormat,
-                                                 GLPixelFormat,
-                                                 Data);
+        GLuint GLTextureHandle =
+          CreateGLTexture(ETextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 }, GLDataType, GLDataFormat, GLPixelFormat, Data);
 
         auto* GLTexture = new CGLTexture(GLTextureHandle,
                                          GL_TEXTURE_2D,
@@ -107,25 +92,20 @@ namespace lucid::gpu
         return GLTexture;
     }
 
-    CTexture* CreateEmpty2DTexture(const uint32_t& Width,
-                                   const uint32_t& Height,
-                                   const ETextureDataType& InDataType,
-                                   const ETextureDataFormat& InDataFormat,
+    CTexture* CreateEmpty2DTexture(const uint32_t&            Width,
+                                   const uint32_t&            Height,
+                                   const ETextureDataType&    InDataType,
+                                   const ETextureDataFormat&  InDataFormat,
                                    const ETexturePixelFormat& InPixelFormat,
-                                   const int32_t& MipMapLevel,
-                                   const FString& InName)
+                                   const int32_t&             MipMapLevel,
+                                   const FString&             InName)
     {
-        const GLenum GLDataFormat = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
+        const GLenum GLDataFormat  = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
         const GLenum GLPixelFormat = TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
-        const GLenum GLDataType = TO_GL_TEXTURE_DATA_TYPE(InDataType);
+        const GLenum GLDataType    = TO_GL_TEXTURE_DATA_TYPE(InDataType);
 
-        GLuint GLTextureHandle = CreateGLTexture(ETextureType::TWO_DIMENSIONAL,
-                                                 MipMapLevel,
-                                                 glm::ivec3{ Width, Height, 0 },
-                                                 GLDataType,
-                                                 GLDataFormat,
-                                                 GLPixelFormat,
-                                                 nullptr);
+        GLuint GLTextureHandle = CreateGLTexture(
+          ETextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 }, GLDataType, GLDataFormat, GLPixelFormat, nullptr);
 
         auto* GLTexture = new CGLTexture(GLTextureHandle,
                                          GL_TEXTURE_2D,
@@ -142,20 +122,19 @@ namespace lucid::gpu
         return GLTexture;
     }
 
-    CGLTexture::CGLTexture(const GLuint& InGLTextureID,
-                           const GLenum& InGLTextureTarget,
-                           const u32& InWidth,
-                           const u32& InHeight,
-                           const FString& InName,
-                           const GLenum& InGLPixelFormat,
-                           const GLenum& InGLTextureDataType,
-                           const u64& InSizeInBytes,
-                           const ETextureDataType& InDataType,
+    CGLTexture::CGLTexture(const GLuint&              InGLTextureID,
+                           const GLenum&              InGLTextureTarget,
+                           const u32&                 InWidth,
+                           const u32&                 InHeight,
+                           const FString&             InName,
+                           const GLenum&              InGLPixelFormat,
+                           const GLenum&              InGLTextureDataType,
+                           const u64&                 InSizeInBytes,
+                           const ETextureDataType&    InDataType,
                            const ETextureDataFormat&  InTextureDataFormat,
                            const ETexturePixelFormat& InPixelFormat)
     : CTexture(InName, InWidth, InHeight, InDataType, InTextureDataFormat, InPixelFormat), GLTextureHandle(InGLTextureID),
-      GLTextureTarget(InGLTextureTarget), GLPixelFormat(InGLPixelFormat), GLTextureDataType(InGLTextureDataType),
-      SizeInBytes(InSizeInBytes)
+      GLTextureTarget(InGLTextureTarget), GLPixelFormat(InGLPixelFormat), GLTextureDataType(InGLTextureDataType), SizeInBytes(InSizeInBytes)
     {
     }
 
@@ -212,15 +191,9 @@ namespace lucid::gpu
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Index, GLTextureTarget, GLTextureHandle, 0);
     }
 
-    void CGLTexture::AttachAsStencil()
-    {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GLTextureTarget, GLTextureHandle, 0);
-    }
+    void CGLTexture::AttachAsStencil() { glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GLTextureTarget, GLTextureHandle, 0); }
 
-    void CGLTexture::AttachAsDepth()
-    {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GLTextureTarget, GLTextureHandle, 0);
-    }
+    void CGLTexture::AttachAsDepth() { glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GLTextureTarget, GLTextureHandle, 0); }
 
     void CGLTexture::AttachAsStencilDepth()
     {
@@ -234,56 +207,51 @@ namespace lucid::gpu
 
     bool CGLTexture::ImGuiImageButton(const ImVec2& InImageSize) const
     {
-        return ImGui::ImageButton((ImTextureID)GLTextureHandle, InImageSize, {0, 1}, {1, 0}, 5);
+        return ImGui::ImageButton((ImTextureID)GLTextureHandle, InImageSize, { 0, 1 }, { 1, 0 }, 5);
     }
 
     void CGLTexture::SetBorderColor(const FColor& InColor)
     {
         assert(GGPUState->BoundTextures[gpu::GGPUInfo.ActiveTextureUnit] == this);
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &InColor.r);  
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &InColor.r);
     }
-    
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Cubemap
-    CCubemap* CreateCubemap(const u32& Width,
-                            const u32& Height,
-                            const ETextureDataFormat& InDataFormat,
-                            const ETexturePixelFormat& InPixelFormat,
-                            const ETextureDataType& DataType,
+    CCubemap* CreateCubemap(const u32&                   Width,
+                            const u32&                   Height,
+                            const ETextureDataFormat&    InDataFormat,
+                            const ETexturePixelFormat&   InPixelFormat,
+                            const ETextureDataType&      DataType,
                             resources::CTextureResource* FaceTextures[6],
-                            const FString& InName,
-                            const EMinTextureFilter& InMinFilter,
-                            const EMagTextureFilter& InMagFilter,
-                            const EWrapTextureFilter& InWrapS,
-                            const EWrapTextureFilter& InWrapT,
-                            const EWrapTextureFilter& InWrapR,
-                            const FColor& InBorderColor)
+                            const FString&               InName,
+                            const EMinTextureFilter&     InMinFilter,
+                            const EMagTextureFilter&     InMagFilter,
+                            const EWrapTextureFilter&    InWrapS,
+                            const EWrapTextureFilter&    InWrapT,
+                            const EWrapTextureFilter&    InWrapR,
+                            const FColor&                InBorderColor)
     {
-        if (FaceTextures == nullptr)
-        {
-            return nullptr;
-        }
-
-        for (int i = 0; i < 6; ++i)
-        {
-            if (FaceTextures[i] == nullptr)
-            {
-                return nullptr;
-            }
-        }
-
         GLuint handle;
         glGenTextures(1, &handle);
         glBindTexture(GL_TEXTURE_CUBE_MAP, handle);
 
-        const GLenum GLDataFormat = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
+        const GLenum               GLDataFormat = TO_GL_TEXTURE_DATA_FORMAT(InDataFormat);
         const GLenum GLPixelFormat TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
-        const GLenum GLDataType = TO_GL_TEXTURE_DATA_TYPE(DataType);
+        const GLenum               GLDataType = TO_GL_TEXTURE_DATA_TYPE(DataType);
 
         for (int i = 0; i < 6; ++i)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GLDataFormat, FaceTextures[i]->Width, FaceTextures[i]->Height, 0, GLPixelFormat, GLDataType, FaceTextures[i]->TextureData);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                         0,
+                         GLDataFormat,
+                         FaceTextures && FaceTextures[i] ? FaceTextures[i]->Width : Width,
+                         FaceTextures && FaceTextures[i] ? FaceTextures[i]->Height : Height,
+                         0,
+                         GLPixelFormat,
+                         GLDataType,
+                         FaceTextures && FaceTextures[i] ? FaceTextures[i]->TextureData : nullptr);
         }
 
         // Default sampling parameters
@@ -294,18 +262,18 @@ namespace lucid::gpu
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, TO_GL_WRAP_FILTER(InWrapT));
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, TO_GL_WRAP_FILTER(InWrapR));
         glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, &InBorderColor.r);
-        
+
         auto* GLCubemap = new CGLCubemap(handle, Width, Height, InName, DataType, InDataFormat, InPixelFormat);
         GLCubemap->SetObjectName();
         return GLCubemap;
     }
 
-    CGLCubemap::CGLCubemap(const GLuint& Handle,
-                           const u32& InWidth,
-                           const u32& InHeight,
-                           const FString& InName,
-                           const ETextureDataType& InTextureDataType,
-                           const ETextureDataFormat& InTextureDataFormat,
+    CGLCubemap::CGLCubemap(const GLuint&              Handle,
+                           const u32&                 InWidth,
+                           const u32&                 InHeight,
+                           const FString&             InName,
+                           const ETextureDataType&    InTextureDataType,
+                           const ETextureDataFormat&  InTextureDataFormat,
                            const ETexturePixelFormat& InTexturePixelFormat)
     : CCubemap(InName, InWidth, InHeight, InTextureDataType, InTextureDataFormat, InTexturePixelFormat), glCubemapHandle(Handle)
     {
@@ -320,11 +288,8 @@ namespace lucid::gpu
     void CGLCubemap::AttachAsColor(const uint8_t& Index, EFace InFace)
     {
         assert(GGPUState->BoundTextures[gpu::GGPUInfo.ActiveTextureUnit] == this && GGPUState->Cubemap == this);
-        glFramebufferTexture2D(GL_FRAMEBUFFER,
-                               GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<uint8_t>(InFace),
-                               glCubemapHandle,
-                               0);
+        glFramebufferTexture2D(
+          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<uint8_t>(InFace), glCubemapHandle, 0);
     }
 
     void CGLCubemap::AttachAsStencil() { glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, glCubemapHandle, 0); }
@@ -394,7 +359,7 @@ namespace lucid::gpu
     void CGLCubemap::SetBorderColor(const FColor& InColor)
     {
         assert(GGPUState->Cubemap == this);
-        glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, &InColor.r);  
+        glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, &InColor.r);
     }
 
 } // namespace lucid::gpu
