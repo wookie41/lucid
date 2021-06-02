@@ -1,4 +1,4 @@
-﻿uniform int         uMaterialShininess;
+uniform int         uMaterialShininess;
 
 uniform sampler2D   uMaterialDiffuseMap;
 

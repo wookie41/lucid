@@ -21,6 +21,7 @@ def handle_include(base_shaders_dir, shader_path, shader_source: str, token_star
 
     new_source = shader_source[:token_start]
     new_source += to_include
+    new_source += "\n"
     new_source += shader_source[token_end + match.span(0)[1]:]
     
     return new_source
@@ -43,8 +44,8 @@ processed_shader_path = argv[4]
 shader_source = None
 try:
     path = join(base_shaders_dir, shader_to_process_path)
-    with open(path) as f:
-        shader_source = ''.join(f.readlines())
+    with open(path, 'rb') as f:
+        shader_source = ''.join(map(lambda b: b.decode('UTF-8'), f.readlines()))
 except Exception as e:
     print("Failed to open file %s: %s" % (path, str(e)))
     exit(0)
@@ -74,8 +75,8 @@ while True:
 
 out_path = join(processed_shaders_dir, processed_shader_path)
 try:
-    with open(out_path, 'wt+') as f:
-        f.write(shader_source)
+    with open(out_path, 'wb+') as f:
+        f.write(shader_source.encode('utf-8'))
 except Exception as e:
     print("Failed to save the result to '%s': %s" % (out_path, str(e)))
     exit(1)

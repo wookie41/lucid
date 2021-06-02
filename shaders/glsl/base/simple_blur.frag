@@ -1,4 +1,4 @@
-﻿#version 330
+#version 330
 in vec2 TextureCoords;
 
 uniform sampler2D uTextureToBlur;
