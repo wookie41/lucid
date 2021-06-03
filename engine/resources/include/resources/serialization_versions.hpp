@@ -3,6 +3,6 @@
 
 namespace lucid::resources
 {
-    constexpr i32 TEXTURE_SERIALIZATION_VERSION = 0;
-    constexpr i32 MESH_SERIALIZATION_VERSION = 2;
+    constexpr u32 TEXTURE_SERIALIZATION_VERSION = 0;
+    constexpr u32 MESH_SERIALIZATION_VERSION = 2;
 } // namespace lucid::resources
