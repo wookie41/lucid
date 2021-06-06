@@ -19,7 +19,7 @@ vec4 Grid(vec3 InFragPos, float InScale)
     float Line       = min(Grid.x, Grid.y);
     float MinimumZ   = min(Derivative.y, 1);
     float MinimumX   = min(Derivative.x, 1);
-    vec4  Color      = vec4(0, 0, 0, 1.0 - min(Line, 1.0));
+    vec4  Color      = vec4(0.2, 0.2, 0.2, 1.0 - min(Line, 1.0));
 
     // z axis
     if (InFragPos.x > -0.1 * MinimumX && InFragPos.x < 0.1 * MinimumX)
@@ -37,13 +37,15 @@ void main()
     float t       = -inNearPoint.y / (inFarPoint.y - inNearPoint.y);
     vec3  FragPos = inNearPoint + t * (inFarPoint - inNearPoint);
 
-    vec4 ClipPos = uProjection * uView * vec4(FragPos, 1);
-    float FragDepth = ClipPos.z / ClipPos.w;
+    vec4  ClipPos        = uProjection * uView * vec4(FragPos, 1);
+    float FragDepth      = ClipPos.z / ClipPos.w;
     float ClipSpaceDepth = FragDepth * 2.0 - 1.0;
-    float LinearDepth = (2.0 * uNearPlane * uFarPlane) / (uFarPlane + uNearPlane - ClipSpaceDepth * (uFarPlane - uNearPlane));
-    float Fading = max(0, (0.5 - (LinearDepth / uFarPlane)));
+    float LinearDepth    = (2.0 * uNearPlane * uFarPlane) / (uFarPlane + uNearPlane - ClipSpaceDepth * (uFarPlane - uNearPlane));
+    float Fading         = LinearDepth / uFarPlane;
     
-    gl_FragDepth = FragDepth;
+    vec4 GridColor = Grid(FragPos, 1);
+    GridColor.a /= Fading;
     
-    outColor = Grid(FragPos, 10) * float(t > 0) * Fading;
+    gl_FragDepth         = FragDepth;
+    outColor             =  GridColor * float(t > 0);
 }

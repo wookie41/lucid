@@ -188,4 +188,6 @@ namespace lucid::gpu
     /** Forces all of the command to finish before the next on is executed */
     void Finish();
 
+    void PushDebugGroup(const std::string& InGroupName);
+    void PopDebugGroup();
 } // namespace lucid::gpu

@@ -179,8 +179,8 @@ namespace lucid::scene
         WorldGridPipelineState.IsCullingEnabled         = false;
         WorldGridPipelineState.IsSRGBFramebufferEnabled = false;
         WorldGridPipelineState.IsDepthBufferReadOnly    = false;
-        WorldGridPipelineState.BlendFunctionSrc         = gpu::EBlendFunction::ONE;
-        WorldGridPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE;
+        WorldGridPipelineState.BlendFunctionSrc         = gpu::EBlendFunction::SRC_ALPHA;
+        WorldGridPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
         WorldGridPipelineState.BlendFunctionAlphaSrc    = gpu::EBlendFunction::SRC_ALPHA;
         WorldGridPipelineState.BlendFunctionAlphaDst    = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
 
@@ -440,16 +440,39 @@ namespace lucid::scene
 
         gpu::SetViewport(InRenderView->Viewport);
 
+        gpu::PushDebugGroup("Shadow maps generation");
         GenerateShadowMaps(InSceneToRender);
+        gpu::PopDebugGroup();
+
+        gpu::PushDebugGroup("Prepass");
         Prepass(InSceneToRender, InRenderView);
+        gpu::PopDebugGroup();
+
+        gpu::PushDebugGroup("Lighting pass");
         LightingPass(InSceneToRender, InRenderView);
-        RenderWorldGrid(InRenderView);
+        gpu::PopDebugGroup();
 
 #if DEVELOPMENT
+        gpu::PushDebugGroup("Editor primitives");
+
+        gpu::PushDebugGroup("Billboards");
         DrawLightsBillboards(InSceneToRender, InRenderView);
+        gpu::PopDebugGroup();
+
+        gpu::PushDebugGroup("World grid");
+        RenderWorldGrid(InRenderView);
+        gpu::PopDebugGroup();
+
+        gpu::PushDebugGroup("Hitmap");
         GenerateHitmap(InSceneToRender, InRenderView);
+        gpu::PopDebugGroup();
+
+        gpu::PopDebugGroup();
 #endif
+        
+        gpu::PushDebugGroup("Gamma correction");
         DoGammaCorrection(LightingPassColorBuffer);
+        gpu::PopDebugGroup();
 #if DEVELOPMENT
         GRenderStats.FrameTimeMiliseconds = FrameTimer->EndTimer();
 #endif
@@ -474,6 +497,8 @@ namespace lucid::scene
             {
                 continue; // Light doesn't cast shadows
             }
+
+            gpu::PushDebugGroup(*Light->Name);
 
             // @TODO This should happen only if light moves
             Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
@@ -508,11 +533,13 @@ namespace lucid::scene
 #if DEVELOPMENT
                     if (resources::CMeshResource* MeshResource = StaticMesh->GetMeshResource())
                     {
+                        gpu::PushDebugGroup(*MeshResource->GetName());
                         for (u16 SubMeshIdx = 0; SubMeshIdx < MeshResource->SubMeshes.GetLength(); ++SubMeshIdx)
                         {
                             MeshResource->SubMeshes[SubMeshIdx]->VAO->Bind();
                             MeshResource->SubMeshes[SubMeshIdx]->VAO->Draw();
                         }
+                        gpu::PopDebugGroup();
                     }
                     else
                     {
@@ -529,12 +556,15 @@ namespace lucid::scene
 #endif
                 }
             }
+
+            gpu::PopDebugGroup();
         }
     }
 
     void CForwardRenderer::Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
-        // Render the scene
+        // Z pre pass
+        gpu::PushDebugGroup("Z pre pass");
         gpu::ConfigurePipelineState(PrepassPipelineState);
 
         BindAndClearFramebuffer(PrepassFramebuffer);
@@ -557,6 +587,7 @@ namespace lucid::scene
 #if DEVELOPMENT
                 if (resources::CMeshResource* MeshResource = StaticMesh->GetMeshResource())
                 {
+                    gpu::PushDebugGroup(*MeshResource->GetName());
                     for (u16 j = 0; j < MeshResource->SubMeshes.GetLength(); ++j)
                     {
                         const u16 MaterialIndex = MeshResource->SubMeshes[j]->MaterialIndex;
@@ -574,6 +605,7 @@ namespace lucid::scene
                         StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
                         StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
                     }
+                    gpu::PopDebugGroup();
                 }
                 else
                 {
@@ -591,7 +623,11 @@ namespace lucid::scene
             }
         }
 
+        gpu::PopDebugGroup();
+
         // Calculate SSAO
+        gpu::PushDebugGroup("SSAO");
+        
         BindAndClearFramebuffer(SSAOFramebuffer);
         SSAOShader->Use();
         SetupRendererWideUniforms(SSAOShader, InRenderView);
@@ -619,6 +655,8 @@ namespace lucid::scene
 
         ScreenWideQuadVAO->Bind();
         ScreenWideQuadVAO->Draw();
+
+        gpu::PopDebugGroup();
     }
 
     void CForwardRenderer::LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
@@ -659,10 +697,12 @@ namespace lucid::scene
                                                    const FRenderScene* InScene,
                                                    const FRenderView*  InRenderView)
     {
+        gpu::PushDebugGroup(*InLight->Name);
         for (u32 i = 0; i < InScene->StaticMeshes.GetLength(); ++i)
         {
             RenderStaticMesh(LastShader, InScene->StaticMeshes.GetByIndex(i), InLight, InRenderView);
         }
+        gpu::PopDebugGroup();
     }
 
     void CForwardRenderer::RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView)
@@ -709,6 +749,7 @@ namespace lucid::scene
             *LastShader = GEngine.GetDefaultMaterial()->GetShader();
             return;
         }
+        gpu::PushDebugGroup(*InStaticMesh->Name);
 #endif
         for (u16 j = 0; j < InStaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
         {
@@ -750,10 +791,12 @@ namespace lucid::scene
             InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
             InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
         }
+        gpu::PopDebugGroup();
     }
 
     inline void CForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
     {
+        gpu::PushDebugGroup("Skybox");
         gpu::ConfigurePipelineState(SkyboxPipelineState);
 
         SkyboxShader->Use();
@@ -764,6 +807,7 @@ namespace lucid::scene
 
         UnitCubeVAO->Bind();
         UnitCubeVAO->Draw();
+        gpu::PopDebugGroup();
     }
 
     void CForwardRenderer::DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView)

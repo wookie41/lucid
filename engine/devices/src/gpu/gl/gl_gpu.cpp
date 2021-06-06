@@ -239,4 +239,13 @@ namespace lucid::gpu
         glFinish();
     }
 
+    void PushDebugGroup(const std::string& InGroupName)
+    {
+        glPushDebugGroup(GL_DEBUG_TYPE_PUSH_GROUP,  GL_DEBUG_SEVERITY_NOTIFICATION, InGroupName.length(), InGroupName.c_str());
+    }
+
+    void PopDebugGroup()
+    {
+        glPopDebugGroup();
+    }
 } // namespace lucid::gpu
