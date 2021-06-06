@@ -59,6 +59,8 @@ namespace lucid::scene
     static const FSString AMBIENT_STRENGTH("uAmbientStrength");
     static const FSString NUM_OF_PCF_SAMPLES("uNumSamplesPCF");
     static const FSString AMBIENT_OCCLUSION("uAmbientOcclusion");
+    static const FSString NEAR_PLANE("uNearPlane");
+    static const FSString FAR_PLANE("uFarPlane");
 
     static const FSString VIEW_POSITION("uViewPos");
 
@@ -97,8 +99,6 @@ namespace lucid::scene
             UnitCubeVAO = misc::CreateCubeVAO();
         }
 
-        HitMapShader          = GEngine.GetShadersManager().GetShaderByName("Hitmap");
-        BillboardHitMapShader = GEngine.GetShadersManager().GetShaderByName("BillboardHitmap");
         ShadowMapShader       = GEngine.GetShadersManager().GetShaderByName("ShadowMap");
         ShadowCubeMapShader   = GEngine.GetShadersManager().GetShaderByName("ShadowCubemap");
         PrepassShader         = GEngine.GetShadersManager().GetShaderByName("ForwardPrepass");
@@ -108,6 +108,13 @@ namespace lucid::scene
         BillboardShader       = GEngine.GetShadersManager().GetShaderByName("Billboard");
         FlatShader            = GEngine.GetShadersManager().GetShaderByName("Flat");
         GammaCorrectionShader = GEngine.GetShadersManager().GetShaderByName("GammaCorrection");
+
+#if DEVELOPMENT
+        HitMapShader          = GEngine.GetShadersManager().GetShaderByName("Hitmap");
+        BillboardHitMapShader = GEngine.GetShadersManager().GetShaderByName("BillboardHitmap");
+        WorldGridShader       = GEngine.GetShadersManager().GetShaderByName("WorldGrid");
+
+#endif
 
         // Prepare pipeline states
         ShadowMapGenerationPipelineState.ClearColorBufferColor    = FColor{ 1 };
@@ -153,10 +160,6 @@ namespace lucid::scene
         SkyboxPipelineState.IsBlendingEnabled = false;
         SkyboxPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
 
-        HitMapGenerationPipelineState                          = SkyboxPipelineState;
-        HitMapGenerationPipelineState.IsDepthBufferReadOnly    = false;
-        HitMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
-
         GammaCorrectionPipelineState.ClearColorBufferColor    = FColor{ 0 };
         GammaCorrectionPipelineState.IsDepthTestEnabled       = false;
         GammaCorrectionPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
@@ -164,6 +167,24 @@ namespace lucid::scene
         GammaCorrectionPipelineState.IsCullingEnabled         = false;
         GammaCorrectionPipelineState.IsSRGBFramebufferEnabled = false;
         GammaCorrectionPipelineState.IsDepthBufferReadOnly    = true;
+
+#if DEVELOPMENT
+        HitMapGenerationPipelineState                          = SkyboxPipelineState;
+        HitMapGenerationPipelineState.IsDepthBufferReadOnly    = false;
+        HitMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
+
+        WorldGridPipelineState.IsDepthTestEnabled       = true;
+        WorldGridPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
+        WorldGridPipelineState.IsBlendingEnabled        = true;
+        WorldGridPipelineState.IsCullingEnabled         = false;
+        WorldGridPipelineState.IsSRGBFramebufferEnabled = false;
+        WorldGridPipelineState.IsDepthBufferReadOnly    = false;
+        WorldGridPipelineState.BlendFunctionSrc         = gpu::EBlendFunction::ONE;
+        WorldGridPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE;
+        WorldGridPipelineState.BlendFunctionAlphaSrc    = gpu::EBlendFunction::SRC_ALPHA;
+        WorldGridPipelineState.BlendFunctionAlphaDst    = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
+
+#endif
 
         // Create the framebuffers
         ShadowMapFramebuffer    = gpu::CreateFramebuffer(FSString{ "ShadowmapFramebuffer" });
@@ -422,13 +443,13 @@ namespace lucid::scene
         GenerateShadowMaps(InSceneToRender);
         Prepass(InSceneToRender, InRenderView);
         LightingPass(InSceneToRender, InRenderView);
+        RenderWorldGrid(InRenderView);
 
 #if DEVELOPMENT
         DrawLightsBillboards(InSceneToRender, InRenderView);
         GenerateHitmap(InSceneToRender, InRenderView);
 #endif
         DoGammaCorrection(LightingPassColorBuffer);
-
 #if DEVELOPMENT
         GRenderStats.FrameTimeMiliseconds = FrameTimer->EndTimer();
 #endif
@@ -670,6 +691,8 @@ namespace lucid::scene
         InShader->SetFloat(PARALLAX_HEIGHT_SCALE, 0.1f);
         InShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
         InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
+        InShader->SetFloat(NEAR_PLANE, InRenderView->Camera->NearPlane);
+        InShader->SetFloat(FAR_PLANE, InRenderView->Camera->FarPlane);
     }
 
     void CForwardRenderer::RenderStaticMesh(gpu::CShader**     LastShader,
@@ -878,6 +901,16 @@ namespace lucid::scene
             UnitCubeVAO->Bind();
             UnitCubeVAO->Draw();
         }
+    }
+
+    void CForwardRenderer::RenderWorldGrid(const FRenderView* InRenderView)
+    {
+        gpu::ConfigurePipelineState(WorldGridPipelineState);
+        WorldGridShader->Use();
+
+        SetupRendererWideUniforms(WorldGridShader, InRenderView);
+        ScreenWideQuadVAO->Bind();
+        ScreenWideQuadVAO->Draw();
     }
 
 #endif

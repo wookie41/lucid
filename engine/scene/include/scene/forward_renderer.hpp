@@ -72,6 +72,7 @@ namespace lucid::scene
                                        const CLight*                   InLight,
                                        const FRenderView*              InRenderView,
                                        const glm::mat4&                InModelMatrix);
+        void RenderWorldGrid(const FRenderView* InRenderView);
 #endif
 
         u32   MaxNumOfDirectionalLights;
@@ -92,6 +93,7 @@ namespace lucid::scene
         gpu::FPipelineState LightpassPipelineState;
         gpu::FPipelineState SkyboxPipelineState;
         gpu::FPipelineState GammaCorrectionPipelineState;
+        gpu::FPipelineState WorldGridPipelineState;
 
         gpu::CShader* ShadowMapShader;
         gpu::CShader* ShadowCubeMapShader;
@@ -158,6 +160,7 @@ namespace lucid::scene
          */
         gpu::CShader* HitMapShader          = nullptr;
         gpu::CShader* BillboardHitMapShader = nullptr;
+        gpu::CShader* WorldGridShader       = nullptr;
 
       private:
         gpu::FPipelineState LightsBillboardsPipelineState;

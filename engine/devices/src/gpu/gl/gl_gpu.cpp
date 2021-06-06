@@ -238,4 +238,5 @@ namespace lucid::gpu
     {
         glFinish();
     }
+
 } // namespace lucid::gpu

@@ -2,7 +2,6 @@
 
 #include <glm/vec2.hpp>
 
-
 #include "viewport.hpp"
 #include "common/types.hpp"
 
@@ -188,4 +187,5 @@ namespace lucid::gpu
 
     /** Forces all of the command to finish before the next on is executed */
     void Finish();
+
 } // namespace lucid::gpu
