@@ -13,8 +13,8 @@ namespace lucid::resources
     struct FSubMesh
     {
         gpu::CVertexArray*  VAO = nullptr;;
-        gpu::CBuffer*       VertexBuffer  = nullptr;
-        gpu::CBuffer*       ElementBuffer = nullptr;
+        gpu::CGPUBuffer*       VertexBuffer  = nullptr;
+        gpu::CGPUBuffer*       ElementBuffer = nullptr;
 
         bool bHasPositions;
         bool bHasNormals;

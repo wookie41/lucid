@@ -38,7 +38,8 @@ namespace lucid::gpu
         BUFFER_READ = 1,
         BUFFER_WRITE = 2,
         BUFFER_PERSISTENT = 4,
-        BUFFER_COHERENT = 8
+        BUFFER_COHERENT = 8,
+        BUFFER_UNSYNCHRONIZED = 16
     };
 
     struct FBufferDescription
@@ -48,34 +49,35 @@ namespace lucid::gpu
         void*   Data = nullptr;
     };
 
-    class CBuffer : public CGPUObject
+    class CGPUBuffer : public CGPUObject
     {
       public:
-        CBuffer(const FString& InName) : CGPUObject(InName) {}
+        CGPUBuffer(const FString& InName) : CGPUObject(InName) {}
 
         virtual uint32_t GetSize() const = 0;
 
         virtual void Bind(const EBufferBindPoint& BindPoint) = 0;
+        virtual void Unbind() = 0;
+        
         virtual void BindIndexed(const uint32_t& index, const EBufferBindPoint& BindPoint) = 0;
+        virtual void BindAsVertexBuffer(const u32& InIndex, const u32& InStride) = 0;
 
         virtual void Upload(FBufferDescription const* Description) = 0;
         virtual void Download(void* Destination, uint32_t Size = 0, const uint32_t& Offset = 0) = 0;
 
-        virtual void* MemoryMap(const EBufferBindPoint& BindPoint,
-                                const EBufferAccessPolicy& AccessPolicy,
-                                uint32_t Size = 0,
-                                const uint32_t& Offset = 0) = 0;
-
+        virtual void* MemoryMap(const EBufferAccessPolicy& InAccessPolicy,
+                                const u32& InSize = 0,
+                                const u32& InOffset = 0) = 0;
         virtual void MemoryUnmap() = 0;
 
-        virtual ~CBuffer() = default;
+        virtual ~CGPUBuffer() = default;
     };
 
-    CBuffer* CreateBuffer(const FBufferDescription& Description,
+    CGPUBuffer* CreateBuffer(const FBufferDescription& Description,
                           const EBufferUsage& Usage,
                           const FString& InName);
 
-    CBuffer* CreateImmutableBuffer(const FBufferDescription& Description,
+    CGPUBuffer* CreateImmutableBuffer(const FBufferDescription& Description,
                                    const EImmutableBufferUsage& ImmutableBufferUsage,
                                    const FString& InName);
 } // namespace lucid::gpu

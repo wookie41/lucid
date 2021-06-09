@@ -66,7 +66,7 @@ namespace lucid::misc
         bufferDescription.Data = (void*)(BASIC_QUAD_VERTEX_DATA);
         bufferDescription.Size = sizeof(BASIC_QUAD_VERTEX_DATA);
 
-        gpu::CBuffer* QuadVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FSString {"QuadVertexBuffer"});
+        gpu::CGPUBuffer* QuadVertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC, FSString {"QuadVertexBuffer"});
 
         FArray<gpu::FVertexAttribute> quadAttributes(4);
         quadAttributes.Add({ 0, 3, EType::FLOAT, false, sizeof(float) * 11, 0, 0 });
@@ -87,7 +87,7 @@ namespace lucid::misc
         bufferDescription.Data = (void*)(CUBE_VERTICES);
         bufferDescription.Size = sizeof(CUBE_VERTICES);
 
-        gpu::CBuffer* VertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC,  FSString{ "CubeVertexBuffer"});
+        gpu::CGPUBuffer* VertexBuffer = gpu::CreateBuffer(bufferDescription, gpu::EBufferUsage::STATIC,  FSString{ "CubeVertexBuffer"});
 
         FArray<gpu::FVertexAttribute> cubeAttributes(4);
         cubeAttributes.Add({ 0, 3, EType::FLOAT, false, sizeof(float) * 11, 0, 0 });

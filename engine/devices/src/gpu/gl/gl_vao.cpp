@@ -2,7 +2,6 @@
 
 #include <scene/renderer.hpp>
 
-
 #include "devices/gpu/shader.hpp"
 #include "devices/gpu/buffer.hpp"
 #include "devices/gpu/gl/gl_common.hpp"
@@ -27,23 +26,27 @@ GLenum GL_DRAW_MODES[] = { GL_POINTS,
 
 namespace lucid::gpu
 {
-    CVertexArray* CreateVertexArray(const FString& InName,
+    CVertexArray* CreateVertexArray(const FString&            InName,
                                     FArray<FVertexAttribute>* VertexArrayAttributes,
-                                    CBuffer* VertexBuffer,
-                                    CBuffer* ElementBuffer,
-                                    const EDrawMode& DrawMode,
-                                    const u32& VertexCount,
-                                    const u32& ElementCount,
-                                    const bool& AutoDestroyBuffers)
+                                    CGPUBuffer*               VertexBuffer,
+                                    CGPUBuffer*               ElementBuffer,
+                                    const EDrawMode&          DrawMode,
+                                    const u32&                VertexCount,
+                                    const u32&                ElementCount,
+                                    const bool&               AutoDestroyBuffers)
     {
         GLuint VAO;
 
         glGenVertexArrays(1, &VAO);
 
-        CVertexArray* vertexArray = new CGLVertexArray(InName, VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
+        CVertexArray* vertexArray =
+          new CGLVertexArray(InName, VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
         vertexArray->Bind();
 
-        VertexBuffer->Bind(EBufferBindPoint::VERTEX);
+        if (VertexBuffer)
+        {
+            VertexBuffer->Bind(EBufferBindPoint::VERTEX);
+        }
 
         if (ElementBuffer != nullptr)
             ElementBuffer->Bind(EBufferBindPoint::ELEMENT);
@@ -57,10 +60,8 @@ namespace lucid::gpu
             case lucid::EType::FLOAT:
                 vertexArray->AddVertexAttribute(*vertexAttribute);
                 break;
-            case lucid::EType::BYTE:
-            case lucid::EType::UINT_8:
-            case lucid::EType::UINT_16:
             case lucid::EType::UINT_32:
+            case lucid::EType::INT_32:
                 vertexArray->AddIntegerVertexAttribute(*vertexAttribute);
                 break;
             case lucid::EType::DOUBLE:
@@ -84,51 +85,65 @@ namespace lucid::gpu
 #endif
     void CGLVertexArray::AddVertexAttribute(const FVertexAttribute& Attribute)
     {
-        glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], GL_FALSE,
-                              Attribute.Stride, (void*)Attribute.FirstElementOffset);
-
+        if (Attribute.BufferBindingIndex == -1)
+        {
+            glVertexAttribPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], GL_FALSE, Attribute.Stride, (void*)Attribute.FirstElementOffset);
+        }
+        else
+        {
+            glVertexAttribFormat(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.Normalized, Attribute.FirstElementOffset);
+            glVertexAttribBinding(Attribute.Index, Attribute.BufferBindingIndex);
+        }
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
+        glEnableVertexAttribArray(Attribute.Index);
     }
 
     void CGLVertexArray::AddIntegerVertexAttribute(const FVertexAttribute& Attribute)
     {
-        glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.Stride,
-                               (void*)Attribute.FirstElementOffset);
-
+        if (Attribute.BufferBindingIndex == -1)
+        {
+            glVertexAttribIPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.Stride, (void*)Attribute.FirstElementOffset);
+        }
+        else
+        {
+            glVertexAttribIFormat(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.FirstElementOffset);
+            glVertexAttribBinding(Attribute.Index, Attribute.BufferBindingIndex);
+        }
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
+        glEnableVertexAttribArray(Attribute.Index);
     }
 
     void CGLVertexArray::AddLongVertexAttribute(const FVertexAttribute& Attribute)
     {
-        glEnableVertexAttribArray(Attribute.Index);
-        glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.Stride,
-                               (void*)Attribute.FirstElementOffset);
-
+        if (Attribute.BufferBindingIndex == -1)
+        {
+            glVertexAttribLPointer(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.Stride,(void*)Attribute.FirstElementOffset);
+        }
+        else
+        {
+            glVertexAttribLFormat(Attribute.Index, Attribute.NumComponents, GL_TYPES[static_cast<u8>(Attribute.AttributeType)], Attribute.FirstElementOffset);
+            glVertexAttribBinding(Attribute.Index, Attribute.BufferBindingIndex);
+        }
         glVertexAttribDivisor(Attribute.Index, Attribute.Divisor);
+        glEnableVertexAttribArray(Attribute.Index);
     }
 
 #pragma GCC diagnostic pop
 
-    CGLVertexArray::CGLVertexArray(const FString& InName,
-                                   const GLuint& InGLVAOHandle,
+    CGLVertexArray::CGLVertexArray(const FString&   InName,
+                                   const GLuint&    InGLVAOHandle,
                                    const EDrawMode& InDrawMode,
-                                   const u32& InVertexCount,
-                                   const u32& InElementCount,
-                                   CBuffer* InVertexBuffer,
-                                   CBuffer* InElementBuffer,
-                                   const bool& InAutoDestroyBuffers)
-    : CVertexArray(InName), GLVAOHandle(InGLVAOHandle), DrawMode(InDrawMode), VertexBuffer(InVertexBuffer),
-      ElementBuffer(InElementBuffer), AutoDestroyBuffers(InAutoDestroyBuffers), VertexCount(InVertexCount),
-      ElementCount(InElementCount)
+                                   const u32&       InVertexCount,
+                                   const u32&       InElementCount,
+                                   CGPUBuffer*      InVertexBuffer,
+                                   CGPUBuffer*      InElementBuffer,
+                                   const bool&      InAutoDestroyBuffers)
+    : CVertexArray(InName), GLVAOHandle(InGLVAOHandle), DrawMode(InDrawMode), VertexBuffer(InVertexBuffer), ElementBuffer(InElementBuffer),
+      AutoDestroyBuffers(InAutoDestroyBuffers), VertexCount(InVertexCount), ElementCount(InElementCount)
     {
     }
 
-    void CGLVertexArray::SetObjectName()
-    {
-        SetGLObjectName(GL_VERTEX_ARRAY, GLVAOHandle, Name);
-    }
+    void CGLVertexArray::SetObjectName() { SetGLObjectName(GL_VERTEX_ARRAY, GLVAOHandle, Name); }
 
     void CGLVertexArray::Free()
     {
@@ -157,15 +172,9 @@ namespace lucid::gpu
 
     void CGLVertexArray::Unbind() { glBindVertexArray(0); }
 
-    void CGLVertexArray::EnableAttribute(const u32& AttributeIndex)
-    {
-        glEnableVertexArrayAttrib(GLVAOHandle, AttributeIndex);
-    }
+    void CGLVertexArray::EnableAttribute(const u32& AttributeIndex) { glEnableVertexArrayAttrib(GLVAOHandle, AttributeIndex); }
 
-    void CGLVertexArray::DisableAttribute(const u32& AttributeIndex)
-    {
-        glDisableVertexArrayAttrib(GLVAOHandle, AttributeIndex);
-    }
+    void CGLVertexArray::DisableAttribute(const u32& AttributeIndex) { glDisableVertexArrayAttrib(GLVAOHandle, AttributeIndex); }
 
     void CGLVertexArray::Draw(const u32& First, const u32& Count)
     {
@@ -174,7 +183,7 @@ namespace lucid::gpu
 #if DEVELOPMENT
         ++scene::GRenderStats.NumDrawCalls;
 #endif
-        
+
         if (ElementBuffer)
         {
             glDrawElements(GL_DRAW_MODES[DrawMode], count, GL_UNSIGNED_INT, 0);

@@ -16,6 +16,7 @@ namespace lucid::gpu
     class CTexture;
     class CRenderbuffer;
     class CTimer;
+    class CFence;
 }; // namespace lucid::gpu
 
 namespace lucid::scene
@@ -23,6 +24,8 @@ namespace lucid::scene
     // This renderer renders the geometry within the scene for each light in the scene
     // this mean that the same object might be rendered multiple times if it's affected
     // by multiple light.
+
+    constexpr int DEBUG_LINES_BUFFERS_COUNT = 3;
 
     class CForwardRenderer : public CRenderer
     {
@@ -73,6 +76,7 @@ namespace lucid::scene
                                        const FRenderView*              InRenderView,
                                        const glm::mat4&                InModelMatrix);
         void RenderWorldGrid(const FRenderView* InRenderView);
+        void RenderDebugLines(const FRenderView* InRenderView);
 #endif
 
         u32   MaxNumOfDirectionalLights;
@@ -93,7 +97,6 @@ namespace lucid::scene
         gpu::FPipelineState LightpassPipelineState;
         gpu::FPipelineState SkyboxPipelineState;
         gpu::FPipelineState GammaCorrectionPipelineState;
-        gpu::FPipelineState WorldGridPipelineState;
 
         gpu::CShader* ShadowMapShader;
         gpu::CShader* ShadowCubeMapShader;
@@ -164,6 +167,8 @@ namespace lucid::scene
 
       private:
         gpu::FPipelineState LightsBillboardsPipelineState;
+        gpu::FPipelineState WorldGridPipelineState;
+        gpu::FPipelineState DebugLinesPipelineState;
 
         /** Used to render ids of the objects in the scene so we can do nice mouse picking in the tools */
         gpu::CTexture*      HitMapTexture;
@@ -172,6 +177,11 @@ namespace lucid::scene
         gpu::CRenderbuffer* HitMapDepthStencilRenderbuffer;
 
         gpu::CTimer* FrameTimer = nullptr;
+
+        gpu::CShader*      DebugLinesShader = nullptr;
+        gpu::CVertexArray* DebugLinesVAO    = nullptr;
+        gpu::CGPUBuffer*   DebugLinesVertexBuffers[DEBUG_LINES_BUFFERS_COUNT]{ nullptr };
+        gpu::CFence*       DebugLinesFences[DEBUG_LINES_BUFFERS_COUNT]{ nullptr };
 #endif
     };
 

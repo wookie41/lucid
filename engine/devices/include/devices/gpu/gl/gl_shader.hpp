@@ -7,7 +7,7 @@
 
 namespace lucid::gpu
 {
-    class CBuffer;
+    class CGPUBuffer;
 
     struct FUniformVariable
     {

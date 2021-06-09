@@ -1,5 +1,6 @@
 #include "scene/forward_renderer.hpp"
 
+#include <glm/gtx/matrix_decompose.hpp>
 #include <resources/mesh_resource.hpp>
 #include "GL/glew.h"
 #include "devices/gpu/shaders_manager.hpp"
@@ -7,6 +8,7 @@
 
 #include "common/log.hpp"
 #include "common/collections.hpp"
+#include "devices/gpu/buffer.hpp"
 
 #include "devices/gpu/framebuffer.hpp"
 #include "devices/gpu/shader.hpp"
@@ -16,9 +18,9 @@
 #include "devices/gpu/viewport.hpp"
 #include "devices/gpu/cubemap.hpp"
 #include "devices/gpu/timer.hpp"
+#include "devices/gpu/fence.hpp"
 
 #include "scene/actors/lights.hpp"
-#include "scene/blinn_phong_material.hpp"
 #include "scene/camera.hpp"
 #include "scene/actors/static_mesh.hpp"
 #include "scene/actors/skybox.hpp"
@@ -113,7 +115,7 @@ namespace lucid::scene
         HitMapShader          = GEngine.GetShadersManager().GetShaderByName("Hitmap");
         BillboardHitMapShader = GEngine.GetShadersManager().GetShaderByName("BillboardHitmap");
         WorldGridShader       = GEngine.GetShadersManager().GetShaderByName("WorldGrid");
-
+        DebugLinesShader      = GEngine.GetShadersManager().GetShaderByName("DebugLines");
 #endif
 
         // Prepare pipeline states
@@ -360,6 +362,7 @@ namespace lucid::scene
 
 #if DEVELOPMENT
 
+        // Light bulbs
         LightsBillboardsPipelineState.ClearColorBufferColor    = FColor{ 0 };
         LightsBillboardsPipelineState.ClearDepthBufferValue    = 0;
         LightsBillboardsPipelineState.IsDepthTestEnabled       = true;
@@ -372,6 +375,10 @@ namespace lucid::scene
         LightsBillboardsPipelineState.IsCullingEnabled         = false;
         LightsBillboardsPipelineState.IsSRGBFramebufferEnabled = false;
         LightsBillboardsPipelineState.IsDepthBufferReadOnly    = false;
+
+        auto* LightBulbTextureResource = GEngine.GetTexturesHolder().Get(sole::rebuild("abd835d6-6aa9-4140-9442-9afe04a2b999"));
+        LightBulbTextureResource->Acquire(false, true);
+        LightBulbTexture = LightBulbTextureResource->TextureHandle;
 
         // HitMap generation
         HitMapTexture = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -405,11 +412,43 @@ namespace lucid::scene
           (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
         Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
 
-        auto* LightBulbTextureResource = GEngine.GetTexturesHolder().Get(sole::rebuild("abd835d6-6aa9-4140-9442-9afe04a2b999"));
-        LightBulbTextureResource->Acquire(false, true);
-        LightBulbTexture = LightBulbTextureResource->TextureHandle;
-
+        // Timer
         FrameTimer = gpu::CreateTimer("FameTimer");
+
+        // Debug lines
+        DebugLinesPipelineState.IsDepthTestEnabled       = true;
+        DebugLinesPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
+        DebugLinesPipelineState.IsBlendingEnabled        = false;
+        DebugLinesPipelineState.IsSRGBFramebufferEnabled = true;
+        DebugLinesPipelineState.IsDepthBufferReadOnly    = false;
+        DebugLinesPipelineState.LineWidth                = 2;
+
+        // Create buffers and fences
+        {
+            for (int i = 0; i < DEBUG_LINES_BUFFERS_COUNT; ++i)
+            {
+                gpu::FBufferDescription BufferDescription;
+                BufferDescription.Data   = nullptr;
+                BufferDescription.Offset = 0;
+                BufferDescription.Size   = sizeof(glm::vec3) * 3 * MaxDebugLines;
+
+                FDString BufferName        = SPrintf("DebugLinesVBO_%d", i);
+                DebugLinesVertexBuffers[i] = gpu::CreateBuffer(BufferDescription, gpu::EBufferUsage::DYNAMIC, BufferName);
+
+                DebugLinesFences[i] = gpu::CreateFence("");
+            }
+            FArray<gpu::FVertexAttribute> VertexAttributes{ 3, false };
+
+            // Position and color
+            constexpr u32 Stride = sizeof(glm::vec3) * 2 + sizeof(i32);
+            VertexAttributes.Add({ 0, 3, EType::FLOAT, false, Stride, 0, 0, 0 });
+            VertexAttributes.Add({ 1, 3, EType::FLOAT, false, Stride, sizeof(glm::vec3), 0, 0 });
+            VertexAttributes.Add({ 2, 1, EType::INT_32, false, Stride, sizeof(glm::vec3) * 2, 0, 0 });
+
+            DebugLinesVAO = gpu::CreateVertexArray("DebugLinesVAO", &VertexAttributes, nullptr, nullptr, gpu::EDrawMode::LINES, 0, 0, false);
+            VertexAttributes.Free();
+        }
+
 #endif
     }
 
@@ -463,18 +502,23 @@ namespace lucid::scene
         RenderWorldGrid(InRenderView);
         gpu::PopDebugGroup();
 
+        gpu::PushDebugGroup("Debug lines");
+        RenderDebugLines(InRenderView);
+        gpu::PopDebugGroup();
+
         gpu::PushDebugGroup("Hitmap");
         GenerateHitmap(InSceneToRender, InRenderView);
         gpu::PopDebugGroup();
 
         gpu::PopDebugGroup();
 #endif
-        
+
         gpu::PushDebugGroup("Gamma correction");
         DoGammaCorrection(LightingPassColorBuffer);
         gpu::PopDebugGroup();
 #if DEVELOPMENT
         GRenderStats.FrameTimeMiliseconds = FrameTimer->EndTimer();
+        RemoveStaleDebugLines();
 #endif
     }
 
@@ -627,7 +671,7 @@ namespace lucid::scene
 
         // Calculate SSAO
         gpu::PushDebugGroup("SSAO");
-        
+
         BindAndClearFramebuffer(SSAOFramebuffer);
         SSAOShader->Use();
         SetupRendererWideUniforms(SSAOShader, InRenderView);
@@ -955,6 +999,80 @@ namespace lucid::scene
         SetupRendererWideUniforms(WorldGridShader, InRenderView);
         ScreenWideQuadVAO->Bind();
         ScreenWideQuadVAO->Draw();
+    }
+
+    void CForwardRenderer::RenderDebugLines(const FRenderView* InRenderView)
+    {
+        // Make sure that the buffer is no longer used
+        int BufferIdx = GRenderStats.FrameNumber % DEBUG_LINES_BUFFERS_COUNT;
+
+        gpu::CGPUBuffer* DebugLinesBuffer      = DebugLinesVertexBuffers[BufferIdx];
+        gpu::CFence*     DebugLinesBufferFence = DebugLinesFences[BufferIdx];
+
+        DebugLinesBufferFence->Wait(0);
+
+        // Add lines visualizing the world space
+        {
+            const glm::mat3 ViewMatrixRotation = glm::mat3(InRenderView->Camera->GetViewMatrix());
+            const glm::vec3 AxisCenter{ -0.95, -0.90, 0 };
+            const glm::vec3 AxisEndX = AxisCenter + (ViewMatrixRotation * glm::vec3{ 0.05, 0, 0 });
+            const glm::vec3 AxisEndY = AxisCenter + (ViewMatrixRotation * glm::vec3{ 0, 0.05, 0 });
+            const glm::vec3 AxisEndZ = AxisCenter + (ViewMatrixRotation * glm::vec3{ 0, 0, 0.05 });
+
+            AddDebugLine(AxisCenter, AxisEndX, { 1, 0, 0 }, { 1, 0, 0 }, 0, ESpaceType::CLIP_SPACE);
+            AddDebugLine(AxisCenter, AxisEndY, { 0, 1, 0 }, { 0, 1, 0 }, 0, ESpaceType::CLIP_SPACE);
+            AddDebugLine(AxisCenter, AxisEndZ, { 0, 0, 1 }, { 0, 0, 1 }, 0, ESpaceType::CLIP_SPACE);
+        }
+
+        // Copy lines data to GPU
+        DebugLinesBuffer->Bind(gpu::EBufferBindPoint::VERTEX);
+        char* DebugLinesMem = (char*)DebugLinesBuffer->MemoryMap(
+          (gpu::EBufferAccessPolicy)(gpu::EBufferAccessPolicy::BUFFER_WRITE | gpu::EBufferAccessPolicy::BUFFER_UNSYNCHRONIZED));
+
+        for (const FDebugLine& DebugLine : DebugLines)
+        {
+            memcpy(DebugLinesMem, &DebugLine.Start, sizeof(DebugLine.Start));
+            DebugLinesMem += sizeof(DebugLine.Start);
+
+            memcpy(DebugLinesMem, &DebugLine.StartColor, sizeof(DebugLine.StartColor));
+            DebugLinesMem += sizeof(DebugLine.StartColor);
+
+            memcpy(DebugLinesMem, &DebugLine.SpaceType, sizeof(DebugLine.SpaceType));
+            DebugLinesMem += sizeof(DebugLine.SpaceType);
+
+            memcpy(DebugLinesMem, &DebugLine.End, sizeof(DebugLine.End));
+            DebugLinesMem += sizeof(DebugLine.End);
+
+            memcpy(DebugLinesMem, &DebugLine.EndColor, sizeof(DebugLine.EndColor));
+            DebugLinesMem += sizeof(DebugLine.EndColor);
+
+            memcpy(DebugLinesMem, &DebugLine.SpaceType, sizeof(DebugLine.SpaceType));
+            DebugLinesMem += sizeof(DebugLine.SpaceType);
+        }
+
+        DebugLinesBuffer->MemoryUnmap();
+        DebugLinesBuffer->Unbind();
+
+        // Prepare the pipeline
+        DebugLinesShader->Use();
+        DebugLinesVAO->Bind();
+
+        ConfigurePipelineState(DebugLinesPipelineState);
+        SetupRendererWideUniforms(DebugLinesShader, InRenderView);
+
+        // Bind the updated buffer
+        constexpr u32 Stride = sizeof(glm::vec3) * 2 + sizeof(i32);
+        DebugLinesBuffer->BindAsVertexBuffer(0, Stride);
+        DebugLinesBuffer->BindAsVertexBuffer(1, Stride);
+        DebugLinesBuffer->BindAsVertexBuffer(2, Stride);
+
+        // Draw the lines
+        DebugLinesVAO->Draw(0, DebugLines.size() * 2);
+
+        // Remove the old fence and create a new one
+        DebugLinesBufferFence->Free();
+        delete DebugLinesBufferFence;
+        DebugLinesFences[BufferIdx] = gpu::CreateFence("");
     }
 
 #endif

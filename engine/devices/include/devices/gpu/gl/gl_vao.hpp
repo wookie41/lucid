@@ -13,8 +13,8 @@ namespace lucid::gpu
                        const EDrawMode& InDrawMode,
                        const uint32_t& InVertexCount,
                        const uint32_t& InElementCount,
-                       CBuffer* InVertexBuffer,
-                       CBuffer* InElementBuffer,
+                       CGPUBuffer* InVertexBuffer,
+                       CGPUBuffer* InElementBuffer,
                        const bool& InAutoDestroyBuffers);
 
         void SetObjectName() override;
@@ -51,8 +51,8 @@ namespace lucid::gpu
         uint32_t ElementCount;
 
         bool AutoDestroyBuffers;
-        CBuffer* VertexBuffer;
-        CBuffer* ElementBuffer;
+        CGPUBuffer* VertexBuffer;
+        CGPUBuffer* ElementBuffer;
 
         GLuint GLVAOHandle;
     };

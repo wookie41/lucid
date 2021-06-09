@@ -22,11 +22,11 @@ vec4 Grid(vec3 InFragPos, float InScale)
     vec4  Color      = vec4(0.2, 0.2, 0.2, 1.0 - min(Line, 1.0));
 
     // z axis
-    if (InFragPos.x > -0.1 * MinimumX && InFragPos.x < 0.1 * MinimumX)
+    if (InFragPos.x > -1 * MinimumX && InFragPos.x < 1 * MinimumX)
         Color.b = 1.0;
 
     // x axis
-    if (InFragPos.z > -0.1 * MinimumZ && InFragPos.z < 0.1 * MinimumZ)
+    if (InFragPos.z > -1 * MinimumZ && InFragPos.z < 1 * MinimumZ)
         Color.r = 1.0;
 
     return Color;

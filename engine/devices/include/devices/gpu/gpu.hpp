@@ -104,6 +104,12 @@ namespace lucid::gpu
     void DisableSRGBFramebuffer();
 
     /////////////////////////////////////
+    //            Rasterizer           //
+    /////////////////////////////////////
+
+    void SetLineWidth(const float& InWidth);
+
+    /////////////////////////////////////
     //              GPU Info           //
     /////////////////////////////////////
 
@@ -116,7 +122,7 @@ namespace lucid::gpu
     class CShader;
     class CTexture;
     class CRenderbuffer;
-    class CBuffer;
+    class CGPUBuffer;
     class CVertexArray;
     class CCubemap;
 
@@ -141,6 +147,8 @@ namespace lucid::gpu
         bool                IsDepthBufferReadOnly = false;
 
         FViewport           Viewport;
+
+        float               LineWidth = 1;
     };
     
     struct FGPUState
@@ -155,11 +163,11 @@ namespace lucid::gpu
         CRenderbuffer*  Renderbuffer    = nullptr;
         CVertexArray*   VAO             = nullptr;
 
-        CBuffer*    VertexBuffer        = nullptr;
-        CBuffer*    ElementBuffer       = nullptr;
-        CBuffer*    ReadBuffer          = nullptr;
-        CBuffer*    WriteBuffer         = nullptr;
-        CBuffer*    ShaderStorageBuffer = nullptr;
+        CGPUBuffer*    VertexBuffer        = nullptr;
+        CGPUBuffer*    ElementBuffer       = nullptr;
+        CGPUBuffer*    ReadBuffer          = nullptr;
+        CGPUBuffer*    WriteBuffer         = nullptr;
+        CGPUBuffer*    ShaderStorageBuffer = nullptr;
 
        FPipelineState PipelineState; 
     };

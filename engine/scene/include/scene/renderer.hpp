@@ -1,5 +1,6 @@
 #pragma once
 
+#include "enums.hpp"
 #include "scene/actors/lights.hpp"
 #include "settings.hpp"
 #include "devices/gpu/texture.hpp"
@@ -22,6 +23,26 @@ namespace lucid::scene
     {
         CCamera*       Camera;
         gpu::FViewport Viewport;
+    };
+
+    struct FDebugLine
+    {
+        FDebugLine(const glm::vec3&  InStart,
+                   const glm::vec3&  InEnd,
+                   const glm::vec3&  InStartColor,
+                   const glm::vec3&  InEndColor,
+                   const float&      InTime,
+                   const ESpaceType& InSpaceType)
+        : Start(InStart), End(InEnd), StartColor(InStartColor), EndColor(InEndColor), RemoveTime(InTime), SpaceType(InSpaceType)
+        {
+        }
+        
+        glm::vec3  Start{ 0 };
+        glm::vec3  StartColor{ 0 };
+        glm::vec3  End{ 0 };
+        glm::vec3  EndColor{ 0 };
+        float      RemoveTime{ 0 };
+        ESpaceType SpaceType = WORLD_SPACE;
     };
 
     /////////////////////////////////////
@@ -143,6 +164,18 @@ namespace lucid::scene
 #if DEVELOPMENT
         inline const FHitMap& GetCachedHitMap() const { return CachedHitMap; }
         inline gpu::CTexture* GetLightBulbTexture() const { return LightBulbTexture; }
+
+        /** Queues a debug line to draw during the next Render() call.
+         * The debug line will persist for n seconds after it's added.
+         * If you want to  draw a line only for one frame, then pass 0 as InPersistTime.
+         */
+        void AddDebugLine(const glm::vec3&  InStart,
+                          const glm::vec3&  InEnd,
+                          const glm::vec3&  InStartColor,
+                          const glm::vec3&  InEndColor,
+                          const float&      InPersistTime = 0,
+                          const ESpaceType& InSpaceType   = WORLD_SPACE);
+
 #endif
 
         virtual ~CRenderer() = default;
@@ -150,6 +183,13 @@ namespace lucid::scene
         glm::uvec2 ResultResolution;
 
       protected:
+#if DEVELOPMENT
+        void RemoveStaleDebugLines();
+
+        const u16               MaxDebugLines = 1024;
+        std::vector<FDebugLine> DebugLines;
+#endif
+
         /** Lights and shadow maps arrays */
         CLight**     CreatedLights     = nullptr;
         CShadowMap** CreatedShadowMaps = nullptr;

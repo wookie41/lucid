@@ -75,6 +75,11 @@
             "Name": "WorldGrid",
             "VertexShaderSourcePath": "shaders/glsl/world_grid.vert",
             "FragmentShaderSourcePath": "shaders/glsl/world_grid.frag"
+        },
+        {
+            "Name": "DebugLines",
+            "VertexShaderSourcePath": "shaders/glsl/debug_line.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/debug_line.frag"
         }
     ]
 }

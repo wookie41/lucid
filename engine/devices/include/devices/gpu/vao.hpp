@@ -10,7 +10,7 @@ namespace lucid::gpu
 {
     void Init(const u8& GLMajorVersion, const u8& GLMinorVersion);
 
-    class CBuffer;
+    class CGPUBuffer;
 
     struct FVertexAttribute
     {
@@ -21,6 +21,7 @@ namespace lucid::gpu
         u32 Stride = 0;
         u32 FirstElementOffset = 0;
         u32 Divisor = 0;
+        i32 BufferBindingIndex = -1;
     };
 
     enum EDrawMode
@@ -71,8 +72,8 @@ namespace lucid::gpu
     };
     CVertexArray* CreateVertexArray(const FString& InName,
                                     FArray<FVertexAttribute>* VertexArrayAttributes,
-                                    CBuffer* VertexBuffer,
-                                    CBuffer* ElementBuffer,
+                                    CGPUBuffer* VertexBuffer,
+                                    CGPUBuffer* ElementBuffer,
                                     const EDrawMode& DrawMode,
                                     const u32& VertexCount,
                                     const u32& ElementCount,

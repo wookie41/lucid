@@ -208,6 +208,11 @@ namespace lucid::gpu
             SetViewport(InPipelineState.Viewport);
         }
 
+        if (GGPUState->PipelineState.LineWidth != InPipelineState.LineWidth)
+        {
+            SetLineWidth(InPipelineState.LineWidth);
+        }
+
         GGPUState->PipelineState = InPipelineState;
     }
 
@@ -247,5 +252,10 @@ namespace lucid::gpu
     void PopDebugGroup()
     {
         glPopDebugGroup();
+    }
+    
+    void SetLineWidth(const float& InWidth)
+    {
+        glLineWidth(InWidth);
     }
 } // namespace lucid::gpu

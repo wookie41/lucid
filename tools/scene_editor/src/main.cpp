@@ -231,7 +231,7 @@ int main(int argc, char** argv)
     scene::FRenderView RenderView;
     RenderView.Camera   = GSceneEditorState.CurrentCamera; // @TODO is this needed???
     RenderView.Viewport = { 0, 0, 1920, 1080 }; // @TODO Engine level variable
-
+    
     while (GSceneEditorState.bIsRunning)
     {
         GSceneEditorState.Window->Prepare();

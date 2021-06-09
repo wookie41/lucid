@@ -10,7 +10,7 @@ namespace lucid::gpu
 
     struct BufferBinding
     {
-        CBuffer* BufferToUse = nullptr;
+        CGPUBuffer* BufferToUse = nullptr;
         EBufferBindPoint BindPoint = EBufferBindPoint::UNBOUND;
         int32_t Index = -1; // Used only for indexed buffers
     };

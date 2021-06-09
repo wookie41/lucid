@@ -1,9 +1,10 @@
 ﻿#include "scene/renderer.hpp"
 
 #include <stb_ds.h>
-#include <devices/gpu/texture_enums.hpp>
 
+#include "platform/util.hpp"
 
+#include "devices/gpu/texture_enums.hpp"
 #include "devices/gpu/cubemap.hpp"
 #include "devices/gpu/shader.hpp"
 #include "devices/gpu/texture.hpp"
@@ -15,7 +16,7 @@ namespace lucid::scene
     /////////////////////////////////////
 
     FRenderStats GRenderStats;
-    
+
     CDirectionalLight* CRenderer::CreateDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow)
     {
         auto* DirectionalLight = new CDirectionalLight(InName, InParent, InWorld);
@@ -60,7 +61,7 @@ namespace lucid::scene
         if (InLightType == ELightType::POINT)
         {
             gpu::CTexture* ShadowMapTexture = gpu::CreateCubemap(ShadowMapSizeByQuality[DefaultShadowMapQuality].x,
-                                                                ShadowMapSizeByQuality[DefaultShadowMapQuality].y,
+                                                                 ShadowMapSizeByQuality[DefaultShadowMapQuality].y,
                                                                  gpu::ETextureDataFormat::DEPTH_COMPONENT,
                                                                  gpu::ETexturePixelFormat::DEPTH_COMPONENT,
                                                                  gpu::ETextureDataType::FLOAT,
@@ -71,7 +72,7 @@ namespace lucid::scene
                                                                  gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
                                                                  gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
                                                                  gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
-                                                                 { 0, 0, 0, 0});
+                                                                 { 0, 0, 0, 0 });
 
             auto* ShadowMap = new CShadowMap(arrlen(CreatedShadowMaps), ShadowMapTexture, DefaultShadowMapQuality);
             arrput(CreatedShadowMaps, ShadowMap);
@@ -90,13 +91,12 @@ namespace lucid::scene
         ShadowMapTexture->SetWrapTFilter(lucid::gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
         ShadowMapTexture->SetMinFilter(lucid::gpu::EMinTextureFilter::NEAREST);
         ShadowMapTexture->SetMagFilter(lucid::gpu::EMagTextureFilter::NEAREST);
-        ShadowMapTexture->SetBorderColor({1, 1, 1, 1});
+        ShadowMapTexture->SetBorderColor({ 1, 1, 1, 1 });
 
         auto* ShadowMap = new CShadowMap(arrlen(CreatedShadowMaps), ShadowMapTexture, DefaultShadowMapQuality);
         arrput(CreatedShadowMaps, ShadowMap);
         return ShadowMap;
     }
-
 
     void CShadowMap::Free()
     {
@@ -113,4 +113,36 @@ namespace lucid::scene
         InShadowMap->Free();
         delete InShadowMap;
     }
+
+#if DEVELOPMENT
+    void CRenderer::AddDebugLine(const glm::vec3&  InStart,
+                                 const glm::vec3&  InEnd,
+                                 const glm::vec3&  InStartColor,
+                                 const glm::vec3&  InEndColor,
+                                 const float&      InPersistTime,
+                                 const ESpaceType& InSpaceType)
+    {
+        DebugLines.emplace_back(InStart, InEnd, InStartColor, InEndColor, InPersistTime < 0 ? -1 : platform::GetCurrentTimeSeconds() + InPersistTime, InSpaceType);
+    }
+
+    void CRenderer::RemoveStaleDebugLines()
+    {
+        const float             CurrentTime = platform::GetCurrentTimeSeconds();
+        std::vector<FDebugLine> PersistedLines;
+
+        for (int i = 0; i < DebugLines.size(); ++i)
+        {
+            const FDebugLine& DebugLine = DebugLines[i];
+            if (DebugLine.RemoveTime < 0 || DebugLine.RemoveTime > CurrentTime)
+            {
+                PersistedLines.push_back(DebugLine);
+            }
+        }
+
+        DebugLines.clear();
+        DebugLines = std::move(PersistedLines);
+    }
+
+#endif
+
 } // namespace lucid::scene
