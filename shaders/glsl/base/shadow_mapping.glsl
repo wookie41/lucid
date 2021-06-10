@@ -12,7 +12,7 @@ float CalculateShadow(in vec3 FragPos, in vec3 NormalN, in vec3 LightDirN)
     clipSpaceCoords = (clipSpaceCoords * 0.5) + 0.5;
     if (clipSpaceCoords.z > 1.0)
     {
-        return 1.0;
+        return 0;
     }
     float currentDepth = clipSpaceCoords.z;
     float samplesSum = 0;

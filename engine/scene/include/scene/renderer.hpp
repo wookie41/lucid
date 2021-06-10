@@ -188,6 +188,10 @@ namespace lucid::scene
 
         const u16               MaxDebugLines = 1024;
         std::vector<FDebugLine> DebugLines;
+
+    public:
+        virtual void UIDrawSettingsWindow() = 0;
+        
 #endif
 
         /** Lights and shadow maps arrays */

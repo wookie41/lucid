@@ -155,6 +155,9 @@ namespace lucid::scene
 
 #if DEVELOPMENT
       public:
+
+        void UIDrawSettingsWindow() override;
+        
         glm::vec2 BillboardViewportSize{ 0.1, 0.15 };
 
         /**

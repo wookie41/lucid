@@ -1075,6 +1075,17 @@ namespace lucid::scene
         DebugLinesFences[BufferIdx] = gpu::CreateFence("");
     }
 
+    void CForwardRenderer::UIDrawSettingsWindow()
+    {
+        ImGui::SetNextWindowSize({0, 0});
+        ImGui::Begin("Renderer settings");
+        {
+            ImGui::DragFloat("Ambient strength", &AmbientStrength, 0.01, 0, 1);
+            ImGui::DragInt("Num PCF samples", &NumSamplesPCF, 1, 0, 64);
+        }
+        ImGui::End();
+    }
+
 #endif
 
     void CForwardRenderer::DoGammaCorrection(gpu::CTexture* InTexture)

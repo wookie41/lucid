@@ -159,10 +159,10 @@ struct FSceneEditorState
     bool bSavingWorldToFile = false;
     bool bCreatingNewWorld  = false;
 
-    static constexpr int NumVideoMemoryUsageSamples            = 60 * 5;
+    static constexpr int NumVideoMemoryUsageSamples                   = 60 * 5;
     float                VideoMemoryUsage[NumVideoMemoryUsageSamples] = { 0 };
-    int                  VideoMemoryUsageIndex                 = 0;
-    float                SecondsSinceLastVideoMemorySnapshot   = 0;
+    int                  VideoMemoryUsageIndex                        = 0;
+    float                SecondsSinceLastVideoMemorySnapshot          = 0;
 
     static constexpr int NumDrawCallSamples               = 60 * 5;
     float                NumDrawCalls[NumDrawCallSamples] = { 0 };
@@ -172,8 +172,10 @@ struct FSceneEditorState
     float                FrameTimes[NumFrameTimesSamples] = { 0 };
     int                  FrameTimesIndex                  = 0;
 
-    bool bShowingControlsWindow = false;
-    bool bShowingStatsWindow    = false;
+    bool bShowingControlsWindow        = false;
+    bool bShowingStatsWindow           = false;
+    bool bShowingRendererSettinsWindow = false;
+
 } GSceneEditorState;
 
 void InitializeSceneEditor();
@@ -201,6 +203,7 @@ void UIDrawActorResourceCreationMenu();
 void UIDrawCommonActorsWindow();
 void UIDrawHelpWindow();
 void UIDrawStatsWindow();
+void UIDrawSettingsWindows();
 
 void UIDrawDraggableImage(const char*    InDragDropId,
                           gpu::CTexture* InTexture,
@@ -231,7 +234,7 @@ int main(int argc, char** argv)
     scene::FRenderView RenderView;
     RenderView.Camera   = GSceneEditorState.CurrentCamera; // @TODO is this needed???
     RenderView.Viewport = { 0, 0, 1920, 1080 }; // @TODO Engine level variable
-    
+
     while (GSceneEditorState.bIsRunning)
     {
         GSceneEditorState.Window->Prepare();
@@ -264,9 +267,8 @@ int main(int argc, char** argv)
 
             if (GSceneEditorState.SecondsSinceLastVideoMemorySnapshot > 1)
             {
-                GSceneEditorState.VideoMemoryUsage[GSceneEditorState.VideoMemoryUsageIndex++ % GSceneEditorState.NumVideoMemoryUsageSamples] = float(
-                  gpu::GGPUStatus.TotalAvailableVideoMemoryKB - gpu::GGPUStatus.CurrentAvailableVideoMemoryKB) /
-                  1024.f;
+                GSceneEditorState.VideoMemoryUsage[GSceneEditorState.VideoMemoryUsageIndex++ % GSceneEditorState.NumVideoMemoryUsageSamples] =
+                  float(gpu::GGPUStatus.TotalAvailableVideoMemoryKB - gpu::GGPUStatus.CurrentAvailableVideoMemoryKB) / 1024.f;
                 GSceneEditorState.SecondsSinceLastVideoMemorySnapshot = 0;
             }
 
@@ -291,6 +293,7 @@ int main(int argc, char** argv)
                 UIDrawCommonActorsWindow();
                 UIDrawFileDialog();
                 UIDrawStatsWindow();
+                UIDrawSettingsWindows();
                 ImGui::ShowDemoWindow();
             }
 
@@ -665,6 +668,15 @@ void UISetupDockspace()
                     GSceneEditorState.CurrentlySelectedActor = nullptr;
                     GSceneEditorState.LastDeletedActor       = nullptr;
                 }
+            }
+
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Settings"))
+        {
+            if (ImGui::MenuItem("Renderer") && !GSceneEditorState.bShowingControlsWindow)
+            {
+                GSceneEditorState.bShowingRendererSettinsWindow = true;
             }
 
             ImGui::EndMenu();
@@ -1812,5 +1824,13 @@ void UIDrawStatsWindow()
         ImGui::PlotLines("Frame time (ms)", GSceneEditorState.FrameTimes, GSceneEditorState.NumFrameTimesSamples, 0, NULL, 0.0f, 120, ImVec2(0, 100));
 
         ImGui::End();
+    }
+}
+
+void UIDrawSettingsWindows()
+{
+    if (GSceneEditorState.bShowingRendererSettinsWindow)
+    {
+        GEngine.GetRenderer()->UIDrawSettingsWindow();
     }
 }
