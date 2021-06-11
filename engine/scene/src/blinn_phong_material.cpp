@@ -1,8 +1,8 @@
 #include "scene/blinn_phong_material.hpp"
 
-
 #include "engine/engine.hpp"
 #include "devices/gpu/shader.hpp"
+#include "scene/forward_renderer.hpp"
 
 #include "schemas/binary.hpp"
 #include "schemas/json.hpp"
@@ -18,42 +18,46 @@ namespace lucid::scene
     static const FSString DIFFUSE_COLOR("uMaterialDiffuseColor");
     static const FSString SPECULAR_COLOR("uMaterialSpecularColor");
 
-    CBlinnPhongMaterial::CBlinnPhongMaterial(const UUID& InId,
-                                             const FDString& InName,
-                                             const FDString& InResourcePath,
-                                             gpu::CShader* InShader)
+    CBlinnPhongMaterial::CBlinnPhongMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader)
     : CMaterial(InId, InName, InResourcePath, InShader)
     {
     }
 
-    void CBlinnPhongMaterial::SetupShader(gpu::CShader* Shader)
-    {
-        Shader->SetInt(SHININESS, Shininess);
-        Shader->SetVector(DIFFUSE_COLOR, DiffuseColor);
-        Shader->SetVector(SPECULAR_COLOR, SpecularColor);
-    };
+    // void CBlinnPhongMaterial::SetupShader(gpu::CShader* Shader)
+    // {
+    // Shader->SetInt(SHININESS, Shininess);
+    // Shader->SetVector(DIFFUSE_COLOR, DiffuseColor);
+    // Shader->SetVector(SPECULAR_COLOR, SpecularColor);
+    // };
 
-    CBlinnPhongMaterial* CBlinnPhongMaterial::CreateMaterial(const FBlinnPhongMaterialDescription& Description,
-                                                             const FDString& InResourcePath)
+    CBlinnPhongMaterial* CBlinnPhongMaterial::CreateMaterial(const FBlinnPhongMaterialDescription& Description, const FDString& InResourcePath)
     {
-        gpu::CShader* Shader = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);
-        auto* Material = new CBlinnPhongMaterial{ Description.Id, Description.Name, InResourcePath, Shader };
+        gpu::CShader* Shader   = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);
+        auto*         Material = new CBlinnPhongMaterial{ Description.Id, Description.Name, InResourcePath, Shader };
 
-        Material->Shininess = Description.Shininess;
+        Material->Shininess     = Description.Shininess;
         Material->SpecularColor = { Description.SpecularColor[0], Description.SpecularColor[1], Description.SpecularColor[2] };
-        Material->DiffuseColor = { Description.DiffuseColor[0], Description.DiffuseColor[1], Description.DiffuseColor[2] };
+        Material->DiffuseColor  = { Description.DiffuseColor[0], Description.DiffuseColor[1], Description.DiffuseColor[2] };
 
         return Material;
+    }
+
+    void CBlinnPhongMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr) {}
+
+    void CBlinnPhongMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr)
+    {
+        InPrepassUniforms->bHasNormalMap       = false;
+        InPrepassUniforms->bHasDisplacementMap = false;
     }
 
     void CBlinnPhongMaterial::InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat)
     {
         FBlinnPhongMaterialDescription BlinnPhongMaterialDescription;
-        BlinnPhongMaterialDescription.Id = ID;
-        BlinnPhongMaterialDescription.Name = FDString{ *Name, Name.GetLength() };
-        BlinnPhongMaterialDescription.ShaderName = FDString{ *Shader->GetName(), Shader->GetName().GetLength() };
-        BlinnPhongMaterialDescription.Shininess = Shininess;
-        BlinnPhongMaterialDescription.DiffuseColor = VecToFloat3(DiffuseColor);
+        BlinnPhongMaterialDescription.Id            = ID;
+        BlinnPhongMaterialDescription.Name          = FDString{ *Name, Name.GetLength() };
+        BlinnPhongMaterialDescription.ShaderName    = FDString{ *Shader->GetName(), Shader->GetName().GetLength() };
+        BlinnPhongMaterialDescription.Shininess     = Shininess;
+        BlinnPhongMaterialDescription.DiffuseColor  = VecToFloat3(DiffuseColor);
         BlinnPhongMaterialDescription.SpecularColor = VecToFloat3(SpecularColor);
 
         switch (InFileFormat)
@@ -77,13 +81,19 @@ namespace lucid::scene
 
     CMaterial* CBlinnPhongMaterial::GetCopy() const
     {
-        auto* Copy = new CBlinnPhongMaterial { ID, Name, ResourcePath, Shader };
-        Copy->Shininess = Shininess;
-        Copy->DiffuseColor = DiffuseColor;
+        auto* Copy          = new CBlinnPhongMaterial{ ID, Name, ResourcePath, Shader };
+        Copy->Shininess     = Shininess;
+        Copy->DiffuseColor  = DiffuseColor;
         Copy->SpecularColor = SpecularColor;
         return Copy;
     }
-    
+
+    u16 CBlinnPhongMaterial::GetShaderDataSize() const
+    {
+        constexpr u16 DataSize = sizeof(Shininess) + sizeof(DiffuseColor) + sizeof(SpecularColor);
+        return DataSize;
+    }
+
     /* ---------------------------------------------------------------------------*/
 
     static const FSString DIFFUSE_MAP("uMaterialDiffuseMap");
@@ -94,61 +104,58 @@ namespace lucid::scene
     static const FSString HAS_DISPLACEMENT_MAP("uMaterialHasDisplacementMap");
     static const FSString DISPLACEMENT_MAP("uMaterialDisplacementMap");
 
-    CBlinnPhongMapsMaterial::CBlinnPhongMapsMaterial(const UUID& InId,
-                                                     const FDString& InName,
-                                                     const FDString& InResourcePath,
-                                                     gpu::CShader* InShader)
+    CBlinnPhongMapsMaterial::CBlinnPhongMapsMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader)
     : CMaterial(InId, InName, InResourcePath, InShader)
     {
     }
 
-    void CBlinnPhongMapsMaterial::SetupShader(gpu::CShader* Shader)
-    {
-        Shader->SetInt(SHININESS, Shininess);
-        if (DiffuseMap)
-        {
-            Shader->UseTexture(DIFFUSE_MAP, DiffuseMap->TextureHandle);            
-        }
-
-        if (SpecularMap)
-        {
-            Shader->UseTexture(SPECULAR_MAP, SpecularMap->TextureHandle);
-            Shader->SetBool(HAS_SPECULAR_MAP, true);
-        }
-        else
-        {
-            Shader->SetBool(HAS_SPECULAR_MAP, false);
-            Shader->SetVector(SPECULAR_COLOR, SpecularColor);
-        }
-
-        if (NormalMap)
-        {
-            Shader->UseTexture(NORMAL_MAP, NormalMap->TextureHandle);
-            Shader->SetBool(HAS_NORMAL_MAP, true);
-        }
-        else
-        {
-            Shader->SetBool(HAS_NORMAL_MAP, false);
-        }
-
-        if (DisplacementMap)
-        {
-            Shader->UseTexture(DISPLACEMENT_MAP, DisplacementMap->TextureHandle);
-            Shader->SetBool(HAS_DISPLACEMENT_MAP, true);
-        }
-        else
-        {
-            Shader->SetBool(HAS_DISPLACEMENT_MAP, false);
-        }
-    };
+    // void CBlinnPhongMapsMaterial::SetupShader(gpu::CShader* Shader)
+    // {
+    //     Shader->SetInt(SHININESS, Shininess);
+    //     if (DiffuseMap)
+    //     {
+    //         Shader->UseTexture(DIFFUSE_MAP, DiffuseMap->TextureHandle);
+    //     }
+    //
+    //     if (SpecularMap)
+    //     {
+    //         Shader->UseTexture(SPECULAR_MAP, SpecularMap->TextureHandle);
+    //         Shader->SetBool(HAS_SPECULAR_MAP, true);
+    //     }
+    //     else
+    //     {
+    //         Shader->SetBool(HAS_SPECULAR_MAP, false);
+    //         Shader->SetVector(SPECULAR_COLOR, SpecularColor);
+    //     }
+    //
+    //     if (NormalMap)
+    //     {
+    //         Shader->UseTexture(NORMAL_MAP, NormalMap->TextureHandle);
+    //         Shader->SetBool(HAS_NORMAL_MAP, true);
+    //     }
+    //     else
+    //     {
+    //         Shader->SetBool(HAS_NORMAL_MAP, false);
+    //     }
+    //
+    //     if (DisplacementMap)
+    //     {
+    //         Shader->UseTexture(DISPLACEMENT_MAP, DisplacementMap->TextureHandle);
+    //         Shader->SetBool(HAS_DISPLACEMENT_MAP, true);
+    //     }
+    //     else
+    //     {
+    //         Shader->SetBool(HAS_DISPLACEMENT_MAP, false);
+    //     }
+    // };
 
     CBlinnPhongMapsMaterial* CBlinnPhongMapsMaterial::CreateMaterial(const FBlinnPhongMapsMaterialDescription& Description,
-                                                                     const FDString& InResourcePath)
+                                                                     const FDString&                           InResourcePath)
     {
-        gpu::CShader* Shader = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);
-        auto* Material = new CBlinnPhongMapsMaterial{ Description.Id, Description.Name, InResourcePath, Shader };
+        gpu::CShader* Shader   = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);
+        auto*         Material = new CBlinnPhongMapsMaterial{ Description.Id, Description.Name, InResourcePath, Shader };
 
-        Material->Shininess = Description.Shininess;
+        Material->Shininess  = Description.Shininess;
         Material->DiffuseMap = GEngine.GetTexturesHolder().Get(Description.DiffuseTextureID);
         if (Description.SpecularTextureID != sole::INVALID_UUID)
         {
@@ -159,7 +166,7 @@ namespace lucid::scene
             Material->SpecularColor = Float3ToVec(Description.SpecularColor);
         }
 
-        if (Description.NormalTextureID  != sole::INVALID_UUID)
+        if (Description.NormalTextureID != sole::INVALID_UUID)
         {
             Material->NormalMap = GEngine.GetTexturesHolder().Get(Description.NormalTextureID);
         }
@@ -172,12 +179,23 @@ namespace lucid::scene
         return Material;
     }
 
+    void CBlinnPhongMapsMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr) {}
+
+    void CBlinnPhongMapsMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr)
+    {
+        InPrepassUniforms->bHasNormalMap = NormalMap != nullptr;
+        *InBindlessTexturesArrayPtr      = NormalMapBindlessHandle;
+
+        InPrepassUniforms->bHasDisplacementMap = DisplacementMap != nullptr;
+        *(InBindlessTexturesArrayPtr + 1)      = DisplacementMapBindlessHandle;
+    }
+
     void CBlinnPhongMapsMaterial::InternalSaveToResourceFile(const EFileFormat& InFileFormat)
     {
         FBlinnPhongMapsMaterialDescription BlinnPhongMapsMaterialDescription;
-        BlinnPhongMapsMaterialDescription.Id = ID;
-        BlinnPhongMapsMaterialDescription.Name = FDString { *Name, Name.GetLength() };
-        BlinnPhongMapsMaterialDescription.ShaderName = FDString { *Shader->GetName(), Shader->GetName().GetLength() };
+        BlinnPhongMapsMaterialDescription.Id         = ID;
+        BlinnPhongMapsMaterialDescription.Name       = FDString{ *Name, Name.GetLength() };
+        BlinnPhongMapsMaterialDescription.ShaderName = FDString{ *Shader->GetName(), Shader->GetName().GetLength() };
 
         if (DiffuseMap)
         {
@@ -187,14 +205,14 @@ namespace lucid::scene
         {
             BlinnPhongMapsMaterialDescription.DiffuseTextureID = sole::INVALID_UUID;
         }
-        
+
         if (SpecularMap)
         {
             BlinnPhongMapsMaterialDescription.SpecularTextureID = SpecularMap->GetID();
         }
         else
         {
-            BlinnPhongMapsMaterialDescription.SpecularColor = VecToFloat3(SpecularColor);
+            BlinnPhongMapsMaterialDescription.SpecularColor     = VecToFloat3(SpecularColor);
             BlinnPhongMapsMaterialDescription.SpecularTextureID = sole::INVALID_UUID;
         }
 
@@ -226,7 +244,7 @@ namespace lucid::scene
             break;
         }
     }
-    
+
     void CBlinnPhongMapsMaterial::UIDrawMaterialEditor()
     {
         CMaterial::UIDrawMaterialEditor();
@@ -238,46 +256,63 @@ namespace lucid::scene
 
         ImGui::Text("Specular texture:");
         ImGuiTextureResourcePicker("blinn_phong_maps_specular", &SpecularMap);
-        
+
         ImGui::Text("Normal texture:");
         ImGuiTextureResourcePicker("blinn_phong_maps_normal", &NormalMap);
-        
+
         ImGui::Text("Displacement texture:");
         ImGuiTextureResourcePicker("blinn_phong_maps_displacment", &DisplacementMap);
     }
 
     CMaterial* CBlinnPhongMapsMaterial::GetCopy() const
     {
-        auto* Copy = new CBlinnPhongMapsMaterial { ID, Name, ResourcePath, Shader };
-        Copy->Shininess = Shininess;
-        Copy->SpecularColor = SpecularColor;
-        Copy->DiffuseMap = DiffuseMap;
-        Copy->SpecularMap = SpecularMap;
-        Copy->NormalMap = NormalMap;
+        auto* Copy            = new CBlinnPhongMapsMaterial{ ID, Name, ResourcePath, Shader };
+        Copy->Shininess       = Shininess;
+        Copy->SpecularColor   = SpecularColor;
+        Copy->DiffuseMap      = DiffuseMap;
+        Copy->SpecularMap     = SpecularMap;
+        Copy->NormalMap       = NormalMap;
         Copy->DisplacementMap = DisplacementMap;
         return Copy;
     };
+
+    u16 CBlinnPhongMapsMaterial::GetShaderDataSize() const
+    {
+        constexpr u16 DataSize = sizeof(Shininess) + sizeof(u64) + // diffuse map handle
+                                 sizeof(bool) + // normal map flag + handle
+                                 sizeof(u64) + sizeof(bool) + // displacement map flag + handle
+                                 sizeof(u64) + sizeof(SpecularColor);
+        return DataSize;
+    }
 
     void CBlinnPhongMapsMaterial::LoadResources()
     {
         if (DiffuseMap)
         {
             DiffuseMap->Acquire(false, true);
+            DiffuseMapBindlessHandle = DiffuseMap->TextureHandle->GetBindlessHandle();
+            DiffuseMap->TextureHandle->MakeBindlessResidient();
         }
 
         if (SpecularMap)
         {
             SpecularMap->Acquire(false, true);
+            SpecularMapBindlessHandle = SpecularMap->TextureHandle->GetBindlessHandle();
+            SpecularMap->TextureHandle->MakeBindlessResidient();
         }
 
         if (NormalMap)
         {
             NormalMap->Acquire(false, true);
+            NormalMapBindlessHandle = NormalMap->TextureHandle->GetBindlessHandle();
+            NormalMap->TextureHandle->MakeBindlessResidient();
         }
 
         if (DisplacementMap)
         {
             DisplacementMap->Acquire(false, true);
+            DisplacementMapBindlessHandle = DisplacementMap->TextureHandle->GetBindlessHandle();
+            DisplacementMap->TextureHandle->MakeBindlessResidient();
         }
     }
     void CBlinnPhongMapsMaterial::UnloadResources()
@@ -285,21 +320,29 @@ namespace lucid::scene
         if (DiffuseMap)
         {
             DiffuseMap->Release();
+            DiffuseMapBindlessHandle = 0;
+            DiffuseMap->TextureHandle->MakeBindlessNonResidient();
         }
 
         if (SpecularMap)
         {
             SpecularMap->Release();
+            SpecularMapBindlessHandle = 0;
+            SpecularMap->TextureHandle->MakeBindlessNonResidient();
         }
 
         if (NormalMap)
         {
             NormalMap->Release();
+            NormalMapBindlessHandle = 0;
+            NormalMap->TextureHandle->MakeBindlessNonResidient();
         }
 
         if (DisplacementMap)
         {
             DisplacementMap->Release();
+            DisplacementMapBindlessHandle = 0;
+            DisplacementMap->TextureHandle->MakeBindlessNonResidient();
         }
     }
 } // namespace lucid::scene

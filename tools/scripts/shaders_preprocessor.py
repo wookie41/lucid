@@ -28,7 +28,7 @@ def handle_include(base_shaders_dir, shader_path, shader_source: str, token_star
 
 #actions take the curent source of the shader and transform it in any way there like
 
-ignored_directives = ['version', 'define']
+ignored_directives = ['version', 'define', 'extension']
 preprocessor_actions = {'include': handle_include}
 preprocessor_action_regex = re.compile("#([a-z]+)")
 

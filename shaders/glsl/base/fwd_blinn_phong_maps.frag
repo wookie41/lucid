@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #include "blinn_phong_maps_uniforms.glsl"
 

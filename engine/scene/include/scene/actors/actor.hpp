@@ -37,7 +37,7 @@ namespace lucid::scene
             World     = InRHS.World;
         }
 
-        glm::mat4 CalculateModelMatrix() const
+        glm::mat4 CalculateModelMatrix()
         {
             glm::mat4  Identity{ 1 };
             const auto Translation = glm::translate(Identity, Transform.Translation);
@@ -46,6 +46,7 @@ namespace lucid::scene
 
             const glm::mat4 ModelMatrix = Translation * Rotation * Scale;
 
+            CachedModelMatrix = ModelMatrix;
             return Parent ? Parent->CalculateModelMatrix() * ModelMatrix : ModelMatrix;
         }
 
@@ -124,6 +125,7 @@ namespace lucid::scene
         UUID         ResourceId = sole::INVALID_UUID;
         FDString     ResourcePath{ "" };
         CWorld*      World; // World that this actor is in
+        glm::mat4    CachedModelMatrix{ 1 };
 
         FLinkedList<IActor> Children;
 

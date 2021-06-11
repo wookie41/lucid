@@ -7,7 +7,6 @@
 #include <cassert>
 #include <thread>
 
-
 #include "common/log.hpp"
 
 namespace lucid::gpu
@@ -30,11 +29,9 @@ namespace lucid::gpu
         LUCID_LOG(ELogLevel::INFO, "Initialized SDL_VIDEO");
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-        // @TODO later on, this could be loaded from some kind of a ini file or something
-        // so we can control the minmum version of OpenGL requried
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        // @TODO later on, this could be loaded from some kind of a ini file or something so we can control the minmum version of OpenGL requried
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
@@ -62,6 +59,7 @@ namespace lucid::gpu
         }
 
         InitGPUInfo();
+
         SDL_GL_DeleteContext(context);
         SDL_DestroyWindow(window);
 
@@ -81,11 +79,8 @@ namespace lucid::gpu
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &property);
         LUCID_LOG(ELogLevel::INFO, "Available draw buffers units = %d", property);
         GGPUInfo.MaxColorAttachments = property;
-    }    
-
-    void Shutdown()
-    {
-        SDL_Quit();
     }
+
+    void Shutdown() { SDL_Quit(); }
 
 } // namespace lucid::gpu

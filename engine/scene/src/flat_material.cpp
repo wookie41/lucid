@@ -1,5 +1,5 @@
 #include "scene/flat_material.hpp"
-
+#include "scene/forward_renderer.hpp"
 
 #if DEVELOPMENT
 #include "imgui.h"
@@ -22,7 +22,7 @@ namespace lucid::scene
     {
     }
 
-    void CFlatMaterial::SetupShader(gpu::CShader* Shader) { Shader->SetVector(COLOR, Color); }
+    // void CFlatMaterial::SetupShader(gpu::CShader* Shader) { Shader->SetVector(COLOR, Color); }
 
     CFlatMaterial* CFlatMaterial::CreateMaterial(const FFlatMaterialDescription& Description, const FDString& InResourcePath)
     {
@@ -30,6 +30,16 @@ namespace lucid::scene
         auto* Material = new CFlatMaterial{ Description.Id, Description.Name, InResourcePath, Shader };
         Material->Color = Float4ToVec(Description.Color);
         return Material;
+    }
+
+    void CFlatMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr)
+    {
+    }
+
+    void CFlatMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr)
+    {
+        InPrepassUniforms->bHasNormalMap = false;
+        InPrepassUniforms->bHasDisplacementMap = false;
     }
 
     void CFlatMaterial::InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat)
@@ -64,5 +74,10 @@ namespace lucid::scene
         auto* Copy = new CFlatMaterial { ID, Name, ResourcePath, Shader };
         Copy->Color = Color;
         return Copy;
+    }
+
+    u16 CFlatMaterial::GetShaderDataSize() const
+    {
+        return sizeof(Color);
     }
 } // namespace lucid::scene

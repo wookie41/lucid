@@ -12,7 +12,8 @@ namespace lucid::gpu
         UNBOUND,
         VERTEX,
         ELEMENT,
-        SHADER_STORAGE
+        SHADER_STORAGE,
+        WRITE
     };
 
     enum class EBufferUsage : u16
@@ -59,7 +60,7 @@ namespace lucid::gpu
         virtual void Bind(const EBufferBindPoint& BindPoint) = 0;
         virtual void Unbind() = 0;
         
-        virtual void BindIndexed(const uint32_t& index, const EBufferBindPoint& BindPoint) = 0;
+        virtual void BindIndexed(const uint32_t& index, const EBufferBindPoint& BindPoint, const u32& InSize = 0, const u32& InOffset = 0) = 0;
         virtual void BindAsVertexBuffer(const u32& InIndex, const u32& InStride) = 0;
 
         virtual void Upload(FBufferDescription const* Description) = 0;

@@ -117,9 +117,10 @@ namespace lucid::gpu
         CShader* Shader = CompiledShadersByName.Get(*ShaderName);
         if (Shader)
         {
-            return Shader;;
+            return Shader;
         }
         LUCID_LOG(ELogLevel::WARN, "Shader %s not found", *ShaderName);
+        return nullptr;
     }
 
 } // namespace lucid::gpu

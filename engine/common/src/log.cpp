@@ -12,7 +12,7 @@ namespace lucid
     static const char* LOG_LEVEL_NAMES[] = { INFO_LEVEL_NAME, WARN_LEVEL_NAME, ERROR_LEVEL_NAME };
 
     // dummy, temporary solution
-    static char msgBuff[1024];
+    static char msgBuff[5096];
 
     //  static ExampleAppLog my_log;
     //  my_log.AddLog("Hello %d world\n", 123);

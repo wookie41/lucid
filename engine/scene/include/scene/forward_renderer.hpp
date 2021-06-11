@@ -25,7 +25,26 @@ namespace lucid::scene
     // this mean that the same object might be rendered multiple times if it's affected
     // by multiple light.
 
-    constexpr int DEBUG_LINES_BUFFERS_COUNT = 3;
+    constexpr int DEBUG_LINES_BUFFERS_COUNT       = 3;
+    constexpr int PREPASS_DATA_BUFFERS_COUNT     = 3;
+    constexpr int MATERIAL_DATA_BUFFERS_COUNT     = 3;
+    constexpr int MODEL_MATRIX_DATA_BUFFERS_COUNT = 3;
+    constexpr int BINDLESS_TEXTURES_BUFFERS_COUNT = 3;
+
+    constexpr int PREPASS_DATA_BUFFER_SIZE            = 2048;
+    constexpr int MATERIAL_DATA_BUFFER_SIZE           = 8192;
+    constexpr int MODEL_MATRICES_DATA_BUFFER_SIZE     = 4096;
+    constexpr int BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE = 1024;
+
+#pragma pack(push, 1)
+    struct FForwardPrepassUniforms
+    {
+        float ModelMatrix[16];
+        u32   NormalMultiplier;
+        bool  bHasNormalMap;
+        bool  bHasDisplacementMap;
+    };
+#pragma pack(pop)
 
     class CForwardRenderer : public CRenderer
     {
@@ -153,11 +172,33 @@ namespace lucid::scene
         gpu::CFramebuffer* FrameResultFramebuffer;
         gpu::CTexture*     FrameResultTexture;
 
+        gpu::CGPUBuffer* PrepassDataSSBOBuffer;
+        gpu::CFence*     PrepassDataBufferFences[PREPASS_DATA_BUFFERS_COUNT];
+
+        gpu::CGPUBuffer* PrepassBindlessTexturesSSBOBuffer;
+        gpu::CFence*     PrepassBindlessTexturesBufferFences[PREPASS_DATA_BUFFERS_COUNT];
+
+        gpu::CGPUBuffer* ModelMatricesSSBOBuffer;
+        gpu::CFence*     ModelMatricesBufferFences[MATERIAL_DATA_BUFFERS_COUNT];
+
+        gpu::CGPUBuffer* MaterialDataSSBOBuffer;
+        gpu::CFence*     MaterialDataBufferFences[MATERIAL_DATA_BUFFERS_COUNT];
+
+        gpu::CGPUBuffer* BindlessTexturesArraySSBOBuffer;
+        gpu::CFence*     BindlessTexturesArrayFences[BINDLESS_TEXTURES_BUFFERS_COUNT];
+
+        // Per frame buffers and offsets
+        u32        NumMeshesDrawn   = 0;
+        glm::mat4* ModelMatricesPtr = nullptr;
+        char*      MaterialDataPtr  = nullptr;
+
+        u32  NumBindlessTexturesUsed  = 0;
+        u64* BindlessTexturesArrayPtr = nullptr;
+
 #if DEVELOPMENT
       public:
-
         void UIDrawSettingsWindow() override;
-        
+
         glm::vec2 BillboardViewportSize{ 0.1, 0.15 };
 
         /**

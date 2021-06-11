@@ -1,4 +1,4 @@
-﻿#version 330 core
+﻿#version 420 core
 
 #define WORLD_SPACE 0
 #define VIEW_SPACE 1

@@ -178,6 +178,7 @@ namespace lucid::gpu
 
     void CGLVertexArray::Draw(const u32& First, const u32& Count)
     {
+        assert(GGPUState->VAO == this);
         u32 count = Count == 0 ? (ElementBuffer == nullptr ? VertexCount : ElementCount) : Count;
 
 #if DEVELOPMENT
@@ -196,6 +197,7 @@ namespace lucid::gpu
 
     void CGLVertexArray::DrawInstanced(const u32& InstancesCount, const uint32_t& First, const uint32_t& Count)
     {
+        assert(GGPUState->VAO == this);
         uint32_t count = Count == 0 ? (ElementBuffer == nullptr ? VertexCount : ElementCount) : Count;
 
         if (ElementBuffer)

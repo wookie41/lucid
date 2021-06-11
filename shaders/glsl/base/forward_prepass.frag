@@ -1,6 +1,7 @@
-#version 330 core
+#version 420 core
 
 #include "parallax_occlusion.glsl"
+#include "forward_prepass_common.glsl"
 
 layout (location = 0) out vec3 oNormalVS;
 layout (location = 1) out vec3 oPositionVS;
@@ -8,33 +9,29 @@ layout (location = 1) out vec3 oPositionVS;
 in vec3 PositionVS;
 in vec3 NormalVS;
 in vec2 TexCoords;
+
 flat in mat3 TBNMatrix;
+flat in int InstanceId;
 
 uniform vec3 uViewPos;
-
-uniform bool        uMaterialHasNormalMap;
-uniform sampler2D   uMaterialNormalMap;
-
-uniform bool        uMaterialHasDisplacementMap;
-uniform sampler2D   uMaterialDisplacementMap;
 
 void main() 
 {
     vec2 textureCoords = TexCoords;
 
-    if (uMaterialHasNormalMap)
+    if (PREPASS_DATA.bHasNormalMap)
     {
-        if (uMaterialHasDisplacementMap)
+        if (PREPASS_DATA.bHasDisplacementMap)
         {
             vec3 toViewN = normalize(-PositionVS);
-            textureCoords = ParallaxOcclusionMapping(inverse(TBNMatrix) * toViewN, textureCoords, uMaterialDisplacementMap);
+            textureCoords = ParallaxOcclusionMapping(inverse(TBNMatrix) * toViewN, textureCoords, DISPLACEMENT_MAP);
             if (textureCoords.x > 1 || textureCoords.x < 0 || textureCoords.y > 1 || textureCoords.y < 0)
             {
                 discard;
             }
         }
         
-        vec3 SampledNormal = (texture(uMaterialNormalMap, textureCoords).rgb * 2) - 1;
+        vec3 SampledNormal = (texture(NORMAL_MAP, textureCoords).rgb * 2) - 1;
         oNormalVS = normalize(TBNMatrix * SampledNormal);
     }
     else

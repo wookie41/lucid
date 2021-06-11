@@ -1,5 +1,8 @@
 #include "scene/forward_renderer.hpp"
 
+#include <algorithm>
+#include <set>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <resources/mesh_resource.hpp>
 #include "GL/glew.h"
@@ -80,9 +83,20 @@ namespace lucid::scene
     static const FSString GAMMA("uGamma");
     static const FSString SCENE_TEXTURE("uSceneTexture");
 
+    static const FSString PREPASS_DATA_BLOCK_OFFSET("uPrepassDataBlockOffset");
+    static const FSString LIGHT_PASS_DATA_BLOCK_OFFSET("uLightPassDataBlockOffset");
+
+    constexpr gpu::EBufferAccessPolicy UNSYNCHRONIZED_WRITE =
+      (gpu::EBufferAccessPolicy)(gpu::EBufferAccessPolicy::BUFFER_WRITE | gpu::EBufferAccessPolicy::BUFFER_UNSYNCHRONIZED);
+
 #if DEVELOPMENT
     static const FSString ACTOR_ID("uActorId");
 #endif
+
+    /* Buffers used when preparing data to be memcpy'ed to the GPU */
+
+    static char STAGING_BUFFER_SMALL_0[1024 * 16];
+    static char STAGING_BUFFER_SMALL_1[1024 * 16];
 
     CForwardRenderer::CForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples)
     : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples)
@@ -360,6 +374,81 @@ namespace lucid::scene
         FrameResultFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         FrameResultFramebuffer->SetupColorAttachment(0, FrameResultTexture);
 
+        // SSBO buffers
+        {
+            // Prepass buffers
+            gpu::FBufferDescription BufferDesc;
+            BufferDesc.Data   = nullptr;
+            BufferDesc.Offset = 0;
+            BufferDesc.Size   = PREPASS_DATA_BUFFER_SIZE * PREPASS_DATA_BUFFERS_COUNT;
+
+            PrepassDataSSBOBuffer = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "PrepassDataSSBO");
+
+            for (u8 i = 0; i < MATERIAL_DATA_BUFFERS_COUNT; ++i)
+            {
+                PrepassDataBufferFences[i] = gpu::CreateFence("");
+            }
+        }
+
+        {
+            // Pre pass bindless textures buffers
+            gpu::FBufferDescription BufferDesc;
+            BufferDesc.Data   = nullptr;
+            BufferDesc.Offset = 0;
+            BufferDesc.Size   = BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE * PREPASS_DATA_BUFFERS_COUNT;
+
+            PrepassBindlessTexturesSSBOBuffer = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "PrepassBindlessTexturesArraySSBO");
+
+            for (u8 i = 0; i < BINDLESS_TEXTURES_BUFFERS_COUNT; ++i)
+            {
+                PrepassBindlessTexturesBufferFences[i] = gpu::CreateFence("");
+            }
+        }
+
+        {
+            // Light pass model matrices buffers
+            gpu::FBufferDescription BufferDesc;
+            BufferDesc.Data   = nullptr;
+            BufferDesc.Offset = 0;
+            BufferDesc.Size   = MODEL_MATRICES_DATA_BUFFER_SIZE * MATERIAL_DATA_BUFFERS_COUNT;
+
+            ModelMatricesSSBOBuffer = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "ModelMatricesDataSSBO");
+
+            for (u8 i = 0; i < MATERIAL_DATA_BUFFERS_COUNT; ++i)
+            {
+                ModelMatricesBufferFences[i] = gpu::CreateFence("");
+            }
+        }
+
+        {
+            // Light pass material buffer
+            gpu::FBufferDescription BufferDesc;
+            BufferDesc.Data   = nullptr;
+            BufferDesc.Offset = 0;
+            BufferDesc.Size   = MATERIAL_DATA_BUFFER_SIZE * MATERIAL_DATA_BUFFERS_COUNT;
+
+            MaterialDataSSBOBuffer = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "MaterialDataSSBO");
+
+            for (u8 i = 0; i < MATERIAL_DATA_BUFFERS_COUNT; ++i)
+            {
+                MaterialDataBufferFences[i] = gpu::CreateFence("");
+            }
+        }
+
+        {
+            // Light pass bindless textures buffer
+            gpu::FBufferDescription BufferDesc;
+            BufferDesc.Data   = nullptr;
+            BufferDesc.Offset = 0;
+            BufferDesc.Size   = BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE * MATERIAL_DATA_BUFFERS_COUNT;
+
+            BindlessTexturesArraySSBOBuffer = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "BindlessTexturesArraySSBO");
+
+            for (u8 i = 0; i < BINDLESS_TEXTURES_BUFFERS_COUNT; ++i)
+            {
+                BindlessTexturesArrayFences[i] = gpu::CreateFence("");
+            }
+        }
 #if DEVELOPMENT
 
         // Light bulbs
@@ -469,6 +558,11 @@ namespace lucid::scene
 
     void CForwardRenderer::Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
+        for (u32 i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
+        {
+            InSceneToRender->StaticMeshes.GetByIndex(i)->CalculateModelMatrix();
+        }
+
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
 
 #if DEVELOPMENT
@@ -573,7 +667,7 @@ namespace lucid::scene
                 CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes.GetByIndex(i);
                 if (StaticMesh->bVisible)
                 {
-                    CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
+                    CurrentShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CachedModelMatrix);
 #if DEVELOPMENT
                     if (resources::CMeshResource* MeshResource = StaticMesh->GetMeshResource())
                     {
@@ -605,75 +699,167 @@ namespace lucid::scene
         }
     }
 
+    struct FPrepassBatchData
+    {
+        std::vector<CStaticMesh*> OwningStaticMeshes = {};
+        std::vector<CMaterial*>   Materials          = {};
+    };
+
     void CForwardRenderer::Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
+        // Create mesh batches
+        // @TODO limit batch sizes to 64
+        std::unordered_map<gpu::CVertexArray*, FPrepassBatchData> Batches;
+
+        for (u32 i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
+        {
+            CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes.GetByIndex(i);
+            if (StaticMesh->MeshResource == nullptr)
+            {
+                LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a mesh resource", *StaticMesh->Name);
+                continue;
+            }
+
+            for (u32 j = 0; j < StaticMesh->MeshResource->SubMeshes.GetLength(); ++j)
+            {
+                resources::FSubMesh* SubMesh         = StaticMesh->MeshResource->SubMeshes[j];
+                CMaterial*           SubMeshMaterial = StaticMesh->GetMaterialSlot(SubMesh->MaterialIndex);
+
+                if (SubMeshMaterial == nullptr)
+                {
+                    LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material for submesh %d", *StaticMesh->Name, j);
+                    continue;
+                }
+
+                auto& BatchIt = Batches.find(SubMesh->VAO);
+                if (BatchIt == Batches.end())
+                {
+                    FPrepassBatchData NewBatchData;
+                    NewBatchData.OwningStaticMeshes.push_back(StaticMesh);
+                    NewBatchData.Materials.push_back(SubMeshMaterial);
+                    Batches[SubMesh->VAO] = NewBatchData;
+                }
+                else
+                {
+                    BatchIt->second.OwningStaticMeshes.push_back(StaticMesh);
+                    BatchIt->second.Materials.push_back(SubMeshMaterial);
+                }
+            }
+        }
+
         // Z pre pass
         gpu::PushDebugGroup("Z pre pass");
         gpu::ConfigurePipelineState(PrepassPipelineState);
 
+        // Prepare the data
+        const int BufferIdx = GRenderStats.FrameNumber % DEBUG_LINES_BUFFERS_COUNT;
+
+        const u32 DataBufferOffset             = BufferIdx * PREPASS_DATA_BUFFER_SIZE;
+        const u32 BindlessTexturesBufferOffset = BufferIdx * BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE;
+
+        u32 PrepassDataSize          = 0;
+        u32 BindlessTexturesDataSize = 0;
+
+        FForwardPrepassUniforms* PrepassDataPtr             = (FForwardPrepassUniforms*)STAGING_BUFFER_SMALL_0;
+        u64*                     PrepassBindlessTexturesPtr = (u64*)STAGING_BUFFER_SMALL_1;
+
+        for (const auto& Batch : Batches)
+        {
+            for (u8 i = 0; i < Batch.second.OwningStaticMeshes.size(); ++i)
+            {
+                CStaticMesh* OwningStaticMesh = Batch.second.OwningStaticMeshes[i];
+
+                // Send model matrix
+                memcpy(PrepassDataPtr->ModelMatrix, &((OwningStaticMesh->CachedModelMatrix)[0][0]), sizeof(float) * 16);
+
+                // Normal multiplier
+                PrepassDataPtr->NormalMultiplier = OwningStaticMesh->bReverseNormals ? -1 : 1;
+
+                // Per-material uniforms
+                Batch.second.Materials[i]->SetupPrepassShaderBuffers(PrepassDataPtr, PrepassBindlessTexturesPtr);
+
+                // Advance the pointers
+                PrepassDataPtr += 1;
+                PrepassBindlessTexturesPtr += 2;
+
+                // Add data size
+                PrepassDataSize += sizeof(FForwardPrepassUniforms);
+                BindlessTexturesDataSize += sizeof(u64) * 2;
+            }
+        }
+
+        // Send data to the GPU
+        {
+            // Make sure the buffer is not used and create a new fence
+            gpu::CFence* Fence = PrepassDataBufferFences[BufferIdx];
+
+            Fence->Wait(0);
+            Fence->Free();
+
+            delete Fence;
+            PrepassDataBufferFences[BufferIdx] = gpu::CreateFence("");
+
+            // memcpy the data
+            PrepassDataSSBOBuffer->Bind(gpu::EBufferBindPoint::WRITE);
+            void* VideoMemPtr = PrepassDataSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, PREPASS_DATA_BUFFER_SIZE, DataBufferOffset);
+            memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_0, PrepassDataSize);
+            PrepassDataSSBOBuffer->MemoryUnmap();
+        }
+
+        // Send textures data to GPU
+        {
+            // Make sure the buffer is not used and create a new fence
+            gpu::CFence* Fence = PrepassBindlessTexturesBufferFences[BufferIdx];
+
+            Fence->Wait(0);
+            Fence->Free();
+
+            delete Fence;
+            PrepassBindlessTexturesBufferFences[BufferIdx] = gpu::CreateFence("");
+
+            // memcpy the data
+            PrepassBindlessTexturesSSBOBuffer->Bind(gpu::EBufferBindPoint::WRITE);
+            void* VideoMemPtr =
+              PrepassBindlessTexturesSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE, BindlessTexturesBufferOffset);
+            memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_0, BindlessTexturesDataSize);
+            PrepassBindlessTexturesSSBOBuffer->MemoryUnmap();
+        }
+
+        // Prepare pipeline
         BindAndClearFramebuffer(PrepassFramebuffer);
-        PrepassFramebuffer->SetupDrawBuffers();
 
         PrepassShader->Use();
+        PrepassFramebuffer->SetupDrawBuffers();
+
         SetupRendererWideUniforms(PrepassShader, InRenderView);
+        
+        // Bind the SSBOs
+        PrepassDataSSBOBuffer->BindIndexed(0, gpu::EBufferBindPoint::SHADER_STORAGE, DataBufferOffset, PREPASS_DATA_BUFFER_SIZE);
+        PrepassBindlessTexturesSSBOBuffer->BindIndexed(
+          1, gpu::EBufferBindPoint::SHADER_STORAGE, BindlessTexturesBufferOffset, BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE);
 
-        const glm::vec2 NoiseTextureSize = { SSAONoise->GetWidth(), SSAONoise->GetHeight() };
-        const glm::vec2 ViewportSize     = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
-        const glm::vec2 NoiseScale       = ViewportSize / NoiseTextureSize;
-
-        for (int i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
+        // Issue batches
+        u32 PrepassDataBlockOffset = 0;
+        for (const auto& Batch : Batches)
         {
-            CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes.GetByIndex(i);
-            if (StaticMesh->bVisible)
-            {
-                const glm::mat4 ModelMatrix = StaticMesh->CalculateModelMatrix();
-                PrepassShader->SetMatrix(MODEL_MATRIX, ModelMatrix);
-#if DEVELOPMENT
-                if (resources::CMeshResource* MeshResource = StaticMesh->GetMeshResource())
-                {
-                    gpu::PushDebugGroup(*MeshResource->GetName());
-                    for (u16 j = 0; j < MeshResource->SubMeshes.GetLength(); ++j)
-                    {
-                        const u16 MaterialIndex = MeshResource->SubMeshes[j]->MaterialIndex;
-#if DEVELOPMENT
-                        if (MaterialIndex >= StaticMesh->GetNumMaterialSlots() || StaticMesh->GetMaterialSlot(MaterialIndex) == nullptr)
-                        {
-                            LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at submesh %d", *StaticMesh->Name, j);
-                            RenderWithDefaultMaterial(StaticMesh->MeshResource, j, nullptr, InRenderView, ModelMatrix);
-                            PrepassShader->Use();
-                            continue;
-                        }
-#endif
-                        StaticMesh->GetMaterialSlot(MaterialIndex)->SetupShader(PrepassShader);
-
-                        StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
-                        StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
-                    }
-                    gpu::PopDebugGroup();
-                }
-                else
-                {
-                    LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a mesh resource", *StaticMesh->Name);
-                    UnitCubeVAO->Bind();
-                    UnitCubeVAO->Draw();
-                }
-#else
-                for (u16 j = 0; j < StaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
-                {
-                    StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
-                    StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
-                }
-#endif
-            }
+            PrepassShader->SetInt(PREPASS_DATA_BLOCK_OFFSET, PrepassDataBlockOffset);
+            Batch.first->Bind();
+            Batch.first->DrawInstanced(Batch.second.OwningStaticMeshes.size());
+            PrepassDataBlockOffset += Batch.second.OwningStaticMeshes.size();
         }
 
         gpu::PopDebugGroup();
 
         // Calculate SSAO
+
+        const glm::vec2 NoiseTextureSize = { SSAONoise->GetWidth(), SSAONoise->GetHeight() };
+        const glm::vec2 ViewportSize     = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
+        const glm::vec2 NoiseScale       = ViewportSize / NoiseTextureSize;
+
         gpu::PushDebugGroup("SSAO");
 
-        BindAndClearFramebuffer(SSAOFramebuffer);
         SSAOShader->Use();
+        BindAndClearFramebuffer(SSAOFramebuffer);
         SetupRendererWideUniforms(SSAOShader, InRenderView);
 
         SSAOShader->UseTexture(SSAO_POSITIONS_VS, CurrentFrameVSPositionMap);
@@ -710,11 +896,25 @@ namespace lucid::scene
         BindAndClearFramebuffer(LightingPassFramebuffer);
         LightingPassFramebuffer->SetupDrawBuffers();
 
-        RenderStaticMeshes(InSceneToRender, InRenderView);
-        if (InSceneToRender->Skybox)
-        {
-            RenderSkybox(InSceneToRender->Skybox, InRenderView);
-        }
+        // const int BufferIdx                 = GRenderStats.FrameNumber % DEBUG_LINES_BUFFERS_COUNT;
+        // const u32 ModelMatricesBufferOffset = BufferIdx * MODEL_MATRICES_DATA_BUFFER_SIZE;
+        // const u32 MaterialDataBufferOffset  = BufferIdx * MATERIAL_DATA_BUFFER_SIZE;
+        // const u32 TexturesArrayBufferOffset = BufferIdx * BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE;
+        //
+        // ModelMatricesPtr =
+        //   (glm::mat4*)ModelMatricesSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, MODEL_MATRICES_DATA_BUFFER_SIZE, ModelMatricesBufferOffset);
+        // MaterialDataPtr = (char*)MaterialDataSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, MATERIAL_DATA_BUFFER_SIZE, MaterialDataBufferOffset);
+        // BindlessTexturesArrayPtr =
+        //   (u64*)BindlessTexturesArraySSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE, TexturesArrayBufferOffset);
+        //
+        // NumMeshesDrawn          = 0;
+        // NumBindlessTexturesUsed = 0;
+        //
+        // RenderStaticMeshes(InSceneToRender, InRenderView);
+        // if (InSceneToRender->Skybox)
+        // {
+        //     RenderSkybox(InSceneToRender->Skybox, InRenderView);
+        // }
     }
 
     void CForwardRenderer::RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView)
@@ -784,8 +984,7 @@ namespace lucid::scene
                                             const CLight*      InLight,
                                             const FRenderView* InRenderView)
     {
-        const glm::mat4 ModelMatrix = InStaticMesh->CalculateModelMatrix();
-
+        const glm::mat4& ModelMatrix = InStaticMesh->CachedModelMatrix;
 #if DEVELOPMENT
         if (InStaticMesh->GetMeshResource() == nullptr)
         {
@@ -797,7 +996,6 @@ namespace lucid::scene
 #endif
         for (u16 j = 0; j < InStaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
         {
-
             const u16 MaterialIndex = InStaticMesh->GetMeshResource()->SubMeshes[j]->MaterialIndex;
 #if DEVELOPMENT
             if (MaterialIndex >= InStaticMesh->GetNumMaterialSlots() || InStaticMesh->GetMaterialSlot(MaterialIndex) == nullptr)
@@ -810,8 +1008,7 @@ namespace lucid::scene
 #endif
             CMaterial* Material = InStaticMesh->GetMaterialSlot(MaterialIndex);
 
-            // Determine if the material uses a custom shader
-            // if yes, then setup the renderer-provided uniforms
+            // Determine if the material uses a custom shader - if yes, then setup the renderer-provided uniforms
             if (Material->GetShader() != *LastShader)
             {
                 Material->GetShader()->Use();
@@ -830,7 +1027,8 @@ namespace lucid::scene
             (*LastShader)->SetMatrix(MODEL_MATRIX, ModelMatrix);
             (*LastShader)->SetBool(REVERSE_NORMALS, InStaticMesh->GetReverseNormals());
 
-            Material->SetupShader(*LastShader);
+            // @TODO Remove
+            // Material->SetupShader(*LastShader);
 
             InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
             InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
@@ -958,6 +1156,7 @@ namespace lucid::scene
         HitMapFramebuffer->ReadPixels(0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), CachedHitMap.CachedTextureData);
     }
 
+    // @TODO this should handle the batching
     void CForwardRenderer::RenderWithDefaultMaterial(const resources::CMeshResource* InMeshResource,
                                                      const u16&                      InSubMeshIndex,
                                                      const CLight*                   InLight,
@@ -977,7 +1176,7 @@ namespace lucid::scene
             DefaultMaterial->GetShader()->SetInt(LIGHT_TYPE, NO_LIGHT);
         }
         DefaultMaterial->GetShader()->SetMatrix(MODEL_MATRIX, InModelMatrix);
-        DefaultMaterial->SetupShader(DefaultMaterial->GetShader());
+        // DefaultMaterial->SetupShader(DefaultMaterial->GetShader());
 
         if (InMeshResource)
         {
@@ -1077,7 +1276,7 @@ namespace lucid::scene
 
     void CForwardRenderer::UIDrawSettingsWindow()
     {
-        ImGui::SetNextWindowSize({0, 0});
+        ImGui::SetNextWindowSize({ 0, 0 });
         ImGui::Begin("Renderer settings");
         {
             ImGui::DragFloat("Ambient strength", &AmbientStrength, 0.01, 0, 1);

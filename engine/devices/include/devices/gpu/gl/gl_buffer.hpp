@@ -17,7 +17,7 @@ namespace lucid::gpu
         virtual void Bind(const EBufferBindPoint& BindPoint) override;
         virtual void Unbind() override;
         
-        virtual void BindIndexed(const uint32_t& Index, const EBufferBindPoint& BindPoint) override;
+        virtual void BindIndexed(const uint32_t& Index, const EBufferBindPoint& BindPoint, const u32& InSize = 0, const u32& InOffset = 0) override;
         virtual void BindAsVertexBuffer(const u32& InIndex, const u32& InStride) override;
         
         virtual void Upload(FBufferDescription const* Description) override;

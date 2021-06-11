@@ -186,6 +186,37 @@ namespace lucid::gpu
         glGetTexImage(GL_TEXTURE_2D, 0, GLPixelFormat, GLTextureDataType, DestBuffer);
     }
 
+    u64 CGLTexture::GetBindlessHandle()
+    {
+        if (GLBindlessHandle == 0)
+        {
+            GLBindlessHandle = glGetTextureHandleARB(GLTextureHandle);
+            LUCID_LOG(ELogLevel::INFO, "Result: %s", glewGetErrorString(glGetError()));
+            assert(GLBindlessHandle);
+        }
+        return GLBindlessHandle;
+    }
+
+    void CGLTexture::MakeBindlessResidient()
+    {
+        assert(GLBindlessHandle);
+        if (!bBindlessTextureResident)
+        {
+            bBindlessTextureResident = true;
+            glMakeTextureHandleResidentARB(GLBindlessHandle);
+        }
+    }
+
+    void CGLTexture::MakeBindlessNonResidient()
+    {
+        assert(GLBindlessHandle);
+        if (bBindlessTextureResident)
+        {
+            bBindlessTextureResident = false;
+            glMakeTextureHandleNonResidentARB(GLBindlessHandle);            
+        }
+    }
+
     void CGLTexture::AttachAsColor(const uint8_t& Index)
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Index, GLTextureTarget, GLTextureHandle, 0);
@@ -290,6 +321,22 @@ namespace lucid::gpu
         assert(GGPUState->BoundTextures[gpu::GGPUInfo.ActiveTextureUnit] == this && GGPUState->Cubemap == this);
         glFramebufferTexture2D(
           GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<uint8_t>(InFace), glCubemapHandle, 0);
+    }
+
+    u64 CGLCubemap::GetBindlessHandle()
+    {
+        assert(0); // not implemented
+        return 0;
+    }
+
+    void CGLCubemap::MakeBindlessResidient()
+    {
+        assert(0); // not implemented
+    }
+
+    void CGLCubemap::MakeBindlessNonResidient()
+    {
+        assert(0); // not implemented  
     }
 
     void CGLCubemap::AttachAsStencil() { glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, glCubemapHandle, 0); }

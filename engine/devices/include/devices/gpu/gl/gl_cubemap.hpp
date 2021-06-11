@@ -29,6 +29,10 @@ namespace lucid::gpu
 
         virtual void AttachAsColor(const u8& Index, EFace InFace) override;
 
+        /** Bindless texture stuff */
+        virtual u64  GetBindlessHandle() override;
+        virtual void MakeBindlessResidient() override;
+        virtual void MakeBindlessNonResidient() override;        
 
         /** Texture interface */
 

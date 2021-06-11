@@ -10,7 +10,7 @@
 
 #define AS_GL_BIND_POINT(bindPoint) (GL_BIND_POINTS[((u16)bindPoint) - 1])
 
-static const GLenum GL_BIND_POINTS[] = { GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER, GL_SHADER_STORAGE_BUFFER };
+static const GLenum GL_BIND_POINTS[] = { GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER, GL_SHADER_STORAGE_BUFFER, GL_COPY_WRITE_BUFFER };
 
 static const GLenum GL_MUTABLE_USAGE_HINTS[] = { GL_STATIC_DRAW, GL_DYNAMIC_DRAW, GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER };
 
@@ -112,11 +112,11 @@ namespace lucid::gpu
         glBindBuffer(AS_GL_BIND_POINT(CurrentBindPoint), 0);
     }
 
-    void CGLBuffer::BindIndexed(const uint32_t& Index, const EBufferBindPoint& BindPoint)
+    void CGLBuffer::BindIndexed(const uint32_t& Index, const EBufferBindPoint& BindPoint, const u32& InSize, const u32& InOffset)
     {
         assert(GLBufferHandle);
         CurrentBindPoint = BindPoint;
-        glBindBufferBase(AS_GL_BIND_POINT(BindPoint), Index, GLBufferHandle);            
+        glBindBufferRange(AS_GL_BIND_POINT(BindPoint), Index, GLBufferHandle, InOffset, InSize == 0 ? BufferDescription.Size : InSize);            
     }
     void CGLBuffer::BindAsVertexBuffer(const u32& InIndex, const u32& InStride)
    {
@@ -140,6 +140,7 @@ namespace lucid::gpu
     {
         assert(GLBufferHandle);
         assert(bImmutable ? true : NO_COHERENT_OR_PERSISTENT_BIT_SET(InAccessPolicy));
+        assert(CurrentBindPoint != EBufferBindPoint::UNBOUND);
 
         const u32 Size = InSize == 0 ? BufferDescription.Size : InSize;
 
