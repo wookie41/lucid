@@ -178,7 +178,7 @@ struct FSceneEditorState
 
 } GSceneEditorState;
 
-void InitializeSceneEditor();
+bool InitializeSceneEditor();
 
 void HandleCameraMovement(const float& DeltaTime);
 void DoActorPicking();
@@ -222,7 +222,10 @@ glm::vec2 GetMouseNDCPos();
 
 int main(int argc, char** argv)
 {
-    InitializeSceneEditor();
+    if(!InitializeSceneEditor())
+    {
+        return -1;
+    }
 
     // Load textures and meshes used in the demo scene
     gpu::SetClearColor(BlackColor);
@@ -315,14 +318,17 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void InitializeSceneEditor()
+bool InitializeSceneEditor()
 {
     // Create the window for the editor
 
     FEngineConfig EngineConfig;
     EngineConfig.bHotReloadShaders = true;
 
-    GEngine.InitEngine(EngineConfig);
+    if (GEngine.InitEngine(EngineConfig) != EEngineInitError::NONE)
+    {
+        return false;
+    }
 
     platform::FWindowDefiniton EditorWindow;
     EditorWindow.title           = "Lucid Editor";
@@ -411,6 +417,8 @@ void InitializeSceneEditor()
     GSceneEditorState.Window->ImgUiDrawFrame();
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();
+
+    return true;
 }
 
 void HandleCameraMovement(const float& DeltaTime)
@@ -1441,6 +1449,7 @@ void UIDrawActorDetailsWindow()
 
             ImGuizmo::BeginFrame();
             GSceneEditorState.CurrentlySelectedActor->DrawGizmos(GSceneEditorState.CurrentCamera);
+            GSceneEditorState.Window->Prepare();
             GSceneEditorState.CurrentlySelectedActor->UIDrawActorDetails();
         }
         ImGui::End();

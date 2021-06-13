@@ -12,6 +12,8 @@
 #include "imgui_internal.h"
 #endif
 
+#include "glad/glad.h"
+
 namespace lucid::gpu
 {
     // Texture
@@ -56,7 +58,7 @@ namespace lucid::gpu
         glTexParameteri(textureTarget, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture(textureTarget, 0);
+        // glBindTexture(textureTarget, 0);
 
         return textureHandle;
     }
@@ -190,14 +192,22 @@ namespace lucid::gpu
     {
         if (GLBindlessHandle == 0)
         {
+            glGetError();
             GLBindlessHandle = glGetTextureHandleARB(GLTextureHandle);
-            LUCID_LOG(ELogLevel::INFO, "Result: %s", glewGetErrorString(glGetError()));
+            LUCID_LOG(ELogLevel::INFO, "Result: %d %d", glGetError(), GLBindlessHandle);
+            GLBindlessHandle = glGetTextureHandleARB(GLTextureHandle);
+            LUCID_LOG(ELogLevel::INFO, "Result: %d %d", glGetError(), GLBindlessHandle);
             assert(GLBindlessHandle);
         }
         return GLBindlessHandle;
     }
 
-    void CGLTexture::MakeBindlessResidient()
+    bool CGLTexture::IsBindlessTextureResident() const
+    {
+        return bBindlessTextureResident;
+    }
+
+    void CGLTexture::MakeBindlessResident()
     {
         assert(GLBindlessHandle);
         if (!bBindlessTextureResident)
@@ -207,7 +217,7 @@ namespace lucid::gpu
         }
     }
 
-    void CGLTexture::MakeBindlessNonResidient()
+    void CGLTexture::MakeBindlessNonResident()
     {
         assert(GLBindlessHandle);
         if (bBindlessTextureResident)
@@ -329,12 +339,18 @@ namespace lucid::gpu
         return 0;
     }
 
-    void CGLCubemap::MakeBindlessResidient()
+    bool CGLCubemap::IsBindlessTextureResident() const
+    {
+        assert(0); // not implemented
+        return false;
+    }
+
+    void CGLCubemap::MakeBindlessResident()
     {
         assert(0); // not implemented
     }
 
-    void CGLCubemap::MakeBindlessNonResidient()
+    void CGLCubemap::MakeBindlessNonResident()
     {
         assert(0); // not implemented  
     }

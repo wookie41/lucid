@@ -1,7 +1,7 @@
 #pragma once
 
 #include "devices/gpu/buffer.hpp"
-#include "GL/glew.h"
+#include "glad/glad.h"
 
 namespace lucid::gpu
 {

@@ -2,7 +2,7 @@
 
 #include "imgui.h"
 #include "devices/gpu/framebuffer.hpp"
-#include "GL/glew.h"
+#include "glad/glad.h"
 #include "common/collections.hpp"
 
 #if DEVELOPMENT

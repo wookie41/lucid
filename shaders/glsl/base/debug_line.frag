@@ -1,4 +1,4 @@
-#version 420 core
+#version 450 core
 
 in vec3 inColor;
 out vec4 oFragColor;

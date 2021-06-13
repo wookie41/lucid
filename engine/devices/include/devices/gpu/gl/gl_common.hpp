@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/strings.hpp"
-#include "GL/glew.h"
+#include "glad/glad.h"
 #include "common/types.hpp"
 
 namespace lucid

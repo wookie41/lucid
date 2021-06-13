@@ -1,7 +1,7 @@
 #include "devices/gpu/gpu.hpp"
 
 #include "devices/gpu/shader.hpp"
-#include "GL/glew.h"
+#include "glad/glad.h"
 #include "common/log.hpp"
 
 namespace lucid::gpu
@@ -9,7 +9,7 @@ namespace lucid::gpu
     // Buffers functions
     void ClearBuffers(const EGPUBuffer& BuffersToClear)
     {
-        static GLbitfield buffersBits[] = { GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_ACCUM_BUFFER_BIT, GL_STENCIL_BUFFER_BIT };
+        static GLbitfield buffersBits[] = { GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT,  GL_STENCIL_BUFFER_BIT };
 
         GLbitfield glBuffersBitField = 0;
         if (BuffersToClear & EGPUBuffer::COLOR)
@@ -25,11 +25,6 @@ namespace lucid::gpu
         if (BuffersToClear & EGPUBuffer::STENCIL)
         {
             glBuffersBitField |= GL_COLOR_BUFFER_BIT;
-        }
-
-        if (BuffersToClear & EGPUBuffer::ACCUMULATION)
-        {
-            glBuffersBitField |= GL_ACCUM_BUFFER_BIT;
         }
 
         glClear(glBuffersBitField);
@@ -225,7 +220,7 @@ namespace lucid::gpu
     {
         GGPUStatus.TotalAvailableVideoMemoryKB   = 0;
         GGPUStatus.CurrentAvailableVideoMemoryKB = 0;
-
+        
         if (GL_NVX_gpu_memory_info)
         {
             GLint TotalMemKB = 0;
@@ -246,7 +241,7 @@ namespace lucid::gpu
 
     void PushDebugGroup(const std::string& InGroupName)
     {
-        glPushDebugGroup(GL_DEBUG_TYPE_PUSH_GROUP,  GL_DEBUG_SEVERITY_NOTIFICATION, InGroupName.length(), InGroupName.c_str());
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, InGroupName.length(), InGroupName.c_str());
     }
 
     void PopDebugGroup()

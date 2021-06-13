@@ -2,7 +2,7 @@
 
 #include "common/log.hpp"
 #include "devices/gpu/texture.hpp"
-#include "GL/glew.h"
+#include "glad/glad.h"
 #include "devices/gpu/gpu.hpp"
 #include "devices/gpu/gl/gl_common.hpp"
 

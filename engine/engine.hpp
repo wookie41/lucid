@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <unordered_set>
+
 #include "scene/material.hpp"
 #include "scene/actors/actor.hpp"
 
@@ -103,6 +105,8 @@ namespace lucid
             EngineObjects.Remove(InEngineObject);
         }
 
+        inline void AddActorWithDirtyResources(scene::IActor* InActor) { ActorsWithDirtyResources.insert(InActor); }
+
     protected:
 
         template <typename TActor, typename TActorDescription>
@@ -126,6 +130,7 @@ namespace lucid
 
         FLinkedList<IEngineObject> EngineObjects;
 
+        std::unordered_set<scene::IActor*> ActorsWithDirtyResources;
 #if DEVELOPMENT
     public:
         CActorThumbsGenerator* ThumbsGenerator = nullptr;

@@ -4,7 +4,7 @@
 
 namespace lucid::gpu
 {
-    CGLFence::CGLFence(const FString& InName, const GLsync& InGLFence) : CFence(InName), GLFanceHandle(InGLFence) {}
+    CGLFence::CGLFence(const FString& InName, const GLsync& InGLFence) : CFence(InName), GLFenceHandle(InGLFence) {}
 
     void CGLFence::Wait(const u64& InTimeout)
     {
@@ -13,17 +13,21 @@ namespace lucid::gpu
             return;
         }
 
-        GLenum Result = glClientWaitSync(GLFanceHandle, 0, InTimeout);
-        if (Result == GL_TIMEOUT_EXPIRED || Result == GL_WAIT_FAILED)
+        GLenum Result = glClientWaitSync(GLFenceHandle, 0, InTimeout);
+        if (Result == GL_TIMEOUT_EXPIRED)
         {
-            LUCID_LOG(ELogLevel::WARN, "Failed to wait for sync");
+            LUCID_LOG(ELogLevel::WARN, "Timer for fence %s expired", *Name);
+        }
+        else if (Result == GL_WAIT_FAILED)
+        {
+            LUCID_LOG(ELogLevel::WARN, "Failed to wait for fence %s: error %d", *Name, glGetError());            
         }
         bSignaled = true;
     }
 
     void CGLFence::Free()
     {
-        glDeleteSync(GLFanceHandle);
+        glDeleteSync(GLFenceHandle);
     }
 
     void CGLFence::SetObjectName() {}

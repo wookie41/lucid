@@ -1,11 +1,8 @@
 #include "devices/gpu/init.hpp"
 #include "devices/gpu/gpu.hpp"
 
+#include "glad/glad.h"
 #include "SDL2/SDL.h"
-#include "GL/glew.h"
-
-#include <cassert>
-#include <thread>
 
 #include "common/log.hpp"
 
@@ -31,7 +28,7 @@ namespace lucid::gpu
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         // @TODO later on, this could be loaded from some kind of a ini file or something so we can control the minmum version of OpenGL requried
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
@@ -51,10 +48,24 @@ namespace lucid::gpu
 
         SDL_GL_MakeCurrent(window, context);
 
-        GLenum GLEWInitResult = glewInit();
-        if (GLEWInitResult != GLEW_OK)
+        if (!gladLoadGL())
         {
-            LUCID_LOG(ELogLevel::INFO, (char*)glewGetErrorString(GLEWInitResult));
+            LUCID_LOG(ELogLevel::INFO, "Failed to initialize GLAD")
+            return -1;
+        }
+        
+        // @TODO relax these check
+        assert(GL_ARB_bindless_texture);
+        assert(GL_ARB_shader_storage_buffer_object);
+        if (!GLAD_GL_ARB_bindless_texture)
+        {
+            LUCID_LOG(ELogLevel::ERR, "GL_ARB_bindless_texture support is missing");
+            return -1;
+        }
+
+        if (!GLAD_GL_ARB_shader_storage_buffer_object)
+        {
+            LUCID_LOG(ELogLevel::ERR, "GL_ARB_shader_storage_buffer_object support is missing");
             return -1;
         }
 

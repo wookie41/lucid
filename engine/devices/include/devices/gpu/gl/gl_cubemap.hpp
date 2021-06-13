@@ -1,19 +1,19 @@
 #pragma once
 
 #include "devices/gpu/cubemap.hpp"
-#include "GL/glew.h"
+#include "glad/glad.h"
 
 namespace lucid::gpu
 {
     class CGLCubemap : public CCubemap
     {
       public:
-        explicit CGLCubemap(const GLuint& Handle,
-                            const u32& InWidth,
-                            const u32& InHeight,
-                            const FString& InName,
-                            const ETextureDataType& InTextureDataType,
-                            const ETextureDataFormat& InTextureDataFormat,
+        explicit CGLCubemap(const GLuint&              Handle,
+                            const u32&                 InWidth,
+                            const u32&                 InHeight,
+                            const FString&             InName,
+                            const ETextureDataType&    InTextureDataType,
+                            const ETextureDataFormat&  InTextureDataFormat,
                             const ETexturePixelFormat& InTexturePixelFormat);
 
         virtual void SetObjectName() override;
@@ -31,8 +31,9 @@ namespace lucid::gpu
 
         /** Bindless texture stuff */
         virtual u64  GetBindlessHandle() override;
-        virtual void MakeBindlessResidient() override;
-        virtual void MakeBindlessNonResidient() override;        
+        bool         IsBindlessTextureResident() const override;
+        virtual void MakeBindlessResident() override;
+        virtual void MakeBindlessNonResident() override;
 
         /** Texture interface */
 
@@ -45,7 +46,7 @@ namespace lucid::gpu
         virtual void SetWrapTFilter(const EWrapTextureFilter& Filter) override;
         virtual void SetWrapRFilter(const EWrapTextureFilter& Filter) override;
         virtual void SetBorderColor(const FColor& InColor) override;
-        
+
         virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) override;
 
       private:

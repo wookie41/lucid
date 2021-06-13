@@ -2,7 +2,6 @@
 
 #include <devices/gpu/framebuffer.hpp>
 
-
 #include "common/log.hpp"
 
 #include "devices/gpu/gl/gl_framebuffer.hpp"
@@ -50,7 +49,7 @@ namespace lucid::platform
         gpu::DisableDepthTest();
         gpu::DisableBlending();
         gpu::DisableCullFace();
-        
+
         auto* NewWindow = new SDLWindow(window, context, Definition.Width, Definition.Height);
         NewWindow->Init();
         return NewWindow;
@@ -88,7 +87,7 @@ namespace lucid::platform
 
     void SDLWindow::Prepare()
     {
-        gpu::GGPUState = &GPUStateForMyContext; 
+        gpu::GGPUState = &GPUStateForMyContext;
         SDL_GL_MakeCurrent(MySDLWindow, MyGLContext);
     }
 
@@ -98,10 +97,7 @@ namespace lucid::platform
 
     float SDLWindow::GetAspectRatio() const { return AspectRatio; }
 
-    gpu::CFramebuffer* SDLWindow::GetFramebuffer() const
-    {
-        return WindowFramebuffer;
-    }
+    gpu::CFramebuffer* SDLWindow::GetFramebuffer() const { return WindowFramebuffer; }
 
     void SDLWindow::Show() { SDL_ShowWindow(MySDLWindow); }
 
@@ -122,7 +118,7 @@ namespace lucid::platform
 
     void SDLWindow::OnResize(const u16& InWidth, const u16& InHeight)
     {
-        Width = InWidth;
+        Width  = InWidth;
         Height = InHeight;
     }
 

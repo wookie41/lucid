@@ -14,8 +14,7 @@ namespace lucid::gpu
     {
         COLOR = 1,
         DEPTH = 2,
-        ACCUMULATION = 4,
-        STENCIL = 8
+        STENCIL = 4
     };
 
     void ClearBuffers(const EGPUBuffer& BuffersToClear);

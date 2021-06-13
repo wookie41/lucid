@@ -1,6 +1,6 @@
 #include "devices/gpu/viewport.hpp"
 
-#include "GL/glew.h"
+#include "glad/glad.h"
 
 namespace lucid::gpu
 {

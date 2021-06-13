@@ -62,8 +62,9 @@ namespace lucid::scene
          *  If not empty, then a new resource file is create
          */
         void SaveToResourceFile();
+        virtual void UpdateDirtyResources() {};
 
-      protected:
+    protected:
         virtual void InternalSaveToResourceFile(const FString& InActorResourceName) = 0;
 
       public:

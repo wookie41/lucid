@@ -1,6 +1,7 @@
 from sys import argv
 from os.path import join
 import re
+from os import linesep
 
 USAGE = "./preprocessor <base-shaders-dir> <processed-shaders-dir> <shader-to-process-path> <processed-shader-path>"
 

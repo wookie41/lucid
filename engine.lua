@@ -19,7 +19,7 @@ project "lucid_engine"
    includedirs { 
       "libs/glm", 
       "libs/stb", 
-      "libs/glew/include", 
+      "libs/glad/include", 
       "libs/SDL2/include",
       "libs/SDL2/include/SDL2",
       "libs/assimp/include",
@@ -29,7 +29,6 @@ project "lucid_engine"
    }
    
    libdirs { 
-      "libs/glew/lib/x64", 
       "libs/SDL2/lib/x64",
       "libs/assimp/lib/x64" 
    }
@@ -66,7 +65,8 @@ project "lucid_engine"
       "engine/imgui/include/*.h",
       "engine/imgui/src/*.cpp",
       "libs/rapidjson/**.h",
-      "libs/df_serialize/*.h" 
+      "libs/df_serialize/*.h",
+      "libs/glad/src/glad.c"  
    }
 
    filter "platforms:Win64"
@@ -80,13 +80,11 @@ project "lucid_engine"
 
    filter "system:linux"
       links { 
-         "GLEW", 
          "GL", 
       }
 
    filter "system:windows"
       links { 
-         "glew32", 
          "opengl32", 
       }
    

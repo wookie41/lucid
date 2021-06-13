@@ -1,0 +1,9 @@
+{
+    "Id": "9da1f896-239e-4ec7-8eb0-84cc9688479e",
+    "Name": "ToyboxMaterial_9da1f896-239e-4ec7-8eb0-84cc9688479e",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "76206f90-1209-40af-b94c-785bbee012e4",
+    "SpecularTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
+    "NormalTextureID": "1d4915a7-6846-4655-9a7d-5b1ccb157f6b",
+    "DisplacementTextureID": "07dbb98d-e5a8-494a-ad29-71a47db96de8"
+}

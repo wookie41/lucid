@@ -22,7 +22,6 @@ project "lucid_scene_editor"
       "tools/scene_editor/include", 
       "libs/glm", 
       "libs/SDL2/include",
-      "libs/glew/include",
       "libs/df_serialize",
       "libs/rapidjson",
       "libs/sole/include"
@@ -30,7 +29,6 @@ project "lucid_scene_editor"
    
    libdirs { 
       "engine/bin/Debug",
-      "libs/glew/lib/x64", 
       "libs/SDL2/lib/x64",
       "libs/assimp/lib/x64" 
    }
@@ -57,13 +55,11 @@ project "lucid_scene_editor"
 
    filter "system:linux"
       links { 
-         "GLEW", 
          "GL", 
       }
 
    filter "system:windows"
       links { 
-         "glew32", 
          "opengl32", 
       }
    

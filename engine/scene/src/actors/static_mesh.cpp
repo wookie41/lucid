@@ -36,16 +36,16 @@ namespace lucid::scene
             {
                 if (auto* OldStaticMesh = dynamic_cast<CStaticMesh*>(PrevBaseActorAsset))
                 {
-                    OldStaticMesh->RemoveChildReference(this);
+                    OldBaseMeshAsset = OldStaticMesh;
                 }
 
                 if (auto* NewStaticMesh = dynamic_cast<CStaticMesh*>(BaseActorAsset))
                 {
-                    MeshResource = NewStaticMesh->MeshResource;
-                    NewStaticMesh->AddChildReference(this);
-                    BaseStaticMesh = NewStaticMesh;
-                    UpdateMaterialSlots(NewStaticMesh);
+                    NewMeshResource  = NewStaticMesh->MeshResource;
+                    NewBaseMeshAsset = NewStaticMesh;
                 }
+
+                GEngine.AddActorWithDirtyResources(this);
             }
         }
 
@@ -65,9 +65,10 @@ namespace lucid::scene
                     {
                         if (MeshResource != BaseStaticMesh->MeshResource)
                         {
-                            MeshResource->Release();
-                            MeshResource = BaseStaticMesh->MeshResource;
-                            UpdateMaterialSlots(BaseStaticMesh);
+                            OldMeshResource = MeshResource;
+                            NewMeshResource = BaseStaticMesh->MeshResource;
+                            bUpdateMaterialSlots = true;
+                            GEngine.AddActorWithDirtyResources(this);
                         }
                     }
                 }
@@ -82,9 +83,10 @@ namespace lucid::scene
 
                 if (OldMesh != MeshResource)
                 {
-                    OldMesh->Release();
-                    MeshResource->Acquire(false, true);
-                    HandleBaseAssetMeshResourceChange(OldMesh);
+                    OldMeshResource = OldMesh;
+                    NewMeshResource = MeshResource;
+                    bPropagateMeshResourceChange = true;
+                    GEngine.AddActorWithDirtyResources(this);
                 }
             }
 
@@ -108,7 +110,7 @@ namespace lucid::scene
                 const u8 MaterialSlot = GetNumMaterialSlots() - 1;
                 if (CMaterial* LastMaterial = GetMaterialSlot(MaterialSlot))
                 {
-                    LastMaterial->UnloadResources();
+                    MaterialsToUnload.push_back(LastMaterial);
 
                     if (!BaseActorAsset)
                     {
@@ -116,8 +118,10 @@ namespace lucid::scene
                     }
                     else if (LastMaterial != BaseStaticMesh->GetMaterialSlot(MaterialSlot))
                     {
-                        delete LastMaterial;
+                        MaterialsToDelete.push_back(LastMaterial);
                     }
+
+                    GEngine.AddActorWithDirtyResources(this);
                 }
                 MaterialSlots.RemoveLast();
             }
@@ -155,20 +159,22 @@ namespace lucid::scene
                                 // Check if the material wasn't already changed in this mesh
                                 if (BaseStaticMesh->GetMaterialSlot(i) != OldMaterial)
                                 {
-                                    OldMaterial->UnloadResources();
+                                    MaterialsToUnload.push_back(OldMaterial);
                                 }
-                                delete OldMaterial;
+                                MaterialsToDelete.push_back(OldMaterial);
                             }
 
                             *MaterialSlots[i] = (*MaterialSlots[i])->GetCopy();
-                            (*MaterialSlots[i])->LoadResources();
+                            MaterialsToLoad.push_back(*MaterialSlots[i]);
                         }
                         else
                         {
-                            OldMaterial->UnloadResources();
-                            (*MaterialSlots[i])->LoadResources();
+                            MaterialsToUnload.push_back(OldMaterial);
+                            MaterialsToLoad.push_back(*MaterialSlots[i]);
                             HandleBaseAssetMaterialSlotChange(OldMaterial, i);
                         }
+
+                        GEngine.AddActorWithDirtyResources(this);
                     }
                     else
                     {
@@ -577,5 +583,66 @@ namespace lucid::scene
 
         MeshResource->Release();
         MaterialSlots.Free();
+    }
+
+    void CStaticMesh::UpdateDirtyResources()
+    {
+        if (OldMeshResource)
+        {
+            OldMeshResource->Release();
+            OldMeshResource = nullptr;
+        }
+
+        if (NewMeshResource)
+        {
+            NewMeshResource->Acquire(false, true);
+            NewMeshResource = nullptr;
+        }
+
+        if (bPropagateMeshResourceChange)
+        {
+            HandleBaseAssetMeshResourceChange(OldMeshResource);
+            bPropagateMeshResourceChange = false;
+        }
+
+        if (OldBaseMeshAsset)
+        {
+            OldBaseMeshAsset->RemoveChildReference(this);
+            OldBaseMeshAsset = nullptr;
+        }
+
+        if (NewBaseMeshAsset)
+        {
+            MeshResource = NewBaseMeshAsset->MeshResource;
+            NewBaseMeshAsset->AddChildReference(this);
+            BaseStaticMesh = NewBaseMeshAsset;
+            UpdateMaterialSlots(NewBaseMeshAsset);
+            NewBaseMeshAsset = nullptr;
+        }
+
+        if (bUpdateMaterialSlots)
+        {
+            UpdateMaterialSlots(BaseStaticMesh);
+            bUpdateMaterialSlots = false;
+        }
+        
+        for (CMaterial* Material : MaterialsToLoad)
+        {
+            Material->LoadResources();
+        }
+
+        for (CMaterial* Material : MaterialsToUnload)
+        {
+            Material->UnloadResources();
+        }
+
+        for (CMaterial* Material : MaterialsToDelete)
+        {
+            delete Material;
+        }
+
+        MaterialsToLoad.clear();
+        MaterialsToUnload.clear();
+        MaterialsToDelete.clear();
     };
 } // namespace lucid::scene

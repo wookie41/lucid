@@ -1,7 +1,10 @@
 #include "scene/blinn_phong_material.hpp"
 
 #include "engine/engine.hpp"
+
 #include "devices/gpu/shader.hpp"
+#include "devices/gpu/fence.hpp"
+
 #include "scene/forward_renderer.hpp"
 
 #include "schemas/binary.hpp"
@@ -291,28 +294,28 @@ namespace lucid::scene
         {
             DiffuseMap->Acquire(false, true);
             DiffuseMapBindlessHandle = DiffuseMap->TextureHandle->GetBindlessHandle();
-            DiffuseMap->TextureHandle->MakeBindlessResidient();
+            DiffuseMap->TextureHandle->MakeBindlessResident();
         }
 
         if (SpecularMap)
         {
             SpecularMap->Acquire(false, true);
             SpecularMapBindlessHandle = SpecularMap->TextureHandle->GetBindlessHandle();
-            SpecularMap->TextureHandle->MakeBindlessResidient();
+            SpecularMap->TextureHandle->MakeBindlessResident();
         }
 
         if (NormalMap)
         {
             NormalMap->Acquire(false, true);
             NormalMapBindlessHandle = NormalMap->TextureHandle->GetBindlessHandle();
-            NormalMap->TextureHandle->MakeBindlessResidient();
+            NormalMap->TextureHandle->MakeBindlessResident();
         }
 
         if (DisplacementMap)
         {
             DisplacementMap->Acquire(false, true);
             DisplacementMapBindlessHandle = DisplacementMap->TextureHandle->GetBindlessHandle();
-            DisplacementMap->TextureHandle->MakeBindlessResidient();
+            DisplacementMap->TextureHandle->MakeBindlessResident();
         }
     }
     void CBlinnPhongMapsMaterial::UnloadResources()
@@ -321,28 +324,28 @@ namespace lucid::scene
         {
             DiffuseMap->Release();
             DiffuseMapBindlessHandle = 0;
-            DiffuseMap->TextureHandle->MakeBindlessNonResidient();
+            DiffuseMap->TextureHandle->MakeBindlessNonResident();
         }
 
         if (SpecularMap)
         {
             SpecularMap->Release();
             SpecularMapBindlessHandle = 0;
-            SpecularMap->TextureHandle->MakeBindlessNonResidient();
+            SpecularMap->TextureHandle->MakeBindlessNonResident();
         }
 
         if (NormalMap)
         {
             NormalMap->Release();
             NormalMapBindlessHandle = 0;
-            NormalMap->TextureHandle->MakeBindlessNonResidient();
+            NormalMap->TextureHandle->MakeBindlessNonResident();
         }
 
         if (DisplacementMap)
         {
             DisplacementMap->Release();
             DisplacementMapBindlessHandle = 0;
-            DisplacementMap->TextureHandle->MakeBindlessNonResidient();
+            DisplacementMap->TextureHandle->MakeBindlessNonResident();
         }
     }
 } // namespace lucid::scene

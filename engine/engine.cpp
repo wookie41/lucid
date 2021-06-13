@@ -48,6 +48,8 @@ namespace lucid
 
         EngineObjects.Add(&MeshesHolder);
         EngineObjects.Add(&TexturesHolder);
+
+        return EEngineInitError::NONE;
     }
 
     void CEngine::LoadResources()
@@ -385,6 +387,13 @@ namespace lucid
     {
         gpu::QueryDeviceStatus();
 
+        for (auto* Actor : ActorsWithDirtyResources)
+        {
+            Actor->UpdateDirtyResources();
+        }
+
+        ActorsWithDirtyResources.clear();
+        
         auto Node = &EngineObjects.Head;
         while (Node && Node->Element)
         {

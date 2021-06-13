@@ -2,7 +2,7 @@
 
 #include "devices/gpu/shader.hpp"
 
-#include "GL/glew.h"
+#include "glad/glad.h"
 #include "common/collections.hpp"
 
 namespace lucid::gpu

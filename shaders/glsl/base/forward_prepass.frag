@@ -1,7 +1,7 @@
-#version 420 core
+#version 450 core
 
-#include "parallax_occlusion.glsl"
 #include "forward_prepass_common.glsl"
+#include "parallax_occlusion.glsl"
 
 layout (location = 0) out vec3 oNormalVS;
 layout (location = 1) out vec3 oPositionVS;

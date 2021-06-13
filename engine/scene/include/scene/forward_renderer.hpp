@@ -25,11 +25,11 @@ namespace lucid::scene
     // this mean that the same object might be rendered multiple times if it's affected
     // by multiple light.
 
-    constexpr int DEBUG_LINES_BUFFERS_COUNT       = 3;
-    constexpr int PREPASS_DATA_BUFFERS_COUNT     = 3;
-    constexpr int MATERIAL_DATA_BUFFERS_COUNT     = 3;
-    constexpr int MODEL_MATRIX_DATA_BUFFERS_COUNT = 3;
-    constexpr int BINDLESS_TEXTURES_BUFFERS_COUNT = 3;
+    constexpr int DEBUG_LINES_BUFFERS_COUNT        = 3;
+    constexpr int PREPASS_DATA_BUFFERS_COUNT       = 3;
+    constexpr int MATERIAL_DATA_BUFFERS_COUNT      = 3;
+    constexpr int MODEL_MATICES_DATA_BUFFERS_COUNT = 3;
+    constexpr int BINDLESS_TEXTURES_BUFFERS_COUNT  = 3;
 
     constexpr int PREPASS_DATA_BUFFER_SIZE            = 2048;
     constexpr int MATERIAL_DATA_BUFFER_SIZE           = 8192;
@@ -39,12 +39,24 @@ namespace lucid::scene
 #pragma pack(push, 1)
     struct FForwardPrepassUniforms
     {
-        float ModelMatrix[16];
         u32   NormalMultiplier;
-        bool  bHasNormalMap;
-        bool  bHasDisplacementMap;
+        u32  bHasNormalMap;
+        u32  bHasDisplacementMap;
     };
 #pragma pack(pop)
+
+    struct FBatchedMesh
+    {
+        int        NormalMultiplier = 1;
+        CMaterial* Material         = nullptr;
+    };
+
+    struct FMeshBatch
+    {
+        gpu::CVertexArray*        MeshVertexArray;
+        std::vector<FBatchedMesh> BatchedMeshes;
+        u32                       BatchOffset; // Offset of the first entry in this batch relative to the beginning of batch data
+    };
 
     class CForwardRenderer : public CRenderer
     {
@@ -65,6 +77,8 @@ namespace lucid::scene
         int   NumSamplesPCF   = 5;
 
       private:
+        void CreateMeshBatches(FRenderScene* InSceneToRender);
+
         void GenerateShadowMaps(FRenderScene* InSceneToRender);
         void Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
         void LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
@@ -178,7 +192,7 @@ namespace lucid::scene
         gpu::CGPUBuffer* PrepassBindlessTexturesSSBOBuffer;
         gpu::CFence*     PrepassBindlessTexturesBufferFences[PREPASS_DATA_BUFFERS_COUNT];
 
-        gpu::CGPUBuffer* ModelMatricesSSBOBuffer;
+        gpu::CGPUBuffer* ModelMatricesSSBO;
         gpu::CFence*     ModelMatricesBufferFences[MATERIAL_DATA_BUFFERS_COUNT];
 
         gpu::CGPUBuffer* MaterialDataSSBOBuffer;
@@ -194,6 +208,8 @@ namespace lucid::scene
 
         u32  NumBindlessTexturesUsed  = 0;
         u64* BindlessTexturesArrayPtr = nullptr;
+
+        std::vector<FMeshBatch> MeshBatches;
 
 #if DEVELOPMENT
       public:

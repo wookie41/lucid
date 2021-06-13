@@ -1,7 +1,7 @@
 #pragma once
 
 #include "devices/gpu/texture.hpp"
-#include "GL/glew.h"
+#include "glad/glad.h"
 
 #if DEVELOPMENT
 #include "imgui.h"
@@ -43,8 +43,9 @@ namespace lucid::gpu
 
         /** Bindless texture stuff */
         virtual u64  GetBindlessHandle() override;
-        virtual void MakeBindlessResidient() override;
-        virtual void MakeBindlessNonResidient() override;
+        virtual bool IsBindlessTextureResident() const override;
+        virtual void MakeBindlessResident() override;
+        virtual void MakeBindlessNonResident() override;
 
         ///////////////////////////
 

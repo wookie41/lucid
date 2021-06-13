@@ -1,6 +1,6 @@
 #include "devices/gpu/gl/gl_buffer.hpp"
 #include "devices/gpu/gpu.hpp"
-
+#include "glad/glad.h"
 #include <cassert>
 
 #include "devices/gpu/gl/gl_common.hpp"

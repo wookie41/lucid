@@ -41,9 +41,10 @@ namespace lucid::gpu
         virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) = 0;
 
         /** Bindless texture stuff */
-        virtual u64  GetBindlessHandle()        = 0;
-        virtual void MakeBindlessResidient()    = 0;
-        virtual void MakeBindlessNonResidient() = 0;
+        virtual u64  GetBindlessHandle()               = 0;
+        virtual bool IsBindlessTextureResident() const = 0;
+        virtual void MakeBindlessResident()            = 0;
+        virtual void MakeBindlessNonResident()         = 0;
 
         virtual ~CTexture() = default;
 

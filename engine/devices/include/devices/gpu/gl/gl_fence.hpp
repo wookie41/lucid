@@ -1,7 +1,6 @@
 ﻿#pragma once
 
-#include <GL/glew.h>
-
+#include "glad/glad.h"
 #include "devices/gpu/fence.hpp"
 
 namespace lucid::gpu
@@ -21,6 +20,6 @@ namespace lucid::gpu
       private:
         bool bSignaled = false;
         
-        GLsync GLFanceHandle       = nullptr;
+        GLsync GLFenceHandle       = nullptr;
     };
 } // namespace lucid::gpu
