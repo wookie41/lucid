@@ -1,0 +1,15 @@
+{
+    "Id": "9e6bea6f-8753-42f0-bf25-37b58890d2e7",
+    "Name": "FlatBlinnPhongMaterial_9e6bea6f-8753-42f0-bf25-37b58890d2e7",
+    "ShaderName": "BlinnPhong",
+    "SpecularColor": [
+        0.7450000047683716,
+        0.5400000214576721,
+        0.3199999928474426
+    ],
+    "DiffuseColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

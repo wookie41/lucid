@@ -1,0 +1,63 @@
+{
+    "StaticMeshes": [
+        {
+            "Id": 1,
+            "Name": "Gigacube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Scale": [
+                20.0,
+                20.0,
+                20.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "5f13c189-43af-4816-94a9-36a7d8918e71"
+                }
+            ],
+            "bReverseNormals": true
+        },
+        {
+            "Id": 3,
+            "Name": "Backpack",
+            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
+            "Postion": [
+                -2.3253331184387209,
+                -1.913205623626709,
+                -3.092310905456543
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
+                }
+            ]
+        },
+        {
+            "Id": 4,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                1.4505428075790406,
+                1.0687555074691773,
+                2.9729464054107668
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                }
+            ]
+        }
+    ],
+    "PointLights": [
+        {
+            "Id": 2,
+            "Name": "PointLight",
+            "bCastsShadow": true,
+            "Constant": 0.20000000298023225,
+            "Linear": 0.10000000149011612,
+            "Quadratic": 0.014999999664723874
+        }
+    ]
+}

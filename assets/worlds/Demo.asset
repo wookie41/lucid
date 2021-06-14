@@ -1,29 +1,106 @@
 {
     "StaticMeshes": [
         {
-            "Id": 21,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
+            "Id": 18,
+            "Name": "TestCube",
+            "BaseActorResourceId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
             "Postion": [
-                12.368840217590332,
-                7.3788580894470219,
-                -3.938154697418213
+                -10.181564331054688,
+                11.17745590209961,
+                13.569973945617676
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
             ],
             "MaterialIds": [
                 {
                     "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
                 }
             ]
         },
         {
-            "Id": 22,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
+            "Id": 2,
+            "Name": "BrickCube",
+            "BaseActorResourceId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
             "Postion": [
+                4.172100067138672,
+                -0.11250871419906616,
+                4.557320594787598
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "24f49047-090b-4d13-900b-e65f66327148"
+                }
+            ]
+        },
+        {
+            "Id": 3,
+            "Name": "Gigacube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Scale": [
+                30.0,
+                30.0,
+                30.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "5f13c189-43af-4816-94a9-36a7d8918e71"
+                }
+            ],
+            "bReverseNormals": true
+        },
+        {
+            "Id": 4,
+            "Name": "Toybox",
+            "BaseActorResourceId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
+            "Postion": [
+                -6.006997108459473,
+                -2.605623722076416,
+                -6.583926200866699
+            ],
+            "Scale": [
                 2.0,
-                7.3788580894470219,
-                -4.140793800354004
+                2.0,
+                2.0
+            ],
+            "Rotation": [
+                -3.2483214340572889e-8,
+                0.9731789231300354,
+                -3.2483214340572889e-8,
+                0.23004963994026185
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
+                }
+            ]
+        },
+        {
+            "Id": 5,
+            "Name": "Backpack2",
+            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
+            "Postion": [
+                9.60269546508789,
+                -3.675967216491699,
+                -8.136394500732422
+            ],
+            "Scale": [
+                1.5,
+                1.5,
+                1.5
+            ],
+            "Rotation": [
+                0.0,
+                -0.37217795848846438,
+                0.0,
+                0.9281613826751709
             ],
             "MaterialIds": [
                 {
@@ -33,157 +110,24 @@
             ]
         },
         {
-            "Id": 23,
+            "Id": 1,
             "Name": "Backpack",
             "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
             "Postion": [
-                6.886918544769287,
-                7.3788580894470219,
-                -4.008872985839844
+                -4.680571556091309,
+                0.4551119804382324,
+                6.606811046600342
             ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 24,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                26.217361450195314,
-                7.3788580894470219,
-                0.0
+            "Scale": [
+                2.0,
+                2.0,
+                2.0
             ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 25,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                17.22601318359375,
-                7.3788580894470219,
-                -3.9280102252960207
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 26,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                22.783946990966798,
-                7.3788580894470219,
-                0.0
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 27,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                22.783946990966798,
-                7.3788580894470219,
-                -3.5249204635620119
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 28,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                3.0,
-                7.3788580894470219,
-                0.0
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 29,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                7.886918544769287,
-                7.3788580894470219,
-                0.0
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 30,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                13.368840217590332,
-                7.3788580894470219,
-                0.0
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 31,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                18.22601318359375,
-                7.3788580894470219,
-                0.0
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 32,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                27.71600341796875,
-                7.3788580894470219,
-                -2.6609249114990236
+            "Rotation": [
+                3.2483214340572889e-8,
+                0.9731789231300354,
+                3.2483214340572889e-8,
+                0.23004963994026185
             ],
             "MaterialIds": [
                 {
@@ -196,15 +140,73 @@
     "Skybox": {
         "BaseActorResourceId": "dfd87123-806f-4656-a086-2ec636e29fbc"
     },
-    "DirectionalLights": [
+    "SpotLights": [
         {
-            "Id": 20,
-            "Name": "DirectionalLight",
+            "Id": 6,
+            "Color": [
+                1.0,
+                0.0,
+                1.0
+            ],
+            "Name": "SpotLight",
+            "Postion": [
+                -14.311141967773438,
+                0.6749167442321777,
+                -13.936189651489258
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "bCastsShadow": true,
             "Direction": [
-                0.0,
-                0.0,
-                -1.0
-            ]
+                0.17000000178813935,
+                -0.13300000131130219,
+                0.0689999982714653
+            ],
+            "Constant": 0.04500000178813934,
+            "Linear": 0.2280000001192093,
+            "InnerCutOffRad": 0.5235987901687622,
+            "OuterCutOffRad": 0.7853981852531433
+        }
+    ],
+    "PointLights": [
+        {
+            "Id": 7,
+            "Color": [
+                0.7599999904632568,
+                0.699999988079071,
+                0.0
+            ],
+            "Name": "PointLight",
+            "Postion": [
+                1.028664469718933,
+                1.248383641242981,
+                -2.5006752014160158
+            ],
+            "bCastsShadow": true,
+            "Constant": 0.20000000298023225,
+            "Linear": 0.15000000596046449,
+            "Quadratic": 0.0010000000474974514
+        },
+        {
+            "Id": 9,
+            "Color": [
+                0.7599999904632568,
+                0.699999988079071,
+                0.0
+            ],
+            "Name": "PointLight",
+            "Postion": [
+                10.11941146850586,
+                1.3882050514221192,
+                2.612949848175049
+            ],
+            "Constant": 0.20000000298023225,
+            "Linear": 0.15000000596046449,
+            "Quadratic": 0.0010000000474974514
         }
     ]
 }

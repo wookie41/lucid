@@ -26,29 +26,39 @@ namespace lucid::scene
 
     CFlatMaterial* CFlatMaterial::CreateMaterial(const FFlatMaterialDescription& Description, const FDString& InResourcePath)
     {
-        gpu::CShader* Shader = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);
-        auto* Material = new CFlatMaterial{ Description.Id, Description.Name, InResourcePath, Shader };
-        Material->Color = Float4ToVec(Description.Color);
+        gpu::CShader* Shader   = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);
+        auto*         Material = new CFlatMaterial{ Description.Id, Description.Name, InResourcePath, Shader };
+        Material->Color        = Float4ToVec(Description.Color);
         return Material;
     }
 
-    void CFlatMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize)
+#pragma pack(push, 1)
+    struct FFlatMaterialData
     {
+        glm::vec4 Color;
+    };
+#pragma pack(pop)
+
+    u32 CFlatMaterial::SetupShader(char* InMaterialDataPtr)
+    {
+        FFlatMaterialData* MaterialData = (FFlatMaterialData*)InMaterialDataPtr;
+        MaterialData->Color             = Color;
+        return sizeof(FFlatMaterialData);
     }
 
-    void CFlatMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms)
+    void CFlatMaterial::SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms)
     {
-        InPrepassUniforms->bHasNormalMap = false;
+        InPrepassUniforms->bHasNormalMap       = false;
         InPrepassUniforms->bHasDisplacementMap = false;
     }
 
     void CFlatMaterial::InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat)
     {
         FFlatMaterialDescription FlatMaterialDescription;
-        FlatMaterialDescription.Id = ID;
-        FlatMaterialDescription.Name = FDString { *Name };
-        FlatMaterialDescription.ShaderName = FDString { *Shader->GetName() };
-        FlatMaterialDescription.Color = VecToFloat4(Color);
+        FlatMaterialDescription.Id         = ID;
+        FlatMaterialDescription.Name       = FDString{ *Name };
+        FlatMaterialDescription.ShaderName = FDString{ *Shader->GetName() };
+        FlatMaterialDescription.Color      = VecToFloat4(Color);
 
         switch (InFileFormat)
         {
@@ -62,7 +72,7 @@ namespace lucid::scene
     }
 
 #if DEVELOPMENT
-     void CFlatMaterial::UIDrawMaterialEditor()
+    void CFlatMaterial::UIDrawMaterialEditor()
     {
         CMaterial::UIDrawMaterialEditor();
         ImGui::DragFloat4("Color", &Color.r, 0.005, 0, 1);
@@ -71,13 +81,10 @@ namespace lucid::scene
 
     CMaterial* CFlatMaterial::GetCopy() const
     {
-        auto* Copy = new CFlatMaterial { ID, Name, ResourcePath, Shader };
+        auto* Copy  = new CFlatMaterial{ ID, Name, ResourcePath, Shader };
         Copy->Color = Color;
         return Copy;
     }
 
-    u16 CFlatMaterial::GetShaderDataSize() const
-    {
-        return sizeof(Color);
-    }
+    u16 CFlatMaterial::GetShaderDataSize() const { return sizeof(Color); }
 } // namespace lucid::scene

@@ -40,12 +40,12 @@ namespace lucid::scene
          * It's called by the Renderer, the renderer is free to decide which shader will be actually used
          * it can use the Material's 'Shader' or provide some other shader as it sees fit - e.x. the renderer
          * will use a shadow map shader to "render" geometry when generating shadow maps
-         * This function advances the pointers by the amount of data it has written to the buffers and writes the amount of written bytes so we know
+         * This function advances the pointers by the amount of data it has written to the buffers and return the amount of written bytes so we know
          * how much data to send to the GPU.
          */
-        virtual void          SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize) = 0;
-        virtual void          SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms) = 0;
-        
+        virtual u32  SetupShader(char* InMaterialDataPtr)                           = 0;
+        virtual void SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms) = 0;
+
         inline const UUID&    GetID() const { return ID; };
         inline const FString& GetName() const { return Name; };
         virtual EMaterialType GetType() const { return EMaterialType::NONE; }

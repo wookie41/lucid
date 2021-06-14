@@ -18,8 +18,8 @@ namespace lucid::scene
 
         static CFlatMaterial* CreateMaterial(const FFlatMaterialDescription& Description, const FDString& InResourcePath);
 
-        virtual void SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize) override;
-        virtual void SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms) override;
+        virtual u32 SetupShader(char* InMaterialDataPtr) override;
+        virtual void SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms) override;
 
         virtual CMaterial*    GetCopy() const override;
         virtual EMaterialType GetType() const override { return EMaterialType::FLAT; }

@@ -192,11 +192,7 @@ namespace lucid::gpu
     {
         if (GLBindlessHandle == 0)
         {
-            glGetError();
             GLBindlessHandle = glGetTextureHandleARB(GLTextureHandle);
-            LUCID_LOG(ELogLevel::INFO, "Result: %d %d", glGetError(), GLBindlessHandle);
-            GLBindlessHandle = glGetTextureHandleARB(GLTextureHandle);
-            LUCID_LOG(ELogLevel::INFO, "Result: %d %d", glGetError(), GLBindlessHandle);
             assert(GLBindlessHandle);
         }
         return GLBindlessHandle;

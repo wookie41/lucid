@@ -45,14 +45,26 @@ namespace lucid::scene
         return Material;
     }
 
-    void CBlinnPhongMaterial::SetupShaderBuffers(char* InMaterialDataPtr,
-                                                 u64*  InBindlessTexturesArrayPtr,
-                                                 u32&  OutMaterialDataSize,
-                                                 u32&  BindlessTexturesSize)
+#pragma pack(push, 1)
+    struct FBlinnPhongMaterialData
     {
+        glm::vec3 DiffuseColor;
+        glm::vec3 SpecularColor;
+        u32       Shininess;
+        char      padding[12];
+    };
+#pragma pack(pop)
+
+    u32 CBlinnPhongMaterial::SetupShader(char* InMaterialDataPtr)
+    {
+        FBlinnPhongMaterialData* MaterialData = (FBlinnPhongMaterialData*)InMaterialDataPtr;
+        MaterialData->DiffuseColor            = DiffuseColor;
+        MaterialData->SpecularColor           = SpecularColor;
+        MaterialData->Shininess               = Shininess;
+        return sizeof(FBlinnPhongMaterialData);
     }
 
-    void CBlinnPhongMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms)
+    void CBlinnPhongMaterial::SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms)
     {
         InPrepassUniforms->bHasNormalMap       = false;
         InPrepassUniforms->bHasDisplacementMap = false;
@@ -146,15 +158,40 @@ namespace lucid::scene
 
         return Material;
     }
-
-    void CBlinnPhongMapsMaterial::SetupShaderBuffers(char* InMaterialDataPtr,
-                                                     u64*  InBindlessTexturesArrayPtr,
-                                                     u32&  OutMaterialDataSize,
-                                                     u32&  BindlessTexturesSize)
+#pragma pack(push, 1)
+    struct FBlinnPhongMapsMaterialData
     {
+        glm::vec3 SpecularColor;
+        u32 _padding;
+
+        u64 DiffuseMapBindlessHandle;
+        u64 SpecularMapBindlessHandle;
+        u64 NormalMapBindlessHandle;
+        u64 DisplacementMapBindlessHandle;
+
+        u32 Shininess;
+        u32 bHasSpecularMap;
+        u32 bHasNormalMap;
+        u32 bHasDisplacementMap;        
+    };
+#pragma pack(pop)
+
+    u32 CBlinnPhongMapsMaterial::SetupShader(char* InMaterialDataPtr)
+    {
+        FBlinnPhongMapsMaterialData* MaterialData   = (FBlinnPhongMapsMaterialData*)InMaterialDataPtr;
+        MaterialData->SpecularColor                 = SpecularColor;
+        MaterialData->Shininess                     = Shininess;
+        MaterialData->bHasSpecularMap               = SpecularMap != nullptr;
+        MaterialData->bHasNormalMap                 = NormalMap != nullptr;
+        MaterialData->bHasDisplacementMap           = DisplacementMap != nullptr;
+        MaterialData->DiffuseMapBindlessHandle      = DiffuseMapBindlessHandle;
+        MaterialData->SpecularMapBindlessHandle     = SpecularMapBindlessHandle;
+        MaterialData->NormalMapBindlessHandle       = NormalMapBindlessHandle;
+        MaterialData->DisplacementMapBindlessHandle = DisplacementMapBindlessHandle;
+        return sizeof(FBlinnPhongMapsMaterialData);
     }
 
-    void CBlinnPhongMapsMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms)
+    void CBlinnPhongMapsMaterial::SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms)
     {
         InPrepassUniforms->bHasNormalMap       = NormalMap != nullptr;
         InPrepassUniforms->bHasDisplacementMap = DisplacementMap != nullptr;

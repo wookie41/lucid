@@ -180,6 +180,11 @@
             "Id": "9da1f896-239e-4ec7-8eb0-84cc9688479e",
             "MaterialPath": "assets/materials/ToyboxMaterial_9da1f896-239e-4ec7-8eb0-84cc9688479e.asset",
             "MaterialType": 3
+        },
+        {
+            "Id": "9e6bea6f-8753-42f0-bf25-37b58890d2e7",
+            "MaterialPath": "assets/materials/FlatBlinnPhongMaterial_9e6bea6f-8753-42f0-bf25-37b58890d2e7.asset",
+            "MaterialType": 2
         }
     ]
 }

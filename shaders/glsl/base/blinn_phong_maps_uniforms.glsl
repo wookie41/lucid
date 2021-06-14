@@ -1,13 +1,25 @@
-uniform int         uMaterialShininess;
+#extension GL_ARB_bindless_texture : enable
+#extension GL_ARB_shader_storage_buffer_object : enable
 
-uniform sampler2D   uMaterialDiffuseMap;
+flat in int InstanceID;
 
-uniform bool        uMaterialHasSpecularMap;
-uniform sampler2D   uMaterialSpecularMap;
-uniform vec3        uMaterialSpecularColor;
+layout(bindless_sampler) uniform;
 
-uniform bool        uMaterialHasNormalMap;
-uniform sampler2D   uMaterialNormalMap;
+struct FBlinnPhongMapsMaterial
+{
+    vec3 SpecularColor;
 
-uniform bool        uMaterialHasDisplacementMap;
-uniform sampler2D   uMaterialDisplacementMap;
+    sampler2D DiffuseMap;
+    sampler2D SpecularMap;
+    sampler2D NormalMap;
+    sampler2D DisplacementMap;
+
+    int  Shininess;
+    bool bHasSpecularMap;
+    bool bHasNormalMap;
+    bool bHasDisplacementMap;
+};
+
+layout(std430, binding = 1) buffer MaterialDataDataBlock { FBlinnPhongMapsMaterial MaterialData[]; };
+
+#define MATERIAL_DATA MaterialData[InstanceID]

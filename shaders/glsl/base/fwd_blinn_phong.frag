@@ -1,5 +1,7 @@
 #version 450 core
 
+#include "blinn_phong_uniforms.glsl"
+
 in VS_OUT
 {
     vec3 InterpolatedNormal;
@@ -8,7 +10,6 @@ in VS_OUT
 fsIn;
 
 #include "lights.glsl"
-#include "blinn_phong_uniforms.glsl"
 
 uniform float uAmbientStrength;
 uniform vec3 uViewPos;
@@ -22,26 +23,26 @@ void main()
     vec3 normal = normalize(fsIn.InterpolatedNormal);
     vec3 toViewN = normalize(uViewPos - fsIn.FragPos);
 
-    vec3 ambient = uMaterialDiffuseColor * uAmbientStrength;
+    vec3 ambient = MATERIAL_DATA.DiffuseColor * uAmbientStrength;
     float shadowFactor = 1.0;
 
     LightContribution lightCntrb;
     if (uLightType == DIRECTIONAL_LIGHT)
     {
         shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLightDirection));
-        lightCntrb = CalculateDirectionalLightContribution(toViewN, normal, uMaterialShininess);
+        lightCntrb = CalculateDirectionalLightContribution(toViewN, normal, MATERIAL_DATA.Shininess);
     }
     else if (uLightType == POINT_LIGHT)
     {
         shadowFactor = CalculateShadowCubemap(fsIn.FragPos, normal, uLightPosition);
-        lightCntrb = CalculatePointLightContribution(fsIn.FragPos, toViewN, normal, uMaterialShininess);
+        lightCntrb = CalculatePointLightContribution(fsIn.FragPos, toViewN, normal, MATERIAL_DATA.Shininess);
     }
     else if (uLightType == SPOT_LIGHT)
     {
         shadowFactor = CalculateShadow(fsIn.FragPos, normal, normalize(uLightDirection));
-        lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, uMaterialShininess);
+        lightCntrb = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, MATERIAL_DATA.Shininess);
     }
 
-    vec3 fragColor = (uMaterialDiffuseColor *  lightCntrb.Diffuse) + (uMaterialSpecularColor * lightCntrb.Specular);
+    vec3 fragColor = (MATERIAL_DATA.DiffuseColor *  lightCntrb.Diffuse) + (MATERIAL_DATA.SpecularColor * lightCntrb.Specular);
     oFragColor = vec4((ambient * lightCntrb.Attenuation) + (fragColor * shadowFactor), 1);
 }

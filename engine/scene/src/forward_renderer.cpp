@@ -430,20 +430,6 @@ namespace lucid::scene
             }
         }
 
-        {
-            // Light pass bindless textures buffer
-            gpu::FBufferDescription BufferDesc;
-            BufferDesc.Data   = nullptr;
-            BufferDesc.Offset = 0;
-            BufferDesc.Size   = BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE * MATERIAL_DATA_BUFFERS_COUNT;
-
-            BindlessTexturesArraySSBOBuffer = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "BindlessTexturesArraySSBO");
-
-            for (u8 i = 0; i < BINDLESS_TEXTURES_BUFFERS_COUNT; ++i)
-            {
-                BindlessTexturesArrayFences[i] = gpu::CreateFence("BindlessTexturesFence");
-            }
-        }
 #if DEVELOPMENT
 
         // Light bulbs
@@ -613,6 +599,19 @@ namespace lucid::scene
 #endif
     }
 
+    struct FBatchKey
+    {
+        gpu::CVertexArray* VertexArray = nullptr;
+        scene::CMaterial*  Material    = nullptr;
+
+        bool operator==(const FBatchKey& InRHS) const { return VertexArray == InRHS.VertexArray && Material->GetType() == InRHS.Material->GetType(); }
+    };
+
+    struct FBatchKeyHash
+    {
+        std::size_t operator()(const FBatchKey& Key) const { return (uintptr_t)(Key.VertexArray) ^ (uintptr_t)(Key.Material->GetType()); }
+    };
+
     struct FMeshBatchBuilder
     {
         std::vector<CStaticMesh*> StaticMeshes; // actor that owns the given mesh
@@ -621,7 +620,7 @@ namespace lucid::scene
 
     void CForwardRenderer::CreateMeshBatches(FRenderScene* InSceneToRender)
     {
-        std::unordered_map<gpu::CVertexArray*, FMeshBatchBuilder> MeshBatchBuilders;
+        std::unordered_map<FBatchKey, FMeshBatchBuilder, FBatchKeyHash> MeshBatchBuilders;
 
         // Create batch builders
         for (u32 i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
@@ -644,13 +643,14 @@ namespace lucid::scene
                     continue;
                 }
 
-                auto& BatchIt = MeshBatchBuilders.find(SubMesh->VAO);
+                const FBatchKey BatchKey{ SubMesh->VAO, SubMeshMaterial };
+                auto&           BatchIt = MeshBatchBuilders.find(BatchKey);
                 if (BatchIt == MeshBatchBuilders.end())
                 {
                     FMeshBatchBuilder BatchBuilder;
                     BatchBuilder.StaticMeshes.push_back(StaticMesh);
                     BatchBuilder.Materials.push_back(SubMeshMaterial);
-                    MeshBatchBuilders[SubMesh->VAO] = BatchBuilder;
+                    MeshBatchBuilders[BatchKey] = BatchBuilder;
                 }
                 else
                 {
@@ -675,10 +675,13 @@ namespace lucid::scene
             MeshBatches.push_back({});
             FMeshBatch& MeshBatch = MeshBatches[MeshBatches.size() - 1];
 
-            MeshBatch.MeshVertexArray = BatchBuilder.first;
-            MeshBatch.BatchOffset     = TotalBatchedMeshes;
+            MeshBatch.MeshVertexArray    = BatchBuilder.first.VertexArray;
+            MeshBatch.Shader             = BatchBuilder.first.Material->Shader;
+            MeshBatch.BatchedSoFar       = TotalBatchedMeshes;
+            MeshBatch.MaterialDataOffset = MaterialDataSize;
+            MeshBatch.MaterialDataSize   = 0;
 
-            // CopyBuild batches, prepare model matrices to be sent to the GPU
+            // Build batches, prepare data to be sent to the GPU
             for (int i = 0; i < BatchBuilder.second.Materials.size(); ++i, ++TotalBatchedMeshes)
             {
                 FBatchedMesh BatchedMesh;
@@ -686,20 +689,37 @@ namespace lucid::scene
                 BatchedMesh.NormalMultiplier = BatchBuilder.second.StaticMeshes[i]->GetReverseNormals() ? -1 : 1;
                 MeshBatch.BatchedMeshes.push_back(BatchedMesh);
 
+                // Common instance data
                 CommonInstanceData->ModelMatrix      = BatchBuilder.second.StaticMeshes[i]->CachedModelMatrix;
                 CommonInstanceData->NormalMultiplier = BatchedMesh.NormalMultiplier;
 
                 CommonInstanceData += 1;
                 CommonInstanceDataSize += sizeof(FCommonInstanceData);
 
+                // Material data
+                const u32 BytesWritten = BatchedMesh.Material->SetupShader(MaterialDataPtr);
+                MaterialDataSize += BytesWritten;
+                MeshBatch.MaterialDataSize += BytesWritten;
+                MaterialDataPtr += BytesWritten;
+
                 // Limit batch size to 64
                 if (MeshBatch.BatchedMeshes.size() == MAX_MESHES_PER_BATCH)
                 {
                     MeshBatches.push_back({});
-                    MeshBatch = MeshBatches[MeshBatches.size() - 1];
+                    FMeshBatch NextBatch         = MeshBatches[MeshBatches.size() - 1];
+                    NextBatch.MeshVertexArray    = MeshBatch.MeshVertexArray;
+                    NextBatch.Shader             = BatchBuilder.first.Material->GetShader();
+                    NextBatch.BatchedSoFar       = TotalBatchedMeshes;
+                    NextBatch.MaterialDataOffset = MaterialDataSize;
+                    NextBatch.MaterialDataSize   = 0;
+                    MeshBatch                    = NextBatch;
                 }
             }
         }
+
+        // @TODO handle this case
+        assert(CommonInstanceDataSize < COMMON_INSTANCE_DATA_BUFFER_SIZE);
+        assert(MaterialDataSize < MATERIAL_DATA_BUFFER_SIZE);
 
         // Send common instance data to the GPU
         {
@@ -722,6 +742,26 @@ namespace lucid::scene
 
             // Bind the common instance data SSBO
             CommonInstanceDataSSBO->BindIndexed(0, gpu::EBufferBindPoint::SHADER_STORAGE, CommonInstanceDataSize, BufferOffset);
+        }
+
+        // Send material data to the GPU
+        {
+            // Make sure the buffer is not used and create a new fence
+            const int    BufferIdx    = GRenderStats.FrameNumber % MATERIAL_DATA_BUFFERS_COUNT;
+            const u32    BufferOffset = BufferIdx * MATERIAL_DATA_BUFFER_SIZE;
+            gpu::CFence* Fence        = MaterialDataBufferFences[BufferIdx];
+
+            Fence->Wait(0);
+            Fence->Free();
+
+            delete Fence;
+            MaterialDataBufferFences[BufferIdx] = gpu::CreateFence("MaterialDataFence");
+
+            // memcpy the data
+            MaterialDataSSBOBuffer->Bind(gpu::EBufferBindPoint::WRITE);
+            void* VideoMemPtr = MaterialDataSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, MATERIAL_DATA_BUFFER_SIZE, BufferOffset);
+            memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_1, MaterialDataSize);
+            MaterialDataSSBOBuffer->MemoryUnmap();
         }
     }
 
@@ -774,7 +814,7 @@ namespace lucid::scene
             for (const FMeshBatch& MeshBatch : MeshBatches)
             {
                 MeshBatch.MeshVertexArray->Bind();
-                CurrentShadowMapShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchOffset);
+                CurrentShadowMapShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
                 MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
             }
 
@@ -798,7 +838,7 @@ namespace lucid::scene
         {
             for (const auto& BatchedMesh : MeshBatch.BatchedMeshes)
             {
-                BatchedMesh.Material->SetupPrepassShaderBuffers(PrepassDataPtr);
+                BatchedMesh.Material->SetupPrepassShader(PrepassDataPtr);
 
                 // Advance the pointer
                 PrepassDataPtr += 1;
@@ -841,7 +881,7 @@ namespace lucid::scene
         // Issue batches
         for (const auto& MeshBatch : MeshBatches)
         {
-            PrepassShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchOffset);
+            PrepassShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
             MeshBatch.MeshVertexArray->Bind();
             MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
         }
@@ -894,66 +934,63 @@ namespace lucid::scene
         BindAndClearFramebuffer(LightingPassFramebuffer);
         LightingPassFramebuffer->SetupDrawBuffers();
 
-        // const int BufferIdx                 = GRenderStats.FrameNumber % DEBUG_LINES_BUFFERS_COUNT;
-        // const u32 ModelMatricesBufferOffset = BufferIdx * MODEL_MATRICES_DATA_BUFFER_SIZE;
-        // const u32 MaterialDataBufferOffset  = BufferIdx * MATERIAL_DATA_BUFFER_SIZE;
-        // const u32 TexturesArrayBufferOffset = BufferIdx * BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE;
-        //
-        // ModelMatricesPtr =
-        //   (glm::mat4*)ModelMatricesSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, MODEL_MATRICES_DATA_BUFFER_SIZE, ModelMatricesBufferOffset);
-        // MaterialDataPtr = (char*)MaterialDataSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, MATERIAL_DATA_BUFFER_SIZE, MaterialDataBufferOffset);
-        // BindlessTexturesArrayPtr =
-        //   (u64*)BindlessTexturesArraySSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE, TexturesArrayBufferOffset);
-        //
-        // NumMeshesDrawn          = 0;
-        // NumBindlessTexturesUsed = 0;
-        //
-        // RenderStaticMeshes(InSceneToRender, InRenderView);
-        // if (InSceneToRender->Skybox)
-        // {
-        //     RenderSkybox(InSceneToRender->Skybox, InRenderView);
-        // }
+        RenderStaticMeshes(InSceneToRender, InRenderView);
+        if (InSceneToRender->Skybox)
+        {
+            RenderSkybox(InSceneToRender->Skybox, InRenderView);
+        }
     }
 
     void CForwardRenderer::RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
         if (InScene->AllLights.GetLength() == 0)
         {
-            RenderWithoutLights(InScene, InRenderView);
+            RenderLightContribution(nullptr, InScene, InRenderView);
             return;
         }
 
-        gpu::CShader* LastUsedShader = nullptr;
-        RenderLightContribution(&LastUsedShader, InScene->AllLights.GetByIndex(0), InScene, InRenderView);
+        RenderLightContribution(InScene->AllLights.GetByIndex(0), InScene, InRenderView);
 
         // Switch blending so we render the rest of the lights additively
         gpu::ConfigurePipelineState(LightpassPipelineState);
         for (int i = 1; i < InScene->AllLights.GetLength(); ++i)
         {
-            RenderLightContribution(&LastUsedShader, InScene->AllLights.GetByIndex(i), InScene, InRenderView);
+            RenderLightContribution(InScene->AllLights.GetByIndex(i), InScene, InRenderView);
         }
     }
 
-    void CForwardRenderer::RenderLightContribution(gpu::CShader**      LastShader,
-                                                   const CLight*       InLight,
-                                                   const FRenderScene* InScene,
-                                                   const FRenderView*  InRenderView)
+    void CForwardRenderer::RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView)
     {
-        gpu::PushDebugGroup(*InLight->Name);
-        for (u32 i = 0; i < InScene->StaticMeshes.GetLength(); ++i)
+        if (InLight)
         {
-            RenderStaticMesh(LastShader, InScene->StaticMeshes.GetByIndex(i), InLight, InRenderView);
+            gpu::PushDebugGroup(*InLight->Name);
         }
-        gpu::PopDebugGroup();
-    }
 
-    void CForwardRenderer::RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView)
-    {
-        gpu::CShader* LastUserShader = nullptr;
-
-        for (int i = 0; i < InScene->StaticMeshes.GetLength(); ++i)
+        for (const FMeshBatch& MeshBatch : MeshBatches)
         {
-            RenderStaticMesh(&LastUserShader, InScene->StaticMeshes.GetByIndex(i), nullptr, InRenderView);
+            gpu::PushDebugGroup(*MeshBatch.MeshVertexArray->GetName());
+            MeshBatch.Shader->Use();
+            if (InLight)
+            {
+                InLight->SetupShader(MeshBatch.Shader);
+            }
+            else
+            {
+                MeshBatch.Shader->SetInt(LIGHT_TYPE, NO_LIGHT);
+            }
+
+            SetupRendererWideUniforms(MeshBatch.Shader, InRenderView); // @TODO this will happen only once at the start of the frame
+
+            MeshBatch.Shader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
+            MaterialDataSSBOBuffer->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, MeshBatch.MaterialDataSize, MeshBatch.MaterialDataOffset);
+
+            MeshBatch.MeshVertexArray->Bind();
+            MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
+            gpu::PopDebugGroup();
+        }
+        if (InLight)
+        {
+            gpu::PopDebugGroup();
         }
     }
 

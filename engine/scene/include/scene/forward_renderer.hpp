@@ -55,8 +55,11 @@ namespace lucid::scene
     struct FMeshBatch
     {
         gpu::CVertexArray*        MeshVertexArray;
+        gpu::CShader*             Shader;
         std::vector<FBatchedMesh> BatchedMeshes;
-        u32                       BatchOffset; // Offset of the first entry in this batch relative to the beginning of batch data
+        u32                       BatchedSoFar; // Total number of batched meshes processed up until this batch
+        u32                       MaterialDataOffset; // Offset at which material data for this batch start
+        u32                       MaterialDataSize; // Size of material data for this batch
     };
 
     class CForwardRenderer : public CRenderer
@@ -87,15 +90,12 @@ namespace lucid::scene
         inline void BindAndClearFramebuffer(gpu::CFramebuffer* InFramebuffer);
         inline void SetupRendererWideUniforms(gpu::CShader* InShader, const FRenderView* InRenderView);
 
-        void RenderWithoutLights(const FRenderScene* InScene, const FRenderView* InRenderView);
-
-        void RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView);
-        inline void
-             RenderLightContribution(gpu::CShader** LastShader, const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
-        void RenderStaticMesh(gpu::CShader**            LastShader,
-                              const scene::CStaticMesh* InStaticMesh,
-                              const scene::CLight*      InLight,
-                              const FRenderView*        InRenderView);
+        void        RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView);
+        inline void RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
+        void        RenderStaticMesh(gpu::CShader**            LastShader,
+                                     const scene::CStaticMesh* InStaticMesh,
+                                     const scene::CLight*      InLight,
+                                     const FRenderView*        InRenderView);
 
         void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
@@ -195,9 +195,6 @@ namespace lucid::scene
 
         gpu::CGPUBuffer* MaterialDataSSBOBuffer;
         gpu::CFence*     MaterialDataBufferFences[MATERIAL_DATA_BUFFERS_COUNT];
-
-        gpu::CGPUBuffer* BindlessTexturesArraySSBOBuffer;
-        gpu::CFence*     BindlessTexturesArrayFences[BINDLESS_TEXTURES_BUFFERS_COUNT];
 
         u32  NumBindlessTexturesUsed  = 0;
         u64* BindlessTexturesArrayPtr = nullptr;
