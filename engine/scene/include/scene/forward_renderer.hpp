@@ -28,20 +28,19 @@ namespace lucid::scene
     constexpr int DEBUG_LINES_BUFFERS_COUNT        = 3;
     constexpr int PREPASS_DATA_BUFFERS_COUNT       = 3;
     constexpr int MATERIAL_DATA_BUFFERS_COUNT      = 3;
-    constexpr int MODEL_MATICES_DATA_BUFFERS_COUNT = 3;
+    constexpr int COMMON_INSTANCE_DATA_BUFFERS_COUNT = 3;
     constexpr int BINDLESS_TEXTURES_BUFFERS_COUNT  = 3;
 
     constexpr int PREPASS_DATA_BUFFER_SIZE            = 2048;
     constexpr int MATERIAL_DATA_BUFFER_SIZE           = 8192;
-    constexpr int MODEL_MATRICES_DATA_BUFFER_SIZE     = 4096;
+    constexpr int COMMON_INSTANCE_DATA_BUFFER_SIZE     = 4096;
     constexpr int BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE = 1024;
 
 #pragma pack(push, 1)
     struct FForwardPrepassUniforms
     {
-        u32   NormalMultiplier;
-        u32  bHasNormalMap;
-        u32  bHasDisplacementMap;
+        u32 bHasNormalMap;
+        u32 bHasDisplacementMap;
     };
 #pragma pack(pop)
 
@@ -192,19 +191,14 @@ namespace lucid::scene
         gpu::CGPUBuffer* PrepassBindlessTexturesSSBOBuffer;
         gpu::CFence*     PrepassBindlessTexturesBufferFences[PREPASS_DATA_BUFFERS_COUNT];
 
-        gpu::CGPUBuffer* ModelMatricesSSBO;
-        gpu::CFence*     ModelMatricesBufferFences[MATERIAL_DATA_BUFFERS_COUNT];
+        gpu::CGPUBuffer* CommonInstanceDataSSBO;
+        gpu::CFence*     CommonInstanceDataBufferFences[MATERIAL_DATA_BUFFERS_COUNT];
 
         gpu::CGPUBuffer* MaterialDataSSBOBuffer;
         gpu::CFence*     MaterialDataBufferFences[MATERIAL_DATA_BUFFERS_COUNT];
 
         gpu::CGPUBuffer* BindlessTexturesArraySSBOBuffer;
         gpu::CFence*     BindlessTexturesArrayFences[BINDLESS_TEXTURES_BUFFERS_COUNT];
-
-        // Per frame buffers and offsets
-        u32        NumMeshesDrawn   = 0;
-        glm::mat4* ModelMatricesPtr = nullptr;
-        char*      MaterialDataPtr  = nullptr;
 
         u32  NumBindlessTexturesUsed  = 0;
         u64* BindlessTexturesArrayPtr = nullptr;

@@ -175,6 +175,11 @@
             "Id": "8409353e-a011-481b-85ec-aa7d0f0be3a3",
             "MaterialPath": "assets/materials/Sponza_vase_round.asset",
             "MaterialType": 3
+        },
+        {
+            "Id": "9da1f896-239e-4ec7-8eb0-84cc9688479e",
+            "MaterialPath": "assets/materials/ToyboxMaterial_9da1f896-239e-4ec7-8eb0-84cc9688479e.asset",
+            "MaterialType": 3
         }
     ]
 }

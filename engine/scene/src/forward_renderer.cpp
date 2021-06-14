@@ -98,6 +98,16 @@ namespace lucid::scene
 
     constexpr u8 MAX_MESHES_PER_BATCH = 64;
 
+#pragma pack(push, 1)
+    // Rememver to keep it 16 bytes aligned
+    struct FCommonInstanceData
+    {
+        float ModelMatrix[16];
+        u32   NormalMultiplier;
+        char  _padding[12];
+    };
+#pragma pack(pop)
+
     CForwardRenderer::CForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples)
     : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples)
     {
@@ -410,13 +420,13 @@ namespace lucid::scene
             gpu::FBufferDescription BufferDesc;
             BufferDesc.Data   = nullptr;
             BufferDesc.Offset = 0;
-            BufferDesc.Size   = MODEL_MATRICES_DATA_BUFFER_SIZE * MATERIAL_DATA_BUFFERS_COUNT;
+            BufferDesc.Size   = COMMON_INSTANCE_DATA_BUFFER_SIZE * MATERIAL_DATA_BUFFERS_COUNT;
 
-            ModelMatricesSSBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "ModelMatricesDataSSBO");
+            CommonInstanceDataSSBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "CommonInstanceDataSSBO");
 
             for (u8 i = 0; i < MATERIAL_DATA_BUFFERS_COUNT; ++i)
             {
-                ModelMatricesBufferFences[i] = gpu::CreateFence("ModelMatricesFence");
+                CommonInstanceDataBufferFences[i] = gpu::CreateFence("CommonInstanceFence");
             }
         }
 
@@ -668,9 +678,9 @@ namespace lucid::scene
         // Create the batches themselves
         MeshBatches.clear();
 
-        u32    ModelMatricesDataSize = 0;
-        u32    TotalBatchedMeshes    = 0;
-        float* ModelMatricesData     = (float*)STAGING_BUFFER_SMALL_0;
+        u32                  CommonInstanceDataSize = 0;
+        u32                  TotalBatchedMeshes     = 0;
+        FCommonInstanceData* CommonInstanceData     = (FCommonInstanceData*)STAGING_BUFFER_SMALL_0;
         for (auto& BatchBuilder : MeshBatchBuilders)
         {
             MeshBatches.push_back({});
@@ -687,10 +697,13 @@ namespace lucid::scene
                 BatchedMesh.NormalMultiplier = BatchBuilder.second.StaticMeshes[i]->GetReverseNormals() ? -1 : 1;
                 MeshBatch.BatchedMeshes.push_back(BatchedMesh);
 
-                memcpy(ModelMatricesData, &BatchBuilder.second.StaticMeshes[i]->CachedModelMatrix[0][0], sizeof(float) * 16);
+                memcpy(CommonInstanceData->ModelMatrix,
+                       glm::value_ptr(BatchBuilder.second.StaticMeshes[i]->CachedModelMatrix),
+                       sizeof(CommonInstanceData->ModelMatrix));
+                CommonInstanceData->NormalMultiplier = BatchedMesh.NormalMultiplier;
 
-                ModelMatricesData += 16;
-                ModelMatricesDataSize += (sizeof(float) * 16);
+                CommonInstanceData += 1;
+                CommonInstanceDataSize += sizeof(FCommonInstanceData);
 
                 // Limit batch size to 64
                 if (MeshBatch.BatchedMeshes.size() == MAX_MESHES_PER_BATCH)
@@ -701,27 +714,27 @@ namespace lucid::scene
             }
         }
 
-        // Send model matrices to the GPU
+        // Send common instance data to the GPU
         {
             // Make sure the buffer is not used and create a new fence
-            const int    BufferIdx    = GRenderStats.FrameNumber % MODEL_MATICES_DATA_BUFFERS_COUNT;
-            const u32    BufferOffset = BufferIdx * MODEL_MATRICES_DATA_BUFFER_SIZE;
-            gpu::CFence* Fence        = ModelMatricesBufferFences[BufferIdx];
+            const int    BufferIdx    = GRenderStats.FrameNumber % COMMON_INSTANCE_DATA_BUFFERS_COUNT;
+            const u32    BufferOffset = BufferIdx * COMMON_INSTANCE_DATA_BUFFER_SIZE;
+            gpu::CFence* Fence        = CommonInstanceDataBufferFences[BufferIdx];
 
             Fence->Wait(0);
             Fence->Free();
 
             delete Fence;
-            ModelMatricesBufferFences[BufferIdx] = gpu::CreateFence("ModelMatricesFence");
+            CommonInstanceDataBufferFences[BufferIdx] = gpu::CreateFence("CommonInstanceDataFence");
 
             // memcpy the data
-            ModelMatricesSSBO->Bind(gpu::EBufferBindPoint::WRITE);
-            void* VideoMemPtr = ModelMatricesSSBO->MemoryMap(UNSYNCHRONIZED_WRITE, PREPASS_DATA_BUFFER_SIZE, BufferOffset);
-            memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_0, ModelMatricesDataSize);
-            ModelMatricesSSBO->MemoryUnmap();
+            CommonInstanceDataSSBO->Bind(gpu::EBufferBindPoint::WRITE);
+            void* VideoMemPtr = CommonInstanceDataSSBO->MemoryMap(UNSYNCHRONIZED_WRITE, COMMON_INSTANCE_DATA_BUFFER_SIZE, BufferOffset);
+            memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_0, CommonInstanceDataSize);
+            CommonInstanceDataSSBO->MemoryUnmap();
 
-            // Bind the model matrices SSBO
-            ModelMatricesSSBO->BindIndexed(0, gpu::EBufferBindPoint::SHADER_STORAGE, ModelMatricesDataSize, BufferOffset);
+            // Bind the common instance data SSBO
+            CommonInstanceDataSSBO->BindIndexed(0, gpu::EBufferBindPoint::SHADER_STORAGE, CommonInstanceDataSize, BufferOffset);
         }
     }
 
@@ -786,7 +799,6 @@ namespace lucid::scene
     {
         gpu::PushDebugGroup("Z pre pass");
 
-        // Prepare the data
         const int BufferIdx = GRenderStats.FrameNumber % DEBUG_LINES_BUFFERS_COUNT;
 
         const u32 DataBufferOffset             = BufferIdx * PREPASS_DATA_BUFFER_SIZE;
@@ -802,8 +814,6 @@ namespace lucid::scene
         {
             for (const auto& BatchedMesh : MeshBatch.BatchedMeshes)
             {
-                PrepassDataPtr->NormalMultiplier = BatchedMesh.NormalMultiplier;
-
                 BatchedMesh.Material->SetupPrepassShaderBuffers(PrepassDataPtr, PrepassBindlessTexturesPtr);
 
                 // Advance the pointers
@@ -864,7 +874,8 @@ namespace lucid::scene
 
         // Bind the SSBOs
         PrepassDataSSBOBuffer->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, DataBufferOffset, DataBufferOffset);
-        PrepassBindlessTexturesSSBOBuffer->BindIndexed(2, gpu::EBufferBindPoint::SHADER_STORAGE, BindlessTexturesDataSize, BindlessTexturesBufferOffset);
+        PrepassBindlessTexturesSSBOBuffer->BindIndexed(
+          2, gpu::EBufferBindPoint::SHADER_STORAGE, BindlessTexturesDataSize, BindlessTexturesBufferOffset);
 
         // Issue batches
         for (const auto& MeshBatch : MeshBatches)

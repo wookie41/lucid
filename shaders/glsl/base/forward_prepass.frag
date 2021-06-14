@@ -3,6 +3,8 @@
 #include "forward_prepass_common.glsl"
 #include "parallax_occlusion.glsl"
 
+flat in int InstanceID;
+
 layout (location = 0) out vec3 oNormalVS;
 layout (location = 1) out vec3 oPositionVS;
 
@@ -11,8 +13,6 @@ in vec3 NormalVS;
 in vec2 TexCoords;
 
 flat in mat3 TBNMatrix;
-flat in int InstanceId;
-
 uniform vec3 uViewPos;
 
 void main() 

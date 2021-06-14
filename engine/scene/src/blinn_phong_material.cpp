@@ -17,10 +17,11 @@
 
 namespace lucid::scene
 {
-    static const FSString SHININESS("uMaterialShininess");
-    static const FSString DIFFUSE_COLOR("uMaterialDiffuseColor");
-    static const FSString SPECULAR_COLOR("uMaterialSpecularColor");
 
+#pragma pack(push, 1)
+#pragma pack(pop)
+
+    
     CBlinnPhongMaterial::CBlinnPhongMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader)
     : CMaterial(InId, InName, InResourcePath, InShader)
     {
@@ -45,7 +46,7 @@ namespace lucid::scene
         return Material;
     }
 
-    void CBlinnPhongMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr) {}
+    void CBlinnPhongMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize) {}
 
     void CBlinnPhongMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr)
     {
@@ -112,46 +113,6 @@ namespace lucid::scene
     {
     }
 
-    // void CBlinnPhongMapsMaterial::SetupShader(gpu::CShader* Shader)
-    // {
-    //     Shader->SetInt(SHININESS, Shininess);
-    //     if (DiffuseMap)
-    //     {
-    //         Shader->UseTexture(DIFFUSE_MAP, DiffuseMap->TextureHandle);
-    //     }
-    //
-    //     if (SpecularMap)
-    //     {
-    //         Shader->UseTexture(SPECULAR_MAP, SpecularMap->TextureHandle);
-    //         Shader->SetBool(HAS_SPECULAR_MAP, true);
-    //     }
-    //     else
-    //     {
-    //         Shader->SetBool(HAS_SPECULAR_MAP, false);
-    //         Shader->SetVector(SPECULAR_COLOR, SpecularColor);
-    //     }
-    //
-    //     if (NormalMap)
-    //     {
-    //         Shader->UseTexture(NORMAL_MAP, NormalMap->TextureHandle);
-    //         Shader->SetBool(HAS_NORMAL_MAP, true);
-    //     }
-    //     else
-    //     {
-    //         Shader->SetBool(HAS_NORMAL_MAP, false);
-    //     }
-    //
-    //     if (DisplacementMap)
-    //     {
-    //         Shader->UseTexture(DISPLACEMENT_MAP, DisplacementMap->TextureHandle);
-    //         Shader->SetBool(HAS_DISPLACEMENT_MAP, true);
-    //     }
-    //     else
-    //     {
-    //         Shader->SetBool(HAS_DISPLACEMENT_MAP, false);
-    //     }
-    // };
-
     CBlinnPhongMapsMaterial* CBlinnPhongMapsMaterial::CreateMaterial(const FBlinnPhongMapsMaterialDescription& Description,
                                                                      const FDString&                           InResourcePath)
     {
@@ -182,7 +143,7 @@ namespace lucid::scene
         return Material;
     }
 
-    void CBlinnPhongMapsMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr) {}
+    void CBlinnPhongMapsMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize) {}
 
     void CBlinnPhongMapsMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr)
     {

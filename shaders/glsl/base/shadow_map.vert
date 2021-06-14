@@ -1,6 +1,9 @@
 #version 450 core
 
-#include "model_matrices_ssbo.glsl"
+#include "common_ssbo.glsl"
+
+in int gl_InstanceID;
+flat out int InstanceID;
 
 layout(location = 0) in vec3 aPosition;
 
@@ -8,5 +11,6 @@ uniform mat4 uLightMatrix;
 
 void main() 
 {
-    gl_Position = uLightMatrix * MODEL_MATRIX * vec4(aPosition, 1.0);
+    InstanceID = gl_InstanceID;
+    gl_Position = uLightMatrix * INSTANCE_DATA.ModelMatrix * vec4(aPosition, 1.0);
 }

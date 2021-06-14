@@ -32,7 +32,7 @@ namespace lucid::scene
         return Material;
     }
 
-    void CFlatMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr)
+    void CFlatMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize)
     {
     }
 

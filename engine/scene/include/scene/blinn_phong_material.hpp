@@ -28,7 +28,7 @@ namespace lucid::scene
 
         static CBlinnPhongMaterial* CreateMaterial(const FBlinnPhongMaterialDescription& Description, const FDString& InResourcePath);
 
-        virtual void SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr) override;
+        virtual void SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize) override;
         virtual void SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr) override;
 
         virtual CMaterial*    GetCopy() const override;
@@ -58,7 +58,7 @@ namespace lucid::scene
 
         static CBlinnPhongMapsMaterial* CreateMaterial(const FBlinnPhongMapsMaterialDescription& Description, const FDString& InResourcePath);
 
-        virtual void SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr) override;
+        virtual void SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize) override;
         virtual void SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr) override;
 
         virtual CMaterial*    GetCopy() const override;
