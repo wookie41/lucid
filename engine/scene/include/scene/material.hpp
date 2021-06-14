@@ -44,7 +44,7 @@ namespace lucid::scene
          * how much data to send to the GPU.
          */
         virtual void          SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize) = 0;
-        virtual void          SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr) = 0;
+        virtual void          SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms) = 0;
         
         inline const UUID&    GetID() const { return ID; };
         inline const FString& GetName() const { return Name; };

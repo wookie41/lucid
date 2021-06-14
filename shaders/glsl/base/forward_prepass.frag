@@ -24,14 +24,14 @@ void main()
         if (PREPASS_DATA.bHasDisplacementMap)
         {
             vec3 toViewN = normalize(-PositionVS);
-            textureCoords = ParallaxOcclusionMapping(inverse(TBNMatrix) * toViewN, textureCoords, DISPLACEMENT_MAP);
+            textureCoords = ParallaxOcclusionMapping(inverse(TBNMatrix) * toViewN, textureCoords, PREPASS_DATA.DisplacementMap);
             if (textureCoords.x > 1 || textureCoords.x < 0 || textureCoords.y > 1 || textureCoords.y < 0)
             {
                 discard;
             }
         }
         
-        vec3 SampledNormal = (texture(NORMAL_MAP, textureCoords).rgb * 2) - 1;
+        vec3 SampledNormal = (texture(PREPASS_DATA.NormalMap, textureCoords).rgb * 2) - 1;
         oNormalVS = normalize(TBNMatrix * SampledNormal);
     }
     else

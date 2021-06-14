@@ -102,9 +102,9 @@ namespace lucid::scene
     // Rememver to keep it 16 bytes aligned
     struct FCommonInstanceData
     {
-        float ModelMatrix[16];
-        u32   NormalMultiplier;
-        char  _padding[12];
+        glm::mat4 ModelMatrix;
+        u32       NormalMultiplier;
+        char      _padding[12];
     };
 #pragma pack(pop)
 
@@ -401,21 +401,6 @@ namespace lucid::scene
         }
 
         {
-            // Pre pass bindless textures buffers
-            gpu::FBufferDescription BufferDesc;
-            BufferDesc.Data   = nullptr;
-            BufferDesc.Offset = 0;
-            BufferDesc.Size   = BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE * PREPASS_DATA_BUFFERS_COUNT;
-
-            PrepassBindlessTexturesSSBOBuffer = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "PrepassBindlessTexturesArraySSBO");
-
-            for (u8 i = 0; i < BINDLESS_TEXTURES_BUFFERS_COUNT; ++i)
-            {
-                PrepassBindlessTexturesBufferFences[i] = gpu::CreateFence("PrepassBindlessTexturesFence");
-            }
-        }
-
-        {
             // Light pass model matrices buffers
             gpu::FBufferDescription BufferDesc;
             BufferDesc.Data   = nullptr;
@@ -681,6 +666,10 @@ namespace lucid::scene
         u32                  CommonInstanceDataSize = 0;
         u32                  TotalBatchedMeshes     = 0;
         FCommonInstanceData* CommonInstanceData     = (FCommonInstanceData*)STAGING_BUFFER_SMALL_0;
+
+        u32   MaterialDataSize = 0;
+        char* MaterialDataPtr  = STAGING_BUFFER_SMALL_1;
+
         for (auto& BatchBuilder : MeshBatchBuilders)
         {
             MeshBatches.push_back({});
@@ -697,9 +686,7 @@ namespace lucid::scene
                 BatchedMesh.NormalMultiplier = BatchBuilder.second.StaticMeshes[i]->GetReverseNormals() ? -1 : 1;
                 MeshBatch.BatchedMeshes.push_back(BatchedMesh);
 
-                memcpy(CommonInstanceData->ModelMatrix,
-                       glm::value_ptr(BatchBuilder.second.StaticMeshes[i]->CachedModelMatrix),
-                       sizeof(CommonInstanceData->ModelMatrix));
+                CommonInstanceData->ModelMatrix      = BatchBuilder.second.StaticMeshes[i]->CachedModelMatrix;
                 CommonInstanceData->NormalMultiplier = BatchedMesh.NormalMultiplier;
 
                 CommonInstanceData += 1;
@@ -804,25 +791,20 @@ namespace lucid::scene
         const u32 DataBufferOffset             = BufferIdx * PREPASS_DATA_BUFFER_SIZE;
         const u32 BindlessTexturesBufferOffset = BufferIdx * BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE;
 
-        u32 PrepassDataSize          = 0;
-        u32 BindlessTexturesDataSize = 0;
-
-        FForwardPrepassUniforms* PrepassDataPtr             = (FForwardPrepassUniforms*)STAGING_BUFFER_SMALL_0;
-        u64*                     PrepassBindlessTexturesPtr = (u64*)STAGING_BUFFER_SMALL_1;
+        u32                      PrepassDataSize = 0;
+        FForwardPrepassUniforms* PrepassDataPtr  = (FForwardPrepassUniforms*)STAGING_BUFFER_SMALL_0;
 
         for (const auto& MeshBatch : MeshBatches)
         {
             for (const auto& BatchedMesh : MeshBatch.BatchedMeshes)
             {
-                BatchedMesh.Material->SetupPrepassShaderBuffers(PrepassDataPtr, PrepassBindlessTexturesPtr);
+                BatchedMesh.Material->SetupPrepassShaderBuffers(PrepassDataPtr);
 
-                // Advance the pointers
+                // Advance the pointer
                 PrepassDataPtr += 1;
-                PrepassBindlessTexturesPtr += 2;
 
                 // Add data size
                 PrepassDataSize += sizeof(FForwardPrepassUniforms);
-                BindlessTexturesDataSize += sizeof(u64) * 2;
             }
         }
 
@@ -844,25 +826,6 @@ namespace lucid::scene
             PrepassDataSSBOBuffer->MemoryUnmap();
         }
 
-        // Send textures data to GPU
-        {
-            // Make sure the buffer is not used and create a new fence
-            gpu::CFence* Fence = PrepassBindlessTexturesBufferFences[BufferIdx];
-
-            Fence->Wait(0);
-            Fence->Free();
-
-            delete Fence;
-            PrepassBindlessTexturesBufferFences[BufferIdx] = gpu::CreateFence("PrepassBindlessTexturesFence");
-
-            // memcpy the data
-            PrepassBindlessTexturesSSBOBuffer->Bind(gpu::EBufferBindPoint::WRITE);
-            void* VideoMemPtr =
-              PrepassBindlessTexturesSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE, BindlessTexturesBufferOffset);
-            memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_1, BindlessTexturesDataSize);
-            PrepassBindlessTexturesSSBOBuffer->MemoryUnmap();
-        }
-
         // Prepare pipeline
         gpu::ConfigurePipelineState(PrepassPipelineState);
         BindAndClearFramebuffer(PrepassFramebuffer);
@@ -872,10 +835,8 @@ namespace lucid::scene
 
         SetupRendererWideUniforms(PrepassShader, InRenderView);
 
-        // Bind the SSBOs
+        // Bind the SSBO
         PrepassDataSSBOBuffer->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, DataBufferOffset, DataBufferOffset);
-        PrepassBindlessTexturesSSBOBuffer->BindIndexed(
-          2, gpu::EBufferBindPoint::SHADER_STORAGE, BindlessTexturesDataSize, BindlessTexturesBufferOffset);
 
         // Issue batches
         for (const auto& MeshBatch : MeshBatches)

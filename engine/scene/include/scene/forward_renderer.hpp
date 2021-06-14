@@ -25,22 +25,24 @@ namespace lucid::scene
     // this mean that the same object might be rendered multiple times if it's affected
     // by multiple light.
 
-    constexpr int DEBUG_LINES_BUFFERS_COUNT        = 3;
-    constexpr int PREPASS_DATA_BUFFERS_COUNT       = 3;
-    constexpr int MATERIAL_DATA_BUFFERS_COUNT      = 3;
+    constexpr int DEBUG_LINES_BUFFERS_COUNT          = 3;
+    constexpr int PREPASS_DATA_BUFFERS_COUNT         = 3;
+    constexpr int MATERIAL_DATA_BUFFERS_COUNT        = 3;
     constexpr int COMMON_INSTANCE_DATA_BUFFERS_COUNT = 3;
-    constexpr int BINDLESS_TEXTURES_BUFFERS_COUNT  = 3;
+    constexpr int BINDLESS_TEXTURES_BUFFERS_COUNT    = 3;
 
     constexpr int PREPASS_DATA_BUFFER_SIZE            = 2048;
     constexpr int MATERIAL_DATA_BUFFER_SIZE           = 8192;
-    constexpr int COMMON_INSTANCE_DATA_BUFFER_SIZE     = 4096;
+    constexpr int COMMON_INSTANCE_DATA_BUFFER_SIZE    = 4096;
     constexpr int BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE = 1024;
 
 #pragma pack(push, 1)
     struct FForwardPrepassUniforms
     {
-        u32 bHasNormalMap;
-        u32 bHasDisplacementMap;
+        u32 bHasNormalMap                 = 0;
+        u32 bHasDisplacementMap           = 0;
+        u64 NormalMapBindlessHandle       = 0;
+        u64 DisplacementMapBindlessHandle = 0;
     };
 #pragma pack(pop)
 
@@ -187,9 +189,6 @@ namespace lucid::scene
 
         gpu::CGPUBuffer* PrepassDataSSBOBuffer;
         gpu::CFence*     PrepassDataBufferFences[PREPASS_DATA_BUFFERS_COUNT];
-
-        gpu::CGPUBuffer* PrepassBindlessTexturesSSBOBuffer;
-        gpu::CFence*     PrepassBindlessTexturesBufferFences[PREPASS_DATA_BUFFERS_COUNT];
 
         gpu::CGPUBuffer* CommonInstanceDataSSBO;
         gpu::CFence*     CommonInstanceDataBufferFences[MATERIAL_DATA_BUFFERS_COUNT];

@@ -36,7 +36,7 @@ namespace lucid::scene
     {
     }
 
-    void CFlatMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr)
+    void CFlatMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms)
     {
         InPrepassUniforms->bHasNormalMap = false;
         InPrepassUniforms->bHasDisplacementMap = false;

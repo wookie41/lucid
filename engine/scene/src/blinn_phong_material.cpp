@@ -21,7 +21,6 @@ namespace lucid::scene
 #pragma pack(push, 1)
 #pragma pack(pop)
 
-    
     CBlinnPhongMaterial::CBlinnPhongMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader)
     : CMaterial(InId, InName, InResourcePath, InShader)
     {
@@ -46,9 +45,14 @@ namespace lucid::scene
         return Material;
     }
 
-    void CBlinnPhongMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize) {}
+    void CBlinnPhongMaterial::SetupShaderBuffers(char* InMaterialDataPtr,
+                                                 u64*  InBindlessTexturesArrayPtr,
+                                                 u32&  OutMaterialDataSize,
+                                                 u32&  BindlessTexturesSize)
+    {
+    }
 
-    void CBlinnPhongMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr)
+    void CBlinnPhongMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms)
     {
         InPrepassUniforms->bHasNormalMap       = false;
         InPrepassUniforms->bHasDisplacementMap = false;
@@ -143,15 +147,20 @@ namespace lucid::scene
         return Material;
     }
 
-    void CBlinnPhongMapsMaterial::SetupShaderBuffers(char* InMaterialDataPtr, u64* InBindlessTexturesArrayPtr, u32& OutMaterialDataSize, u32& BindlessTexturesSize) {}
-
-    void CBlinnPhongMapsMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms, u64* InBindlessTexturesArrayPtr)
+    void CBlinnPhongMapsMaterial::SetupShaderBuffers(char* InMaterialDataPtr,
+                                                     u64*  InBindlessTexturesArrayPtr,
+                                                     u32&  OutMaterialDataSize,
+                                                     u32&  BindlessTexturesSize)
     {
-        InPrepassUniforms->bHasNormalMap = NormalMap != nullptr;
-        *InBindlessTexturesArrayPtr      = NormalMapBindlessHandle;
+    }
 
+    void CBlinnPhongMapsMaterial::SetupPrepassShaderBuffers(FForwardPrepassUniforms* InPrepassUniforms)
+    {
+        InPrepassUniforms->bHasNormalMap       = NormalMap != nullptr;
         InPrepassUniforms->bHasDisplacementMap = DisplacementMap != nullptr;
-        *(InBindlessTexturesArrayPtr + 1)      = DisplacementMapBindlessHandle;
+
+        InPrepassUniforms->NormalMapBindlessHandle       = NormalMapBindlessHandle;
+        InPrepassUniforms->DisplacementMapBindlessHandle = DisplacementMapBindlessHandle;
     }
 
     void CBlinnPhongMapsMaterial::InternalSaveToResourceFile(const EFileFormat& InFileFormat)
