@@ -1,11 +1,17 @@
 uniform int uMeshBatchOffset;
 
-struct FCommonInstanceData
+struct FActorData
 {
     mat4 ModelMatrix;
     int  NormalMultiplier;
 };
 
-layout(std430, binding = 1) buffer CommonInstanceDataBlock { FCommonInstanceData CommonInstanceData[]; };
+struct FInstanceData
+{
+    int ActorDataIdx;
+};
 
-#define INSTANCE_DATA CommonInstanceData[uMeshBatchOffset + InstanceID]
+layout(std430, binding = 1) buffer ActorDataBlock { FActorData ActorData[]; };
+layout(std430, binding = 2) buffer InstanceDataBlock { FInstanceData InstanceData[]; };
+
+#define INSTANCE_DATA ActorData[InstanceData[uMeshBatchOffset + InstanceID].ActorDataIdx]

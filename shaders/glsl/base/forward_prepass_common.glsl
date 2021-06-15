@@ -11,7 +11,7 @@ struct FForwardPrepassUniforms
     sampler2D DisplacementMap;
 };
 
-layout(std430, binding = 2) buffer PrepassDataBlock 
+layout(std430, binding = 3) buffer PrepassDataBlock 
 { 
     FForwardPrepassUniforms PrepassData[]; 
 };

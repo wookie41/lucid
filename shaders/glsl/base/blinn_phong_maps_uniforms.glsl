@@ -18,6 +18,6 @@ struct FBlinnPhongMapsMaterial
     bool bHasDisplacementMap;
 };
 
-layout(std430, binding = 2) buffer MaterialDataDataBlock { FBlinnPhongMapsMaterial MaterialData[]; };
+layout(std430, binding = 3) buffer MaterialDataDataBlock { FBlinnPhongMapsMaterial MaterialData[]; };
 
 #define MATERIAL_DATA MaterialData[InstanceID]

@@ -7,6 +7,6 @@ struct FBlinnPhongMaterial
     int  Shininess;
 };
 
-layout(std430, binding = 2) buffer MaterialDataDataBlock { FBlinnPhongMaterial MaterialData[]; };
+layout(std430, binding = 3) buffer MaterialDataDataBlock { FBlinnPhongMaterial MaterialData[]; };
 
 #define MATERIAL_DATA MaterialData[InstanceID]

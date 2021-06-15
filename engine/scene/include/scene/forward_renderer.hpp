@@ -23,9 +23,10 @@ namespace lucid::scene
 {
     constexpr int FRAME_DATA_BUFFERS_COUNT = 3;
 
-    constexpr int PREPASS_DATA_BUFFER_SIZE         = 2048;
-    constexpr int MATERIAL_DATA_BUFFER_SIZE        = 8192;
-    constexpr int COMMON_INSTANCE_DATA_BUFFER_SIZE = 4096;
+    constexpr int PREPASS_DATA_BUFFER_SIZE  = 2048;
+    constexpr int MATERIAL_DATA_BUFFER_SIZE = 1024 * 1024;
+    constexpr int INSTANCE_DATA_BUFFER_SIZE = 4096;
+    constexpr int ACTOR_DATA_BUFFER_SIZE    = 4096;
 
 #pragma pack(push, 1)
     struct FForwardPrepassUniforms
@@ -88,6 +89,13 @@ namespace lucid::scene
         void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
         void DoGammaCorrection(gpu::CTexture* InTexture);
+
+        u32 SendDataToGPU(void const*      InData,
+                          const u32&       InDataSize,
+                          gpu::CGPUBuffer* InBuffer,
+                          gpu::CFence*     InFences[],
+                          const u32&       InBufferSize,
+                          const FString&   InFenceName);
 
 #if DEVELOPMENT
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
@@ -182,14 +190,14 @@ namespace lucid::scene
         gpu::CGPUBuffer* PrepassDataSSBO;
         gpu::CFence*     PrepassDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
 
-        gpu::CGPUBuffer* CommonInstanceDataSSBO;
-        gpu::CFence*     CommonInstanceDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
+        gpu::CGPUBuffer* ActorDataSSBO;
+        gpu::CFence*     ActorDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
+
+        gpu::CGPUBuffer* InstanceDataSSBO;
+        gpu::CFence*     InstanceDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
 
         gpu::CGPUBuffer* MaterialDataSSBO;
         gpu::CFence*     MaterialDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
-
-        u32  NumBindlessTexturesUsed  = 0;
-        u64* BindlessTexturesArrayPtr = nullptr;
 
         std::vector<FMeshBatch> MeshBatches;
 
