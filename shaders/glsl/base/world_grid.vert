@@ -1,10 +1,8 @@
 ﻿#version 450 core
 
-layout (location = 0) in vec3 aPosition;
+#include "common.glsl"
 
-uniform vec3 uViewPos;
-uniform mat4 uView;
-uniform mat4 uProjection;
+layout (location = 0) in vec3 aPosition;
 
 out vec3 inNearPoint;
 out vec3 inFarPoint;

@@ -1,5 +1,6 @@
 #version 450 core
 
+#include "common.glsl"
 #include "forward_prepass_common.glsl"
 
 layout (location = 0) in vec3 aPosition;
@@ -9,9 +10,6 @@ layout (location = 3) in vec2 aTextureCoords;
 
 in int gl_InstanceID;
 out int InstanceID;
-
-uniform mat4 uView;
-uniform mat4 uProjection;
 
 out vec3 PositionVS;
 out vec3 NormalVS;

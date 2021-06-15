@@ -1,5 +1,6 @@
 #version 450 core
 
+#include "common.glsl"
 #include "blinn_phong_uniforms.glsl"
 
 in VS_OUT
@@ -11,8 +12,6 @@ fsIn;
 
 #include "lights.glsl"
 
-uniform float uAmbientStrength;
-uniform vec3 uViewPos;
 
 out vec4 oFragColor;
 

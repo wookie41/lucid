@@ -1,11 +1,10 @@
 #version 450 core
 
+#include "common.glsl"
+
 layout(location = 0) in vec3 aPosition;
  
 out vec3 iTextureCoords;
-
-uniform mat4 uView;
-uniform mat4 uProjection;
 
 void main()
 {

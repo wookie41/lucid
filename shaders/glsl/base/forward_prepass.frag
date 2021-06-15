@@ -1,5 +1,6 @@
 #version 450 core
 
+#include "common.glsl"
 #include "forward_prepass_common.glsl"
 #include "parallax_occlusion.glsl"
 
@@ -13,7 +14,6 @@ in vec3 NormalVS;
 in vec2 TexCoords;
 
 flat in mat3 TBNMatrix;
-uniform vec3 uViewPos;
 
 void main() 
 {

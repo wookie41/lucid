@@ -1,5 +1,7 @@
 #version 450 core
 
+#include "common.glsl"
+
 in vec2 inTextureCoords;
 
 out float oFragColor;
@@ -13,8 +15,6 @@ uniform vec2 uNoiseScale;
 
 uniform float uRadius;
 uniform float uBias;
-
-uniform mat4 uProjection;
 
 void main()
 {

@@ -1,14 +1,12 @@
 #version 450 core
 
-#include "common_ssbo.glsl"
+#include "common.glsl"
+#include "batch_instance.glsl"
 
 in int gl_InstanceID;
 flat out int InstanceID;
 
 layout(location = 0) in vec3 aPosition;
-
-uniform mat4 uView;
-uniform mat4 uProjection;
 
 void main()
 {

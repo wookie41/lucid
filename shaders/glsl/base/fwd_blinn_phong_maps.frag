@@ -1,5 +1,6 @@
 #version 450 core
 
+#include "common.glsl"
 #include "blinn_phong_maps_uniforms.glsl"
 
 in VS_OUT
@@ -13,12 +14,6 @@ in VS_OUT
 fsIn;
 
 in vec4 gl_FragCoord;
-
-uniform float     uAmbientStrength;
-uniform sampler2D uAmbientOcclusion;
-
-uniform vec3 uViewPos;
-uniform vec2 uViewportSize;
 
 uniform mat4 uModel;
 

@@ -1,7 +1,5 @@
 const vec3 TAN_SPACE_UP = vec3( 0, 0, 1 );
 
-uniform float uParallaxHeightScale;
-
 vec2 ParallaxOcclusionMapping(in vec3 TanToViewN, in vec2 TexCoords, in sampler2D DisplacementMap)
 {
     float numOfLayers = mix(32, 8, abs(dot(TAN_SPACE_UP, TanToViewN)));

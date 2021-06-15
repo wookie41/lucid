@@ -13,7 +13,8 @@ namespace lucid::gpu
         VERTEX,
         ELEMENT,
         SHADER_STORAGE,
-        WRITE
+        WRITE,
+        UNIFORM
     };
 
     enum class EBufferUsage : u16

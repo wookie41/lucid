@@ -1,15 +1,11 @@
 ﻿#version 450 core
 
+#include "common.glsl"
+
 layout(location = 0) out vec4 outColor;
 
 in vec3 inNearPoint;
 in vec3 inFarPoint;
-
-uniform mat4 uView;
-uniform mat4 uProjection;
-
-uniform float uNearPlane;
-uniform float uFarPlane;
 
 vec4 Grid(vec3 InFragPos, float InScale)
 {

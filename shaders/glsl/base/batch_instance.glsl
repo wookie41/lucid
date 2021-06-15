@@ -1,5 +1,3 @@
-#extension GL_ARB_shader_storage_buffer_object : enable
-
 uniform int uMeshBatchOffset;
 
 struct FCommonInstanceData
@@ -8,6 +6,6 @@ struct FCommonInstanceData
     int  NormalMultiplier;
 };
 
-layout(std430, binding = 0) buffer CommonInstanceDataBlock { FCommonInstanceData CommonInstanceData[]; };
+layout(std430, binding = 1) buffer CommonInstanceDataBlock { FCommonInstanceData CommonInstanceData[]; };
 
 #define INSTANCE_DATA CommonInstanceData[uMeshBatchOffset + InstanceID]

@@ -33,9 +33,6 @@
 
 namespace lucid::scene
 {
-    static const glm::mat4 IDENTITY_MATRIX{ 1 };
-    static const glm::vec3 WORLD_UP{ 0, 1, 0 };
-
     static const u8       NO_LIGHT = 0;
     static const FSString LIGHT_TYPE("uLightType");
 
@@ -58,31 +55,17 @@ namespace lucid::scene
     static const FSString BILLBOARD_WORLD_POS("uBillboardWorldPos");
     static const FSString BILLBOARD_COLOR_TINT("uBillboardColorTint");
 
-    // Shader-wide uniforms
-    static const FSString AMBIENT_STRENGTH("uAmbientStrength");
-    static const FSString NUM_OF_PCF_SAMPLES("uNumSamplesPCF");
-    static const FSString AMBIENT_OCCLUSION("uAmbientOcclusion");
-    static const FSString NEAR_PLANE("uNearPlane");
-    static const FSString FAR_PLANE("uFarPlane");
-
-    static const FSString VIEW_POSITION("uViewPos");
 
     static const FSString MODEL_MATRIX("uModel");
-    static const FSString REVERSE_NORMALS("uReverseNormals");
     static const FSString VIEW_MATRIX("uView");
     static const FSString PROJECTION_MATRIX("uProjection");
 
     static const FSString SKYBOX_CUBEMAP("uSkybox");
 
-    static const FSString PARALLAX_HEIGHT_SCALE("uParallaxHeightScale");
-
-    static const FSString FLAT_COLOR("uFlatColor");
-
     static const FSString GAMMA("uGamma");
     static const FSString SCENE_TEXTURE("uSceneTexture");
 
     static const FSString MESH_BATCH_OFFSET("uMeshBatchOffset");
-    static const FSString LIGHT_PASS_DATA_BLOCK_OFFSET("uLightPassDataBlockOffset");
 
     constexpr gpu::EBufferAccessPolicy UNSYNCHRONIZED_WRITE =
       (gpu::EBufferAccessPolicy)(gpu::EBufferAccessPolicy::BUFFER_WRITE | gpu::EBufferAccessPolicy::BUFFER_UNSYNCHRONIZED);
@@ -93,20 +76,41 @@ namespace lucid::scene
 
     /* Buffers used when preparing data to be memcpy'ed to the GPU */
 
+    static char STAGING_BUFFER_TINY_0[1024];
     static char STAGING_BUFFER_SMALL_0[1024 * 16];
     static char STAGING_BUFFER_SMALL_1[1024 * 16];
 
     constexpr u8 MAX_MESHES_PER_BATCH = 64;
 
 #pragma pack(push, 1)
-    // Rememver to keep it 16 bytes aligned
+
     struct FCommonInstanceData
     {
         glm::mat4 ModelMatrix;
         u32       NormalMultiplier;
         char      _padding[12];
     };
+
+    struct FGlobalRenderData
+    {
+        glm::mat4 ProjectionMatrix;
+        glm::mat4 ViewMatrix;
+        glm::vec3 ViewPos;
+        float     AmbientStrength;
+        glm::vec2 ViewportSize;
+        u64       AmbientOcclusionBindlessHandle;
+        u32       NumPCFsamples;
+        float     ParallaxHeightScale;
+        float     NearPlane;
+        float     FarPlane;
+    };
+
 #pragma pack(pop)
+
+#define GLOBAL_DATA_BUFFER_SIZE                                                                       \
+    (sizeof(FGlobalRenderData) + (sizeof(FGlobalRenderData) > gpu::GGPUInfo.UniformBlockAlignment ?   \
+                                    sizeof(FGlobalRenderData) % gpu::GGPUInfo.UniformBlockAlignment : \
+                                    gpu::GGPUInfo.UniformBlockAlignment % sizeof(FGlobalRenderData)))
 
     CForwardRenderer::CForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples)
     : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples)
@@ -298,6 +302,8 @@ namespace lucid::scene
         SSAOBlurred->SetWrapSFilter(gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
         SSAOBlurred->SetWrapTFilter(gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
         SSAOBlurred->SetBorderColor({ 1, 1, 1, 1 });
+        SSAOBlurredBindlessHandle = SSAOBlurred->GetBindlessHandle();
+        SSAOBlurred->MakeBindlessResident();
 
         // Create color attachment for the lighting pass framebuffer
         LightingPassColorBuffer = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -384,47 +390,62 @@ namespace lucid::scene
         FrameResultFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         FrameResultFramebuffer->SetupColorAttachment(0, FrameResultTexture);
 
-        // SSBO buffers
+        // Frame data buffers
+        {
+            // Global data buffers
+            gpu::FBufferDescription BufferDesc;
+            BufferDesc.Data   = nullptr;
+            BufferDesc.Offset = 0;
+            BufferDesc.Size   = GLOBAL_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
+
+            GlobalDataUBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "GlobalRenderUBO");
+
+            for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
+            {
+                GlobalDataBufferFences[i] = gpu::CreateFence("GlobalRenderDataFence");
+            }
+        }
+
         {
             // Prepass buffers
             gpu::FBufferDescription BufferDesc;
             BufferDesc.Data   = nullptr;
             BufferDesc.Offset = 0;
-            BufferDesc.Size   = PREPASS_DATA_BUFFER_SIZE * PREPASS_DATA_BUFFERS_COUNT;
+            BufferDesc.Size   = PREPASS_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            PrepassDataSSBOBuffer = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "PrepassDataSSBO");
+            PrepassDataSSBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "PrepassDataSSBO");
 
-            for (u8 i = 0; i < MATERIAL_DATA_BUFFERS_COUNT; ++i)
+            for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
             {
                 PrepassDataBufferFences[i] = gpu::CreateFence("PrepassDataFence");
             }
         }
 
         {
-            // Light pass model matrices buffers
+            // Model matrices buffers
             gpu::FBufferDescription BufferDesc;
             BufferDesc.Data   = nullptr;
             BufferDesc.Offset = 0;
-            BufferDesc.Size   = COMMON_INSTANCE_DATA_BUFFER_SIZE * MATERIAL_DATA_BUFFERS_COUNT;
+            BufferDesc.Size   = COMMON_INSTANCE_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
             CommonInstanceDataSSBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "CommonInstanceDataSSBO");
 
-            for (u8 i = 0; i < MATERIAL_DATA_BUFFERS_COUNT; ++i)
+            for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
             {
                 CommonInstanceDataBufferFences[i] = gpu::CreateFence("CommonInstanceFence");
             }
         }
 
         {
-            // Light pass material buffer
+            // Material data buffer
             gpu::FBufferDescription BufferDesc;
             BufferDesc.Data   = nullptr;
             BufferDesc.Offset = 0;
-            BufferDesc.Size   = MATERIAL_DATA_BUFFER_SIZE * MATERIAL_DATA_BUFFERS_COUNT;
+            BufferDesc.Size   = MATERIAL_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            MaterialDataSSBOBuffer = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "MaterialDataSSBO");
+            MaterialDataSSBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "MaterialDataSSBO");
 
-            for (u8 i = 0; i < MATERIAL_DATA_BUFFERS_COUNT; ++i)
+            for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
             {
                 MaterialDataBufferFences[i] = gpu::CreateFence("MaterialDataFence");
             }
@@ -495,7 +516,7 @@ namespace lucid::scene
 
         // Create buffers and fences
         {
-            for (int i = 0; i < DEBUG_LINES_BUFFERS_COUNT; ++i)
+            for (int i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
             {
                 gpu::FBufferDescription BufferDescription;
                 BufferDescription.Data   = nullptr;
@@ -552,6 +573,7 @@ namespace lucid::scene
         FrameTimer->StartTimer();
 #endif
 
+        SetupGlobalRenderData(InRenderView);
         CreateMeshBatches(InSceneToRender);
 
         gpu::SetViewport(InRenderView->Viewport);
@@ -724,7 +746,7 @@ namespace lucid::scene
         // Send common instance data to the GPU
         {
             // Make sure the buffer is not used and create a new fence
-            const int    BufferIdx    = GRenderStats.FrameNumber % COMMON_INSTANCE_DATA_BUFFERS_COUNT;
+            const int    BufferIdx    = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
             const u32    BufferOffset = BufferIdx * COMMON_INSTANCE_DATA_BUFFER_SIZE;
             gpu::CFence* Fence        = CommonInstanceDataBufferFences[BufferIdx];
 
@@ -741,13 +763,13 @@ namespace lucid::scene
             CommonInstanceDataSSBO->MemoryUnmap();
 
             // Bind the common instance data SSBO
-            CommonInstanceDataSSBO->BindIndexed(0, gpu::EBufferBindPoint::SHADER_STORAGE, CommonInstanceDataSize, BufferOffset);
+            CommonInstanceDataSSBO->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, CommonInstanceDataSize, BufferOffset);
         }
 
         // Send material data to the GPU
         {
             // Make sure the buffer is not used and create a new fence
-            const int    BufferIdx    = GRenderStats.FrameNumber % MATERIAL_DATA_BUFFERS_COUNT;
+            const int    BufferIdx    = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
             const u32    BufferOffset = BufferIdx * MATERIAL_DATA_BUFFER_SIZE;
             gpu::CFence* Fence        = MaterialDataBufferFences[BufferIdx];
 
@@ -758,10 +780,10 @@ namespace lucid::scene
             MaterialDataBufferFences[BufferIdx] = gpu::CreateFence("MaterialDataFence");
 
             // memcpy the data
-            MaterialDataSSBOBuffer->Bind(gpu::EBufferBindPoint::WRITE);
-            void* VideoMemPtr = MaterialDataSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, MATERIAL_DATA_BUFFER_SIZE, BufferOffset);
+            MaterialDataSSBO->Bind(gpu::EBufferBindPoint::WRITE);
+            void* VideoMemPtr = MaterialDataSSBO->MemoryMap(UNSYNCHRONIZED_WRITE, MATERIAL_DATA_BUFFER_SIZE, BufferOffset);
             memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_1, MaterialDataSize);
-            MaterialDataSSBOBuffer->MemoryUnmap();
+            MaterialDataSSBO->MemoryUnmap();
         }
     }
 
@@ -826,10 +848,10 @@ namespace lucid::scene
     {
         gpu::PushDebugGroup("Z pre pass");
 
-        const int BufferIdx = GRenderStats.FrameNumber % DEBUG_LINES_BUFFERS_COUNT;
+        const int BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
 
         const u32 DataBufferOffset             = BufferIdx * PREPASS_DATA_BUFFER_SIZE;
-        const u32 BindlessTexturesBufferOffset = BufferIdx * BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE;
+        const u32 BindlessTexturesBufferOffset = BufferIdx * FRAME_DATA_BUFFERS_COUNT;
 
         u32                      PrepassDataSize = 0;
         FForwardPrepassUniforms* PrepassDataPtr  = (FForwardPrepassUniforms*)STAGING_BUFFER_SMALL_0;
@@ -860,10 +882,10 @@ namespace lucid::scene
             PrepassDataBufferFences[BufferIdx] = gpu::CreateFence("PrepassDataFence");
 
             // memcpy the data
-            PrepassDataSSBOBuffer->Bind(gpu::EBufferBindPoint::WRITE);
-            void* VideoMemPtr = PrepassDataSSBOBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, PREPASS_DATA_BUFFER_SIZE, DataBufferOffset);
+            PrepassDataSSBO->Bind(gpu::EBufferBindPoint::WRITE);
+            void* VideoMemPtr = PrepassDataSSBO->MemoryMap(UNSYNCHRONIZED_WRITE, PREPASS_DATA_BUFFER_SIZE, DataBufferOffset);
             memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_0, PrepassDataSize);
-            PrepassDataSSBOBuffer->MemoryUnmap();
+            PrepassDataSSBO->MemoryUnmap();
         }
 
         // Prepare pipeline
@@ -873,10 +895,8 @@ namespace lucid::scene
         PrepassShader->Use();
         PrepassFramebuffer->SetupDrawBuffers();
 
-        SetupRendererWideUniforms(PrepassShader, InRenderView);
-
         // Bind the SSBO
-        PrepassDataSSBOBuffer->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, DataBufferOffset, DataBufferOffset);
+        PrepassDataSSBO->BindIndexed(2, gpu::EBufferBindPoint::SHADER_STORAGE, DataBufferOffset, DataBufferOffset);
 
         // Issue batches
         for (const auto& MeshBatch : MeshBatches)
@@ -898,7 +918,6 @@ namespace lucid::scene
 
         SSAOShader->Use();
         BindAndClearFramebuffer(SSAOFramebuffer);
-        SetupRendererWideUniforms(SSAOShader, InRenderView);
 
         SSAOShader->UseTexture(SSAO_POSITIONS_VS, CurrentFrameVSPositionMap);
         SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
@@ -979,10 +998,8 @@ namespace lucid::scene
                 MeshBatch.Shader->SetInt(LIGHT_TYPE, NO_LIGHT);
             }
 
-            SetupRendererWideUniforms(MeshBatch.Shader, InRenderView); // @TODO this will happen only once at the start of the frame
-
             MeshBatch.Shader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
-            MaterialDataSSBOBuffer->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, MeshBatch.MaterialDataSize, MeshBatch.MaterialDataOffset);
+            MaterialDataSSBO->BindIndexed(2, gpu::EBufferBindPoint::SHADER_STORAGE, MeshBatch.MaterialDataSize, MeshBatch.MaterialDataOffset);
 
             MeshBatch.MeshVertexArray->Bind();
             MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
@@ -1000,75 +1017,39 @@ namespace lucid::scene
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
     }
 
-    void CForwardRenderer::SetupRendererWideUniforms(gpu::CShader* InShader, const FRenderView* InRenderView)
+    void CForwardRenderer::SetupGlobalRenderData(const FRenderView* InRenderView)
     {
-        InShader->SetFloat(AMBIENT_STRENGTH, AmbientStrength);
-        InShader->SetInt(NUM_OF_PCF_SAMPLES, NumSamplesPCF);
-        InShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
-        InShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
-        InShader->SetVector(VIEW_POSITION, InRenderView->Camera->Position);
-        InShader->SetFloat(PARALLAX_HEIGHT_SCALE, 0.1f);
-        InShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
-        InShader->UseTexture(AMBIENT_OCCLUSION, SSAOBlurred);
-        InShader->SetFloat(NEAR_PLANE, InRenderView->Camera->NearPlane);
-        InShader->SetFloat(FAR_PLANE, InRenderView->Camera->FarPlane);
-    }
+        FGlobalRenderData* GlobalRenderData              = (FGlobalRenderData*)STAGING_BUFFER_TINY_0;
+        GlobalRenderData->AmbientStrength                = AmbientStrength;
+        GlobalRenderData->NumPCFsamples                  = NumSamplesPCF;
+        GlobalRenderData->ProjectionMatrix               = InRenderView->Camera->GetProjectionMatrix();
+        GlobalRenderData->ViewMatrix                     = InRenderView->Camera->GetViewMatrix();
+        GlobalRenderData->ViewPos                        = InRenderView->Camera->Position;
+        GlobalRenderData->ParallaxHeightScale            = 0.1f;
+        GlobalRenderData->ViewportSize                   = glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height };
+        GlobalRenderData->AmbientOcclusionBindlessHandle = SSAOBlurredBindlessHandle;
+        GlobalRenderData->NearPlane                      = InRenderView->Camera->NearPlane;
+        GlobalRenderData->FarPlane                      = InRenderView->Camera->FarPlane;
+        GlobalRenderData->ParallaxHeightScale            = InRenderView->Camera->FarPlane;
 
-    void CForwardRenderer::RenderStaticMesh(gpu::CShader**     LastShader,
-                                            const CStaticMesh* InStaticMesh,
-                                            const CLight*      InLight,
-                                            const FRenderView* InRenderView)
-    {
-        const glm::mat4& ModelMatrix = InStaticMesh->CachedModelMatrix;
-#if DEVELOPMENT
-        if (InStaticMesh->GetMeshResource() == nullptr)
-        {
-            RenderWithDefaultMaterial(nullptr, -1, InLight, InRenderView, ModelMatrix);
-            *LastShader = GEngine.GetDefaultMaterial()->GetShader();
-            return;
-        }
-        gpu::PushDebugGroup(*InStaticMesh->Name);
-#endif
-        for (u16 j = 0; j < InStaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
-        {
-            const u16 MaterialIndex = InStaticMesh->GetMeshResource()->SubMeshes[j]->MaterialIndex;
-#if DEVELOPMENT
-            if (MaterialIndex >= InStaticMesh->GetNumMaterialSlots() || InStaticMesh->GetMaterialSlot(MaterialIndex) == nullptr)
-            {
-                LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at submesh %d", *InStaticMesh->Name, j);
-                RenderWithDefaultMaterial(InStaticMesh->MeshResource, j, InLight, InRenderView, ModelMatrix);
-                *LastShader = GEngine.GetDefaultMaterial()->GetShader();
-                continue;
-            }
-#endif
-            CMaterial* Material = InStaticMesh->GetMaterialSlot(MaterialIndex);
+        const int    BufferIdx    = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
+        const u32    BufferOffset = BufferIdx * GLOBAL_DATA_BUFFER_SIZE;
+        gpu::CFence* Fence        = GlobalDataBufferFences[BufferIdx];
 
-            // Determine if the material uses a custom shader - if yes, then setup the renderer-provided uniforms
-            if (Material->GetShader() != *LastShader)
-            {
-                Material->GetShader()->Use();
-                *LastShader = Material->GetShader();
-                SetupRendererWideUniforms(*LastShader, InRenderView);
-            }
+        Fence->Wait(0);
+        Fence->Free();
 
-            if (InLight)
-            {
-                InLight->SetupShader(*LastShader);
-            }
-            else
-            {
-                (*LastShader)->SetInt(LIGHT_TYPE, NO_LIGHT);
-            }
-            (*LastShader)->SetMatrix(MODEL_MATRIX, ModelMatrix);
-            (*LastShader)->SetBool(REVERSE_NORMALS, InStaticMesh->GetReverseNormals());
+        delete Fence;
+        GlobalDataBufferFences[BufferIdx] = gpu::CreateFence("GloblaRenderDataFence");
 
-            // @TODO Remove
-            // Material->SetupShader(*LastShader);
+        // memcpy the data
+        GlobalDataUBO->Bind(gpu::EBufferBindPoint::WRITE);
+        void* VideoMemPtr = GlobalDataUBO->MemoryMap(UNSYNCHRONIZED_WRITE, sizeof(FGlobalRenderData), BufferOffset);
+        memcpy(VideoMemPtr, STAGING_BUFFER_TINY_0, sizeof(FGlobalRenderData));
+        GlobalDataUBO->MemoryUnmap();
 
-            InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
-            InStaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
-        }
-        gpu::PopDebugGroup();
+        // Bind the global render data UBO
+        GlobalDataUBO->BindIndexed(0, gpu::EBufferBindPoint::UNIFORM, sizeof(FGlobalRenderData), BufferOffset);
     }
 
     inline void CForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
@@ -1201,7 +1182,6 @@ namespace lucid::scene
         CMaterial* DefaultMaterial = GEngine.GetDefaultMaterial();
         DefaultMaterial->GetShader()->Use();
 
-        SetupRendererWideUniforms(DefaultMaterial->GetShader(), InRenderView);
         if (InLight)
         {
             InLight->SetupShader(DefaultMaterial->GetShader());
@@ -1230,7 +1210,6 @@ namespace lucid::scene
         gpu::ConfigurePipelineState(WorldGridPipelineState);
         WorldGridShader->Use();
 
-        SetupRendererWideUniforms(WorldGridShader, InRenderView);
         ScreenWideQuadVAO->Bind();
         ScreenWideQuadVAO->Draw();
     }
@@ -1238,7 +1217,7 @@ namespace lucid::scene
     void CForwardRenderer::RenderDebugLines(const FRenderView* InRenderView)
     {
         // Make sure that the buffer is no longer used
-        int BufferIdx = GRenderStats.FrameNumber % DEBUG_LINES_BUFFERS_COUNT;
+        int BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
 
         gpu::CGPUBuffer* DebugLinesBuffer      = DebugLinesVertexBuffers[BufferIdx];
         gpu::CFence*     DebugLinesBufferFence = DebugLinesFences[BufferIdx];
@@ -1292,7 +1271,6 @@ namespace lucid::scene
         DebugLinesVAO->Bind();
 
         ConfigurePipelineState(DebugLinesPipelineState);
-        SetupRendererWideUniforms(DebugLinesShader, InRenderView);
 
         // Bind the updated buffer
         constexpr u32 Stride = sizeof(glm::vec3) * 2 + sizeof(i32);

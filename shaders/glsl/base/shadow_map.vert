@@ -1,6 +1,6 @@
 #version 450 core
 
-#include "common_ssbo.glsl"
+#include "batch_instance.glsl"
 
 in int gl_InstanceID;
 flat out int InstanceID;

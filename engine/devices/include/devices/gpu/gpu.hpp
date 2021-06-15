@@ -186,6 +186,7 @@ namespace lucid::gpu
         u32 ActiveTextureUnit = 0;
         u32 MaxTextureUnits = 0;
         u32 MaxColorAttachments = 0;
+        u32 UniformBlockAlignment = 0;
     };
 
     extern FGPUInfo                 GGPUInfo;

@@ -1,4 +1,3 @@
-#extension GL_ARB_shader_storage_buffer_object : enable
 flat in int InstanceID;
 
 struct FBlinnPhongMaterial
@@ -8,6 +7,6 @@ struct FBlinnPhongMaterial
     int  Shininess;
 };
 
-layout(std430, binding = 1) buffer MaterialDataDataBlock { FBlinnPhongMaterial MaterialData[]; };
+layout(std430, binding = 2) buffer MaterialDataDataBlock { FBlinnPhongMaterial MaterialData[]; };
 
 #define MATERIAL_DATA MaterialData[InstanceID]

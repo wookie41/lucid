@@ -1,7 +1,5 @@
 #version 450 core
 
-#extension GL_ARB_shader_storage_buffer_object : enable
-
 flat in int InstanceID;
 
 struct FFlatMaterial
@@ -9,7 +7,7 @@ struct FFlatMaterial
     vec4 Color;
 };
 
-layout(std430, binding = 1) buffer MaterialDataDataBlock { FFlatMaterial MaterialData[]; };
+layout(std430, binding = 2) buffer MaterialDataDataBlock { FFlatMaterial MaterialData[]; };
 
 #define MATERIAL_DATA MaterialData[InstanceID]
 

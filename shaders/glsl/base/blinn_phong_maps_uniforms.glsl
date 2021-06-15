@@ -1,5 +1,3 @@
-#extension GL_ARB_bindless_texture : enable
-#extension GL_ARB_shader_storage_buffer_object : enable
 
 flat in int InstanceID;
 
@@ -20,6 +18,6 @@ struct FBlinnPhongMapsMaterial
     bool bHasDisplacementMap;
 };
 
-layout(std430, binding = 1) buffer MaterialDataDataBlock { FBlinnPhongMapsMaterial MaterialData[]; };
+layout(std430, binding = 2) buffer MaterialDataDataBlock { FBlinnPhongMapsMaterial MaterialData[]; };
 
 #define MATERIAL_DATA MaterialData[InstanceID]

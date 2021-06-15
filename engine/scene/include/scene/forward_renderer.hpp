@@ -21,20 +21,11 @@ namespace lucid::gpu
 
 namespace lucid::scene
 {
-    // This renderer renders the geometry within the scene for each light in the scene
-    // this mean that the same object might be rendered multiple times if it's affected
-    // by multiple light.
+    constexpr int FRAME_DATA_BUFFERS_COUNT = 3;
 
-    constexpr int DEBUG_LINES_BUFFERS_COUNT          = 3;
-    constexpr int PREPASS_DATA_BUFFERS_COUNT         = 3;
-    constexpr int MATERIAL_DATA_BUFFERS_COUNT        = 3;
-    constexpr int COMMON_INSTANCE_DATA_BUFFERS_COUNT = 3;
-    constexpr int BINDLESS_TEXTURES_BUFFERS_COUNT    = 3;
-
-    constexpr int PREPASS_DATA_BUFFER_SIZE            = 2048;
-    constexpr int MATERIAL_DATA_BUFFER_SIZE           = 8192;
-    constexpr int COMMON_INSTANCE_DATA_BUFFER_SIZE    = 4096;
-    constexpr int BINDLESS_TEXTURES_ARRAY_BUFFER_SIZE = 1024;
+    constexpr int PREPASS_DATA_BUFFER_SIZE         = 2048;
+    constexpr int MATERIAL_DATA_BUFFER_SIZE        = 8192;
+    constexpr int COMMON_INSTANCE_DATA_BUFFER_SIZE = 4096;
 
 #pragma pack(push, 1)
     struct FForwardPrepassUniforms
@@ -83,19 +74,16 @@ namespace lucid::scene
       private:
         void CreateMeshBatches(FRenderScene* InSceneToRender);
 
+        void SetupGlobalRenderData(const FRenderView* InRenderView);
+
         void GenerateShadowMaps(FRenderScene* InSceneToRender);
         void Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
         void LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
 
         inline void BindAndClearFramebuffer(gpu::CFramebuffer* InFramebuffer);
-        inline void SetupRendererWideUniforms(gpu::CShader* InShader, const FRenderView* InRenderView);
 
         void        RenderStaticMeshes(const FRenderScene* InScene, const FRenderView* InRenderView);
         inline void RenderLightContribution(const CLight* InLight, const FRenderScene* InScene, const FRenderView* InRenderView);
-        void        RenderStaticMesh(gpu::CShader**            LastShader,
-                                     const scene::CStaticMesh* InStaticMesh,
-                                     const scene::CLight*      InLight,
-                                     const FRenderView*        InRenderView);
 
         void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
@@ -173,6 +161,7 @@ namespace lucid::scene
 
         /** Texture in which the result of blurring the SSAOResult texture will be stored */
         gpu::CTexture* SSAOBlurred;
+        u64            SSAOBlurredBindlessHandle;
 
         gpu::CTexture*      LightingPassColorBuffer;
         gpu::CRenderbuffer* DepthStencilRenderBuffer;
@@ -187,14 +176,17 @@ namespace lucid::scene
         gpu::CFramebuffer* FrameResultFramebuffer;
         gpu::CTexture*     FrameResultTexture;
 
-        gpu::CGPUBuffer* PrepassDataSSBOBuffer;
-        gpu::CFence*     PrepassDataBufferFences[PREPASS_DATA_BUFFERS_COUNT];
+        gpu::CGPUBuffer* GlobalDataUBO;
+        gpu::CFence*     GlobalDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
+
+        gpu::CGPUBuffer* PrepassDataSSBO;
+        gpu::CFence*     PrepassDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
 
         gpu::CGPUBuffer* CommonInstanceDataSSBO;
-        gpu::CFence*     CommonInstanceDataBufferFences[MATERIAL_DATA_BUFFERS_COUNT];
+        gpu::CFence*     CommonInstanceDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
 
-        gpu::CGPUBuffer* MaterialDataSSBOBuffer;
-        gpu::CFence*     MaterialDataBufferFences[MATERIAL_DATA_BUFFERS_COUNT];
+        gpu::CGPUBuffer* MaterialDataSSBO;
+        gpu::CFence*     MaterialDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
 
         u32  NumBindlessTexturesUsed  = 0;
         u64* BindlessTexturesArrayPtr = nullptr;
@@ -230,8 +222,8 @@ namespace lucid::scene
 
         gpu::CShader*      DebugLinesShader = nullptr;
         gpu::CVertexArray* DebugLinesVAO    = nullptr;
-        gpu::CGPUBuffer*   DebugLinesVertexBuffers[DEBUG_LINES_BUFFERS_COUNT]{ nullptr };
-        gpu::CFence*       DebugLinesFences[DEBUG_LINES_BUFFERS_COUNT]{ nullptr };
+        gpu::CGPUBuffer*   DebugLinesVertexBuffers[FRAME_DATA_BUFFERS_COUNT]{ nullptr };
+        gpu::CFence*       DebugLinesFences[FRAME_DATA_BUFFERS_COUNT]{ nullptr };
 #endif
     };
 

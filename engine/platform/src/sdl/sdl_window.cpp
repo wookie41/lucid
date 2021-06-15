@@ -16,6 +16,20 @@
 
 namespace lucid::platform
 {
+    void GLAPIENTRY
+    MessageCallback( GLenum source,
+                     GLenum type,
+                     GLuint id,
+                     GLenum severity,
+                     GLsizei length,
+                     const GLchar* message,
+                     const void* userParam )
+    {
+        fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+                 ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+                  type, severity, message );
+    }
+    
     CWindow* CreateNewWindow(const FWindowDefiniton& Definition)
     {
         if (Definition.sRGBFramebuffer)
@@ -43,6 +57,8 @@ namespace lucid::platform
         }
 
         SDL_GL_MakeCurrent(window, context);
+        // glEnable              ( GL_DEBUG_OUTPUT );
+        // glDebugMessageCallback( MessageCallback, 0 );
         SDL_CaptureMouse(SDL_FALSE);
         SDL_SetRelativeMouseMode(SDL_FALSE);
         // Set initial gpu state for this context

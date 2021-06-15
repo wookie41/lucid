@@ -53,7 +53,7 @@ namespace lucid::gpu
             LUCID_LOG(ELogLevel::INFO, "Failed to initialize GLAD")
             return -1;
         }
-        
+
         // @TODO relax these check
         assert(GL_ARB_bindless_texture);
         assert(GL_ARB_shader_storage_buffer_object);
@@ -90,6 +90,10 @@ namespace lucid::gpu
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &property);
         LUCID_LOG(ELogLevel::INFO, "Available draw buffers units = %d", property);
         GGPUInfo.MaxColorAttachments = property;
+
+        glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &property);
+        LUCID_LOG(ELogLevel::INFO, "Uniform block alignment = %d", property);
+        GGPUInfo.UniformBlockAlignment = property;
     }
 
     void Shutdown() { SDL_Quit(); }
