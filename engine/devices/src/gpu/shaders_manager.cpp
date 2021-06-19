@@ -68,7 +68,7 @@ namespace lucid::gpu
         }
         return CompiledShader;
     }
-
+#ifndef NDEBUG
     void CShadersManager::EnableHotReload()
     {
         platform::AddDirectoryListener(BaseShadersPath, ReloadShaders);
@@ -96,6 +96,7 @@ namespace lucid::gpu
             }
         }
     }
+#endif
 
     void CShadersManager::LoadShadersDatabase(const FShadersDataBase& InShadersDatabase)
     {

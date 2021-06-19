@@ -160,11 +160,10 @@ namespace lucid::gpu
     void CGLBuffer::Upload(FBufferDescription const* Description)
     {
         assert(GLBufferHandle);
-        assert(!bImmutable);
 
-        glBindBuffer(GL_COPY_READ_BUFFER, GLBufferHandle);
-        glBufferSubData(GL_COPY_READ_BUFFER, Description->Offset, Description->Size, Description->Data);
-        glBindBuffer(GL_COPY_READ_BUFFER, 0);
+        glBindBuffer(GL_COPY_WRITE_BUFFER, GLBufferHandle);
+        glBufferSubData(GL_COPY_WRITE_BUFFER, Description->Offset, Description->Size, Description->Data);
+        glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
         BufferDescription = *Description;
     }

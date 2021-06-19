@@ -36,7 +36,9 @@ namespace lucid
 
         if (InEngineConfig.bHotReloadShaders)
         {
+#ifndef NDEBUG
             ShadersManager.EnableHotReload();
+#endif
         }
 
         // Setup the renderer

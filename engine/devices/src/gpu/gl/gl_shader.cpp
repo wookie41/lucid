@@ -378,6 +378,7 @@ namespace lucid::gpu
 
     void CGLShader::AddBinding(BufferBinding* Binding) { buffersBindings.Add(Binding); }
 
+#ifndef NDEBUG
     void CGLShader::ReloadShader(CShader* RecompiledShader)
     {
         // Preserve the current shader
@@ -517,6 +518,7 @@ namespace lucid::gpu
         GLRecompiledShader->glShaderID = 0;
         glDeleteProgram(OldProgramId);
     }
+#endif
 
     void CGLShader::SetupBuffersBindings()
     {

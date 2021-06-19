@@ -452,8 +452,9 @@ namespace lucid::resources
 
         FMeshInfoHelper MeshInfoHelper;
 
+#ifndef NDEBUG
         StartTime = platform::GetCurrentTimeSeconds();
-
+#endif
         MeshInfoHelper.MinX = MeshInfoHelper.MinY = MeshInfoHelper.MinZ = FLT_MAX;
         MeshInfoHelper.MaxX = MeshInfoHelper.MaxY = MeshInfoHelper.MaxZ = 0;
 
@@ -598,8 +599,10 @@ namespace lucid::resources
                 {
                     continue;
                 }
-                StartTime = platform::GetCurrentTimeSeconds();
 
+#ifndef NDEBUG
+                StartTime = platform::GetCurrentTimeSeconds();
+#endif
                 CTextureResource* DiffuseMap =
                   AssimpImportMaterialTexture(0, MeshFileDirPath, Material, aiTextureType_DIFFUSE, MeshName, FString{ "Diffuse" }, InbFilpUVs);
                 CTextureResource* SpecularMap =
@@ -661,8 +664,10 @@ namespace lucid::resources
 
                 aiString MaterialName;
                 Material->Get(AI_MATKEY_NAME, MaterialName);
-                StartTime = platform::GetCurrentTimeSeconds();
 
+#ifndef NDEBUG
+                StartTime = platform::GetCurrentTimeSeconds();
+#endif
                 CTextureResource* DiffuseMap =
                   AssimpImportMaterialTexture(0, MeshFileDirPath, Material, aiTextureType_DIFFUSE, MeshName, FString{ "Diffuse" }, InbFilpUVs);
                 CTextureResource* SpecularMap =

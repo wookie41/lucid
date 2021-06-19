@@ -65,12 +65,17 @@ namespace lucid::scene
         virtual void Cleanup() override;
 
         virtual gpu::CFramebuffer* GetResultFramebuffer() override { return FrameResultFramebuffer; }
+        virtual gpu::CTexture*     GetResultFrameTexture() override
+        {
+            return FrameResultTextures[GRenderStats.FrameNumber % NumFrameBuffers];
+        }
 
         virtual ~CForwardRenderer() = default;
 
         /** Renderer properties, have to be set before the first Setup() call */
         float AmbientStrength = 0.1;
         int   NumSamplesPCF   = 5;
+        int   NumFrameBuffers = 2;
 
       private:
         void CreateMeshBatches(FRenderScene* InSceneToRender);
@@ -171,8 +176,8 @@ namespace lucid::scene
         gpu::CTexture* SSAOBlurred;
         u64            SSAOBlurredBindlessHandle;
 
-        gpu::CTexture*      LightingPassColorBuffer;
-        gpu::CRenderbuffer* DepthStencilRenderBuffer;
+        gpu::CTexture**      LightingPassColorBuffers;
+        gpu::CRenderbuffer** DepthStencilRenderBuffers;
 
         /** Generated in the depth prepass so we can later use it when calculating SSAO and things like that (VS - View Space) */
         gpu::CTexture* CurrentFrameVSNormalMap;
@@ -182,7 +187,7 @@ namespace lucid::scene
 
         /** Holds the final frame after post-processing, tone-mapping and gamma correction */
         gpu::CFramebuffer* FrameResultFramebuffer;
-        gpu::CTexture*     FrameResultTexture;
+        gpu::CTexture**    FrameResultTextures;
 
         gpu::CGPUBuffer* GlobalDataUBO;
         gpu::CFence*     GlobalDataBufferFences[FRAME_DATA_BUFFERS_COUNT];

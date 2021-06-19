@@ -145,7 +145,8 @@ namespace lucid::scene
         /**
          * Returns the framebuffer which holds the result of last Render() call.
          */
-        virtual gpu::CFramebuffer* GetResultFramebuffer() = 0;
+        virtual gpu::CFramebuffer*  GetResultFramebuffer() = 0;
+        virtual gpu::CTexture*      GetResultFrameTexture() = 0;
 
         /** Stalls the CPU until GPU finished executing all commands of the previous Render() call.  */
         void WaitForFrameEnd() const { gpu::Finish(); }

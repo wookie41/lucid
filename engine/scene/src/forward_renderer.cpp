@@ -69,6 +69,11 @@ namespace lucid::scene
     constexpr gpu::EBufferAccessPolicy UNSYNCHRONIZED_WRITE =
       (gpu::EBufferAccessPolicy)(gpu::EBufferAccessPolicy::BUFFER_WRITE | gpu::EBufferAccessPolicy::BUFFER_UNSYNCHRONIZED);
 
+    constexpr gpu::EImmutableBufferUsage IMMUTABLE_DYNAMIC_WRITE_ONLY =
+      (gpu::EImmutableBufferUsage)(gpu::EImmutableBufferUsage::IMM_BUFFER_WRITE | gpu::EImmutableBufferUsage::IMM_BUFFER_DYNAMIC);
+
+    constexpr gpu::EGPUBuffer COLOR_AND_DEPTH = (gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH);
+
 #if DEVELOPMENT
     static const FSString ACTOR_ID("uActorId");
 #endif
@@ -229,10 +234,6 @@ namespace lucid::scene
         BlurFramebuffer         = gpu::CreateFramebuffer(FSString{ "BlueFramebuffer" });
         FrameResultFramebuffer  = gpu::CreateFramebuffer(FSString{ "FameResultFramebuffer" });
 
-        // Create a common depth-stencil attachment for both framebuffers
-        DepthStencilRenderBuffer =
-          gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
-
         // Create render targets in which we'll store some additional information during the depth prepass
         CurrentFrameVSNormalMap   = gpu::CreateEmpty2DTexture(ResultResolution.x,
                                                             ResultResolution.y,
@@ -249,6 +250,45 @@ namespace lucid::scene
                                                               0,
                                                               FSString{ "CurrentFrameVSPositionMap" });
 
+        // Create color attachment for the lighting pass framebuffer and a shared depth-setencil attachment
+
+        LightingPassColorBuffers  = new gpu::CTexture*[NumFrameBuffers];
+        DepthStencilRenderBuffers = new gpu::CRenderbuffer*[NumFrameBuffers];
+        FrameResultTextures       = new gpu::CTexture*[NumFrameBuffers];
+
+        for (int i = 0; i < NumFrameBuffers; ++i)
+        {
+            LightingPassColorBuffers[i] = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                                                    ResultResolution.y,
+                                                                    gpu::ETextureDataType::FLOAT,
+                                                                    gpu::ETextureDataFormat::RGBA,
+                                                                    gpu::ETexturePixelFormat::RGBA,
+                                                                    0,
+                                                                    FSString{ "LightingPassColorBuffer" });
+
+            // Setup the lighting pass framebuffer
+            LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+
+            LightingPassColorBuffers[i]->Bind();
+            LightingPassColorBuffers[i]->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+            LightingPassColorBuffers[i]->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
+
+            DepthStencilRenderBuffers[i] =
+              gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
+
+            // Create textures which will hold the final result
+            FrameResultTextures[i] = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                                               ResultResolution.y,
+                                                               gpu::ETextureDataType::FLOAT,
+                                                               gpu::ETextureDataFormat::RGBA,
+                                                               gpu::ETexturePixelFormat::RGBA,
+                                                               0,
+                                                               FSString{ "FrameResult" });
+            FrameResultTextures[i]->Bind();
+            FrameResultTextures[i]->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+            FrameResultTextures[i]->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
+        }
+
         // Setup the prepass framebuffer
         PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
@@ -261,15 +301,6 @@ namespace lucid::scene
         CurrentFrameVSPositionMap->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
         CurrentFrameVSPositionMap->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
         PrepassFramebuffer->SetupColorAttachment(1, CurrentFrameVSPositionMap);
-
-        DepthStencilRenderBuffer->Bind();
-        PrepassFramebuffer->SetupDepthStencilAttachment(DepthStencilRenderBuffer);
-
-        if (!PrepassFramebuffer->IsComplete())
-        {
-            LUCID_LOG(ELogLevel::ERR, LUCID_TEXT("Failed to setup the prepass framebuffer"));
-            return;
-        }
 
         // Create texture to store SSO result
         SSAOResult = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -309,32 +340,6 @@ namespace lucid::scene
         SSAOBlurred->SetBorderColor({ 1, 1, 1, 1 });
         SSAOBlurredBindlessHandle = SSAOBlurred->GetBindlessHandle();
         SSAOBlurred->MakeBindlessResident();
-
-        // Create color attachment for the lighting pass framebuffer
-        LightingPassColorBuffer = gpu::CreateEmpty2DTexture(ResultResolution.x,
-                                                            ResultResolution.y,
-                                                            gpu::ETextureDataType::FLOAT,
-                                                            gpu::ETextureDataFormat::RGBA,
-                                                            gpu::ETexturePixelFormat::RGBA,
-                                                            0,
-                                                            FSString{ "LightingPassColorBuffer" });
-
-        // Setup the lighting pass framebuffer
-        LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-
-        LightingPassColorBuffer->Bind();
-        LightingPassColorBuffer->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
-        LightingPassColorBuffer->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
-        LightingPassFramebuffer->SetupColorAttachment(0, LightingPassColorBuffer);
-
-        DepthStencilRenderBuffer->Bind();
-        LightingPassFramebuffer->SetupDepthStencilAttachment(DepthStencilRenderBuffer);
-
-        if (!LightingPassFramebuffer->IsComplete())
-        {
-            LUCID_LOG(ELogLevel::ERR, LUCID_TEXT("Failed to setup the lighting framebuffer"));
-            return;
-        }
 
         // Setup the SSAO shader
         SSAOShader->Use();
@@ -380,22 +385,6 @@ namespace lucid::scene
         SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
         SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
 
-        // Setup the framebuffer which will hold the final result
-        FrameResultTexture = gpu::CreateEmpty2DTexture(ResultResolution.x,
-                                                       ResultResolution.y,
-                                                       gpu::ETextureDataType::FLOAT,
-                                                       gpu::ETextureDataFormat::RGBA,
-                                                       gpu::ETexturePixelFormat::RGBA,
-                                                       0,
-                                                       FSString{ "FrameResult" });
-        FrameResultTexture->Bind();
-        FrameResultTexture->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
-        FrameResultTexture->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
-
-        FrameResultFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        FrameResultFramebuffer->SetupColorAttachment(0, FrameResultTexture);
-
-        // Frame data buffers
         {
             // Global data buffers
             gpu::FBufferDescription BufferDesc;
@@ -403,7 +392,7 @@ namespace lucid::scene
             BufferDesc.Offset = 0;
             BufferDesc.Size   = GLOBAL_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            GlobalDataUBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "GlobalRenderUBO");
+            GlobalDataUBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "GlobalRenderUBO");
 
             for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
             {
@@ -418,7 +407,7 @@ namespace lucid::scene
             BufferDesc.Offset = 0;
             BufferDesc.Size   = PREPASS_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            PrepassDataSSBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "PrepassDataSSBO");
+            PrepassDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "PrepassDataSSBO");
 
             for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
             {
@@ -433,7 +422,7 @@ namespace lucid::scene
             BufferDesc.Offset = 0;
             BufferDesc.Size   = ACTOR_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            ActorDataSSBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "ActorDataSSBO");
+            ActorDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "ActorDataSSBO");
 
             for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
             {
@@ -448,7 +437,7 @@ namespace lucid::scene
             BufferDesc.Offset = 0;
             BufferDesc.Size   = INSTANCE_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            InstanceDataSSBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "InstanceDataSSBO");
+            InstanceDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "InstanceDataSSBO");
 
             for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
             {
@@ -463,7 +452,7 @@ namespace lucid::scene
             BufferDesc.Offset = 0;
             BufferDesc.Size   = MATERIAL_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            MaterialDataSSBO = gpu::CreateBuffer(BufferDesc, gpu::EBufferUsage::DYNAMIC, "MaterialDataSSBO");
+            MaterialDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "MaterialDataSSBO");
 
             for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
             {
@@ -633,7 +622,7 @@ namespace lucid::scene
 #endif
 
         gpu::PushDebugGroup("Gamma correction");
-        DoGammaCorrection(LightingPassColorBuffer);
+        DoGammaCorrection(LightingPassColorBuffers[GRenderStats.FrameNumber % NumFrameBuffers]);
         gpu::PopDebugGroup();
 #if DEVELOPMENT
         GRenderStats.FrameTimeMiliseconds = FrameTimer->EndTimer();
@@ -719,9 +708,10 @@ namespace lucid::scene
         }
 
         // Send actor data
-        const u32 ActorDataSize = ActorDataIdxByActorId.size() * sizeof(FActorData);
-        const u32 ActorBufferOffset =
-          SendDataToGPU(STAGING_BUFFER_SMALL_0, ActorDataSize, ActorDataSSBO, ActorDataBufferFences, ACTOR_DATA_BUFFER_SIZE, "ActorDataFence");
+        static u32 ActorDataSize;
+        static u32 ActorBufferOffset;
+        ActorDataSize = ActorDataIdxByActorId.size() * sizeof(FActorData);
+        ActorBufferOffset = SendDataToGPU(STAGING_BUFFER_SMALL_0, ActorDataSize, ActorDataSSBO, ActorDataBufferFences, ACTOR_DATA_BUFFER_SIZE, "ActorDataFence");
 
         ActorDataSSBO->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, ActorDataSize, ActorBufferOffset);
 
@@ -794,11 +784,13 @@ namespace lucid::scene
 
         // Send material data to the GPU
         {
-            const u32 BufferOffset = SendDataToGPU(
+            static u32 BufferOffset;
+
+            BufferOffset = SendDataToGPU(
               STAGING_BUFFER_MEDIUM_0, MaterialDataSize, MaterialDataSSBO, MaterialDataBufferFences, MATERIAL_DATA_BUFFER_SIZE, "MaterialDataFence");
             MaterialDataSSBO->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE, MaterialDataSize, BufferOffset);
         }
-    }
+    } // namespace lucid::scene
 
     void CForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender)
     {
@@ -882,8 +874,12 @@ namespace lucid::scene
             }
         }
 
+        static int prepasscount = 0;
+
+        if (prepasscount < 3)
         // Send data to the GPU
         {
+            prepasscount += 1;
             // Make sure the buffer is not used and create a new fence
             gpu::CFence* Fence = PrepassDataBufferFences[BufferIdx];
 
@@ -894,7 +890,7 @@ namespace lucid::scene
             PrepassDataBufferFences[BufferIdx] = gpu::CreateFence("PrepassDataFence");
 
             // memcpy the data
-            PrepassDataSSBO->Bind(gpu::EBufferBindPoint::WRITE);
+            PrepassDataSSBO->Bind(gpu::EBufferBindPoint::SHADER_STORAGE);
             void* VideoMemPtr = PrepassDataSSBO->MemoryMap(UNSYNCHRONIZED_WRITE, PREPASS_DATA_BUFFER_SIZE, DataBufferOffset);
             memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_0, PrepassDataSize);
             PrepassDataSSBO->MemoryUnmap();
@@ -902,10 +898,17 @@ namespace lucid::scene
 
         // Prepare pipeline
         gpu::ConfigurePipelineState(PrepassPipelineState);
-        BindAndClearFramebuffer(PrepassFramebuffer);
+
+        gpu::CRenderbuffer* DepthStencilBuffer = DepthStencilRenderBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
+        DepthStencilBuffer->Bind();
+
+        PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        PrepassFramebuffer->SetupDepthAttachment(DepthStencilBuffer);
+        PrepassFramebuffer->SetupDrawBuffers();
+
+        gpu::ClearBuffers(COLOR_AND_DEPTH);
 
         PrepassShader->Use();
-        PrepassFramebuffer->SetupDrawBuffers();
 
         // Bind the SSBO
         PrepassDataSSBO->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE, DataBufferOffset, DataBufferOffset);
@@ -962,8 +965,20 @@ namespace lucid::scene
     {
         gpu::ConfigurePipelineState(InitialLightLightpassPipelineState);
 
-        BindAndClearFramebuffer(LightingPassFramebuffer);
+        gpu::CTexture*      ColorBuffer        = LightingPassColorBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
+        gpu::CRenderbuffer* DepthStencilBuffer = DepthStencilRenderBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
+
+        LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+
+        ColorBuffer->Bind();
+        LightingPassFramebuffer->SetupColorAttachment(0, ColorBuffer);
+
+        DepthStencilBuffer->Bind();
+        LightingPassFramebuffer->SetupDepthStencilAttachment(DepthStencilBuffer);
+
         LightingPassFramebuffer->SetupDrawBuffers();
+
+        gpu::ClearBuffers(COLOR_AND_DEPTH);
 
         RenderStaticMeshes(InSceneToRender, InRenderView);
         if (InSceneToRender->Skybox)
@@ -1026,7 +1041,7 @@ namespace lucid::scene
     void CForwardRenderer::BindAndClearFramebuffer(gpu::CFramebuffer* InFramebuffer)
     {
         InFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
+        gpu::ClearBuffers(COLOR_AND_DEPTH);
     }
 
     void CForwardRenderer::SetupGlobalRenderData(const FRenderView* InRenderView)
@@ -1299,7 +1314,15 @@ namespace lucid::scene
 
     void CForwardRenderer::DoGammaCorrection(gpu::CTexture* InTexture)
     {
-        BindAndClearFramebuffer(FrameResultFramebuffer);
+
+        gpu::CTexture* FrameResultBuffer = FrameResultTextures[GRenderStats.FrameNumber % NumFrameBuffers];
+        FrameResultBuffer->Bind();
+
+        FrameResultFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        FrameResultFramebuffer->SetupColorAttachment(0, FrameResultBuffer);
+        FrameResultFramebuffer->SetupDrawBuffers();
+
+        gpu::ClearBuffers(gpu::EGPUBuffer::COLOR);
 
         GammaCorrectionShader->Use();
         GammaCorrectionShader->SetFloat(GAMMA, Gamma);
@@ -1327,6 +1350,11 @@ namespace lucid::scene
 
         delete Fence;
         InFences[BufferIdx] = gpu::CreateFence(InFenceName);
+
+        gpu::FBufferDescription Desc;
+        Desc.Data   = (void*)InData;
+        Desc.Size   = InDataSize;
+        Desc.Offset = BufferOffset;
 
         // memcpy the data
         InBuffer->Bind(gpu::EBufferBindPoint::WRITE);

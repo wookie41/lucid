@@ -275,41 +275,41 @@ int main(int argc, char** argv)
                 GSceneEditorState.SecondsSinceLastVideoMemorySnapshot = 0;
             }
 
-            // Render the scene to off-screen framebuffer
-            if (GSceneEditorState.World)
-            {
-                GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
-            }
-
-            GSceneEditorState.NumDrawCalls[GSceneEditorState.NumDrawCallsIndex++ % GSceneEditorState.NumDrawCallSamples] =
-              scene::GRenderStats.NumDrawCalls;
-            GSceneEditorState.FrameTimes[GSceneEditorState.FrameTimesIndex++ % (GSceneEditorState.NumFrameTimesSamples)] =
-              scene::GRenderStats.FrameTimeMiliseconds;
-
-            GSceneEditorState.Window->ImgUiStartNewFrame();
-            {
-                UISetupDockspace();
-                UIDrawSceneWindow();
-                UIDrawResourceBrowserWindow();
-                UIDrawSceneHierarchyWindow();
-                UIDrawActorDetailsWindow();
-                UIDrawCommonActorsWindow();
-                UIDrawFileDialog();
-                UIDrawStatsWindow();
-                UIDrawSettingsWindows();
-                ImGui::ShowDemoWindow();
-            }
-
-            GSceneEditorState.Window->Clear();
-            GSceneEditorState.Window->ImgUiDrawFrame();
-            GSceneEditorState.Window->Swap();
-
-            // Allow ImGui viewports to update
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-
             DoActorPicking();
         }
+
+        // Render the scene to off-screen framebuffer
+        if (GSceneEditorState.World)
+        {
+            GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
+        }
+        
+        GSceneEditorState.NumDrawCalls[GSceneEditorState.NumDrawCallsIndex++ % GSceneEditorState.NumDrawCallSamples] =
+          scene::GRenderStats.NumDrawCalls;
+        GSceneEditorState.FrameTimes[GSceneEditorState.FrameTimesIndex++ % (GSceneEditorState.NumFrameTimesSamples)] =
+          scene::GRenderStats.FrameTimeMiliseconds;
+        
+        GSceneEditorState.Window->ImgUiStartNewFrame();
+        {
+            UISetupDockspace();
+            UIDrawSceneWindow();
+            UIDrawResourceBrowserWindow();
+            UIDrawSceneHierarchyWindow();
+            UIDrawActorDetailsWindow();
+            UIDrawCommonActorsWindow();
+            UIDrawFileDialog();
+            UIDrawStatsWindow();
+            UIDrawSettingsWindows();
+            ImGui::ShowDemoWindow();
+        }
+
+        GSceneEditorState.Window->Clear();
+        GSceneEditorState.Window->ImgUiDrawFrame();
+        GSceneEditorState.Window->Swap();
+
+        // Allow ImGui viewports to update
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
 
         GEngine.EndFrame();
     }
@@ -773,7 +773,7 @@ void UIDrawSceneWindow()
         GSceneEditorState.SceneWindowPos.y += SceneWindowPos.y;
 
         // Draw the rendered scene into an image
-        GEngine.GetRenderer()->GetResultFramebuffer()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
+        GEngine.GetRenderer()->GetResultFrameTexture()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
 
         // Handle actor asset drag and drop into the viewport
         if (GSceneEditorState.World)

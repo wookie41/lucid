@@ -199,6 +199,7 @@ namespace lucid::gpu
     {
         assert(GGPUState->VAO == this);
         uint32_t count = Count == 0 ? (ElementBuffer == nullptr ? VertexCount : ElementCount) : Count;
+        ++scene::GRenderStats.NumDrawCalls;
 
         if (ElementBuffer)
         {
