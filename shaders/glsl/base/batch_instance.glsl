@@ -4,6 +4,7 @@ struct FActorData
 {
     mat4 ModelMatrix;
     int  NormalMultiplier;
+    uint ActorId;
 };
 
 struct FInstanceData

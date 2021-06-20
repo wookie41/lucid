@@ -1,10 +1,11 @@
 #version 450 core
 
-uniform uint uActorId;
+#include "batch_instance.glsl"
 
+flat in int InstanceID;
 out uint oActorId;
 
 void main() 
 {
-    oActorId = uActorId;
+    oActorId = INSTANCE_DATA.ActorId;
 }

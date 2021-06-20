@@ -92,7 +92,7 @@ namespace lucid::scene
     struct FActorData
     {
         glm::mat4 ModelMatrix;
-        u32       NormalMultiplier;
+        i32       NormalMultiplier;
         u32       ActorId;
         char      _padding[8];
     };
@@ -1128,31 +1128,13 @@ namespace lucid::scene
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
 
         HitMapShader->Use();
-        HitMapShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
-        HitMapShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
 
         // Render static geometry
-        for (int i = 0; i < InScene->StaticMeshes.GetLength(); ++i)
+        for (const auto& MeshBatch : MeshBatches)
         {
-            CStaticMesh* StaticMesh = InScene->StaticMeshes.GetByIndex(i);
-            if (StaticMesh->bVisible)
-            {
-                HitMapShader->SetUInt(ACTOR_ID, StaticMesh->ActorId);
-                HitMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
-                if (StaticMesh->GetMeshResource())
-                {
-                    for (u16 j = 0; j < StaticMesh->GetMeshResource()->SubMeshes.GetLength(); ++j)
-                    {
-                        StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Bind();
-                        StaticMesh->GetMeshResource()->SubMeshes[j]->VAO->Draw();
-                    }
-                }
-                else
-                {
-                    UnitCubeVAO->Bind();
-                    UnitCubeVAO->Draw();
-                }
-            }
+            MeshBatch.MeshVertexArray->Bind();
+            HitMapShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
+            MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
         }
 
         // Render lights quads

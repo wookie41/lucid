@@ -54,7 +54,7 @@
         {
             "Name": "BillboardHitmap",
             "VertexShaderSourcePath": "shaders/glsl/billboard_hitmap.vert",
-            "FragmentShaderSourcePath": "shaders/glsl/hit_map.frag"
+            "FragmentShaderSourcePath": "shaders/glsl/billboard_hitmap.frag"
         },
         {
             "Name": "Billboard",
