@@ -251,10 +251,15 @@ namespace lucid::scene
                                                               FSString{ "CurrentFrameVSPositionMap" });
 
         // Create color attachment for the lighting pass framebuffer and a shared depth-setencil attachment
+        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
+        DepthStencilRenderBuffer->Bind();
 
-        LightingPassColorBuffers  = new gpu::CTexture*[NumFrameBuffers];
-        DepthStencilRenderBuffers = new gpu::CRenderbuffer*[NumFrameBuffers];
-        FrameResultTextures       = new gpu::CTexture*[NumFrameBuffers];
+        // Attach it to the lighting pass framebuffer
+        LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        LightingPassFramebuffer->SetupDepthStencilAttachment(DepthStencilRenderBuffer);
+        
+        LightingPassColorBuffers = new gpu::CTexture*[NumFrameBuffers];
+        FrameResultTextures      = new gpu::CTexture*[NumFrameBuffers];
 
         for (int i = 0; i < NumFrameBuffers; ++i)
         {
@@ -266,15 +271,10 @@ namespace lucid::scene
                                                                     0,
                                                                     FSString{ "LightingPassColorBuffer" });
 
-            // Setup the lighting pass framebuffer
-            LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
             LightingPassColorBuffers[i]->Bind();
             LightingPassColorBuffers[i]->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
             LightingPassColorBuffers[i]->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
-
-            DepthStencilRenderBuffers[i] =
-              gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
 
             // Create textures which will hold the final result
             FrameResultTextures[i] = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -301,6 +301,10 @@ namespace lucid::scene
         CurrentFrameVSPositionMap->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
         CurrentFrameVSPositionMap->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
         PrepassFramebuffer->SetupColorAttachment(1, CurrentFrameVSPositionMap);
+
+        DepthStencilRenderBuffer->Bind();
+        PrepassFramebuffer->SetupDepthAttachment(DepthStencilRenderBuffer);
+
 
         // Create texture to store SSO result
         SSAOResult = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -711,7 +715,8 @@ namespace lucid::scene
         static u32 ActorDataSize;
         static u32 ActorBufferOffset;
         ActorDataSize = ActorDataIdxByActorId.size() * sizeof(FActorData);
-        ActorBufferOffset = SendDataToGPU(STAGING_BUFFER_SMALL_0, ActorDataSize, ActorDataSSBO, ActorDataBufferFences, ACTOR_DATA_BUFFER_SIZE, "ActorDataFence");
+        ActorBufferOffset =
+          SendDataToGPU(STAGING_BUFFER_SMALL_0, ActorDataSize, ActorDataSSBO, ActorDataBufferFences, ACTOR_DATA_BUFFER_SIZE, "ActorDataFence");
 
         ActorDataSSBO->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, ActorDataSize, ActorBufferOffset);
 
@@ -899,11 +904,7 @@ namespace lucid::scene
         // Prepare pipeline
         gpu::ConfigurePipelineState(PrepassPipelineState);
 
-        gpu::CRenderbuffer* DepthStencilBuffer = DepthStencilRenderBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
-        DepthStencilBuffer->Bind();
-
         PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        PrepassFramebuffer->SetupDepthAttachment(DepthStencilBuffer);
         PrepassFramebuffer->SetupDrawBuffers();
 
         gpu::ClearBuffers(COLOR_AND_DEPTH);
@@ -965,20 +966,14 @@ namespace lucid::scene
     {
         gpu::ConfigurePipelineState(InitialLightLightpassPipelineState);
 
-        gpu::CTexture*      ColorBuffer        = LightingPassColorBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
-        gpu::CRenderbuffer* DepthStencilBuffer = DepthStencilRenderBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
+        gpu::CTexture* ColorBuffer = LightingPassColorBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
+        ColorBuffer->Bind();
 
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-
-        ColorBuffer->Bind();
         LightingPassFramebuffer->SetupColorAttachment(0, ColorBuffer);
-
-        DepthStencilBuffer->Bind();
-        LightingPassFramebuffer->SetupDepthStencilAttachment(DepthStencilBuffer);
-
         LightingPassFramebuffer->SetupDrawBuffers();
 
-        gpu::ClearBuffers(COLOR_AND_DEPTH);
+        gpu::ClearBuffers(gpu::EGPUBuffer::COLOR);
 
         RenderStaticMeshes(InSceneToRender, InRenderView);
         if (InSceneToRender->Skybox)

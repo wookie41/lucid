@@ -65,10 +65,7 @@ namespace lucid::scene
         virtual void Cleanup() override;
 
         virtual gpu::CFramebuffer* GetResultFramebuffer() override { return FrameResultFramebuffer; }
-        virtual gpu::CTexture*     GetResultFrameTexture() override
-        {
-            return FrameResultTextures[GRenderStats.FrameNumber % NumFrameBuffers];
-        }
+        virtual gpu::CTexture*     GetResultFrameTexture() override { return FrameResultTextures[GRenderStats.FrameNumber % NumFrameBuffers]; }
 
         virtual ~CForwardRenderer() = default;
 
@@ -176,8 +173,8 @@ namespace lucid::scene
         gpu::CTexture* SSAOBlurred;
         u64            SSAOBlurredBindlessHandle;
 
-        gpu::CTexture**      LightingPassColorBuffers;
-        gpu::CRenderbuffer** DepthStencilRenderBuffers;
+        gpu::CTexture**     LightingPassColorBuffers;
+        gpu::CRenderbuffer* DepthStencilRenderBuffer;
 
         /** Generated in the depth prepass so we can later use it when calculating SSAO and things like that (VS - View Space) */
         gpu::CTexture* CurrentFrameVSNormalMap;
