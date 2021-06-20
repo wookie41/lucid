@@ -18,8 +18,6 @@ namespace lucid::gpu
         virtual void SetObjectName() override;
 
       private:
-        bool bSignaled = false;
-        
         GLsync GLFenceHandle       = nullptr;
     };
 } // namespace lucid::gpu

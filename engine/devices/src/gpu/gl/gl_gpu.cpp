@@ -253,4 +253,9 @@ namespace lucid::gpu
     {
         glLineWidth(InWidth);
     }
+
+    void BindDefaultFramebuffer()
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 } // namespace lucid::gpu

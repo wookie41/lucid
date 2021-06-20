@@ -14,7 +14,11 @@ namespace lucid::gpu
         }
 
         GLenum Result = glClientWaitSync(GLFenceHandle, 0, InTimeout);
-        if (Result == GL_TIMEOUT_EXPIRED)
+        if (Result == GL_ALREADY_SIGNALED || Result == GL_CONDITION_SATISFIED)
+        {
+            bSignaled = true;
+        }
+        else if (Result == GL_TIMEOUT_EXPIRED)
         {
             LUCID_LOG(ELogLevel::WARN, "Timer for fence %s expired", *Name);
             return false;
@@ -24,14 +28,11 @@ namespace lucid::gpu
             LUCID_LOG(ELogLevel::WARN, "Failed to wait for fence %s: error %d", *Name, glGetError());
             return false;
         }
-        bSignaled = true;
-        return true;
+        
+        return bSignaled;
     }
 
-    void CGLFence::Free()
-    {
-        glDeleteSync(GLFenceHandle);
-    }
+    void CGLFence::Free() { glDeleteSync(GLFenceHandle); }
 
     void CGLFence::SetObjectName() {}
 

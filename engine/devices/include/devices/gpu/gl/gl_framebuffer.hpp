@@ -57,7 +57,7 @@ namespace lucid::gpu
         virtual void SetupStencilAttachment(IFramebufferAttachment* AttachmentToUse) override;
         virtual void SetupDepthStencilAttachment(IFramebufferAttachment* AttachmentToUse) override;
 
-        void ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels) override;
+        void ReadPixels(const u8& InAttachmentIdx, const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels) const override;
       
         virtual void Free() override;
 
@@ -94,7 +94,7 @@ namespace lucid::gpu
         virtual void SetupStencilAttachment(IFramebufferAttachment* AttachmentToUse) override;
         virtual void SetupDepthStencilAttachment(IFramebufferAttachment* AttachmentToUse) override;
 
-        virtual void ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels) override;
+        virtual void ReadPixels(const u8& InAttachmentIdx, const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels) const override;
 
         virtual void Free() override;
 

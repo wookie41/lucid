@@ -17,6 +17,7 @@ namespace lucid::gpu
     class CRenderbuffer;
     class CTimer;
     class CFence;
+    class CPixelBuffer;
 }; // namespace lucid::gpu
 
 namespace lucid::scene
@@ -101,7 +102,7 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
-        void GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const;
+        void GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView);
         void RenderWithDefaultMaterial(const resources::CMeshResource* InMeshResource,
                                        const u16&                      InSubMeshIndex,
                                        const CLight*                   InLight,
@@ -227,6 +228,8 @@ namespace lucid::scene
         gpu::CFramebuffer*  HitMapFramebuffer;
         gpu::FPipelineState HitMapGenerationPipelineState;
         gpu::CRenderbuffer* HitMapDepthStencilRenderbuffer;
+        gpu::CPixelBuffer*  HitmapReadPixelBuffer;
+        u8                  CurrentHitmapPBOIndex = 0;
 
         gpu::CTimer* FrameTimer = nullptr;
 

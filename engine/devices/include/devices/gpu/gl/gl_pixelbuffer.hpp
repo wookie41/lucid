@@ -8,13 +8,17 @@ namespace lucid::gpu
 {
     class CFence;
 
-
     class CGLPixelBuffer : public CPixelBuffer
     {
       public:
         CGLPixelBuffer(const FString& InName, const GLuint& InGLHandle);
 
-        virtual void  AsyncReadPixels(gpu::CTexture const* InTexture) override;
+        virtual void  AsyncReadPixels(const u8&                InAttachmentIdx,
+                                      const u16&               InX,
+                                      const u16&               InY,
+                                      const u16&               InWidth,
+                                      const u16&               InHeight,
+                                      gpu::CFramebuffer* InFramebuffer) override;
         virtual bool  IsReady() override;
         virtual char* MapBuffer(const EMapMode& InMapMode) override;
         virtual void  UnmapBuffer() override;
@@ -23,8 +27,11 @@ namespace lucid::gpu
 
         virtual ~CGLPixelBuffer() = default;
 
+        void Free() override;
+
       private:
-        GLuint  GLHandle     = 0;
-        CFence* ReadFence    = nullptr;
+        GLenum CurrentBindPoint;
+        GLuint  GLHandle  = 0;
+        CFence* ReadFence = nullptr;
     };
 } // namespace lucid::gpu

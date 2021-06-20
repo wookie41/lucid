@@ -3,7 +3,7 @@
 #include <set>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-#include <resources/mesh_resource.hpp>
+
 #include "devices/gpu/shaders_manager.hpp"
 #include "engine/engine.hpp"
 
@@ -20,6 +20,7 @@
 #include "devices/gpu/cubemap.hpp"
 #include "devices/gpu/timer.hpp"
 #include "devices/gpu/fence.hpp"
+#include "devices/gpu/pixelbuffer.hpp"
 
 #include "scene/actors/lights.hpp"
 #include "scene/camera.hpp"
@@ -30,6 +31,7 @@
 #include "misc/math.hpp"
 
 #include "resources/resources_holder.hpp"
+#include "resources/mesh_resource.hpp"
 
 namespace lucid::scene
 {
@@ -192,6 +194,10 @@ namespace lucid::scene
         // InitialLightLightpassPipelineState.CullMode = gpu::ECullMode::BACK;
         InitialLightLightpassPipelineState.IsSRGBFramebufferEnabled = false;
         InitialLightLightpassPipelineState.IsDepthBufferReadOnly    = true;
+        InitialLightLightpassPipelineState.Viewport.X               = 0;
+        InitialLightLightpassPipelineState.Viewport.Y               = 0;
+        InitialLightLightpassPipelineState.Viewport.Width           = ResultResolution.x;
+        InitialLightLightpassPipelineState.Viewport.Height          = ResultResolution.y;
 
         LightpassPipelineState                       = InitialLightLightpassPipelineState;
         LightpassPipelineState.BlendFunctionDst      = gpu::EBlendFunction::ONE;
@@ -208,6 +214,7 @@ namespace lucid::scene
         GammaCorrectionPipelineState.IsCullingEnabled         = false;
         GammaCorrectionPipelineState.IsSRGBFramebufferEnabled = false;
         GammaCorrectionPipelineState.IsDepthBufferReadOnly    = true;
+        GammaCorrectionPipelineState.Viewport                 = LightpassPipelineState.Viewport;
 
 #if DEVELOPMENT
         HitMapGenerationPipelineState                          = SkyboxPipelineState;
@@ -224,7 +231,7 @@ namespace lucid::scene
         WorldGridPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
         WorldGridPipelineState.BlendFunctionAlphaSrc    = gpu::EBlendFunction::SRC_ALPHA;
         WorldGridPipelineState.BlendFunctionAlphaDst    = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
-
+        WorldGridPipelineState.Viewport                 = LightpassPipelineState.Viewport;
 #endif
 
         // Create the framebuffers
@@ -479,6 +486,7 @@ namespace lucid::scene
         LightsBillboardsPipelineState.IsCullingEnabled         = false;
         LightsBillboardsPipelineState.IsSRGBFramebufferEnabled = false;
         LightsBillboardsPipelineState.IsDepthBufferReadOnly    = false;
+        LightsBillboardsPipelineState.Viewport                 = LightpassPipelineState.Viewport;
 
         auto* LightBulbTextureResource = GEngine.GetTexturesHolder().Get(sole::rebuild("abd835d6-6aa9-4140-9442-9afe04a2b999"));
         LightBulbTextureResource->Acquire(false, true);
@@ -516,6 +524,8 @@ namespace lucid::scene
           (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
         Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
 
+        HitmapReadPixelBuffer = gpu::CreatePixelBuffer("HitmapReadPixelBuffer_0", HitMapTexture->GetSizeInBytes());
+
         // Timer
         FrameTimer = gpu::CreateTimer("FameTimer");
 
@@ -526,7 +536,7 @@ namespace lucid::scene
         DebugLinesPipelineState.IsSRGBFramebufferEnabled = true;
         DebugLinesPipelineState.IsDepthBufferReadOnly    = false;
         DebugLinesPipelineState.LineWidth                = 2;
-
+        DebugLinesPipelineState.Viewport                 = LightpassPipelineState.Viewport;
         // Create buffers and fences
         {
             for (int i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
@@ -841,7 +851,7 @@ namespace lucid::scene
             if (Light->ShadowMap->GetQuality() != PrevShadowMapQuality)
             {
                 PrevShadowMapQuality = Light->ShadowMap->GetQuality();
-                gpu::SetViewport({ 0, 0, (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].x, (u32)ShadowMapSizeByQuality[PrevShadowMapQuality].y });
+                gpu::SetViewport({ 0, 0, ShadowMapSizeByQuality[PrevShadowMapQuality].x, ShadowMapSizeByQuality[PrevShadowMapQuality].y });
             }
 
             // Setup light's shadow map texture
@@ -1115,7 +1125,7 @@ namespace lucid::scene
     }
 
 #if DEVELOPMENT
-    void CForwardRenderer::GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView) const
+    void CForwardRenderer::GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
         // We do it in a separate pass just for simplicity
         // It might not be the most efficient way to do it, but that way we avoid the need to maintain two
@@ -1164,7 +1174,22 @@ namespace lucid::scene
         }
 
         // Get the result
-        HitMapFramebuffer->ReadPixels(0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), CachedHitMap.CachedTextureData);
+        if (GRenderStats.FrameNumber == 1)
+        {
+            HitmapReadPixelBuffer->AsyncReadPixels(0, 0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), HitMapFramebuffer);
+        }
+        // Check if the previous read has finished and skip the read if not - it's not a problem to be 1-2 frames behind with this
+        else if (HitmapReadPixelBuffer->IsReady())
+        {
+            // Get the current result
+            char* HitmapPixels = HitmapReadPixelBuffer->MapBuffer(gpu::EMapMode::READ_ONLY);
+            memcpy(CachedHitMap.CachedTextureData, HitmapPixels, HitMapTexture->GetSizeInBytes());
+            HitmapReadPixelBuffer->UnmapBuffer();
+
+            // Async read the current frame
+            CurrentHitmapPBOIndex = (CurrentHitmapPBOIndex + 1) % 2;
+            HitmapReadPixelBuffer->AsyncReadPixels(0, 0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), HitMapFramebuffer);
+        }
     }
 
     // @TODO this should handle the batching

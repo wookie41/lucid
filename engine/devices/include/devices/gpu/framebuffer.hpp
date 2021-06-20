@@ -104,7 +104,7 @@ namespace lucid::gpu
         virtual void SetupDepthStencilAttachment(IFramebufferAttachment* AttachmentToUse)                      = 0;
 
         /** Reads pixels of the first attachment to he specified location */
-        virtual void ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels) = 0;
+        virtual void ReadPixels(const u8& InAttachmentIdx, const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels) const = 0;
 
         virtual void Free() = 0;
 

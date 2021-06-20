@@ -101,7 +101,7 @@ namespace lucid::gpu
 
     void EnableSRGBFramebuffer();
     void DisableSRGBFramebuffer();
-
+    
     /////////////////////////////////////
     //            Rasterizer           //
     /////////////////////////////////////
@@ -205,4 +205,6 @@ namespace lucid::gpu
         WRITE_ONLY,
         READ_WRITE
     };
+
+    void BindDefaultFramebuffer();
 } // namespace lucid::gpu

@@ -10,33 +10,21 @@ namespace lucid::gpu
 {
     static GLenum RENDER_BUFFER_TYPE_MAPPING[] = { GL_DEPTH24_STENCIL8 };
 
-    inline void GLBindFramebuffer(FGPUState* InGPUState,
-                                  CFramebuffer* InFramebuffer,
-                                  const GLuint& InFBOHandle,
-                                  const EFramebufferBindMode& InMode)
+    inline void GLBindFramebuffer(FGPUState* InGPUState, CFramebuffer* InFramebuffer, const GLuint& InFBOHandle, const EFramebufferBindMode& InMode)
     {
         switch (InMode)
         {
         case EFramebufferBindMode::READ:
-            if (InGPUState->ReadFramebuffer != InFramebuffer)
-            {
-                InGPUState->ReadFramebuffer = InFramebuffer;
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, InFBOHandle);
-            }
+            InGPUState->ReadFramebuffer = InFramebuffer;
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, InFBOHandle);
             break;
         case EFramebufferBindMode::WRITE:
-            if (InGPUState->WriteFramebuffer != InFramebuffer)
-            {
-                InGPUState->WriteFramebuffer = InFramebuffer;
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, InFBOHandle);
-            }
+            InGPUState->WriteFramebuffer = InFramebuffer;
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, InFBOHandle);
             break;
         case EFramebufferBindMode::READ_WRITE:
-            if (InGPUState->Framebuffer != InFramebuffer)
-            {
-                InGPUState->Framebuffer = InGPUState->WriteFramebuffer = InGPUState->ReadFramebuffer = InFramebuffer;
-                glBindFramebuffer(GL_FRAMEBUFFER, InFBOHandle);
-            }
+            InGPUState->Framebuffer = InGPUState->WriteFramebuffer = InGPUState->ReadFramebuffer = InFramebuffer;
+            glBindFramebuffer(GL_FRAMEBUFFER, InFBOHandle);
             break;
         }
     }
@@ -70,15 +58,12 @@ namespace lucid::gpu
     //        OpenGL framebuffer       //
     /////////////////////////////////////
 
-    CGLFramebuffer::CGLFramebuffer(const GLuint& GLFBOHandle, const FString& InName)
-    : CFramebuffer(InName), glFBOHandle(GLFBOHandle)
-    {
-    }
+    CGLFramebuffer::CGLFramebuffer(const GLuint& GLFBOHandle, const FString& InName) : CFramebuffer(InName), glFBOHandle(GLFBOHandle) {}
 
     void CGLFramebuffer::SetupDrawBuffers()
     {
         static GLenum DrawBuffers[MAX_COLOR_ATTACHMENTS];
-        u32 NumOfBuffers = 0;
+        u32           NumOfBuffers = 0;
         for (u8 AttachmentIdx = 0; AttachmentIdx < MAX_COLOR_ATTACHMENTS; ++AttachmentIdx)
         {
             if (colorAttachments[AttachmentIdx])
@@ -158,15 +143,17 @@ namespace lucid::gpu
         AttachmentToUse->AttachAsStencilDepth();
     }
 
-    void CGLFramebuffer::ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels)
+    void
+    CGLFramebuffer::ReadPixels(const u8& InAttachmentIdx, const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels) const
     {
         assert(GGPUState->Framebuffer == this);
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + InAttachmentIdx);
         glReadPixels(InX,
                      InY,
                      InWidth,
                      InHeight,
-                     TO_GL_TEXTURE_PIXEL_FORMAT(colorAttachments[0]->GetAttachmentPixelFormat()),
-                     TO_GL_TEXTURE_DATA_TYPE(colorAttachments[0]->GetAttachmentDataType()),
+                      TO_GL_TEXTURE_PIXEL_FORMAT(colorAttachments[0]->GetAttachmentPixelFormat()),
+                      TO_GL_TEXTURE_DATA_TYPE(colorAttachments[0]->GetAttachmentDataType()),
                      Pixels);
     }
 
@@ -179,10 +166,7 @@ namespace lucid::gpu
 
     void CGLFramebuffer::Free() {}
 
-    CGLRenderbuffer::CGLRenderbuffer(const GLuint& GLRBOHandle,
-                                     const ERenderbufferFormat& InFormat,
-                                     const glm::ivec2& Size,
-                                     const FString& InName)
+    CGLRenderbuffer::CGLRenderbuffer(const GLuint& GLRBOHandle, const ERenderbufferFormat& InFormat, const glm::ivec2& Size, const FString& InName)
     : CRenderbuffer(InName), glRBOHandle(GLRBOHandle), Format(InFormat), size(Size)
     {
     }
@@ -227,10 +211,9 @@ namespace lucid::gpu
     //    Default OpenGL framebuffer   //
     /////////////////////////////////////
 
-    CGLDefaultFramebuffer::CGLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight)
-    : CFramebuffer(CopyToString("Default"))
+    CGLDefaultFramebuffer::CGLDefaultFramebuffer(const u16& InWindowWidth, const u16& InWindowHeight) : CFramebuffer(CopyToString("Default"))
     {
-        WindowWidth = InWindowWidth;
+        WindowWidth  = InWindowWidth;
         WindowHeight = InWindowHeight;
     }
 
@@ -255,10 +238,7 @@ namespace lucid::gpu
 
     void CGLDefaultFramebuffer::Bind(const EFramebufferBindMode& Mode) { GLBindFramebuffer(GGPUState, this, 0, Mode); }
 
-    void CGLDefaultFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, IFramebufferAttachment* AttachmentToUse)
-    {
-        assert(0);
-    }
+    void CGLDefaultFramebuffer::SetupColorAttachment(const u32& AttachmentIndex, IFramebufferAttachment* AttachmentToUse) { assert(0); }
 
     void CGLDefaultFramebuffer::SetupDepthAttachment(IFramebufferAttachment* AttachmentToUse) { assert(0); }
 
@@ -266,17 +246,16 @@ namespace lucid::gpu
 
     void CGLDefaultFramebuffer::SetupDepthStencilAttachment(IFramebufferAttachment* AttachmentToUse) { assert(0); }
 
-    void CGLDefaultFramebuffer::ReadPixels(const u32& InX, const u32& InY, const u32& InWidth, const u32& InHeight, void* Pixels)
+    void CGLDefaultFramebuffer::ReadPixels(const u8&  InAttachmentIdx,
+                                           const u32& InX,
+                                           const u32& InY,
+                                           const u32& InWidth,
+                                           const u32& InHeight,
+                                           void*      Pixels) const
     {
         assert(GGPUState->Framebuffer == this);
-        glReadPixels(InX,
-             InY,
-             InWidth,
-             InHeight,
-             GL_RGBA,
-             GL_UNSIGNED_INT_8_8_8_8,
-             Pixels);
-
+        glReadBuffer(GL_FRONT + InAttachmentIdx);
+        glReadPixels(InX, InY, InWidth, InHeight, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, Pixels);
     }
 
     void CGLDefaultFramebuffer::Free()
@@ -284,11 +263,11 @@ namespace lucid::gpu
         // Noop
     }
 
-    void BlitFramebuffer(CFramebuffer* Source,
-                         CFramebuffer* Destination,
-                         const bool& Color,
-                         const bool& Depth,
-                         const bool& Stencil,
+    void BlitFramebuffer(CFramebuffer*           Source,
+                         CFramebuffer*           Destination,
+                         const bool&             Color,
+                         const bool&             Depth,
+                         const bool&             Stencil,
                          const math::FRectangle& SrcRect,
                          const math::FRectangle& DestRect)
     {
@@ -311,16 +290,8 @@ namespace lucid::gpu
             bufferToBlit |= GL_STENCIL_BUFFER_BIT;
         }
 
-        glBlitFramebuffer(SrcRect.X,
-                          SrcRect.Y,
-                          SrcRect.Width,
-                          SrcRect.Height,
-                          DestRect.X,
-                          DestRect.Y,
-                          DestRect.Width,
-                          DestRect.Height,
-                          bufferToBlit,
-                          GL_LINEAR);
+        glBlitFramebuffer(
+          SrcRect.X, SrcRect.Y, SrcRect.Width, SrcRect.Height, DestRect.X, DestRect.Y, DestRect.Width, DestRect.Height, bufferToBlit, GL_LINEAR);
     }
 
     void CGLFramebuffer::ImGuiDrawToImage(const ImVec2& InImageSize) const

@@ -204,7 +204,7 @@ namespace lucid::scene
         u8 DefaultLightQuality     = 1;
 
         /** Size of a shadow map for a given quality  */
-        const glm::ivec2 ShadowMapSizeByQuality[3] = {
+        const glm::uvec2 ShadowMapSizeByQuality[3] = {
             { 512, 512 },
             { 1024, 1024 },
             { 2048, 2048 },
