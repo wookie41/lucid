@@ -536,7 +536,7 @@ void HandleInput()
             GSceneEditorState.LastDeletedActor->CleanupAfterRemove();
             delete GSceneEditorState.LastDeletedActor;
         }
-        GSceneEditorState.World->RemoveActorById(GSceneEditorState.CurrentlySelectedActor->Id, false);
+        GSceneEditorState.World->RemoveActorById(GSceneEditorState.CurrentlySelectedActor->ActorId, false);
         GSceneEditorState.LastDeletedActor       = GSceneEditorState.CurrentlySelectedActor;
         GSceneEditorState.CurrentlySelectedActor = nullptr;
     }

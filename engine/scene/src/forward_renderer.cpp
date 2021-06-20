@@ -93,7 +93,8 @@ namespace lucid::scene
     {
         glm::mat4 ModelMatrix;
         u32       NormalMultiplier;
-        char      _padding[12];
+        u32       ActorId;
+        char      _padding[8];
     };
 
     struct FInstanceData
@@ -251,13 +252,14 @@ namespace lucid::scene
                                                               FSString{ "CurrentFrameVSPositionMap" });
 
         // Create color attachment for the lighting pass framebuffer and a shared depth-setencil attachment
-        DepthStencilRenderBuffer = gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
+        DepthStencilRenderBuffer =
+          gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, ResultResolution, FSString{ "LightingPassRenderbuffer" });
         DepthStencilRenderBuffer->Bind();
 
         // Attach it to the lighting pass framebuffer
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         LightingPassFramebuffer->SetupDepthStencilAttachment(DepthStencilRenderBuffer);
-        
+
         LightingPassColorBuffers = new gpu::CTexture*[NumFrameBuffers];
         FrameResultTextures      = new gpu::CTexture*[NumFrameBuffers];
 
@@ -270,7 +272,6 @@ namespace lucid::scene
                                                                     gpu::ETexturePixelFormat::RGBA,
                                                                     0,
                                                                     FSString{ "LightingPassColorBuffer" });
-
 
             LightingPassColorBuffers[i]->Bind();
             LightingPassColorBuffers[i]->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
@@ -304,7 +305,6 @@ namespace lucid::scene
 
         DepthStencilRenderBuffer->Bind();
         PrepassFramebuffer->SetupDepthAttachment(DepthStencilRenderBuffer);
-
 
         // Create texture to store SSO result
         SSAOResult = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -671,13 +671,19 @@ namespace lucid::scene
                 continue;
             }
 
-            const auto ActorDataIdxIt = ActorDataIdxByActorId.find(StaticMesh->Id);
+            if (!StaticMesh->bVisible)
+            {
+                continue;
+            }
+
+            const auto ActorDataIdxIt = ActorDataIdxByActorId.find(StaticMesh->ActorId);
             if (ActorDataIdxIt == ActorDataIdxByActorId.end())
             {
-                ActorDataIdxByActorId[StaticMesh->Id] = static_cast<u32>(ActorDataIdxByActorId.size());
+                ActorDataIdxByActorId[StaticMesh->ActorId] = static_cast<u32>(ActorDataIdxByActorId.size());
 
                 ActorData->ModelMatrix      = StaticMesh->CachedModelMatrix;
                 ActorData->NormalMultiplier = StaticMesh->bReverseNormals ? -1 : 1;
+                ActorData->ActorId          = StaticMesh->ActorId;
 
                 ActorData += 1;
             }
@@ -750,7 +756,7 @@ namespace lucid::scene
                 MeshBatch.BatchedMeshes.push_back(BatchedMesh);
 
                 //  instance data
-                InstanceData->ActorIdx = ActorDataIdxByActorId[BatchBuilder.second.StaticMeshes[i]->Id];
+                InstanceData->ActorIdx = ActorDataIdxByActorId[BatchBuilder.second.StaticMeshes[i]->ActorId];
 
                 InstanceData += 1;
                 InstanceDataSize += sizeof(FInstanceData);
@@ -1131,7 +1137,7 @@ namespace lucid::scene
             CStaticMesh* StaticMesh = InScene->StaticMeshes.GetByIndex(i);
             if (StaticMesh->bVisible)
             {
-                HitMapShader->SetUInt(ACTOR_ID, StaticMesh->Id);
+                HitMapShader->SetUInt(ACTOR_ID, StaticMesh->ActorId);
                 HitMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CalculateModelMatrix());
                 if (StaticMesh->GetMeshResource())
                 {
@@ -1170,7 +1176,7 @@ namespace lucid::scene
             CLight* Light = InScene->AllLights.GetByIndex(i);
 
             BillboardHitMapShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
-            BillboardHitMapShader->SetUInt(ACTOR_ID, Light->Id);
+            BillboardHitMapShader->SetUInt(ACTOR_ID, Light->ActorId);
 
             ScreenWideQuadVAO->Draw();
         }
@@ -1309,10 +1315,10 @@ namespace lucid::scene
 
     void CForwardRenderer::DoGammaCorrection(gpu::CTexture* InTexture)
     {
-
         gpu::CTexture* FrameResultBuffer = FrameResultTextures[GRenderStats.FrameNumber % NumFrameBuffers];
         FrameResultBuffer->Bind();
 
+        gpu::ConfigurePipelineState(GammaCorrectionPipelineState);
         FrameResultFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
         FrameResultFramebuffer->SetupColorAttachment(0, FrameResultBuffer);
         FrameResultFramebuffer->SetupDrawBuffers();

@@ -185,7 +185,7 @@ namespace lucid::scene
     void CDirectionalLight::OnRemoveFromWorld(const bool& InbHardRemove)
     {
         CLight::OnRemoveFromWorld(InbHardRemove);
-        World->RemoveDirectionalLight(Id);
+        World->RemoveDirectionalLight(ActorId);
         if (InbHardRemove)
         {
             CleanupAfterRemove();
@@ -291,7 +291,7 @@ namespace lucid::scene
     void CSpotLight::OnRemoveFromWorld(const bool& InbHardRemove)
     {
         CLight::OnRemoveFromWorld(InbHardRemove);
-        World->RemoveSpotLight(Id);
+        World->RemoveSpotLight(ActorId);
         if (InbHardRemove)
         {
             CleanupAfterRemove();
@@ -419,7 +419,7 @@ namespace lucid::scene
     void CPointLight::OnRemoveFromWorld(const bool& InbHardRemove)
     {
         CLight::OnRemoveFromWorld(InbHardRemove);
-        World->RemovePointLight(Id);
+        World->RemovePointLight(ActorId);
         if (InbHardRemove)
         {
             CleanupAfterRemove();

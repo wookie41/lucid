@@ -31,7 +31,7 @@ namespace lucid::scene
     {
         if (AddActor(InStaticMesh))
         {
-            StaticMeshes.Add(InStaticMesh->Id, InStaticMesh);
+            StaticMeshes.Add(InStaticMesh->ActorId, InStaticMesh);
         }
     }
 
@@ -41,8 +41,8 @@ namespace lucid::scene
     {
         if (AddActor(InLight))
         {
-            DirectionalLights.Add(InLight->Id, InLight);
-            AllLights.Add(InLight->Id, InLight);
+            DirectionalLights.Add(InLight->ActorId, InLight);
+            AllLights.Add(InLight->ActorId, InLight);
         }
     }
 
@@ -56,8 +56,8 @@ namespace lucid::scene
     {
         if (AddActor(InLight))
         {
-            SpotLights.Add(InLight->Id, InLight);
-            AllLights.Add(InLight->Id, InLight);
+            SpotLights.Add(InLight->ActorId, InLight);
+            AllLights.Add(InLight->ActorId, InLight);
         }
     }
     void CWorld::RemoveSpotLight(const u32& InId)
@@ -70,8 +70,8 @@ namespace lucid::scene
     {
         if (AddActor(InLight))
         {
-            PointLights.Add(InLight->Id, InLight);
-            AllLights.Add(InLight->Id, InLight);
+            PointLights.Add(InLight->ActorId, InLight);
+            AllLights.Add(InLight->ActorId, InLight);
         }
     }
     void CWorld::RemovePointLight(const u32& InId)
@@ -84,16 +84,16 @@ namespace lucid::scene
     {
         if (Skybox)
         {
-            RemoveActorById(Skybox->Id, true);
+            RemoveActorById(Skybox->ActorId, true);
         }
 
-        if (InSkybox->Id == 0)
+        if (InSkybox->ActorId == 0)
         {
-            InSkybox->Id = NextActorId++;
+            InSkybox->ActorId = NextActorId++;
         }
 
         Skybox = InSkybox;
-        ActorById.Add(Skybox->Id, Skybox);
+        ActorById.Add(Skybox->ActorId, Skybox);
     }
 
     FRenderScene* CWorld::MakeRenderScene(CCamera* InCamera)
@@ -111,17 +111,17 @@ namespace lucid::scene
 
     u32 CWorld::AddActor(IActor* InActor)
     {
-        if (InActor->Id == 0)
+        if (InActor->ActorId == 0)
         {
-            InActor->Id = NextActorId++;
+            InActor->ActorId = NextActorId++;
         }
         else
         {
-            NextActorId = NextActorId > InActor->Id ? NextActorId : InActor->Id + 1;
+            NextActorId = NextActorId > InActor->ActorId ? NextActorId : InActor->ActorId + 1;
         }
-        ActorById.Add(InActor->Id, InActor);
+        ActorById.Add(InActor->ActorId, InActor);
         LUCID_LOG(ELogLevel::INFO, "Actor '%s' added to the world", *InActor->Name);
-        return InActor->Id;
+        return InActor->ActorId;
     }
 
     CWorld* LoadWorldFromJSONFile(const FString& InFilePath)
@@ -191,7 +191,7 @@ namespace lucid::scene
                                                             World,
                                                             DirLightEntry.bCastsShadow);
 
-            DirLight->Id = DirLightEntry.Id;
+            DirLight->ActorId = DirLightEntry.Id;
 
             DirLight->Transform.Translation = Float3ToVec(DirLightEntry.Postion);
             DirLight->Transform.Rotation    = Float4ToQuat(DirLightEntry.Rotation);
@@ -217,7 +217,7 @@ namespace lucid::scene
                                                      World,
                                                      SpotLightEntry.bCastsShadow);
 
-            SpotLight->Id = SpotLightEntry.Id;
+            SpotLight->ActorId = SpotLightEntry.Id;
 
             SpotLight->Transform.Translation = Float3ToVec(SpotLightEntry.Postion);
             SpotLight->Transform.Rotation    = Float4ToQuat(SpotLightEntry.Rotation);
@@ -249,7 +249,7 @@ namespace lucid::scene
                                                       World,
                                                       PointLightEntry.bCastsShadow);
 
-            PointLight->Id = PointLightEntry.Id;
+            PointLight->ActorId = PointLightEntry.Id;
 
             PointLight->Transform.Translation = Float3ToVec(PointLightEntry.Postion);
             PointLight->Transform.Rotation    = Float4ToQuat(PointLightEntry.Rotation);
@@ -309,8 +309,8 @@ namespace lucid::scene
         {
             FDirectionalLightEntry   DirLightEntry;
             const CDirectionalLight* DirLight = DirectionalLights.GetByIndex(i);
-            DirLightEntry.Id                  = DirLight->Id;
-            DirLightEntry.ParentId            = DirLight->Parent ? DirLight->Parent->Id : 0;
+            DirLightEntry.Id                  = DirLight->ActorId;
+            DirLightEntry.ParentId            = DirLight->Parent ? DirLight->Parent->ActorId : 0;
             DirLightEntry.Color               = VecToFloat3(DirLight->Color);
             DirLightEntry.Quality             = DirLight->Quality;
             DirLightEntry.Name                = DirLight->Name;
@@ -328,8 +328,8 @@ namespace lucid::scene
         {
             const CSpotLight* SpotLight = SpotLights.GetByIndex(i);
             FSpotLightEntry   SpotLightEntry;
-            SpotLightEntry.Id             = SpotLight->Id;
-            SpotLightEntry.ParentId       = SpotLight->Parent ? SpotLight->Parent->Id : 0;
+            SpotLightEntry.Id             = SpotLight->ActorId;
+            SpotLightEntry.ParentId       = SpotLight->Parent ? SpotLight->Parent->ActorId : 0;
             SpotLightEntry.Color          = VecToFloat3(SpotLight->Color);
             SpotLightEntry.Quality        = SpotLight->Quality;
             SpotLightEntry.Name           = SpotLight->Name;
@@ -351,8 +351,8 @@ namespace lucid::scene
         {
             const CPointLight* PointLight = PointLights.GetByIndex(i);
             FPointLightEntry   PointLightEntry;
-            PointLightEntry.Id           = PointLight->Id;
-            PointLightEntry.ParentId     = PointLight->Parent ? PointLight->Parent->Id : 0;
+            PointLightEntry.Id           = PointLight->ActorId;
+            PointLightEntry.ParentId     = PointLight->Parent ? PointLight->Parent->ActorId : 0;
             PointLightEntry.Color        = VecToFloat3(PointLight->Color);
             PointLightEntry.Quality      = PointLight->Quality;
             PointLightEntry.Name         = PointLight->Name;
@@ -388,7 +388,7 @@ namespace lucid::scene
             Actor->OnRemoveFromWorld(InbHardRemove);
             ActorById.Remove(InActorId);
 
-            if (Skybox && InActorId == Skybox->Id)
+            if (Skybox && InActorId == Skybox->ActorId)
             {
                 Skybox = nullptr;
             }

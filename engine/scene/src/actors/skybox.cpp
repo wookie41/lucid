@@ -188,7 +188,7 @@ namespace lucid::scene
         auto* Skybox = CreateSkybox(SkyboxFaces, InWorld, SkyboxFaces[0]->Width, SkyboxFaces[0]->Height, "Skybox");
         InWorld->SetSkybox(Skybox);
 
-        Skybox->Id     = InSkyboxDescription.Id;
+        Skybox->ActorId     = InSkyboxDescription.Id;
         Skybox->Width  = BaseActorResource->Width;
         Skybox->Height = BaseActorResource->Height;
 
@@ -216,7 +216,7 @@ namespace lucid::scene
         if (BaseSkyboxResource)
         {
             OutDescription.BaseActorResourceId = BaseSkyboxResource->ResourceId;
-            OutDescription.Id = Id;
+            OutDescription.Id = ActorId;
 
             // if (BaseSkyboxResource->FaceTextures[0] != FaceTextures[0])
             // {

@@ -118,7 +118,7 @@ namespace lucid::scene
          * Unique id for an actor in the world, used e.x. by the renderer when generating the hitmap texture
          * Starts with 1, 0 = INVALID
          */
-        u32          Id     = 0;
+        u32          ActorId     = 0;
         IActor*      Parent = nullptr;
         FDString     Name;
         FTransform3D Transform;

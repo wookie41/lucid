@@ -297,8 +297,8 @@ namespace lucid::scene
             }
         }
 
-        OutDescription.Id              = Id;
-        OutDescription.ParentId        = Parent ? Parent->Id : 0;
+        OutDescription.Id              = ActorId;
+        OutDescription.ParentId        = Parent ? Parent->ActorId : 0;
         OutDescription.Name            = Name;
         OutDescription.Postion         = VecToFloat3(Transform.Translation);
         OutDescription.Rotation        = QuatToFloat4(Transform.Rotation);
@@ -349,7 +349,7 @@ namespace lucid::scene
         MeshResource->Acquire(false, true);
 
         auto* StaticMesh = new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
-        StaticMesh->Id   = InStaticMeshDescription.Id;
+        StaticMesh->ActorId   = InStaticMeshDescription.Id;
         StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
         StaticMesh->Transform.Rotation    = Float4ToQuat(InStaticMeshDescription.Rotation);
         StaticMesh->Transform.Scale       = Float3ToVec(InStaticMeshDescription.Scale);
@@ -559,7 +559,7 @@ namespace lucid::scene
     void CStaticMesh::OnRemoveFromWorld(const bool& InbHardRemove)
     {
         IActor::OnRemoveFromWorld(InbHardRemove);
-        World->RemoveStaticMesh(Id);
+        World->RemoveStaticMesh(ActorId);
 
         if (InbHardRemove)
         {

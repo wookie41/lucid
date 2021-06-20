@@ -134,7 +134,7 @@ namespace lucid::scene
                                     {
                                         continue;
                                     }
-                                    ImGui::PushID((void*)(intptr_t)Actor->Id);
+                                    ImGui::PushID((void*)(intptr_t)Actor->ActorId);
                                     if (ImGui::Selectable(
                                           "##actor", Parent == Actor, ImGuiSelectableFlags_AllowItemOverlap | ImGuiSelectableFlags_SpanAllColumns))
                                     {
@@ -185,7 +185,7 @@ namespace lucid::scene
         if (Children.Head.Element)
         {
             IActor* ClickedActor = nullptr;
-            if (ImGui::TreeNode((void*)(intptr_t)Id, *Name))
+            if (ImGui::TreeNode((void*)(intptr_t)ActorId, *Name))
             {
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
                 {
@@ -206,7 +206,7 @@ namespace lucid::scene
         }
 
         // Otherwise just draw text
-        ImGui::PushID((void*)(intptr_t)Id);
+        ImGui::PushID((void*)(intptr_t)ActorId);
         if (ImGui::Selectable(*Name))
         {
             ImGui::PopID();
