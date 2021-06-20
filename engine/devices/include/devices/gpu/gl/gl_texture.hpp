@@ -39,7 +39,7 @@ namespace lucid::gpu
 
         virtual u64 GetSizeInBytes() const override;
 
-        virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) override;
+        virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) const override;
 
         /** Bindless texture stuff */
         virtual u64  GetBindlessHandle() override;

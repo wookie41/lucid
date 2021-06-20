@@ -6,12 +6,15 @@ namespace lucid::gpu
 {
     class CFence : public CGPUObject
     {
-    public:
-
+      public:
         CFence(const FString& InName) : CGPUObject(InName) {}
 
-        virtual void Wait(const u64& InTimeout) = 0;
+        virtual bool Wait(const u64& InTimeout) = 0;
+        inline bool  IsSignaled() const { return bSignaled; }
+
+      protected:
+        bool bSignaled = false;
     };
 
-    CFence* CreateFence(const FString& InName); 
-}
+    CFence* CreateFence(const FString& InName);
+} // namespace lucid::gpu

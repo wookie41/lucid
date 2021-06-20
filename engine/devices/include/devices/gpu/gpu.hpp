@@ -12,8 +12,8 @@ namespace lucid::gpu
     /////////////////////////////////////
     enum EGPUBuffer : u8
     {
-        COLOR = 1,
-        DEPTH = 2,
+        COLOR   = 1,
+        DEPTH   = 2,
         STENCIL = 4
     };
 
@@ -127,48 +127,48 @@ namespace lucid::gpu
 
     struct FPipelineState
     {
-        FColor  ClearColorBufferColor   = {0, 0, 0, 1};
-        float   ClearDepthBufferValue   = 1;
-                
-        bool                IsDepthTestEnabled  = false;
-        EDepthTestFunction  DepthTestFunction   = EDepthTestFunction::LEQUAL;
-        
-        bool                IsBlendingEnabled = false;
-        EBlendFunction      BlendFunctionSrc;
-        EBlendFunction      BlendFunctionDst;
-        EBlendFunction      BlendFunctionAlphaSrc;
-        EBlendFunction      BlendFunctionAlphaDst;
-        
-        bool                IsCullingEnabled = false;
-        ECullMode           CullMode;
-        
-        bool                IsSRGBFramebufferEnabled = false;
-        bool                IsDepthBufferReadOnly = false;
+        FColor ClearColorBufferColor = { 0, 0, 0, 1 };
+        float  ClearDepthBufferValue = 1;
 
-        FViewport           Viewport;
+        bool               IsDepthTestEnabled = false;
+        EDepthTestFunction DepthTestFunction  = EDepthTestFunction::LEQUAL;
 
-        float               LineWidth = 1;
+        bool           IsBlendingEnabled = false;
+        EBlendFunction BlendFunctionSrc;
+        EBlendFunction BlendFunctionDst;
+        EBlendFunction BlendFunctionAlphaSrc;
+        EBlendFunction BlendFunctionAlphaDst;
+
+        bool      IsCullingEnabled = false;
+        ECullMode CullMode;
+
+        bool IsSRGBFramebufferEnabled = false;
+        bool IsDepthBufferReadOnly    = false;
+
+        FViewport Viewport;
+
+        float LineWidth = 1;
     };
-    
+
     struct FGPUState
     {
-        CFramebuffer*   Framebuffer      = nullptr;
-        CFramebuffer*   ReadFramebuffer  = nullptr;
-        CFramebuffer*   WriteFramebuffer = nullptr;
+        CFramebuffer* Framebuffer      = nullptr;
+        CFramebuffer* ReadFramebuffer  = nullptr;
+        CFramebuffer* WriteFramebuffer = nullptr;
 
-        CCubemap*       Cubemap         = nullptr;
-        CShader*        Shader          = nullptr;
-        CTexture**      BoundTextures   = nullptr;
-        CRenderbuffer*  Renderbuffer    = nullptr;
-        CVertexArray*   VAO             = nullptr;
+        CCubemap*      Cubemap       = nullptr;
+        CShader*       Shader        = nullptr;
+        CTexture**     BoundTextures = nullptr;
+        CRenderbuffer* Renderbuffer  = nullptr;
+        CVertexArray*  VAO           = nullptr;
 
-        CGPUBuffer*    VertexBuffer        = nullptr;
-        CGPUBuffer*    ElementBuffer       = nullptr;
-        CGPUBuffer*    ReadBuffer          = nullptr;
-        CGPUBuffer*    WriteBuffer         = nullptr;
-        CGPUBuffer*    ShaderStorageBuffer = nullptr;
+        CGPUBuffer* VertexBuffer        = nullptr;
+        CGPUBuffer* ElementBuffer       = nullptr;
+        CGPUBuffer* ReadBuffer          = nullptr;
+        CGPUBuffer* WriteBuffer         = nullptr;
+        CGPUBuffer* ShaderStorageBuffer = nullptr;
 
-       FPipelineState PipelineState; 
+        FPipelineState PipelineState;
     };
 
     void ConfigurePipelineState(const FPipelineState& InPipelineState);
@@ -178,24 +178,31 @@ namespace lucid::gpu
         u64 TotalAvailableVideoMemoryKB;
         u64 CurrentAvailableVideoMemoryKB;
     };
-    
+
     void QueryDeviceStatus();
 
     struct FGPUInfo
     {
-        u32 ActiveTextureUnit = 0;
-        u32 MaxTextureUnits = 0;
-        u32 MaxColorAttachments = 0;
+        u32 ActiveTextureUnit     = 0;
+        u32 MaxTextureUnits       = 0;
+        u32 MaxColorAttachments   = 0;
         u32 UniformBlockAlignment = 0;
     };
 
-    extern FGPUInfo                 GGPUInfo;
-    extern FGPUStatus               GGPUStatus;
-    inline thread_local FGPUState*  GGPUState;
+    extern FGPUInfo                GGPUInfo;
+    extern FGPUStatus              GGPUStatus;
+    inline thread_local FGPUState* GGPUState;
 
     /** Forces all of the command to finish before the next on is executed */
     void Finish();
 
     void PushDebugGroup(const std::string& InGroupName);
     void PopDebugGroup();
+
+    enum class EMapMode : u8
+    {
+        READ_ONLY,
+        WRITE_ONLY,
+        READ_WRITE
+    };
 } // namespace lucid::gpu

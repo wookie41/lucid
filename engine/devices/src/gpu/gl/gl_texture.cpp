@@ -182,7 +182,7 @@ namespace lucid::gpu
 
     u64 CGLTexture::GetSizeInBytes() const { return SizeInBytes; }
 
-    void CGLTexture::CopyPixels(void* DestBuffer, const u8& MipLevel)
+    void CGLTexture::CopyPixels(void* DestBuffer, const u8& MipLevel) const
     {
         assert(GGPUState->BoundTextures[gpu::GGPUInfo.ActiveTextureUnit] == this);
         glGetTexImage(GL_TEXTURE_2D, 0, GLPixelFormat, GLTextureDataType, DestBuffer);
@@ -410,7 +410,7 @@ namespace lucid::gpu
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, TO_GL_WRAP_FILTER(Filter));
     }
 
-    void CGLCubemap::CopyPixels(void* DestBuffer, const u8& MipLevel)
+    void CGLCubemap::CopyPixels(void* DestBuffer, const u8& MipLevel) const
     {
         assert(0); // @TODO implement when actually needed
     }

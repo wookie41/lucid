@@ -11,7 +11,7 @@ namespace lucid::gpu
         CGLFence(const FString& InName, const GLsync& InGLFence);
 
         /** Fence interface */
-        virtual void Wait(const u64& InTimeout) override;
+        virtual bool Wait(const u64& InTimeout) override;
         
         /** GPUObject interface */
         virtual void Free() override;

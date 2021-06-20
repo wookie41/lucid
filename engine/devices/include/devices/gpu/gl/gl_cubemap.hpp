@@ -47,7 +47,7 @@ namespace lucid::gpu
         virtual void SetWrapRFilter(const EWrapTextureFilter& Filter) override;
         virtual void SetBorderColor(const FColor& InColor) override;
 
-        virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) override;
+        virtual void CopyPixels(void* DestBuffer, const u8& MipLevel) const override;
 
       private:
         GLuint glCubemapHandle;
