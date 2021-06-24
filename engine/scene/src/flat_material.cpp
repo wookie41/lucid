@@ -39,11 +39,12 @@ namespace lucid::scene
     };
 #pragma pack(pop)
 
-    u32 CFlatMaterial::SetupShader(char* InMaterialDataPtr)
+    void CFlatMaterial::SetupShaderBuffer(char* InMaterialDataPtr)
     {
+        CMaterial::SetupShaderBuffer(InMaterialDataPtr);
+        
         FFlatMaterialData* MaterialData = (FFlatMaterialData*)InMaterialDataPtr;
         MaterialData->Color             = Color;
-        return sizeof(FFlatMaterialData);
     }
 
     void CFlatMaterial::SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms)
@@ -75,7 +76,10 @@ namespace lucid::scene
     void CFlatMaterial::UIDrawMaterialEditor()
     {
         CMaterial::UIDrawMaterialEditor();
-        ImGui::DragFloat4("Color", &Color.r, 0.005, 0, 1);
+        if(ImGui::DragFloat4("Color", &Color.r, 0.005, 0, 1))
+        {
+            bMaterialDataDirty = true;
+        }
     }
 #endif
 

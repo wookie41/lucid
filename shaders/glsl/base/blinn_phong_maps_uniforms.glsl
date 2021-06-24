@@ -19,5 +19,3 @@ struct FBlinnPhongMapsMaterial
 };
 
 layout(std430, binding = 3) buffer MaterialDataDataBlock { FBlinnPhongMapsMaterial MaterialData[]; };
-
-#define MATERIAL_DATA MaterialData[InstanceID]

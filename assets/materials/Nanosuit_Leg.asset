@@ -1,0 +1,8 @@
+{
+    "Id": "c28a3b91-66fa-4488-801f-c1155f49f28e",
+    "Name": "Nanosuit_Leg",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "1e0ff128-3fbf-483a-8edc-c633f3ae0a10",
+    "SpecularTextureID": "5027af42-d910-4caa-8dca-d5e2018d2181",
+    "NormalTextureID": "8c6f4d85-047f-431d-abb2-92180101b011"
+}

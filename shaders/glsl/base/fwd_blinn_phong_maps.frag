@@ -1,6 +1,7 @@
 #version 450 core
 
 #include "common.glsl"
+#include "batch_instance.glsl"
 #include "blinn_phong_maps_uniforms.glsl"
 
 in VS_OUT

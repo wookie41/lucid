@@ -185,6 +185,46 @@
             "Id": "9e6bea6f-8753-42f0-bf25-37b58890d2e7",
             "MaterialPath": "assets/materials/FlatBlinnPhongMaterial_9e6bea6f-8753-42f0-bf25-37b58890d2e7.asset",
             "MaterialType": 2
+        },
+        {
+            "Id": "97f9fadf-2a3a-475f-8114-f6dc472b5846",
+            "MaterialPath": "assets/materials/Nanosuit_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "25ecdf8a-b6fb-4b3b-90b9-9729a1018c27",
+            "MaterialPath": "assets/materials/Nanosuit_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "33263c77-8702-481a-9bc3-e56996569508",
+            "MaterialPath": "assets/materials/Nanosuit_Arm.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "c252782e-9eb2-4b98-a339-096ddb5cde33",
+            "MaterialPath": "assets/materials/Nanosuit_Body.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "ed0a75ea-ac6b-43f5-a216-450e1636d060",
+            "MaterialPath": "assets/materials/Nanosuit_Glass.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "9e2d5312-ce91-441c-bf7c-9becaaa83482",
+            "MaterialPath": "assets/materials/Nanosuit_Hand.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "76e96798-d742-4014-a2b7-0a6a698d3ea9",
+            "MaterialPath": "assets/materials/Nanosuit_Helmet.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "c28a3b91-66fa-4488-801f-c1155f49f28e",
+            "MaterialPath": "assets/materials/Nanosuit_Leg.asset",
+            "MaterialType": 3
         }
     ]
 }

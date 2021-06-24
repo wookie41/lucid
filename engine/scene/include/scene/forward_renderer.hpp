@@ -2,6 +2,7 @@
 
 #include <glm/vec2.hpp>
 
+#include "material.hpp"
 #include "devices/gpu/gpu.hpp"
 #include "scene/renderer.hpp"
 
@@ -24,10 +25,9 @@ namespace lucid::scene
 {
     constexpr int FRAME_DATA_BUFFERS_COUNT = 3;
 
-    constexpr int PREPASS_DATA_BUFFER_SIZE  = 2048;
-    constexpr int MATERIAL_DATA_BUFFER_SIZE = 1024 * 1024;
-    constexpr int INSTANCE_DATA_BUFFER_SIZE = 4096;
-    constexpr int ACTOR_DATA_BUFFER_SIZE    = 4096;
+    constexpr int PREPASS_DATA_BUFFER_SIZE  = 1024 * 1024;
+    constexpr int INSTANCE_DATA_BUFFER_SIZE = 1024 * 1024;
+    constexpr int ACTOR_DATA_BUFFER_SIZE    = 1024 * 1024;
 
 #pragma pack(push, 1)
     struct FForwardPrepassUniforms
@@ -45,14 +45,30 @@ namespace lucid::scene
         CMaterial* Material         = nullptr;
     };
 
+    struct FFreeMaterialBufferEntries
+    {
+        EMaterialType    MaterialType;
+        std::vector<u32> Indices;
+        gpu::CFence* Fence; // when this fence is signaled, the buffers are re-written for FMaterialDataBuffer::FreeIndices so they can be recycled
+    };
+
+    struct FMaterialDataBuffer
+    {
+        gpu::CGPUBuffer* GPUBuffer    = nullptr;
+        char*            MappedPtr    = nullptr;
+        EMaterialType    MaterialType = EMaterialType::NONE;
+        u32              NumEntries   = 0;
+        u32              MaxEntries   = 0;
+        std::vector<u32> FreeIndices;
+    };
+
     struct FMeshBatch
     {
-        gpu::CVertexArray*        MeshVertexArray;
-        gpu::CShader*             Shader;
+        gpu::CVertexArray*        MeshVertexArray = nullptr;
+        gpu::CShader*             Shader          = nullptr;
         std::vector<FBatchedMesh> BatchedMeshes;
-        u32                       BatchedSoFar; // Total number of batched meshes processed up until this batch
-        u32                       MaterialDataOffset; // Offset at which material data for this batch start
-        u32                       MaterialDataSize; // Size of material data for this batch
+        u32                       BatchedSoFar       = 0; // Total number of batched meshes processed up until this batch
+        FMaterialDataBuffer*      MaterialDataBuffer = nullptr;
     };
 
     class CForwardRenderer : public CRenderer
@@ -63,6 +79,7 @@ namespace lucid::scene
 
         virtual void Setup() override;
         virtual void Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView) override;
+        virtual void ResetState() override;
         virtual void Cleanup() override;
 
         virtual gpu::CFramebuffer* GetResultFramebuffer() override { return FrameResultFramebuffer; }
@@ -76,6 +93,9 @@ namespace lucid::scene
         int   NumFrameBuffers = 2;
 
       private:
+        FMaterialDataBuffer CreateMaterialBuffer(CMaterial const* InMaterial, const u32& InMaterialBufferSize);
+
+        void FreeMaterialBufferEntry(const EMaterialType& InMaterialType, const i32& InIndex);
         void CreateMeshBatches(FRenderScene* InSceneToRender);
 
         void SetupGlobalRenderData(const FRenderView* InRenderView);
@@ -93,12 +113,6 @@ namespace lucid::scene
 
         void DoGammaCorrection(gpu::CTexture* InTexture);
 
-        u32 SendDataToGPU(void const*      InData,
-                          const u32&       InDataSize,
-                          gpu::CGPUBuffer* InBuffer,
-                          gpu::CFence*     InFences[],
-                          const u32&       InBufferSize,
-                          const FString&   InFenceName);
 
 #if DEVELOPMENT
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
@@ -188,21 +202,23 @@ namespace lucid::scene
         gpu::CTexture**    FrameResultTextures;
 
         gpu::CGPUBuffer* GlobalDataUBO;
-        gpu::CFence*     GlobalDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
+        char*            GlobalDataMappedPtr = nullptr;
 
         gpu::CGPUBuffer* PrepassDataSSBO;
-        gpu::CFence*     PrepassDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
+        char*            PrepassDataMappedPtr = nullptr;
 
         gpu::CGPUBuffer* ActorDataSSBO;
-        gpu::CFence*     ActorDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
+        char*            ActorDataMappedPtr = nullptr;
 
         gpu::CGPUBuffer* InstanceDataSSBO;
-        gpu::CFence*     InstanceDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
+        char*            InstanceDataMappedPtr = nullptr;
 
-        gpu::CGPUBuffer* MaterialDataSSBO;
-        gpu::CFence*     MaterialDataBufferFences[FRAME_DATA_BUFFERS_COUNT];
+        std::vector<FMeshBatch>                                       MeshBatches;
+        std::unordered_map<EMaterialType, FMaterialDataBuffer>        MaterialDataBufferPerMaterialType;
+        std::vector<FFreeMaterialBufferEntries>                       FreeMaterialBuffersEntries;
+        std::unordered_map<EMaterialType, FFreeMaterialBufferEntries> NewFreeMaterialBuffersEntries; // entries freed during current frame
 
-        std::vector<FMeshBatch> MeshBatches;
+        gpu::CFence* PersistentBuffersFences[FRAME_DATA_BUFFERS_COUNT];
 
 #if DEVELOPMENT
       public:
@@ -236,7 +252,6 @@ namespace lucid::scene
         gpu::CShader*      DebugLinesShader = nullptr;
         gpu::CVertexArray* DebugLinesVAO    = nullptr;
         gpu::CGPUBuffer*   DebugLinesVertexBuffers[FRAME_DATA_BUFFERS_COUNT]{ nullptr };
-        gpu::CFence*       DebugLinesFences[FRAME_DATA_BUFFERS_COUNT]{ nullptr };
 #endif
     };
 

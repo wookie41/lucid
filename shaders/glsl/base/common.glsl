@@ -2,7 +2,7 @@
 #extension GL_ARB_shader_storage_buffer_object : enable
 
 layout(bindless_sampler) uniform;
-
+layout(bindless_image) uniform;
 
 layout(std140, binding = 0) uniform GlobalDataBlock
 {

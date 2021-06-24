@@ -15,16 +15,25 @@ namespace lucid::gpu
         switch (InMode)
         {
         case EFramebufferBindMode::READ:
-            InGPUState->ReadFramebuffer = InFramebuffer;
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, InFBOHandle);
+            if (InGPUState->ReadFramebuffer != InFramebuffer)
+            {
+                InGPUState->ReadFramebuffer = InFramebuffer;
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, InFBOHandle);
+            }
             break;
         case EFramebufferBindMode::WRITE:
-            InGPUState->WriteFramebuffer = InFramebuffer;
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, InFBOHandle);
+            if (InGPUState->WriteFramebuffer = InFramebuffer)
+            {
+                InGPUState->WriteFramebuffer = InFramebuffer;
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, InFBOHandle);
+            }
             break;
         case EFramebufferBindMode::READ_WRITE:
-            InGPUState->Framebuffer = InGPUState->WriteFramebuffer = InGPUState->ReadFramebuffer = InFramebuffer;
-            glBindFramebuffer(GL_FRAMEBUFFER, InFBOHandle);
+            if (InGPUState->Framebuffer != InGPUState->WriteFramebuffer || InGPUState->ReadFramebuffer != InFramebuffer)
+            {
+                InGPUState->Framebuffer = InGPUState->WriteFramebuffer = InGPUState->ReadFramebuffer = InFramebuffer;
+                glBindFramebuffer(GL_FRAMEBUFFER, InFBOHandle);
+            }
             break;
         }
     }
@@ -152,8 +161,8 @@ namespace lucid::gpu
                      InY,
                      InWidth,
                      InHeight,
-                      TO_GL_TEXTURE_PIXEL_FORMAT(colorAttachments[0]->GetAttachmentPixelFormat()),
-                      TO_GL_TEXTURE_DATA_TYPE(colorAttachments[0]->GetAttachmentDataType()),
+                     TO_GL_TEXTURE_PIXEL_FORMAT(colorAttachments[0]->GetAttachmentPixelFormat()),
+                     TO_GL_TEXTURE_DATA_TYPE(colorAttachments[0]->GetAttachmentDataType()),
                      Pixels);
     }
 

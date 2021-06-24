@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "scene/material.hpp"
@@ -18,20 +19,21 @@ namespace lucid::scene
 
         static CFlatMaterial* CreateMaterial(const FFlatMaterialDescription& Description, const FDString& InResourcePath);
 
-        virtual u32 SetupShader(char* InMaterialDataPtr) override;
+        virtual void SetupShaderBuffer(char* InMaterialDataPtr) override;
         virtual void SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms) override;
 
         virtual CMaterial*    GetCopy() const override;
         virtual EMaterialType GetType() const override { return EMaterialType::FLAT; }
         u16                   GetShaderDataSize() const override;
 
-        FColor Color;
-
       protected:
         void InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
+
+        FColor Color;
 
 #if DEVELOPMENT
         virtual void UIDrawMaterialEditor() override;
 #endif
+
     };
 } // namespace lucid::scene

@@ -220,6 +220,11 @@ namespace lucid::resources
     {
         if (bLoadedToVideoMemory && !IsVideoMemoryFreed)
         {
+            if (TextureHandle->GetBindlessHandle())
+            {
+                TextureHandle->MakeBindlessNonResident();
+            }
+            
             TextureHandle->Free();
             delete TextureHandle;
             IsVideoMemoryFreed   = true;
@@ -251,19 +256,12 @@ namespace lucid::resources
         }
 
         const float StartTime = platform::GetCurrentTimeSeconds();
-        
-        FDString ThumbPath = SPrintf("%s.th", *FilePath);
+
+        FDString   ThumbPath = SPrintf("%s.th", *FilePath);
         FMemBuffer ThumbData = platform::ReadFileToBuffer(*ThumbPath);
         if (ThumbData.Size)
         {
-            ThumbnailTexture = gpu::Create2DTexture(ThumbData.Pointer,
-                                        32,
-                                        32,
-                                        DataType,
-                                        DataFormat,
-                                        PixelFormat,
-                                        0,
-                                        SPrintf("%s_Thumb", *Name));
+            ThumbnailTexture = gpu::Create2DTexture(ThumbData.Pointer, 32, 32, DataType, DataFormat, PixelFormat, 0, SPrintf("%s_Thumb", *Name));
             free(ThumbData.Pointer);
         }
 
@@ -276,7 +274,7 @@ namespace lucid::resources
     {
         LUCID_LOG(ELogLevel::INFO, "Making thumbnail for texture %s", *Name);
         const float StartTime = platform::GetCurrentTimeSeconds();
-        
+
         bool  bShouldFreeMainMemory = false;
         void* ThumbData             = malloc(32 * 32 * gpu::GetNumChannels(PixelFormat));
 
@@ -287,14 +285,7 @@ namespace lucid::resources
         }
 
         stbir_resize_uint8((unsigned char*)TextureData, Width, Height, 0, (unsigned char*)ThumbData, 32, 32, 0, gpu::GetNumChannels(PixelFormat));
-        ThumbnailTexture = gpu::Create2DTexture(ThumbData,
-                                                32,
-                                                32,
-                                                DataType,
-                                                DataFormat,
-                                                PixelFormat,
-                                                0,
-                                                SPrintf("%s_Thumb", *Name));
+        ThumbnailTexture = gpu::Create2DTexture(ThumbData, 32, 32, DataType, DataFormat, PixelFormat, 0, SPrintf("%s_Thumb", *Name));
 
         FDString ThumbPath = SPrintf("%s.th", *FilePath);
         FILE*    ThumbFile = fopen(*ThumbPath, "wb");

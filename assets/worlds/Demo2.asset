@@ -1,7 +1,45 @@
 {
     "StaticMeshes": [
         {
-            "Id": 1,
+            "Id": 4,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                1.4505428075790406,
+                1.0687555074691773,
+                2.9729464054107668
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "b61c567e-ee51-4a5a-b80d-aca4cd9f0747"
+                }
+            ]
+        },
+        {
+            "Id": 7,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                0.9419947862625122,
+                -0.5205638408660889,
+                -4.882791996002197
+            ],
+            "Rotation": [
+                0.0,
+                -0.0,
+                -0.9498206973075867,
+                0.31279486417770388
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "24f49047-090b-4d13-900b-e65f66327148"
+                }
+            ]
+        },
+        {
+            "Id": 5,
             "Name": "Gigacube",
             "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
             "Scale": [
@@ -18,34 +56,106 @@
             "bReverseNormals": true
         },
         {
-            "Id": 3,
-            "Name": "Backpack",
-            "BaseActorResourceId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "Postion": [
-                -2.3253331184387209,
-                -1.913205623626709,
-                -3.092310905456543
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "97f5a750-3c0f-4bb9-8f84-cd13c5defbc9"
-                }
-            ]
-        },
-        {
-            "Id": 4,
+            "Id": 6,
             "Name": "Cube",
             "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
             "Postion": [
-                1.4505428075790406,
+                5.392471790313721,
                 1.0687555074691773,
                 2.9729464054107668
             ],
             "MaterialIds": [
                 {
                     "bChanged": true,
-                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                    "Value": "b61c567e-ee51-4a5a-b80d-aca4cd9f0747"
+                }
+            ]
+        },
+        {
+            "Id": 8,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -4.511558532714844,
+                -0.43596091866493227,
+                -4.376196384429932
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
+                }
+            ]
+        },
+        {
+            "Id": 9,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -1.3788321018218995,
+                -0.43596091866493227,
+                -4.376196384429932
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
+                }
+            ]
+        },
+        {
+            "Id": 10,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -1.3788321018218995,
+                -0.43596091866493227,
+                -4.376196384429932
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
+                }
+            ]
+        },
+        {
+            "Id": 11,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                3.5043671131134035,
+                -0.5205638408660889,
+                -3.226863145828247
+            ],
+            "Rotation": [
+                0.0,
+                -0.0,
+                -0.9498206973075867,
+                0.31279486417770388
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "24f49047-090b-4d13-900b-e65f66327148"
                 }
             ]
         }

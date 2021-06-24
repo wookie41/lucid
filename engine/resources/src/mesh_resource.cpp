@@ -168,7 +168,7 @@ namespace lucid::resources
             GPUBufferDescription.Data = SubMesh->VertexDataBuffer.Pointer;
             GPUBufferDescription.Size = SubMesh->VertexDataBuffer.Size;
 
-            SubMesh->VertexBuffer = gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC, SPrintf("%s_VertexBuffer_%d", *Name, i));
+            SubMesh->VertexBuffer = gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC_DRAW, SPrintf("%s_VertexBuffer_%d", *Name, i));
             assert(SubMesh->VertexBuffer);
             // Sending element to the gpu if it's present
             if (SubMesh->ElementDataBuffer.Pointer)
@@ -176,7 +176,7 @@ namespace lucid::resources
                 GPUBufferDescription.Data = SubMesh->ElementDataBuffer.Pointer;
                 GPUBufferDescription.Size = SubMesh->ElementDataBuffer.Size;
 
-                SubMesh->ElementBuffer = gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC, SPrintf("%s_ElementBuffer_%d", *Name, i));
+                SubMesh->ElementBuffer = gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC_DRAW, SPrintf("%s_ElementBuffer_%d", *Name, i));
                 assert(SubMesh->ElementBuffer);
             }
 
@@ -615,11 +615,11 @@ namespace lucid::resources
                                                        SPrintf("assets/materials/%s_%s.asset", *MeshName, MaterialName.C_Str()),
                                                        GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
                 
-                ImportedMaterial->Shininess = 32;
-                ImportedMaterial->DiffuseMap = DiffuseMap;
-                ImportedMaterial->SpecularMap = SpecularMap;
-                ImportedMaterial->NormalMap = NormalMap;
-                ImportedMaterial->DisplacementMap = nullptr;
+                ImportedMaterial->SetShininess(32);
+                ImportedMaterial->SetDiffuseMap(DiffuseMap);
+                ImportedMaterial->SetSpecularMap(SpecularMap);
+                ImportedMaterial->SetNormalMap(NormalMap);
+                ImportedMaterial->SetDisplacementMap(nullptr);
                 ImportedMaterial->bIsAsset = true;
 
                 ImportedMaterials.Add(ImportedMaterial);
@@ -679,11 +679,11 @@ namespace lucid::resources
                                                                              SPrintf("%s_%s", *MeshName, MaterialName.C_Str()),
                                                                              SPrintf("assets/materials/%s_%s.asset", *MeshName, MaterialName.C_Str()),
                                                                              GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
-                ImportedMaterial->Shininess = 32;
-                ImportedMaterial->DiffuseMap = DiffuseMap;
-                ImportedMaterial->SpecularMap = SpecularMap;
-                ImportedMaterial->NormalMap = NormalMap;
-                ImportedMaterial->DisplacementMap = nullptr;
+                ImportedMaterial->SetShininess(32);
+                ImportedMaterial->SetDiffuseMap(DiffuseMap);
+                ImportedMaterial->SetSpecularMap(SpecularMap);
+                ImportedMaterial->SetNormalMap(NormalMap);
+                ImportedMaterial->SetDisplacementMap(nullptr);
                 ImportedMaterial->bIsAsset = true;
 
                 // Use the first material (this should also be the only one in the mesh btw) as the material for the imported mesh

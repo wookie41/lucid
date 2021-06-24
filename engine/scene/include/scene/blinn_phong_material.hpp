@@ -3,6 +3,7 @@
 #include <glm/vec3.hpp>
 
 #include "common/strings.hpp"
+#include "resources/texture_resource.hpp"
 
 #include "scene/actors/actor.hpp"
 #include "scene/material.hpp"
@@ -28,22 +29,22 @@ namespace lucid::scene
 
         static CBlinnPhongMaterial* CreateMaterial(const FBlinnPhongMaterialDescription& Description, const FDString& InResourcePath);
 
-        virtual u32  SetupShader(char* InMaterialDataPtr) override;
+        virtual void SetupShaderBuffer(char* InMaterialDataPtr) override;
         virtual void SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms) override;
 
         virtual CMaterial*    GetCopy() const override;
         virtual EMaterialType GetType() const override { return EMaterialType::BLINN_PHONG; }
         u16                   GetShaderDataSize() const override;
 
-        u32       Shininess = 32;
-        glm::vec3 DiffuseColor{ 1, 1, 1 };
-        glm::vec3 SpecularColor{ 1, 1, 1 };
-
 #if DEVELOPMENT
         virtual void UIDrawMaterialEditor() override;
 #endif
 
       protected:
+        u32       Shininess = 32;
+        glm::vec3 DiffuseColor{ 1, 1, 1 };
+        glm::vec3 SpecularColor{ 1, 1, 1 };
+
         void InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
     };
 
@@ -58,7 +59,7 @@ namespace lucid::scene
 
         static CBlinnPhongMapsMaterial* CreateMaterial(const FBlinnPhongMapsMaterialDescription& Description, const FDString& InResourcePath);
 
-        virtual u32  SetupShader(char* InMaterialDataPtr) override;
+        virtual void SetupShaderBuffer(char* InMaterialDataPtr) override;
         virtual void SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms) override;
 
         virtual CMaterial*    GetCopy() const override;
@@ -68,6 +69,40 @@ namespace lucid::scene
         virtual void LoadResources();
         virtual void UnloadResources();
 
+        inline void SetShininess(const u32& InShininess)
+        {
+            bMaterialDataDirty = true;
+            Shininess          = InShininess;
+        }
+
+        inline void SetDiffuseMap(resources::CTextureResource* InDiffuseMap)
+        {
+            bMaterialDataDirty = true;
+            DiffuseMap         = InDiffuseMap;
+        }
+
+        inline void SetSpecularMap(resources::CTextureResource* InSpecularMap)
+        {
+            bMaterialDataDirty = true;
+            SpecularMap        = InSpecularMap;
+        }
+
+        inline void SetNormalMap(resources::CTextureResource* InNormalMap)
+        {
+            bMaterialDataDirty = true;
+            NormalMap          = InNormalMap;
+        }
+        
+        inline void SetDisplacementMap(resources::CTextureResource* InDisplacementMap)
+        {
+            bMaterialDataDirty = true;
+            DisplacementMap    = InDisplacementMap;
+        }
+
+#if DEVELOPMENT
+        virtual void UIDrawMaterialEditor() override;
+#endif
+      protected:
         u32 Shininess = 32;
 
         resources::CTextureResource* DiffuseMap               = nullptr;
@@ -84,10 +119,6 @@ namespace lucid::scene
 
         glm::vec3 SpecularColor{ 1, 1, 1 }; // Fallback when specular map is not used
 
-#if DEVELOPMENT
-        virtual void UIDrawMaterialEditor() override;
-#endif
-      protected:
         void InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat) override;
     };
 } // namespace lucid::scene

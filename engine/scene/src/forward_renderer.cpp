@@ -68,11 +68,11 @@ namespace lucid::scene
 
     static const FSString MESH_BATCH_OFFSET("uMeshBatchOffset");
 
-    constexpr gpu::EBufferAccessPolicy UNSYNCHRONIZED_WRITE =
-      (gpu::EBufferAccessPolicy)(gpu::EBufferAccessPolicy::BUFFER_WRITE | gpu::EBufferAccessPolicy::BUFFER_UNSYNCHRONIZED);
+    constexpr gpu::EImmutableBufferUsage COHERENT_WRITE_USAGE =
+      (gpu::EImmutableBufferUsage)(gpu::EImmutableBufferUsage::IMM_BUFFER_WRITE | gpu::EImmutableBufferUsage::IMM_BUFFER_COHERENT);
 
-    constexpr gpu::EImmutableBufferUsage IMMUTABLE_DYNAMIC_WRITE_ONLY =
-      (gpu::EImmutableBufferUsage)(gpu::EImmutableBufferUsage::IMM_BUFFER_WRITE | gpu::EImmutableBufferUsage::IMM_BUFFER_DYNAMIC);
+    constexpr gpu::EBufferMapPolicy COHERENT_WRITE = (gpu::EBufferMapPolicy)(
+      gpu::EBufferMapPolicy::BUFFER_WRITE | gpu::EBufferMapPolicy::BUFFER_COHERENT | gpu::EBufferMapPolicy::BUFFER_PERSISTENT);
 
     constexpr gpu::EGPUBuffer COLOR_AND_DEPTH = (gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH);
 
@@ -80,14 +80,13 @@ namespace lucid::scene
     static const FSString ACTOR_ID("uActorId");
 #endif
 
-    /* Buffers used when preparing data to be memcpy'ed to the GPU */
+    static constexpr u32 INITIAL_MATERIAL_DATA_BUFFER_SIZE = 1024 * 128 * 3; // 128 KiB
 
+    /* Buffers used when preparing data to be memcpy'ed to the GPU */
     static char STAGING_BUFFER_TINY_0[1024];
     static char STAGING_BUFFER_SMALL_0[1024 * 16];
     static char STAGING_BUFFER_SMALL_1[1024 * 16];
     static char STAGING_BUFFER_MEDIUM_0[1024 * 1024 * 5];
-
-    constexpr u8 MAX_MESHES_PER_BATCH = 64;
 
 #pragma pack(push, 1)
 
@@ -101,7 +100,8 @@ namespace lucid::scene
 
     struct FInstanceData
     {
-        u32 ActorIdx;
+        u32 ActorDataIdx;
+        u32 MaterialDataIdx;
     };
 
     struct FGlobalRenderData
@@ -396,6 +396,12 @@ namespace lucid::scene
         SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
         SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
 
+        // Fame data buffers fences
+        for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
+        {
+            PersistentBuffersFences[i] = gpu::CreateFence("PersistentBufferFence");
+        }
+
         {
             // Global data buffers
             gpu::FBufferDescription BufferDesc;
@@ -403,12 +409,9 @@ namespace lucid::scene
             BufferDesc.Offset = 0;
             BufferDesc.Size   = GLOBAL_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            GlobalDataUBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "GlobalRenderUBO");
-
-            for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
-            {
-                GlobalDataBufferFences[i] = gpu::CreateFence("GlobalRenderDataFence");
-            }
+            GlobalDataUBO = gpu::CreateImmutableBuffer(BufferDesc, COHERENT_WRITE_USAGE, "GlobalRenderUBO");
+            GlobalDataUBO->Bind(gpu::EBufferBindPoint::WRITE);
+            GlobalDataMappedPtr = (char*)GlobalDataUBO->MemoryMap(COHERENT_WRITE);
         }
 
         {
@@ -418,12 +421,9 @@ namespace lucid::scene
             BufferDesc.Offset = 0;
             BufferDesc.Size   = PREPASS_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            PrepassDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "PrepassDataSSBO");
-
-            for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
-            {
-                PrepassDataBufferFences[i] = gpu::CreateFence("PrepassDataFence");
-            }
+            PrepassDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, COHERENT_WRITE_USAGE, "PrepassDataSSBO");
+            PrepassDataSSBO->Bind(gpu::EBufferBindPoint::WRITE);
+            PrepassDataMappedPtr = (char*)PrepassDataSSBO->MemoryMap(COHERENT_WRITE);
         }
 
         {
@@ -433,12 +433,9 @@ namespace lucid::scene
             BufferDesc.Offset = 0;
             BufferDesc.Size   = ACTOR_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            ActorDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "ActorDataSSBO");
-
-            for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
-            {
-                ActorDataBufferFences[i] = gpu::CreateFence("ActorDataFence");
-            }
+            ActorDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, COHERENT_WRITE_USAGE, "ActorDataSSBO");
+            ActorDataSSBO->Bind(gpu::EBufferBindPoint::WRITE);
+            ActorDataMappedPtr = (char*)ActorDataSSBO->MemoryMap(COHERENT_WRITE);
         }
 
         {
@@ -448,27 +445,9 @@ namespace lucid::scene
             BufferDesc.Offset = 0;
             BufferDesc.Size   = INSTANCE_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
 
-            InstanceDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "InstanceDataSSBO");
-
-            for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
-            {
-                InstanceDataBufferFences[i] = gpu::CreateFence("InstanceDataFence");
-            }
-        }
-
-        {
-            // Material data buffer
-            gpu::FBufferDescription BufferDesc;
-            BufferDesc.Data   = nullptr;
-            BufferDesc.Offset = 0;
-            BufferDesc.Size   = MATERIAL_DATA_BUFFER_SIZE * FRAME_DATA_BUFFERS_COUNT;
-
-            MaterialDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, IMMUTABLE_DYNAMIC_WRITE_ONLY, "MaterialDataSSBO");
-
-            for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
-            {
-                MaterialDataBufferFences[i] = gpu::CreateFence("MaterialDataFence");
-            }
+            InstanceDataSSBO = gpu::CreateImmutableBuffer(BufferDesc, COHERENT_WRITE_USAGE, "InstanceDataSSBO");
+            InstanceDataSSBO->Bind(gpu::EBufferBindPoint::WRITE);
+            InstanceDataMappedPtr = (char*)InstanceDataSSBO->MemoryMap(COHERENT_WRITE);
         }
 
 #if DEVELOPMENT
@@ -547,9 +526,7 @@ namespace lucid::scene
                 BufferDescription.Size   = sizeof(glm::vec3) * 3 * MaxDebugLines;
 
                 FDString BufferName        = SPrintf("DebugLinesVBO_%d", i);
-                DebugLinesVertexBuffers[i] = gpu::CreateBuffer(BufferDescription, gpu::EBufferUsage::DYNAMIC, BufferName);
-
-                DebugLinesFences[i] = gpu::CreateFence("DebugLinesFence");
+                DebugLinesVertexBuffers[i] = gpu::CreateBuffer(BufferDescription, gpu::EBufferUsage::DYNAMIC_DRAW, BufferName);
             }
             FArray<gpu::FVertexAttribute> VertexAttributes{ 3, false };
 
@@ -562,12 +539,12 @@ namespace lucid::scene
             DebugLinesVAO = gpu::CreateVertexArray("DebugLinesVAO", &VertexAttributes, nullptr, nullptr, gpu::EDrawMode::LINES, 0, 0, false);
             VertexAttributes.Free();
         }
-
 #endif
     }
 
     void CForwardRenderer::Cleanup()
     {
+        assert(0); // @TODO Implement this properly!
         if (CurrentFrameVSNormalMap)
         {
             CurrentFrameVSNormalMap->Free();
@@ -589,6 +566,37 @@ namespace lucid::scene
         }
 
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
+
+        // Make sure we can use the persistent buffers
+        const int    BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
+        gpu::CFence* Fence     = PersistentBuffersFences[BufferIdx];
+
+        while (!Fence->Wait(1))
+        {
+        }
+
+        Fence->Free();
+        delete Fence;
+
+        // Check if any of the material buffer entries can be returned to the pool
+        {
+            std::vector<FFreeMaterialBufferEntries> EntriesStillInUse;
+            for (FFreeMaterialBufferEntries& FreeEntries : FreeMaterialBuffersEntries)
+            {
+                if (FreeEntries.Fence->Wait(0))
+                {
+                    FMaterialDataBuffer& MaterialBuffer = MaterialDataBufferPerMaterialType[FreeEntries.MaterialType];
+                    MaterialBuffer.FreeIndices.insert(MaterialBuffer.FreeIndices.end(), FreeEntries.Indices.begin(), FreeEntries.Indices.end());
+                    FreeEntries.Fence->Free();
+                    delete FreeEntries.Fence;
+                }
+                else
+                {
+                    EntriesStillInUse.push_back(FreeEntries);
+                }
+            }
+            FreeMaterialBuffersEntries = EntriesStillInUse;
+        }
 
 #if DEVELOPMENT
         GRenderStats.NumDrawCalls = 0;
@@ -642,6 +650,45 @@ namespace lucid::scene
         GRenderStats.FrameTimeMiliseconds = FrameTimer->EndTimer();
         RemoveStaleDebugLines();
 #endif
+
+        PersistentBuffersFences[BufferIdx] = gpu::CreateFence("PersistentBufferFence");
+
+        // Create fences for material data entries so we can recycle them once we're sure they're not used anymore
+        for (auto& NewEntries : NewFreeMaterialBuffersEntries)
+        {
+            NewEntries.second.Fence = gpu::CreateFence("PersistentBufferFence");
+            FreeMaterialBuffersEntries.push_back(NewEntries.second);
+        }
+
+        NewFreeMaterialBuffersEntries.clear();
+    }
+
+    void CForwardRenderer::ResetState()
+    {
+
+        for (const auto& It : MaterialDataBufferPerMaterialType)
+        {
+            It.second.GPUBuffer->MemoryUnmap();
+            It.second.GPUBuffer->Free();
+
+            delete It.second.GPUBuffer;
+        }
+
+        for (const auto& FreeEntries : FreeMaterialBuffersEntries)
+        {
+            FreeEntries.Fence->Free();
+            delete FreeEntries.Fence;
+        }
+
+        for (const auto& It: NewFreeMaterialBuffersEntries)
+        {
+            It.second.Fence->Free();
+            delete It.second.Fence;
+        }
+        
+        MaterialDataBufferPerMaterialType.clear();
+        FreeMaterialBuffersEntries.clear();
+        NewFreeMaterialBuffersEntries.clear();
     }
 
     struct FBatchKey
@@ -661,15 +708,57 @@ namespace lucid::scene
     {
         std::vector<CStaticMesh*> StaticMeshes; // actor that owns the given mesh
         std::vector<CMaterial*>   Materials; // Instances of the same material
-        u32                       MeshDataResourceIdx;
+        u32                       MeshDataResourceIdx; // index to the mesh data array that hold actor's data (model matrix etc)
     };
+
+    FMaterialDataBuffer CForwardRenderer::CreateMaterialBuffer(CMaterial const* InMaterial, const u32& InMaterialBufferSize)
+    {
+        static gpu::FBufferDescription BufferDesc;
+        BufferDesc.Size = INITIAL_MATERIAL_DATA_BUFFER_SIZE;
+
+        FMaterialDataBuffer NewMaterialBuffer;
+        NewMaterialBuffer.MaterialType = InMaterial->GetType();
+        NewMaterialBuffer.NumEntries   = 1;
+        NewMaterialBuffer.MaxEntries   = BufferDesc.Size / InMaterial->GetShaderDataSize();
+        NewMaterialBuffer.GPUBuffer    = gpu::CreateImmutableBuffer(BufferDesc, COHERENT_WRITE_USAGE, "MaterialDataBuffer");
+        NewMaterialBuffer.GPUBuffer->Bind(gpu::EBufferBindPoint::WRITE);
+        NewMaterialBuffer.MappedPtr = (char*)NewMaterialBuffer.GPUBuffer->MemoryMap(COHERENT_WRITE);
+
+        return NewMaterialBuffer;
+    }
+
+    void CForwardRenderer::FreeMaterialBufferEntry(const EMaterialType& InMaterialType, const i32& InIndex)
+    {
+        if (NewFreeMaterialBuffersEntries.find(InMaterialType) == NewFreeMaterialBuffersEntries.end())
+        {
+            FFreeMaterialBufferEntries FreeEntries;
+            FreeEntries.MaterialType = InMaterialType;
+            FreeEntries.Indices.push_back(InIndex);
+
+            NewFreeMaterialBuffersEntries[InMaterialType] = FreeEntries;
+        }
+        else
+        {
+            NewFreeMaterialBuffersEntries[InMaterialType].Indices.push_back(InIndex);
+        }
+    }
+
+    static inline u32 CalculateCurrentBufferOffset(const u32& InBufferSize)
+    {
+        const int BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
+        return BufferIdx * InBufferSize;
+    }
 
     void CForwardRenderer::CreateMeshBatches(FRenderScene* InSceneToRender)
     {
         std::unordered_map<FBatchKey, FMeshBatchBuilder, FBatchKeyHash> MeshBatchBuilders;
+        std::unordered_map<EMaterialType, std::vector<FBatchKey>>       BatchKeysByMaterialType;
         std::unordered_map<u32, u32>                                    ActorDataIdxByActorId;
 
-        FActorData* ActorData = (FActorData*)STAGING_BUFFER_SMALL_0;
+        u32       ActorDataSize   = 0;
+        const u32 ActorDataOffset = CalculateCurrentBufferOffset(ACTOR_DATA_BUFFER_SIZE);
+
+        FActorData* ActorData = (FActorData*)(ActorDataMappedPtr + ActorDataOffset);
 
         // Create batch builders
         for (u32 i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
@@ -686,6 +775,7 @@ namespace lucid::scene
                 continue;
             }
 
+            // Write actor data index if we didn't already do it
             const auto ActorDataIdxIt = ActorDataIdxByActorId.find(StaticMesh->ActorId);
             if (ActorDataIdxIt == ActorDataIdxByActorId.end())
             {
@@ -696,18 +786,123 @@ namespace lucid::scene
                 ActorData->ActorId          = StaticMesh->ActorId;
 
                 ActorData += 1;
+
+                ActorDataSize += sizeof(FActorData);
+                assert(ActorDataSize < ACTOR_DATA_BUFFER_SIZE);
+            }
+            // Send material updates to GPU
+            for (u32 j = 0; j < StaticMesh->GetNumMaterialSlots(); ++j)
+            {
+                CMaterial* Material = StaticMesh->GetMaterialSlot(j);
+
+                if (Material == nullptr)
+                {
+                    LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material at slot %d", *StaticMesh->Name, j);
+                    continue;
+                }
+
+                // Find material data buffer
+                if (MaterialDataBufferPerMaterialType.find(Material->GetType()) == MaterialDataBufferPerMaterialType.end())
+                {
+                    // If there is no material buffer for this type of material - create one
+                    FMaterialDataBuffer NewMaterialBuffer                  = CreateMaterialBuffer(Material, INITIAL_MATERIAL_DATA_BUFFER_SIZE);
+                    MaterialDataBufferPerMaterialType[Material->GetType()] = NewMaterialBuffer;
+
+                    Material->MaterialBufferIndex = 0;
+                    Material->SetupShaderBuffer(NewMaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
+                }
+                else
+                {
+                    auto& MaterialBuffer = MaterialDataBufferPerMaterialType[Material->GetType()];
+
+
+                    if (Material->TypeToFree != EMaterialType::NONE)
+                    {
+                        FreeMaterialBufferEntry(Material->TypeToFree, Material->MaterialBufferIndexToFree);
+                        Material->TypeToFree = EMaterialType::NONE;
+                        Material->MaterialBufferIndexToFree = -1;
+                    }
+                    
+                    // Assign a material buffer index so this material can write it's data
+                    if (Material->MaterialBufferIndex == -1 || Material->IsMaterialDataDirty())
+                    {
+                        // If the material is dirty, return it's entry to the pool
+                        if (Material->MaterialBufferIndex != -1 && Material->IsMaterialDataDirty())
+                        {
+                            FreeMaterialBufferEntry(Material->GetType(), Material->MaterialBufferIndexToFree);
+                        }
+
+                        // Check if there are free indices - if yes, then get one
+                        if (MaterialBuffer.FreeIndices.size())
+                        {
+                            Material->MaterialBufferIndex = MaterialBuffer.FreeIndices.back();
+                            Material->SetupShaderBuffer(MaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
+
+                            MaterialBuffer.FreeIndices.pop_back();
+                        }
+                        // If there are free entries at the end - get once
+                        else if (MaterialBuffer.NumEntries < MaterialBuffer.MaxEntries)
+                        {
+                            Material->MaterialBufferIndex = MaterialBuffer.NumEntries++;
+                            Material->SetupShaderBuffer(MaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
+                        }
+                        // Otherwise just create a bigger buffer
+                        else
+                        {
+                            // Create a new buffer
+                            FMaterialDataBuffer NewMaterialBuffer = CreateMaterialBuffer(Material, MaterialBuffer.GPUBuffer->GetSize() * 2);
+                            Material->MaterialBufferIndex         = MaterialBuffer.NumEntries;
+                            NewMaterialBuffer.NumEntries          = ++NewMaterialBuffer.NumEntries;
+
+                            // Copy current data
+                            memcpy(MaterialBuffer.MappedPtr, NewMaterialBuffer.MappedPtr, MaterialBuffer.GPUBuffer->GetSize());
+
+                            // Remove the old buffer
+                            MaterialBuffer.GPUBuffer->MemoryUnmap();
+                            MaterialBuffer.GPUBuffer->Free();
+                            delete MaterialBuffer.GPUBuffer;
+
+                            // Update buffer mapping
+                            MaterialDataBufferPerMaterialType[Material->GetType()] = NewMaterialBuffer;
+                            MaterialBuffer                                         = NewMaterialBuffer;
+
+                            // Send updated data
+                            Material->SetupShaderBuffer(MaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
+
+                            // Recycle free indices if there are any
+                            auto& NewFreeEntriesIt = NewFreeMaterialBuffersEntries.find(Material->GetType());
+                            if (NewFreeEntriesIt != NewFreeMaterialBuffersEntries.end())
+                            {
+                                NewMaterialBuffer.FreeIndices.insert(NewMaterialBuffer.FreeIndices.end(),
+                                                                     NewFreeEntriesIt->second.Indices.begin(),
+                                                                     NewFreeEntriesIt->second.Indices.end());
+                            }
+
+                            std::vector<FFreeMaterialBufferEntries> FreeBufferEntries;
+                            for (const auto& FreeEntries : FreeMaterialBuffersEntries)
+                            {
+                                if (FreeEntries.MaterialType == Material->GetType())
+                                {
+                                    NewMaterialBuffer.FreeIndices.insert(NewMaterialBuffer.FreeIndices.end(),
+                                                                         NewFreeEntriesIt->second.Indices.begin(),
+                                                                         NewFreeEntriesIt->second.Indices.end());
+                                }
+                                else
+                                {
+                                    FreeBufferEntries.push_back(FreeEntries);
+                                }
+                            }
+                            FreeMaterialBuffersEntries = FreeBufferEntries;
+                        }
+                    }
+                }
             }
 
+            // Iterate over meshes and prepare batch data
             for (u32 j = 0; j < StaticMesh->MeshResource->SubMeshes.GetLength(); ++j)
             {
                 resources::FSubMesh* SubMesh         = StaticMesh->MeshResource->SubMeshes[j];
                 CMaterial*           SubMeshMaterial = StaticMesh->GetMaterialSlot(SubMesh->MaterialIndex);
-
-                if (SubMeshMaterial == nullptr)
-                {
-                    LUCID_LOG(ELogLevel::ERR, "StaticMesh actor '%s' is missing a material for submesh %d", *StaticMesh->Name, j);
-                    continue;
-                }
 
                 const FBatchKey BatchKey{ SubMesh->VAO, SubMeshMaterial };
                 auto&           BatchIt = MeshBatchBuilders.find(BatchKey);
@@ -724,93 +919,64 @@ namespace lucid::scene
                     BatchIt->second.StaticMeshes.push_back(StaticMesh);
                     BatchIt->second.Materials.push_back(SubMeshMaterial);
                 }
+
+                BatchKeysByMaterialType[SubMeshMaterial->GetType()].push_back(BatchKey);
             }
         }
 
-        // Send actor data
-        static u32 ActorDataSize;
-        static u32 ActorBufferOffset;
-        ActorDataSize = ActorDataIdxByActorId.size() * sizeof(FActorData);
-        ActorBufferOffset =
-          SendDataToGPU(STAGING_BUFFER_SMALL_0, ActorDataSize, ActorDataSSBO, ActorDataBufferFences, ACTOR_DATA_BUFFER_SIZE, "ActorDataFence");
-
-        ActorDataSSBO->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, ActorDataSize, ActorBufferOffset);
+        ActorDataSSBO->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, ActorDataSize, ActorDataOffset);
 
         // Create the batches themselves
         MeshBatches.clear();
 
         u32            InstanceDataSize   = 0;
         u32            TotalBatchedMeshes = 0;
-        FInstanceData* InstanceData       = (FInstanceData*)STAGING_BUFFER_SMALL_0;
+        const u32      InstanceDataOffset = CalculateCurrentBufferOffset(INSTANCE_DATA_BUFFER_SIZE);
+        FInstanceData* InstanceData       = (FInstanceData*)(InstanceDataMappedPtr + InstanceDataOffset);
 
-        u32   MaterialDataSize = 0;
-        char* MaterialDataPtr  = STAGING_BUFFER_MEDIUM_0;
-
-        for (auto& BatchBuilder : MeshBatchBuilders)
+        // This guarantees batches are sorted by material type
+        for (const auto& It : BatchKeysByMaterialType)
         {
-            MeshBatches.push_back({});
-            FMeshBatch& MeshBatch = MeshBatches[MeshBatches.size() - 1];
-
-            MeshBatch.MeshVertexArray    = BatchBuilder.first.VertexArray;
-            MeshBatch.Shader             = BatchBuilder.first.Material->Shader;
-            MeshBatch.BatchedSoFar       = TotalBatchedMeshes;
-            MeshBatch.MaterialDataOffset = MaterialDataSize;
-            MeshBatch.MaterialDataSize   = 0;
-
-            // Build batches, prepare data to be sent to the GPU
-            for (int i = 0; i < BatchBuilder.second.Materials.size(); ++i, ++TotalBatchedMeshes)
+            for (const auto& BatchKey : It.second)
             {
-                FBatchedMesh BatchedMesh;
-                BatchedMesh.Material         = BatchBuilder.second.Materials[i];
-                BatchedMesh.NormalMultiplier = BatchBuilder.second.StaticMeshes[i]->GetReverseNormals() ? -1 : 1;
-                MeshBatch.BatchedMeshes.push_back(BatchedMesh);
+                const auto&      BatchBuilder  = MeshBatchBuilders[BatchKey];
+                CMaterial const* BatchMaterial = BatchKey.Material;
 
-                //  instance data
-                InstanceData->ActorIdx = ActorDataIdxByActorId[BatchBuilder.second.StaticMeshes[i]->ActorId];
+                MeshBatches.push_back({});
+                FMeshBatch& MeshBatch = MeshBatches[MeshBatches.size() - 1];
 
-                InstanceData += 1;
-                InstanceDataSize += sizeof(FInstanceData);
+                MeshBatch.MeshVertexArray    = BatchKey.VertexArray;
+                MeshBatch.Shader             = BatchMaterial->Shader;
+                MeshBatch.BatchedSoFar       = TotalBatchedMeshes;
+                MeshBatch.MaterialDataBuffer = &MaterialDataBufferPerMaterialType[BatchMaterial->GetType()];
 
-                // Material data
-                const u32 BytesWritten = BatchedMesh.Material->SetupShader(MaterialDataPtr);
-                MaterialDataSize += BytesWritten;
-                MeshBatch.MaterialDataSize += BytesWritten;
-                MaterialDataPtr += BytesWritten;
-
-                // Limit batch size to 64
-                if (MeshBatch.BatchedMeshes.size() == MAX_MESHES_PER_BATCH)
+                // Build batch, prepare data to be sent to the GPU
+                for (int i = 0; i < BatchBuilder.Materials.size(); ++i, ++TotalBatchedMeshes)
                 {
-                    MeshBatches.push_back({});
-                    FMeshBatch NextBatch         = MeshBatches[MeshBatches.size() - 1];
-                    NextBatch.MeshVertexArray    = MeshBatch.MeshVertexArray;
-                    NextBatch.Shader             = BatchBuilder.first.Material->GetShader();
-                    NextBatch.BatchedSoFar       = TotalBatchedMeshes;
-                    NextBatch.MaterialDataOffset = MaterialDataSize;
-                    NextBatch.MaterialDataSize   = 0;
-                    MeshBatch                    = NextBatch;
+                    FBatchedMesh BatchedMesh;
+                    BatchedMesh.Material         = BatchBuilder.Materials[i];
+                    BatchedMesh.NormalMultiplier = BatchBuilder.StaticMeshes[i]->GetReverseNormals() ? -1 : 1;
+                    MeshBatch.BatchedMeshes.push_back(BatchedMesh);
+
+                    //  instance data
+                    InstanceData->ActorDataIdx = ActorDataIdxByActorId[BatchBuilder.StaticMeshes[i]->ActorId];
+                    InstanceData->MaterialDataIdx =
+                      BatchBuilder.Materials[i]->MaterialBufferIndex == -1 ? 0 : BatchBuilder.Materials[i]->MaterialBufferIndex;
+
+                    InstanceData += 1;
+                    InstanceDataSize += sizeof(FInstanceData);
+
+                    // @TODO handle this case
+                    assert(InstanceDataSize < INSTANCE_DATA_BUFFER_SIZE);
                 }
             }
         }
 
-        // @TODO handle this case
-        assert(InstanceDataSize < INSTANCE_DATA_BUFFER_SIZE);
-        assert(MaterialDataSize < MATERIAL_DATA_BUFFER_SIZE);
-
         // Send common instance data to the GPU
         {
-            const u32 BufferOffset = SendDataToGPU(
-              STAGING_BUFFER_SMALL_0, InstanceDataSize, InstanceDataSSBO, InstanceDataBufferFences, INSTANCE_DATA_BUFFER_SIZE, "InstanceDataFence");
-            InstanceDataSSBO->BindIndexed(2, gpu::EBufferBindPoint::SHADER_STORAGE, InstanceDataSize, BufferOffset);
+            InstanceDataSSBO->BindIndexed(2, gpu::EBufferBindPoint::SHADER_STORAGE, InstanceDataSize, InstanceDataOffset);
         }
 
-        // Send material data to the GPU
-        {
-            static u32 BufferOffset;
-
-            BufferOffset = SendDataToGPU(
-              STAGING_BUFFER_MEDIUM_0, MaterialDataSize, MaterialDataSSBO, MaterialDataBufferFences, MATERIAL_DATA_BUFFER_SIZE, "MaterialDataFence");
-            MaterialDataSSBO->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE, MaterialDataSize, BufferOffset);
-        }
     } // namespace lucid::scene
 
     void CForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender)
@@ -874,12 +1040,9 @@ namespace lucid::scene
     {
         gpu::PushDebugGroup("Z pre pass");
 
-        const int BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
-
-        const u32 DataBufferOffset = BufferIdx * PREPASS_DATA_BUFFER_SIZE;
-
-        u32                      PrepassDataSize = 0;
-        FForwardPrepassUniforms* PrepassDataPtr  = (FForwardPrepassUniforms*)STAGING_BUFFER_SMALL_0;
+        u32                      PrepassDataSize     = 0;
+        const u32&               PrepassBufferOffset = CalculateCurrentBufferOffset(PREPASS_DATA_BUFFER_SIZE);
+        FForwardPrepassUniforms* PrepassDataPtr      = (FForwardPrepassUniforms*)(PrepassDataMappedPtr + PrepassBufferOffset);
 
         for (const auto& MeshBatch : MeshBatches)
         {
@@ -892,30 +1055,12 @@ namespace lucid::scene
 
                 // Add data size
                 PrepassDataSize += sizeof(FForwardPrepassUniforms);
+
+                assert(PrepassDataSize < PREPASS_DATA_BUFFER_SIZE);
             }
         }
 
-        static int prepasscount = 0;
-
-        if (prepasscount < 3)
         // Send data to the GPU
-        {
-            prepasscount += 1;
-            // Make sure the buffer is not used and create a new fence
-            gpu::CFence* Fence = PrepassDataBufferFences[BufferIdx];
-
-            Fence->Wait(0);
-            Fence->Free();
-
-            delete Fence;
-            PrepassDataBufferFences[BufferIdx] = gpu::CreateFence("PrepassDataFence");
-
-            // memcpy the data
-            PrepassDataSSBO->Bind(gpu::EBufferBindPoint::SHADER_STORAGE);
-            void* VideoMemPtr = PrepassDataSSBO->MemoryMap(UNSYNCHRONIZED_WRITE, PREPASS_DATA_BUFFER_SIZE, DataBufferOffset);
-            memcpy(VideoMemPtr, STAGING_BUFFER_SMALL_0, PrepassDataSize);
-            PrepassDataSSBO->MemoryUnmap();
-        }
 
         // Prepare pipeline
         gpu::ConfigurePipelineState(PrepassPipelineState);
@@ -928,7 +1073,7 @@ namespace lucid::scene
         PrepassShader->Use();
 
         // Bind the SSBO
-        PrepassDataSSBO->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE, DataBufferOffset, DataBufferOffset);
+        PrepassDataSSBO->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE, PREPASS_DATA_BUFFER_SIZE, PrepassBufferOffset);
 
         // Issue batches
         for (const auto& MeshBatch : MeshBatches)
@@ -1037,7 +1182,7 @@ namespace lucid::scene
             }
 
             MeshBatch.Shader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
-            MaterialDataSSBO->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE, MeshBatch.MaterialDataSize, MeshBatch.MaterialDataOffset);
+            MeshBatch.MaterialDataBuffer->GPUBuffer->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE);
 
             MeshBatch.MeshVertexArray->Bind();
             MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
@@ -1057,7 +1202,9 @@ namespace lucid::scene
 
     void CForwardRenderer::SetupGlobalRenderData(const FRenderView* InRenderView)
     {
-        FGlobalRenderData* GlobalRenderData              = (FGlobalRenderData*)STAGING_BUFFER_TINY_0;
+        const u32& BufferOffset = CalculateCurrentBufferOffset(GLOBAL_DATA_BUFFER_SIZE);
+
+        FGlobalRenderData* GlobalRenderData              = (FGlobalRenderData*)(GlobalDataMappedPtr + BufferOffset);
         GlobalRenderData->AmbientStrength                = AmbientStrength;
         GlobalRenderData->NumPCFsamples                  = NumSamplesPCF;
         GlobalRenderData->ProjectionMatrix               = InRenderView->Camera->GetProjectionMatrix();
@@ -1070,9 +1217,7 @@ namespace lucid::scene
         GlobalRenderData->FarPlane                       = InRenderView->Camera->FarPlane;
         GlobalRenderData->ParallaxHeightScale            = InRenderView->Camera->FarPlane;
 
-        const u32& BufferOffset = SendDataToGPU(
-          STAGING_BUFFER_TINY_0, sizeof(FGlobalRenderData), GlobalDataUBO, GlobalDataBufferFences, GLOBAL_DATA_BUFFER_SIZE, "GlobalDataFence");
-        GlobalDataUBO->BindIndexed(0, gpu::EBufferBindPoint::UNIFORM, sizeof(FGlobalRenderData), BufferOffset);
+        GlobalDataUBO->BindIndexed(0, gpu::EBufferBindPoint::UNIFORM, GLOBAL_DATA_BUFFER_SIZE, BufferOffset);
     }
 
     inline void CForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)
@@ -1239,10 +1384,7 @@ namespace lucid::scene
         // Make sure that the buffer is no longer used
         int BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
 
-        gpu::CGPUBuffer* DebugLinesBuffer      = DebugLinesVertexBuffers[BufferIdx];
-        gpu::CFence*     DebugLinesBufferFence = DebugLinesFences[BufferIdx];
-
-        DebugLinesBufferFence->Wait(0);
+        gpu::CGPUBuffer* DebugLinesBuffer = DebugLinesVertexBuffers[BufferIdx];
 
         // Add lines visualizing the world space
         {
@@ -1260,7 +1402,7 @@ namespace lucid::scene
         // Copy lines data to GPU
         DebugLinesBuffer->Bind(gpu::EBufferBindPoint::VERTEX);
         char* DebugLinesMem = (char*)DebugLinesBuffer->MemoryMap(
-          (gpu::EBufferAccessPolicy)(gpu::EBufferAccessPolicy::BUFFER_WRITE | gpu::EBufferAccessPolicy::BUFFER_UNSYNCHRONIZED));
+          (gpu::EBufferMapPolicy)(gpu::EBufferMapPolicy::BUFFER_WRITE | gpu::EBufferMapPolicy::BUFFER_UNSYNCHRONIZED));
 
         for (const FDebugLine& DebugLine : DebugLines)
         {
@@ -1300,11 +1442,6 @@ namespace lucid::scene
 
         // Draw the lines
         DebugLinesVAO->Draw(0, DebugLines.size() * 2);
-
-        // Remove the old fence and create a new one
-        DebugLinesBufferFence->Free();
-        delete DebugLinesBufferFence;
-        DebugLinesFences[BufferIdx] = gpu::CreateFence("DebugLinesFence");
     }
 
     void CForwardRenderer::UIDrawSettingsWindow()
@@ -1338,39 +1475,6 @@ namespace lucid::scene
 
         ScreenWideQuadVAO->Bind();
         ScreenWideQuadVAO->Draw();
-    }
-
-    u32 CForwardRenderer::SendDataToGPU(void const*      InData,
-                                        const u32&       InDataSize,
-                                        gpu::CGPUBuffer* InBuffer,
-                                        gpu::CFence*     InFences[],
-                                        const u32&       InBufferSize,
-                                        const FString&   InFenceName)
-    {
-        // Send common instance data to the GPU
-        // Make sure the buffer is not used and create a new fence
-        const int    BufferIdx    = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
-        const u32    BufferOffset = BufferIdx * InBufferSize;
-        gpu::CFence* Fence        = InFences[BufferIdx];
-
-        Fence->Wait(0);
-        Fence->Free();
-
-        delete Fence;
-        InFences[BufferIdx] = gpu::CreateFence(InFenceName);
-
-        gpu::FBufferDescription Desc;
-        Desc.Data   = (void*)InData;
-        Desc.Size   = InDataSize;
-        Desc.Offset = BufferOffset;
-
-        // memcpy the data
-        InBuffer->Bind(gpu::EBufferBindPoint::WRITE);
-        void* VideoMemPtr = InBuffer->MemoryMap(UNSYNCHRONIZED_WRITE, InBufferSize, BufferOffset);
-        memcpy(VideoMemPtr, InData, InDataSize);
-        InBuffer->MemoryUnmap();
-
-        return BufferOffset;
     }
 
 } // namespace lucid::scene

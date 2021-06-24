@@ -43,7 +43,7 @@ namespace lucid::scene
          * This function advances the pointers by the amount of data it has written to the buffers and return the amount of written bytes so we know
          * how much data to send to the GPU.
          */
-        virtual u32  SetupShader(char* InMaterialDataPtr)                           = 0;
+        virtual void SetupShaderBuffer(char* InMaterialDataPtr) { bMaterialDataDirty = false; }
         virtual void SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms) = 0;
 
         inline const UUID&    GetID() const { return ID; };
@@ -52,10 +52,11 @@ namespace lucid::scene
         inline gpu::CShader*  GetShader() const { return Shader; }
         virtual void          SaveToResourceFile(const lucid::EFileFormat& InFileFormat);
         virtual CMaterial*    GetCopy() const = 0;
+        inline bool           IsMaterialDataDirty() const { return bMaterialDataDirty; }
 
         /** Methods used to manage textures and other resources referenced by the material */
-        virtual void LoadResources(){};
-        virtual void UnloadResources(){};
+        virtual void LoadResources() { bMaterialDataDirty = true; };
+        virtual void UnloadResources(){ bMaterialDataDirty = true; };
 
         void CreateMaterialAsset();
 
@@ -72,11 +73,20 @@ namespace lucid::scene
         FDString      Name;
         FDString      ResourcePath;
         gpu::CShader* Shader;
-        bool          bIsAsset = false;
+        bool          bIsAsset            = false;
+        i32           MaterialBufferIndex = -1;
+
+        /**
+         * Used when a mesh changes it's material.
+         * These fields are set when a mesh changes it's material type so the renderer can recycle this entry
+         */
+        i32           MaterialBufferIndexToFree = -1;
+        EMaterialType TypeToFree                = EMaterialType::NONE;
 
       protected:
         virtual void InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat) = 0;
 
-        bool bIsRenaming = false;
+        bool bMaterialDataDirty = true;
+        bool bIsRenaming        = false;
     };
 } // namespace lucid::scene

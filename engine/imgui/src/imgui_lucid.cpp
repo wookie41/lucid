@@ -16,13 +16,15 @@
 
 namespace lucid
 {
-    void ImGuiTextureResourcePicker(const char* InLabel, resources::CTextureResource** OutTextureResource)
+    bool ImGuiTextureResourcePicker(const char* InLabel, resources::CTextureResource** OutTextureResource)
     {
+        bool bChanged = false;
         if (ImGui::BeginListBox(InLabel, ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
         {
             if (ImGui::Selectable("-- None --", *OutTextureResource == nullptr))
             {
                 *OutTextureResource = nullptr;
+                    bChanged = true;
             }
 
             for (int i = 0; i < GEngine.GetTexturesHolder().Length(); ++i)
@@ -36,6 +38,7 @@ namespace lucid
                 if (ImGui::Selectable(*CurrTexture->GetName(), *OutTextureResource == CurrTexture))
                 {
                     *OutTextureResource = CurrTexture;
+                    bChanged = true;
                 }
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
                 if (*OutTextureResource == CurrTexture)
@@ -45,6 +48,7 @@ namespace lucid
             }
             ImGui::EndListBox();
         }
+        return bChanged;
     }
 
     void ImGuiMeshResourcePicker(const char* InLabel, resources::CMeshResource** OutMeshResource)

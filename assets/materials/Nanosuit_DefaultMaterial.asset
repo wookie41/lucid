@@ -1,0 +1,10 @@
+{
+    "Id": "25ecdf8a-b6fb-4b3b-90b9-9729a1018c27",
+    "Name": "Nanosuit_DefaultMaterial",
+    "ShaderName": "BlinnPhongMaps",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

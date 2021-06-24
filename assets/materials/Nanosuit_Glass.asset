@@ -1,0 +1,12 @@
+{
+    "Id": "ed0a75ea-ac6b-43f5-a216-450e1636d060",
+    "Name": "Nanosuit_Glass",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "77c4cfa9-4d6e-4d41-be36-d94b8d29b451",
+    "NormalTextureID": "f6b7e262-d0a0-4714-885d-03c0d3217a1c",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

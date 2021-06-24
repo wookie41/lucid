@@ -142,6 +142,9 @@ namespace lucid::scene
          */
         virtual void Cleanup() = 0;
 
+        virtual void ResetState() = 0;
+
+
         /**
          * Returns the framebuffer which holds the result of last Render() call.
          */

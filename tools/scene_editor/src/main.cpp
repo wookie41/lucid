@@ -244,6 +244,7 @@ int main(int argc, char** argv)
 
         if (GSceneEditorState.PendingDeleteWorld)
         {
+            GEngine.GetRenderer()->ResetState();
             GSceneEditorState.PendingDeleteWorld->Unload();
             delete GSceneEditorState.PendingDeleteWorld;
             GSceneEditorState.PendingDeleteWorld = nullptr;

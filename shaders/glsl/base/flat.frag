@@ -1,5 +1,7 @@
 #version 450 core
 
+#include "batch_instance.glsl"
+
 flat in int InstanceID;
 
 struct FFlatMaterial
@@ -9,7 +11,6 @@ struct FFlatMaterial
 
 layout(std430, binding = 3) buffer MaterialDataDataBlock { FFlatMaterial MaterialData[]; };
 
-#define MATERIAL_DATA MaterialData[InstanceID]
 
 out vec4 oFragColor;
     

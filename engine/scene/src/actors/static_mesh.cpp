@@ -65,8 +65,8 @@ namespace lucid::scene
                     {
                         if (MeshResource != BaseStaticMesh->MeshResource)
                         {
-                            OldMeshResource = MeshResource;
-                            NewMeshResource = BaseStaticMesh->MeshResource;
+                            OldMeshResource      = MeshResource;
+                            NewMeshResource      = BaseStaticMesh->MeshResource;
                             bUpdateMaterialSlots = true;
                             GEngine.AddActorWithDirtyResources(this);
                         }
@@ -83,8 +83,8 @@ namespace lucid::scene
 
                 if (OldMesh != MeshResource)
                 {
-                    OldMeshResource = OldMesh;
-                    NewMeshResource = MeshResource;
+                    OldMeshResource              = OldMesh;
+                    NewMeshResource              = MeshResource;
                     bPropagateMeshResourceChange = true;
                     GEngine.AddActorWithDirtyResources(this);
                 }
@@ -154,6 +154,10 @@ namespace lucid::scene
                     {
                         if (BaseActorAsset)
                         {
+                            CMaterial* NewMaterial = *MaterialSlots[i];
+                            NewMaterial = NewMaterial->GetCopy();
+                            SetMaterialSlot(i, NewMaterial);
+
                             if (OldMaterial)
                             {
                                 // Check if the material wasn't already changed in this mesh
@@ -162,10 +166,20 @@ namespace lucid::scene
                                     MaterialsToUnload.push_back(OldMaterial);
                                 }
                                 MaterialsToDelete.push_back(OldMaterial);
+
+                                // Check if we can recycle the old material's index
+                                if (NewMaterial->GetType() == OldMaterial->GetType())
+                                {
+                                    NewMaterial->MaterialBufferIndex = OldMaterial->MaterialBufferIndex;
+                                }
+                                else
+                                {
+                                    NewMaterial->TypeToFree                = OldMaterial->GetType();
+                                    NewMaterial->MaterialBufferIndexToFree = OldMaterial->MaterialBufferIndex;
+                                }
                             }
 
-                            *MaterialSlots[i] = (*MaterialSlots[i])->GetCopy();
-                            MaterialsToLoad.push_back(*MaterialSlots[i]);
+                            MaterialsToLoad.push_back(NewMaterial);
                         }
                         else
                         {
@@ -348,8 +362,8 @@ namespace lucid::scene
         }
         MeshResource->Acquire(false, true);
 
-        auto* StaticMesh = new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
-        StaticMesh->ActorId   = InStaticMeshDescription.Id;
+        auto* StaticMesh    = new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
+        StaticMesh->ActorId = InStaticMeshDescription.Id;
         StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
         StaticMesh->Transform.Rotation    = Float4ToQuat(InStaticMeshDescription.Rotation);
         StaticMesh->Transform.Scale       = Float3ToVec(InStaticMeshDescription.Scale);
@@ -625,7 +639,7 @@ namespace lucid::scene
             UpdateMaterialSlots(BaseStaticMesh);
             bUpdateMaterialSlots = false;
         }
-        
+
         for (CMaterial* Material : MaterialsToLoad)
         {
             Material->LoadResources();

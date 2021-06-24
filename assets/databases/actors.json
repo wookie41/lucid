@@ -34,6 +34,11 @@
             "ActorId": "2802c388-b5a0-4c84-aa87-2eb3545ed03f",
             "ActorPath": "assets/actors/TestSkybox.asset",
             "ActorType": 2
+        },
+        {
+            "ActorId": "c26d3f5e-a269-471e-9808-928e9e171e73",
+            "ActorPath": "assets/actors/Nanosuit.asset",
+            "ActorType": 1
         }
     ]
 }

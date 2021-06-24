@@ -1,0 +1,43 @@
+{
+    "Name": "Nanosuit",
+    "Rotation": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "MeshResourceId": {
+        "bChanged": true,
+        "Value": "3bc6029a-997d-429d-898a-69a1773f4088"
+    },
+    "MaterialIds": [
+        {
+            "bChanged": true,
+            "Value": "25ecdf8a-b6fb-4b3b-90b9-9729a1018c27"
+        },
+        {
+            "bChanged": true,
+            "Value": "33263c77-8702-481a-9bc3-e56996569508"
+        },
+        {
+            "bChanged": true,
+            "Value": "c252782e-9eb2-4b98-a339-096ddb5cde33"
+        },
+        {
+            "bChanged": true,
+            "Value": "ed0a75ea-ac6b-43f5-a216-450e1636d060"
+        },
+        {
+            "bChanged": true,
+            "Value": "9e2d5312-ce91-441c-bf7c-9becaaa83482"
+        },
+        {
+            "bChanged": true,
+            "Value": "76e96798-d742-4014-a2b7-0a6a698d3ea9"
+        },
+        {
+            "bChanged": true,
+            "Value": "c28a3b91-66fa-4488-801f-c1155f49f28e"
+        }
+    ]
+}

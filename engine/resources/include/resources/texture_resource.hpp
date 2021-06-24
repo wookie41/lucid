@@ -42,12 +42,12 @@ namespace lucid::resources
         virtual void LoadThumbnail() override;
         virtual void MakeThumbnail() override;
 
-        void*          TextureData   = nullptr;
-        u8             bSRGB         = 0;
-        gpu::CTexture* TextureHandle = nullptr;
-
-        u32 Width  = 0;
-        u32 Height = 0;
+        void*          TextureData           = nullptr;
+        u8             bSRGB                 = 0;
+        gpu::CTexture* TextureHandle         = nullptr;
+        
+        u32            Width                 = 0;
+        u32            Height                = 0;
 
         gpu::ETextureDataType    DataType;
         gpu::ETextureDataFormat  DataFormat;

@@ -2,6 +2,7 @@
 
 #include "common.glsl"
 #include "blinn_phong_uniforms.glsl"
+#include "batch_instance.glsl"
 
 in VS_OUT
 {
