@@ -50,9 +50,9 @@ namespace lucid::scene
     struct FBlinnPhongMaterialData
     {
         glm::vec3 DiffuseColor;
-        glm::vec3 SpecularColor;
         u32       Shininess;
-        char      padding[12];
+        glm::vec3 SpecularColor;
+        char      padding[4];
     };
 #pragma pack(pop)
 
@@ -350,7 +350,7 @@ namespace lucid::scene
         Copy->DisplacementMap               = DisplacementMap;
         Copy->DiffuseMapBindlessHandle      = DiffuseMapBindlessHandle;
         Copy->SpecularMapBindlessHandle     = SpecularMapBindlessHandle;
-        Copy->NormalMapBindlessHandle      = NormalMapBindlessHandle;
+        Copy->NormalMapBindlessHandle       = NormalMapBindlessHandle;
         Copy->DisplacementMapBindlessHandle = DisplacementMapBindlessHandle;
         return Copy;
     };

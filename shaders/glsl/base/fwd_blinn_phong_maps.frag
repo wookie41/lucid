@@ -39,7 +39,7 @@ void main()
             discard;
         }
     }
-
+    
     vec3 normal;
     if (MATERIAL_DATA.bHasNormalMap)
     {

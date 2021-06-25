@@ -680,12 +680,12 @@ namespace lucid::scene
             delete FreeEntries.Fence;
         }
 
-        for (const auto& It: NewFreeMaterialBuffersEntries)
+        for (const auto& It : NewFreeMaterialBuffersEntries)
         {
             It.second.Fence->Free();
             delete It.second.Fence;
         }
-        
+
         MaterialDataBufferPerMaterialType.clear();
         FreeMaterialBuffersEntries.clear();
         NewFreeMaterialBuffersEntries.clear();
@@ -693,15 +693,15 @@ namespace lucid::scene
 
     struct FBatchKey
     {
-        gpu::CVertexArray* VertexArray = nullptr;
-        scene::CMaterial*  Material    = nullptr;
+        gpu::CVertexArray* VertexArray  = nullptr;
+        EMaterialType      MaterialType = EMaterialType::NONE;
 
-        bool operator==(const FBatchKey& InRHS) const { return VertexArray == InRHS.VertexArray && Material->GetType() == InRHS.Material->GetType(); }
+        bool operator==(const FBatchKey& InRHS) const { return VertexArray == InRHS.VertexArray && MaterialType == InRHS.MaterialType; }
     };
 
     struct FBatchKeyHash
     {
-        std::size_t operator()(const FBatchKey& Key) const { return (uintptr_t)(Key.VertexArray) ^ (uintptr_t)(Key.Material->GetType()); }
+        std::size_t operator()(const FBatchKey& Key) const { return (uintptr_t)(Key.VertexArray) ^ static_cast<u64>(Key.MaterialType); }
     };
 
     struct FMeshBatchBuilder
@@ -752,7 +752,7 @@ namespace lucid::scene
     void CForwardRenderer::CreateMeshBatches(FRenderScene* InSceneToRender)
     {
         std::unordered_map<FBatchKey, FMeshBatchBuilder, FBatchKeyHash> MeshBatchBuilders;
-        std::unordered_map<EMaterialType, std::vector<FBatchKey>>       BatchKeysByMaterialType;
+        std::unordered_map<EMaterialType, std::vector<FBatchKey>>       BatchKeyPerMaterialType;
         std::unordered_map<u32, u32>                                    ActorDataIdxByActorId;
 
         u32       ActorDataSize   = 0;
@@ -815,14 +815,13 @@ namespace lucid::scene
                 {
                     auto& MaterialBuffer = MaterialDataBufferPerMaterialType[Material->GetType()];
 
-
                     if (Material->TypeToFree != EMaterialType::NONE)
                     {
                         FreeMaterialBufferEntry(Material->TypeToFree, Material->MaterialBufferIndexToFree);
-                        Material->TypeToFree = EMaterialType::NONE;
+                        Material->TypeToFree                = EMaterialType::NONE;
                         Material->MaterialBufferIndexToFree = -1;
                     }
-                    
+
                     // Assign a material buffer index so this material can write it's data
                     if (Material->MaterialBufferIndex == -1 || Material->IsMaterialDataDirty())
                     {
@@ -904,7 +903,7 @@ namespace lucid::scene
                 resources::FSubMesh* SubMesh         = StaticMesh->MeshResource->SubMeshes[j];
                 CMaterial*           SubMeshMaterial = StaticMesh->GetMaterialSlot(SubMesh->MaterialIndex);
 
-                const FBatchKey BatchKey{ SubMesh->VAO, SubMeshMaterial };
+                const FBatchKey BatchKey{ SubMesh->VAO, SubMeshMaterial->GetType() };
                 auto&           BatchIt = MeshBatchBuilders.find(BatchKey);
 
                 if (BatchIt == MeshBatchBuilders.end())
@@ -913,14 +912,22 @@ namespace lucid::scene
                     BatchBuilder.StaticMeshes.push_back(StaticMesh);
                     BatchBuilder.Materials.push_back(SubMeshMaterial);
                     MeshBatchBuilders[BatchKey] = BatchBuilder;
+                    
+                    if (BatchKeyPerMaterialType.find(SubMeshMaterial->GetType()) == BatchKeyPerMaterialType.end())
+                    {
+                        BatchKeyPerMaterialType[SubMeshMaterial->GetType()] = { BatchKey };
+                    }
+                    else
+                    {
+                        BatchKeyPerMaterialType[SubMeshMaterial->GetType()].push_back(BatchKey);
+                        
+                    }
                 }
                 else
                 {
                     BatchIt->second.StaticMeshes.push_back(StaticMesh);
                     BatchIt->second.Materials.push_back(SubMeshMaterial);
                 }
-
-                BatchKeysByMaterialType[SubMeshMaterial->GetType()].push_back(BatchKey);
             }
         }
 
@@ -934,13 +941,14 @@ namespace lucid::scene
         const u32      InstanceDataOffset = CalculateCurrentBufferOffset(INSTANCE_DATA_BUFFER_SIZE);
         FInstanceData* InstanceData       = (FInstanceData*)(InstanceDataMappedPtr + InstanceDataOffset);
 
+
         // This guarantees batches are sorted by material type
-        for (const auto& It : BatchKeysByMaterialType)
+        for (const auto& It : BatchKeyPerMaterialType)
         {
             for (const auto& BatchKey : It.second)
             {
                 const auto&      BatchBuilder  = MeshBatchBuilders[BatchKey];
-                CMaterial const* BatchMaterial = BatchKey.Material;
+                CMaterial const* BatchMaterial = BatchBuilder.Materials[0];
 
                 MeshBatches.push_back({});
                 FMeshBatch& MeshBatch = MeshBatches[MeshBatches.size() - 1];
@@ -972,10 +980,7 @@ namespace lucid::scene
             }
         }
 
-        // Send common instance data to the GPU
-        {
-            InstanceDataSSBO->BindIndexed(2, gpu::EBufferBindPoint::SHADER_STORAGE, InstanceDataSize, InstanceDataOffset);
-        }
+        InstanceDataSSBO->BindIndexed(2, gpu::EBufferBindPoint::SHADER_STORAGE, InstanceDataSize, InstanceDataOffset);
 
     } // namespace lucid::scene
 
@@ -1215,7 +1220,6 @@ namespace lucid::scene
         GlobalRenderData->AmbientOcclusionBindlessHandle = SSAOBlurredBindlessHandle;
         GlobalRenderData->NearPlane                      = InRenderView->Camera->NearPlane;
         GlobalRenderData->FarPlane                       = InRenderView->Camera->FarPlane;
-        GlobalRenderData->ParallaxHeightScale            = InRenderView->Camera->FarPlane;
 
         GlobalDataUBO->BindIndexed(0, gpu::EBufferBindPoint::UNIFORM, GLOBAL_DATA_BUFFER_SIZE, BufferOffset);
     }

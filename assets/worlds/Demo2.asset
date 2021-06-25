@@ -158,12 +158,83 @@
                     "Value": "24f49047-090b-4d13-900b-e65f66327148"
                 }
             ]
+        },
+        {
+            "Id": 12,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -3.6045804023742677,
+                1.5904347896575928,
+                -0.1012505292892456
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                }
+            ]
+        },
+        {
+            "Id": 13,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -0.6716461181640625,
+                0.5008471012115479,
+                -0.9944154620170593
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "5f13c189-43af-4816-94a9-36a7d8918e71"
+                }
+            ]
+        },
+        {
+            "Id": 14,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                3.139986276626587,
+                2.197547197341919,
+                -0.18356657028198243
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                }
+            ]
         }
     ],
     "PointLights": [
         {
             "Id": 2,
             "Name": "PointLight",
+            "Postion": [
+                0.0,
+                4.3790998458862309,
+                0.0
+            ],
             "bCastsShadow": true,
             "Constant": 0.20000000298023225,
             "Linear": 0.10000000149011612,

@@ -11,6 +11,7 @@ struct FBlinnPhongMapsMaterial
     sampler2D SpecularMap;
     sampler2D NormalMap;
     sampler2D DisplacementMap;
+    
 
     int  Shininess;
     bool bHasSpecularMap;
