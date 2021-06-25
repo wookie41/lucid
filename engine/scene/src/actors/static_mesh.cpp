@@ -154,37 +154,11 @@ namespace lucid::scene
                     {
                         if (BaseActorAsset)
                         {
-                            CMaterial* NewMaterial = *MaterialSlots[i];
-                            NewMaterial = NewMaterial->GetCopy();
-                            SetMaterialSlot(i, NewMaterial);
-
-                            if (OldMaterial)
-                            {
-                                // Check if the material wasn't already changed in this mesh
-                                if (BaseStaticMesh->GetMaterialSlot(i) != OldMaterial)
-                                {
-                                    MaterialsToUnload.push_back(OldMaterial);
-                                }
-                                MaterialsToDelete.push_back(OldMaterial);
-
-                                // Check if we can recycle the old material's index
-                                if (NewMaterial->GetType() == OldMaterial->GetType())
-                                {
-                                    NewMaterial->MaterialBufferIndex = OldMaterial->MaterialBufferIndex;
-                                }
-                                else
-                                {
-                                    NewMaterial->TypeToFree                = OldMaterial->GetType();
-                                    NewMaterial->MaterialBufferIndexToFree = OldMaterial->MaterialBufferIndex;
-                                }
-                            }
-
-                            MaterialsToLoad.push_back(NewMaterial);
+                            HandleInstanceMaterialSlotChange(OldMaterial, i);
                         }
                         else
                         {
-                            MaterialsToUnload.push_back(OldMaterial);
-                            MaterialsToLoad.push_back(*MaterialSlots[i]);
+
                             HandleBaseAssetMaterialSlotChange(OldMaterial, i);
                         }
 
@@ -250,6 +224,9 @@ namespace lucid::scene
 
     void CStaticMesh::HandleBaseAssetMaterialSlotChange(CMaterial* InOldMaterial, const u8& InMaterialSlot)
     {
+        MaterialsToUnload.push_back(InOldMaterial);
+        MaterialsToLoad.push_back(*MaterialSlots[InMaterialSlot]);
+        
         auto ChildReference = &ChildReferences.Head;
         while (ChildReference && ChildReference->Element)
         {
@@ -422,6 +399,38 @@ namespace lucid::scene
             MaterialSlots.Free();
             MaterialSlots = FArray<CMaterial*>{ 1, true };
         }
+    }
+
+    void CStaticMesh::HandleInstanceMaterialSlotChange(CMaterial* InOldMaterial, const u16& InMaterialIndex)
+    {
+        // Create an instance of the material for this mseh
+        CMaterial* NewMaterial = *MaterialSlots[InMaterialIndex];
+        NewMaterial            = NewMaterial->GetCopy();
+        SetMaterialSlot(InMaterialIndex, NewMaterial);
+
+        if (InOldMaterial)
+        {
+            // Check if material at this slot wasn't previously changed by this instance -
+            if (BaseStaticMesh->GetMaterialSlot(InMaterialIndex) != InOldMaterial)
+            {
+                // if it was - free it, as the base asset has a different material at this slot
+                MaterialsToUnload.push_back(InOldMaterial);
+            }
+            MaterialsToDelete.push_back(InOldMaterial);
+
+            // Check if we can recycle the old material's index
+            if (NewMaterial->GetType() == InOldMaterial->GetType())
+            {
+                NewMaterial->MaterialBufferIndex = InOldMaterial->MaterialBufferIndex;
+            }
+            else
+            {
+                NewMaterial->TypeToFree                = InOldMaterial->GetType();
+                NewMaterial->MaterialBufferIndexToFree = InOldMaterial->MaterialBufferIndex;
+            }
+        }
+
+        MaterialsToLoad.push_back(NewMaterial);
     }
 
     IActor* CStaticMesh::CreateActorAsset(const FDString& InName) const

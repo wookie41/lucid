@@ -65,6 +65,7 @@ namespace lucid::scene
       protected:
         virtual void InternalSaveToResourceFile(const FString& InFilePath) override;
         void         UpdateMaterialSlots(CStaticMesh const* BaseStaticMesh);
+        void         HandleInstanceMaterialSlotChange(CMaterial* InOldMaterial, const u16& InMaterialIndex);
         void         HandleBaseAssetMeshResourceChange(resources::CMeshResource* OldMesh);
         void         HandleBaseAssetNumMaterialsChange(const bool& bAdded);
         void         HandleBaseAssetMaterialSlotChange(CMaterial* InOldMaterial, const u8& InMaterialSlot);
