@@ -81,8 +81,11 @@ namespace lucid::gpu
 
     void ReloadShaders()
     {
+#if defined(WIN32)
+        platform::ExecuteCommand(FSString { LUCID_TEXT("tools\\scripts\\preprocess_shaders.bat") });
+#else
         platform::ExecuteCommand(FSString { LUCID_TEXT("sh tools\\scripts\\preprocess_shaders.sh") });
-
+#endif
         for (u64 i = 0; i < GEngine.GetShadersManager().ShaderInfoByName.GetLength(); ++i)
         {
             const FShaderInfo& ShaderInfo = GEngine.GetShadersManager().ShaderInfoByName.Get(i);
