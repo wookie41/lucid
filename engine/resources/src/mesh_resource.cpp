@@ -436,10 +436,6 @@ namespace lucid::resources
 #endif
 
         auto AssimpFlags = ASSIMP_DEFAULT_FLAGS;
-        if (InbFilpUVs)
-        {
-            AssimpFlags |= aiProcess_FlipUVs;
-        }
         const aiScene* Root = AssimpImporter.ReadFile(*InMeshFilePath, AssimpFlags);
 
         LUCID_LOG(ELogLevel::INFO, "Reading mesh with assimp %s took %f", *InMeshFilePath, platform::GetCurrentTimeSeconds() - StartTime);
@@ -990,9 +986,6 @@ namespace lucid::resources
 
         Texture->SaveSynchronously(TextureResourceFile);
         fclose(TextureResourceFile);
-
-        TextureResourceFilePath.Free();
-        TextureName.Free();
 
         return Texture;
     }
