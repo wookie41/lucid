@@ -72,7 +72,15 @@ namespace lucid::scene
                         }
                     }
                 }
+                resources::CMeshResource* OldMesh = MeshResource;
                 ImGuiMeshResourcePicker("static_mesh_mesh", &MeshResource);
+                if (OldMesh != MeshResource)
+                {
+                    OldMeshResource              = OldMesh;
+                    NewMeshResource              = MeshResource;
+                    bPropagateMeshResourceChange = true;
+                    GEngine.AddActorWithDirtyResources(this);
+                }
             }
             else
             {

@@ -19,7 +19,7 @@ namespace lucid::scene
                const glm::vec3& CameraUp = { 0.0, 1.0, 0.0 },
                const real& CameraYaw = 0,
                const real& CameraPitch = 0.0,
-               const real& CameraSpeed = 2.5,
+               const real& CameraSpeed = 7.5,
                const real& CameraSensitivity = 0.5,
                const real& CameraZoom = 45.0);
 
