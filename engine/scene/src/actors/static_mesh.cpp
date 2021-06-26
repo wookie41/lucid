@@ -151,6 +151,7 @@ namespace lucid::scene
                         ImGuiShowMaterialEditor(Material, &bMaterialEditorOpen);
                         if (!bMaterialEditorOpen)
                         {
+                            bMaterialEditorOpen = true;
                             CurrentlyEditedMaterial = nullptr;
                         }
                     }
