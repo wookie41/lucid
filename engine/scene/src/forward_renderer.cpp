@@ -815,6 +815,7 @@ namespace lucid::scene
                 {
                     auto& MaterialBuffer = MaterialDataBufferPerMaterialType[Material->GetType()];
 
+                    // If the material is dirty or was edited, return it's entry to the pool
                     if (Material->TypeToFree != EMaterialType::NONE)
                     {
                         FreeMaterialBufferEntry(Material->TypeToFree, Material->MaterialBufferIndexToFree);
@@ -825,12 +826,6 @@ namespace lucid::scene
                     // Assign a material buffer index so this material can write it's data
                     if (Material->MaterialBufferIndex == -1 || Material->IsMaterialDataDirty())
                     {
-                        // If the material is dirty, return it's entry to the pool
-                        if (Material->MaterialBufferIndex != -1 && Material->IsMaterialDataDirty())
-                        {
-                            FreeMaterialBufferEntry(Material->GetType(), Material->MaterialBufferIndexToFree);
-                        }
-
                         // Check if there are free indices - if yes, then get one
                         if (MaterialBuffer.FreeIndices.size())
                         {
