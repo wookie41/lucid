@@ -146,16 +146,6 @@ namespace lucid::scene
                         CurrentlyEditedMaterial = Material;
                     }
 
-                    if (CurrentlyEditedMaterial)
-                    {
-                        ImGuiShowMaterialEditor(Material, &bMaterialEditorOpen);
-                        if (!bMaterialEditorOpen)
-                        {
-                            bMaterialEditorOpen = true;
-                            CurrentlyEditedMaterial = nullptr;
-                        }
-                    }
-
                     ImGui::Text("Select different:");
                     CMaterial* OldMaterial = *MaterialSlots[i];
                     ImGuiMaterialPicker(*MaterialSlotEditorLabel, MaterialSlots[i]);
@@ -182,6 +172,16 @@ namespace lucid::scene
                 }
 
                 MaterialSlotEditorLabel.Free();
+            }
+
+            if (CurrentlyEditedMaterial)
+            {
+                ImGuiShowMaterialEditor(CurrentlyEditedMaterial, &bMaterialEditorOpen);
+                if (!bMaterialEditorOpen)
+                {
+                    bMaterialEditorOpen = true;
+                    CurrentlyEditedMaterial = nullptr;
+                }
             }
         }
     }
