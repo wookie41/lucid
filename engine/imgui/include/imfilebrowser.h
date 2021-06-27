@@ -690,7 +690,7 @@ inline std::string ImGui::FileBrowser::ToLower(const std::string &s)
 {
     std::string ret = s;
     for(char &c : ret)
-        c = static_cast<char>(std::tolower(c));
+        c = static_cast<char>(std::tolower(c, std::locale::empty()));
     return ret;
 }
 

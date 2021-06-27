@@ -180,28 +180,25 @@ namespace lucid::scene
         PrepassPipelineState.IsSRGBFramebufferEnabled = false;
         PrepassPipelineState.IsDepthBufferReadOnly    = false;
 
-        InitialLightLightpassPipelineState.ClearColorBufferColor = FColor{ 0 };
-        InitialLightLightpassPipelineState.IsDepthTestEnabled    = true;
-        InitialLightLightpassPipelineState.DepthTestFunction     = gpu::EDepthTestFunction::EQUAL;
-        InitialLightLightpassPipelineState.IsBlendingEnabled     = true;
-        InitialLightLightpassPipelineState.BlendFunctionSrc      = gpu::EBlendFunction::ONE;
-        InitialLightLightpassPipelineState.BlendFunctionDst      = gpu::EBlendFunction::ZERO;
-        InitialLightLightpassPipelineState.BlendFunctionAlphaSrc = gpu::EBlendFunction::ONE;
-        InitialLightLightpassPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ZERO;
-        // @TODO
-        InitialLightLightpassPipelineState.IsCullingEnabled = false;
-        // InitialLightLightpassPipelineState.IsCullingEnabled = true;
-        // InitialLightLightpassPipelineState.CullMode = gpu::ECullMode::BACK;
-        InitialLightLightpassPipelineState.IsSRGBFramebufferEnabled = false;
-        InitialLightLightpassPipelineState.IsDepthBufferReadOnly    = true;
-        InitialLightLightpassPipelineState.Viewport.X               = 0;
-        InitialLightLightpassPipelineState.Viewport.Y               = 0;
-        InitialLightLightpassPipelineState.Viewport.Width           = ResultResolution.x;
-        InitialLightLightpassPipelineState.Viewport.Height          = ResultResolution.y;
-
-        LightpassPipelineState                       = InitialLightLightpassPipelineState;
+        LightpassPipelineState.ClearColorBufferColor = FColor{ 0 };
+        LightpassPipelineState.IsDepthTestEnabled    = true;
+        LightpassPipelineState.DepthTestFunction     = gpu::EDepthTestFunction::EQUAL;
+        LightpassPipelineState.IsBlendingEnabled     = true;
+        LightpassPipelineState.BlendFunctionSrc      = gpu::EBlendFunction::ONE;
         LightpassPipelineState.BlendFunctionDst      = gpu::EBlendFunction::ONE;
+        LightpassPipelineState.BlendFunctionAlphaSrc = gpu::EBlendFunction::ONE;
         LightpassPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ONE;
+        // @TODO
+        LightpassPipelineState.IsCullingEnabled = false;
+        // LightpassPipelineState.IsCullingEnabled = true;
+        // LightpassPipelineState.CullMode = gpu::ECullMode::BACK;
+        LightpassPipelineState.IsSRGBFramebufferEnabled = false;
+        LightpassPipelineState.IsDepthBufferReadOnly    = true;
+        LightpassPipelineState.Viewport.X               = 0;
+        LightpassPipelineState.Viewport.Y               = 0;
+        LightpassPipelineState.Viewport.Width           = ResultResolution.x;
+        LightpassPipelineState.Viewport.Height          = ResultResolution.y;
+
 
         SkyboxPipelineState                   = LightpassPipelineState;
         SkyboxPipelineState.IsBlendingEnabled = false;
@@ -226,7 +223,7 @@ namespace lucid::scene
         WorldGridPipelineState.IsBlendingEnabled        = true;
         WorldGridPipelineState.IsCullingEnabled         = false;
         WorldGridPipelineState.IsSRGBFramebufferEnabled = false;
-        WorldGridPipelineState.IsDepthBufferReadOnly    = false;
+        WorldGridPipelineState.IsDepthBufferReadOnly    = true;
         WorldGridPipelineState.BlendFunctionSrc         = gpu::EBlendFunction::SRC_ALPHA;
         WorldGridPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
         WorldGridPipelineState.BlendFunctionAlphaSrc    = gpu::EBlendFunction::SRC_ALPHA;
@@ -311,7 +308,7 @@ namespace lucid::scene
         PrepassFramebuffer->SetupColorAttachment(1, CurrentFrameVSPositionMap);
 
         DepthStencilRenderBuffer->Bind();
-        PrepassFramebuffer->SetupDepthAttachment(DepthStencilRenderBuffer);
+        PrepassFramebuffer->SetupDepthStencilAttachment(DepthStencilRenderBuffer);
 
         // Create texture to store SSO result
         SSAOResult = gpu::CreateEmpty2DTexture(ResultResolution.x,
@@ -459,9 +456,9 @@ namespace lucid::scene
         LightsBillboardsPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
         LightsBillboardsPipelineState.IsBlendingEnabled        = true;
         LightsBillboardsPipelineState.BlendFunctionSrc         = gpu::EBlendFunction::SRC_ALPHA;
-        LightsBillboardsPipelineState.BlendFunctionAlphaSrc    = gpu::EBlendFunction::SRC_ALPHA;
         LightsBillboardsPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
-        LightsBillboardsPipelineState.BlendFunctionAlphaDst    = gpu::EBlendFunction::ONE_MINUS_SRC_ALPHA;
+        LightsBillboardsPipelineState.BlendFunctionAlphaSrc    = gpu::EBlendFunction::ONE;
+        LightsBillboardsPipelineState.BlendFunctionAlphaDst    = gpu::EBlendFunction::ONE;
         LightsBillboardsPipelineState.IsCullingEnabled         = false;
         LightsBillboardsPipelineState.IsSRGBFramebufferEnabled = false;
         LightsBillboardsPipelineState.IsDepthBufferReadOnly    = false;
@@ -511,7 +508,9 @@ namespace lucid::scene
         // Debug lines
         DebugLinesPipelineState.IsDepthTestEnabled       = true;
         DebugLinesPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
-        DebugLinesPipelineState.IsBlendingEnabled        = false;
+        DebugLinesPipelineState.IsBlendingEnabled        = true;
+        DebugLinesPipelineState.BlendFunctionSrc         = gpu::EBlendFunction::ONE;
+        DebugLinesPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE;
         DebugLinesPipelineState.IsSRGBFramebufferEnabled = true;
         DebugLinesPipelineState.IsDepthBufferReadOnly    = false;
         DebugLinesPipelineState.LineWidth                = 2;
@@ -540,6 +539,11 @@ namespace lucid::scene
             VertexAttributes.Free();
         }
 #endif
+
+        resources::CTextureResource* BlankTexture = GEngine.GetTexturesHolder().GetDefaultResource();
+        BlankTexture->Acquire(false, true);
+        BlankTextureBindlessHandle = BlankTexture->TextureHandle->GetBindlessHandle();
+        BlankTexture->TextureHandle->MakeBindlessResident();
     }
 
     void CForwardRenderer::Cleanup()
@@ -624,16 +628,19 @@ namespace lucid::scene
 #if DEVELOPMENT
         gpu::PushDebugGroup("Editor primitives");
 
-        gpu::PushDebugGroup("Billboards");
-        DrawLightsBillboards(InSceneToRender, InRenderView);
-        gpu::PopDebugGroup();
-
-        gpu::PushDebugGroup("World grid");
-        RenderWorldGrid(InRenderView);
-        gpu::PopDebugGroup();
-
+        if (bDrawGrid)
+        {
+            gpu::PushDebugGroup("World grid");
+            RenderWorldGrid(InRenderView);
+            gpu::PopDebugGroup();            
+        }
+        
         gpu::PushDebugGroup("Debug lines");
         RenderDebugLines(InRenderView);
+        gpu::PopDebugGroup();
+        
+        gpu::PushDebugGroup("Billboards");
+        DrawLightsBillboards(InSceneToRender, InRenderView);
         gpu::PopDebugGroup();
 
         gpu::PushDebugGroup("Hitmap");
@@ -907,7 +914,7 @@ namespace lucid::scene
                     BatchBuilder.StaticMeshes.push_back(StaticMesh);
                     BatchBuilder.Materials.push_back(SubMeshMaterial);
                     MeshBatchBuilders[BatchKey] = BatchBuilder;
-                    
+
                     if (BatchKeyPerMaterialType.find(SubMeshMaterial->GetType()) == BatchKeyPerMaterialType.end())
                     {
                         BatchKeyPerMaterialType[SubMeshMaterial->GetType()] = { BatchKey };
@@ -915,7 +922,6 @@ namespace lucid::scene
                     else
                     {
                         BatchKeyPerMaterialType[SubMeshMaterial->GetType()].push_back(BatchKey);
-                        
                     }
                 }
                 else
@@ -935,7 +941,6 @@ namespace lucid::scene
         u32            TotalBatchedMeshes = 0;
         const u32      InstanceDataOffset = CalculateCurrentBufferOffset(INSTANCE_DATA_BUFFER_SIZE);
         FInstanceData* InstanceData       = (FInstanceData*)(InstanceDataMappedPtr + InstanceDataOffset);
-
 
         // This guarantees batches are sorted by material type
         for (const auto& It : BatchKeyPerMaterialType)
@@ -1038,94 +1043,99 @@ namespace lucid::scene
 
     void CForwardRenderer::Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
-        gpu::PushDebugGroup("Z pre pass");
+        gpu::PushDebugGroup("Prepass");
 
-        u32                      PrepassDataSize     = 0;
-        const u32&               PrepassBufferOffset = CalculateCurrentBufferOffset(PREPASS_DATA_BUFFER_SIZE);
-        FForwardPrepassUniforms* PrepassDataPtr      = (FForwardPrepassUniforms*)(PrepassDataMappedPtr + PrepassBufferOffset);
-
-        for (const auto& MeshBatch : MeshBatches)
+        if (bEnableDepthPrepass)
         {
-            for (const auto& BatchedMesh : MeshBatch.BatchedMeshes)
+            gpu::PushDebugGroup("Depth prepass");
+
+            u32                      PrepassDataSize     = 0;
+            const u32&               PrepassBufferOffset = CalculateCurrentBufferOffset(PREPASS_DATA_BUFFER_SIZE);
+            FForwardPrepassUniforms* PrepassDataPtr      = (FForwardPrepassUniforms*)(PrepassDataMappedPtr + PrepassBufferOffset);
+
+            for (const auto& MeshBatch : MeshBatches)
             {
-                BatchedMesh.Material->SetupPrepassShader(PrepassDataPtr);
+                for (const auto& BatchedMesh : MeshBatch.BatchedMeshes)
+                {
+                    BatchedMesh.Material->SetupPrepassShader(PrepassDataPtr);
 
-                // Advance the pointer
-                PrepassDataPtr += 1;
+                    // Advance the pointer
+                    PrepassDataPtr += 1;
 
-                // Add data size
-                PrepassDataSize += sizeof(FForwardPrepassUniforms);
+                    // Add data size
+                    PrepassDataSize += sizeof(FForwardPrepassUniforms);
 
-                assert(PrepassDataSize < PREPASS_DATA_BUFFER_SIZE);
+                    assert(PrepassDataSize < PREPASS_DATA_BUFFER_SIZE);
+                }
             }
+
+            gpu::ConfigurePipelineState(PrepassPipelineState);
+
+            PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+            PrepassFramebuffer->SetupDrawBuffers();
+
+            gpu::ClearBuffers(COLOR_AND_DEPTH);
+
+            PrepassShader->Use();
+
+            // Bind the SSBO
+            PrepassDataSSBO->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE, PREPASS_DATA_BUFFER_SIZE, PrepassBufferOffset);
+
+            // Issue batches
+            for (const auto& MeshBatch : MeshBatches)
+            {
+                PrepassShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
+                MeshBatch.MeshVertexArray->Bind();
+                MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
+            }
+
+            gpu::PopDebugGroup();
         }
-
-        // Send data to the GPU
-
-        // Prepare pipeline
-        gpu::ConfigurePipelineState(PrepassPipelineState);
-
-        PrepassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        PrepassFramebuffer->SetupDrawBuffers();
-
-        gpu::ClearBuffers(COLOR_AND_DEPTH);
-
-        PrepassShader->Use();
-
-        // Bind the SSBO
-        PrepassDataSSBO->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE, PREPASS_DATA_BUFFER_SIZE, PrepassBufferOffset);
-
-        // Issue batches
-        for (const auto& MeshBatch : MeshBatches)
+        if (bEnableDepthPrepass && bEnableSSAO)
         {
-            PrepassShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
-            MeshBatch.MeshVertexArray->Bind();
-            MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
+            gpu::PushDebugGroup("SSAO");
+
+            // Calculate SSAO
+            const glm::vec2 NoiseTextureSize = { SSAONoise->GetWidth(), SSAONoise->GetHeight() };
+            const glm::vec2 ViewportSize     = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
+            const glm::vec2 NoiseScale       = ViewportSize / NoiseTextureSize;
+
+            SSAOShader->Use();
+            BindAndClearFramebuffer(SSAOFramebuffer);
+
+            SSAOShader->UseTexture(SSAO_POSITIONS_VS, CurrentFrameVSPositionMap);
+            SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
+            SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
+            SSAOShader->SetVector(SSAO_NOISE_SCALE, NoiseScale);
+            SSAOShader->SetFloat(SSAO_BIAS, SSAOBias);
+            SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
+
+            ScreenWideQuadVAO->Bind();
+            ScreenWideQuadVAO->Draw();
+
+            // Blur SSAO
+            BlurFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+            BlurFramebuffer->SetupColorAttachment(0, SSAOBlurred);
+
+            gpu::ClearBuffers(gpu::EGPUBuffer::COLOR);
+
+            SimpleBlurShader->Use();
+            SimpleBlurShader->UseTexture(SIMPLE_BLUR_TEXTURE, SSAOResult);
+            SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_X, SimpleBlurXOffset);
+            SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_Y, SimpleBlurYOffset);
+
+            ScreenWideQuadVAO->Bind();
+            ScreenWideQuadVAO->Draw();
+
+            gpu::PopDebugGroup();
         }
-
-        gpu::PopDebugGroup();
-
-        // Calculate SSAO
-
-        const glm::vec2 NoiseTextureSize = { SSAONoise->GetWidth(), SSAONoise->GetHeight() };
-        const glm::vec2 ViewportSize     = { InRenderView->Viewport.Width, InRenderView->Viewport.Height };
-        const glm::vec2 NoiseScale       = ViewportSize / NoiseTextureSize;
-
-        gpu::PushDebugGroup("SSAO");
-
-        SSAOShader->Use();
-        BindAndClearFramebuffer(SSAOFramebuffer);
-
-        SSAOShader->UseTexture(SSAO_POSITIONS_VS, CurrentFrameVSPositionMap);
-        SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
-        SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
-        SSAOShader->SetVector(SSAO_NOISE_SCALE, NoiseScale);
-        SSAOShader->SetFloat(SSAO_BIAS, SSAOBias);
-        SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
-
-        ScreenWideQuadVAO->Bind();
-        ScreenWideQuadVAO->Draw();
-
-        // Blur SSAO
-        BlurFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        BlurFramebuffer->SetupColorAttachment(0, SSAOBlurred);
-
-        gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR));
-
-        SimpleBlurShader->Use();
-        SimpleBlurShader->UseTexture(SIMPLE_BLUR_TEXTURE, SSAOResult);
-        SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_X, SimpleBlurXOffset);
-        SimpleBlurShader->SetInt(SIMPLE_BLUR_OFFSET_Y, SimpleBlurYOffset);
-
-        ScreenWideQuadVAO->Bind();
-        ScreenWideQuadVAO->Draw();
-
         gpu::PopDebugGroup();
     }
 
     void CForwardRenderer::LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
-        gpu::ConfigurePipelineState(InitialLightLightpassPipelineState);
+        // gpu::ConfigurePipelineState(InitialLightLightpassPipelineState);
+        gpu::ConfigurePipelineState(LightpassPipelineState);
 
         gpu::CTexture* ColorBuffer = LightingPassColorBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
         ColorBuffer->Bind();
@@ -1134,8 +1144,15 @@ namespace lucid::scene
         LightingPassFramebuffer->SetupColorAttachment(0, ColorBuffer);
         LightingPassFramebuffer->SetupDrawBuffers();
 
-        gpu::ClearBuffers(gpu::EGPUBuffer::COLOR);
-
+        if (bEnableDepthPrepass)
+        {
+            gpu::ClearBuffers(gpu::EGPUBuffer::COLOR);
+        }
+        else
+        {
+            gpu::ClearBuffers(COLOR_AND_DEPTH);
+        }
+        
         RenderStaticMeshes(InSceneToRender, InRenderView);
         if (InSceneToRender->Skybox)
         {
@@ -1151,11 +1168,7 @@ namespace lucid::scene
             return;
         }
 
-        RenderLightContribution(InScene->AllLights.GetByIndex(0), InScene, InRenderView);
-
-        // Switch blending so we render the rest of the lights additively
-        gpu::ConfigurePipelineState(LightpassPipelineState);
-        for (int i = 1; i < InScene->AllLights.GetLength(); ++i)
+        for (int i = 0; i < InScene->AllLights.GetLength(); ++i)
         {
             RenderLightContribution(InScene->AllLights.GetByIndex(i), InScene, InRenderView);
         }
@@ -1212,7 +1225,7 @@ namespace lucid::scene
         GlobalRenderData->ViewPos                        = InRenderView->Camera->Position;
         GlobalRenderData->ParallaxHeightScale            = 0.1f;
         GlobalRenderData->ViewportSize                   = glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height };
-        GlobalRenderData->AmbientOcclusionBindlessHandle = SSAOBlurredBindlessHandle;
+        GlobalRenderData->AmbientOcclusionBindlessHandle = bEnableSSAO ? SSAOBlurredBindlessHandle : BlankTextureBindlessHandle;
         GlobalRenderData->NearPlane                      = InRenderView->Camera->NearPlane;
         GlobalRenderData->FarPlane                       = InRenderView->Camera->FarPlane;
 
@@ -1446,10 +1459,26 @@ namespace lucid::scene
     void CForwardRenderer::UIDrawSettingsWindow()
     {
         ImGui::SetNextWindowSize({ 0, 0 });
-        ImGui::Begin("Renderer settings");
+        bool bOpen;
+        ImGui::Begin("Renderer settings", &bOpen);
         {
             ImGui::DragFloat("Ambient strength", &AmbientStrength, 0.01, 0, 1);
             ImGui::DragInt("Num PCF samples", &NumSamplesPCF, 1, 0, 64);
+            ImGui::Checkbox("Enable SSAO", &bEnableSSAO);
+            ImGui::Checkbox("Draw grid", &bDrawGrid);
+            if(ImGui::Checkbox("Depth prepass", &bEnableDepthPrepass))
+            {
+                if (bEnableDepthPrepass)
+                {
+                    LightpassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::EQUAL;
+                    LightpassPipelineState.IsDepthBufferReadOnly = true;
+                }
+                else
+                {
+                    LightpassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
+                    LightpassPipelineState.IsDepthBufferReadOnly = false;
+                }
+            }
         }
         ImGui::End();
     }

@@ -150,6 +150,13 @@ namespace lucid::gpu
         float LineWidth = 1;
     };
 
+    struct FIndexedBufferBinding
+    {
+        CGPUBuffer* Buffer;
+        u32 Offset;
+        u32 Size;
+    };
+    
     struct FGPUState
     {
         CFramebuffer* Framebuffer      = nullptr;
@@ -167,8 +174,11 @@ namespace lucid::gpu
         CGPUBuffer* ReadBuffer          = nullptr;
         CGPUBuffer* WriteBuffer         = nullptr;
         CGPUBuffer* ShaderStorageBuffer = nullptr;
+        FIndexedBufferBinding IndexedBuffers[64] = { nullptr};
 
         FPipelineState PipelineState;
+
+        
     };
 
     void ConfigurePipelineState(const FPipelineState& InPipelineState);

@@ -33,4 +33,8 @@ namespace lucid::gpu
 
         const FSString BaseShadersPath { "shaders/glsl/base" };
     };
+#ifndef NDEBUG
+    void ReloadShaders();
+#endif
+
 }

@@ -206,8 +206,11 @@ namespace lucid::gpu
 
     void CGLShader::Use()
     {
-        glUseProgram(glShaderID);
-        GGPUState->Shader = this;
+        if (GGPUState->Shader != this)
+        {
+            glUseProgram(glShaderID);
+            GGPUState->Shader = this;            
+        }
     }
 
     void CGLShader::Disable()

@@ -59,7 +59,7 @@ namespace lucid::scene
         EMaterialType    MaterialType = EMaterialType::NONE;
         u32              NumEntries   = 0;
         u32              MaxEntries   = 0;
-        std::vector<u32> FreeIndices;
+        std::vector<i32> FreeIndices;
     };
 
     struct FMeshBatch
@@ -83,7 +83,7 @@ namespace lucid::scene
         virtual void Cleanup() override;
 
         virtual gpu::CFramebuffer* GetResultFramebuffer() override { return FrameResultFramebuffer; }
-        virtual gpu::CTexture*     GetResultFrameTexture() override { return FrameResultTextures[GRenderStats.FrameNumber % NumFrameBuffers]; }
+        virtual gpu::CTexture*     GetResultFrameTexture() override { return FrameResultTextures[(GRenderStats.FrameNumber - 2) % NumFrameBuffers]; }
 
         virtual ~CForwardRenderer() = default;
 
@@ -91,6 +91,12 @@ namespace lucid::scene
         float AmbientStrength = 0.1;
         int   NumSamplesPCF   = 5;
         int   NumFrameBuffers = 2;
+        bool  bEnableSSAO     = true;
+        u8    NumSSAOSamples  = 64;
+        float SSAOBias        = 0.025;
+        float SSAORadius      = 0.5;
+        bool  bDrawGrid       = true;
+        bool  bEnableDepthPrepass   = true;
 
       private:
         FMaterialDataBuffer CreateMaterialBuffer(CMaterial const* InMaterial, const u32& InMaterialBufferSize);
@@ -112,7 +118,6 @@ namespace lucid::scene
         void RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView);
 
         void DoGammaCorrection(gpu::CTexture* InTexture);
-
 
 #if DEVELOPMENT
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
@@ -140,7 +145,6 @@ namespace lucid::scene
         /** Preconfigured pipeline states */
         gpu::FPipelineState ShadowMapGenerationPipelineState;
         gpu::FPipelineState PrepassPipelineState;
-        gpu::FPipelineState InitialLightLightpassPipelineState;
         gpu::FPipelineState LightpassPipelineState;
         gpu::FPipelineState SkyboxPipelineState;
         gpu::FPipelineState GammaCorrectionPipelineState;
@@ -152,10 +156,6 @@ namespace lucid::scene
         gpu::CShader* SSAOShader;
         gpu::CShader* BillboardShader;
         gpu::CShader* GammaCorrectionShader;
-
-        u8    NumSSAOSamples = 64;
-        float SSAOBias       = 0.025;
-        float SSAORadius     = 0.5;
 
         /** Blur shader */
         gpu::CShader* SimpleBlurShader;
@@ -219,6 +219,8 @@ namespace lucid::scene
         std::unordered_map<EMaterialType, FFreeMaterialBufferEntries> NewFreeMaterialBuffersEntries; // entries freed during current frame
 
         gpu::CFence* PersistentBuffersFences[FRAME_DATA_BUFFERS_COUNT];
+
+        u64 BlankTextureBindlessHandle = 0;
 
 #if DEVELOPMENT
       public:

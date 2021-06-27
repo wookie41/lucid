@@ -130,8 +130,16 @@ namespace lucid::gpu
     void CGLBuffer::BindIndexed(const uint32_t& Index, const EBufferBindPoint& BindPoint, const u32& InSize, const u32& InOffset)
     {
         assert(GLBufferHandle);
-        CurrentBindPoint = BindPoint;
-        glBindBufferRange(AS_GL_BIND_POINT(BindPoint), Index, GLBufferHandle, InOffset, InSize == 0 ? BufferDescription.Size : InSize);            
+        if (GGPUState->IndexedBuffers[Index].Buffer != this || GGPUState->IndexedBuffers[Index].Size != InSize || GGPUState->IndexedBuffers[Index].Offset != InOffset || CurrentBindPoint != BindPoint)
+        {
+            CurrentBindPoint = BindPoint;
+            
+            GGPUState->IndexedBuffers[Index].Buffer = this;
+            GGPUState->IndexedBuffers[Index].Offset = InOffset;
+            GGPUState->IndexedBuffers[Index].Size = InSize;
+            
+            glBindBufferRange(AS_GL_BIND_POINT(BindPoint), Index, GLBufferHandle, InOffset, InSize == 0 ? BufferDescription.Size : InSize);
+        }
     }
     void CGLBuffer::BindAsVertexBuffer(const u32& InIndex, const u32& InStride)
    {
