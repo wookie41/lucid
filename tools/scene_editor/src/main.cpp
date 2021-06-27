@@ -1351,7 +1351,7 @@ void UIDrawTextureImporter()
 
 void UIDrawMeshContextMenu()
 {
-    ImGui::Text(*GSceneEditorState.ClickedMeshResource->GetName());
+    UIOpenPopup(*GSceneEditorState.ClickedMeshResource->GetName());
     if (ImGui::Button("Migrate to latest version"))
     {
         GSceneEditorState.ClickedMeshResource->MigrateToLatestVersion();
@@ -1380,7 +1380,8 @@ void UIDrawMeshContextMenu()
 
 void UIDrawTextureContextMenu()
 {
-    ImGui::Text(*GSceneEditorState.ClickedTextureResource->GetName());
+    UIOpenPopup(*GSceneEditorState.ClickedTextureResource->GetName());
+
     if (ImGui::Button("Migrate to latest version"))
     {
         GSceneEditorState.ClickedTextureResource->MigrateToLatestVersion();
