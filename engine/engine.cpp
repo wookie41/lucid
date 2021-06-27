@@ -38,6 +38,7 @@ namespace lucid
         {
 #ifndef NDEBUG
             ShadersManager.EnableHotReload();
+            gpu::ReloadShaders();
 #endif
         }
 
@@ -48,6 +49,7 @@ namespace lucid
         ForwardRenderer->ResultResolution = { 1920, 1080 };
         Renderer = ForwardRenderer;
 
+        
         EngineObjects.Add(&MeshesHolder);
         EngineObjects.Add(&TexturesHolder);
 
