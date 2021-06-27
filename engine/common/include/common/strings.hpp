@@ -8,6 +8,8 @@ namespace lucid
     /** Macro which in future will handle cross-platform UTF-16 */
     #define LUCID_TEXT(text) text
 
+    using THash = u64;
+
     /**
      * Base string providing a common interface for string usage
      */

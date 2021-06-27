@@ -33,12 +33,12 @@ namespace lucid::resources
 {
 #define SUBMESH_INFO_SIZE (((sizeof(u32) * 4) + (sizeof(bool) * 4)))
 
-    CMeshResource::CMeshResource(const UUID& InID,
+    CMeshResource::CMeshResource(const UUID&    InID,
                                  const FString& InName,
                                  const FString& InFilePath,
-                                 const u64& InOffset,
-                                 const u64& InDataSize,
-                                 const u32& InAssetSerializationVersion)
+                                 const u64&     InOffset,
+                                 const u64&     InDataSize,
+                                 const u32&     InAssetSerializationVersion)
     : CResource(InID, InName, InFilePath, InOffset, InDataSize, InAssetSerializationVersion)
     {
     }
@@ -142,7 +142,7 @@ namespace lucid::resources
         // Close the file
         fclose(MeshFile);
         bLoadedToMainMemory = true;
-        IsVideoMemoryFreed = false;
+        IsVideoMemoryFreed  = false;
     }
 
     void CMeshResource::LoadDataToVideoMemorySynchronously()
@@ -157,7 +157,7 @@ namespace lucid::resources
         {
             LoadDataToMainMemorySynchronously();
         }
-        
+
         for (u16 i = 0; i < SubMeshes.GetLength(); ++i)
         {
             FSubMesh* SubMesh = SubMeshes[i];
@@ -176,7 +176,8 @@ namespace lucid::resources
                 GPUBufferDescription.Data = SubMesh->ElementDataBuffer.Pointer;
                 GPUBufferDescription.Size = SubMesh->ElementDataBuffer.Size;
 
-                SubMesh->ElementBuffer = gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC_DRAW, SPrintf("%s_ElementBuffer_%d", *Name, i));
+                SubMesh->ElementBuffer =
+                  gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC_DRAW, SPrintf("%s_ElementBuffer_%d", *Name, i));
                 assert(SubMesh->ElementBuffer);
             }
 
@@ -240,7 +241,7 @@ namespace lucid::resources
         }
 
         bLoadedToVideoMemory = true;
-        IsMainMemoryFreed = false;
+        IsMainMemoryFreed    = false;
     }
 
     void CMeshResource::SaveSynchronously(FILE* ResourceFile) const
@@ -296,7 +297,7 @@ namespace lucid::resources
                 free(SubMeshes[i]->ElementDataBuffer.Pointer);
             }
 
-            IsMainMemoryFreed = true;
+            IsMainMemoryFreed   = true;
             bLoadedToMainMemory = false;
         }
     }
@@ -314,7 +315,7 @@ namespace lucid::resources
                 delete SubMeshes[i]->ElementBuffer;
             }
 
-            IsVideoMemoryFreed = true;
+            IsVideoMemoryFreed   = true;
             bLoadedToVideoMemory = false;
         }
     }
@@ -332,24 +333,29 @@ namespace lucid::resources
         aiString Name;
 
         bool bHasPositions = false;
-        bool bHasNormals = false;
-        bool bHasTangents = false;
-        bool bHasUVs = false;
+        bool bHasNormals   = false;
+        bool bHasTangents  = false;
+        bool bHasUVs       = false;
 
         FMemBuffer VertexData;
         FMemBuffer ElementData;
 
-        u32 VertexCount = 0;
+        u32 VertexCount  = 0;
         u32 ElementCount = 0;
 
         u8 MaterialIndex = 0;
+
+        u16 VertexSize = 0;
     };
 
     /* Helper structure used when importing the mesh */
     struct FMeshInfoHelper
     {
         FArray<FMeshImportInfo> SubMeshes{ 1, true };
-
+        /**
+         * Mapping used to combine meshes using the same material to a single VBO
+         * so we can reduce the number of draw calls
+         */
         float MinX = 0, MaxX = 0;
         float MinY = 0, MaxY = 0;
         float MinZ = 0, MaxZ = 0;
@@ -358,7 +364,7 @@ namespace lucid::resources
     /* Helper structure used when importing the mesh */
     struct FMeshDataSize
     {
-        u32 VertexDataSize = 0;
+        u32 VertexDataSize  = 0;
         u32 ElementDataSize = 0;
     };
 
@@ -367,8 +373,8 @@ namespace lucid::resources
         FMeshDataSize MeshSize;
         for (u32 idx = 0; idx < Node->mNumMeshes; ++idx)
         {
-            aiMesh* MeshNode = Scene->mMeshes[Node->mMeshes[idx]];
-            u32 vertexSize = 0;
+            aiMesh* MeshNode   = Scene->mMeshes[Node->mMeshes[idx]];
+            u32     vertexSize = 0;
 
             assert(MeshNode->HasPositions());
             assert(MeshNode->HasNormals());
@@ -420,13 +426,13 @@ namespace lucid::resources
     static void LoadAssimpMesh(aiMesh* Mesh, FMeshInfoHelper& MeshData);
     static void LoadAssimpMeshAsSingleMesh(aiMesh* Mesh, FMeshInfoHelper& MeshData, FMeshImportInfo& CombinedMesh);
 
-    static CTextureResource* AssimpImportMaterialTexture(const u8& InIndex,
+    static CTextureResource* AssimpImportMaterialTexture(const u8&      InIndex,
                                                          const FString& ModelFileDir,
-                                                         aiMaterial* Material,
-                                                         aiTextureType TextureType,
+                                                         aiMaterial*    Material,
+                                                         aiTextureType  TextureType,
                                                          const FString& MeshName,
                                                          const FString& TextureTypeName,
-                                                         const bool& InFlipUV);
+                                                         const bool&    InFlipUV);
 
     FArray<CMeshResource*>
     ImportMesh(const FString& InMeshFilePath, const FString& MeshName, const bool& InbFilpUVs, const EMeshImportStretegy& InMeshImportStrategy)
@@ -435,8 +441,8 @@ namespace lucid::resources
         real StartTime = platform::GetCurrentTimeSeconds();
 #endif
 
-        auto AssimpFlags = ASSIMP_DEFAULT_FLAGS;
-        const aiScene* Root = AssimpImporter.ReadFile(*InMeshFilePath, AssimpFlags);
+        auto           AssimpFlags = ASSIMP_DEFAULT_FLAGS;
+        const aiScene* Root        = AssimpImporter.ReadFile(*InMeshFilePath, AssimpFlags);
 
         LUCID_LOG(ELogLevel::INFO, "Reading mesh with assimp %s took %f", *InMeshFilePath, platform::GetCurrentTimeSeconds() - StartTime);
 
@@ -457,7 +463,7 @@ namespace lucid::resources
         const FMeshDataSize MeshDataSize = AssimpCalculateMeshDataSize(Root->mRootNode, Root);
 
         std::filesystem::path MeshFilePath{ *InMeshFilePath };
-        FDString MeshFileDirPath = CopyToString(MeshFilePath.parent_path().string().c_str()); // @TODO .string().c_str()
+        FDString              MeshFileDirPath = CopyToString(MeshFilePath.parent_path().string().c_str()); // @TODO .string().c_str()
                                                                                               // once we support wchars
 
         FArray<CMeshResource*> ImportedMeshes{ InMeshImportStrategy == EMeshImportStretegy::SPLIT_MESHES ? Root->mNumMeshes : 1, false };
@@ -473,7 +479,7 @@ namespace lucid::resources
                                                     MESH_SERIALIZATION_VERSION };
             ImportedMeshes.Add(ImportedMesh);
 
-            FMeshImportInfo CombinedMeshInfo {};
+            FMeshImportInfo CombinedMeshInfo{};
             CombinedMeshInfo.VertexData = CreateMemBuffer(MeshDataSize.VertexDataSize);
             if (MeshDataSize.ElementDataSize > 0)
             {
@@ -483,15 +489,15 @@ namespace lucid::resources
             LoadAssimpNodeAsSingleMesh(Root->mRootNode, Root, MeshInfoHelper, CombinedMeshInfo);
 
             FSubMesh CombinedMesh;
-            CombinedMesh.bHasPositions = Root->mMeshes[0]->HasPositions();
-            CombinedMesh.bHasNormals = Root->mMeshes[0]->HasNormals();
-            CombinedMesh.bHasTangetns = Root->mMeshes[0]->HasTangentsAndBitangents();
-            CombinedMesh.bHasUVs = Root->mMeshes[0]->HasTextureCoords(0);
-            CombinedMesh.VertexDataBuffer = CombinedMeshInfo.VertexData;
+            CombinedMesh.bHasPositions     = Root->mMeshes[0]->HasPositions();
+            CombinedMesh.bHasNormals       = Root->mMeshes[0]->HasNormals();
+            CombinedMesh.bHasTangetns      = Root->mMeshes[0]->HasTangentsAndBitangents();
+            CombinedMesh.bHasUVs           = Root->mMeshes[0]->HasTextureCoords(0);
+            CombinedMesh.VertexDataBuffer  = CombinedMeshInfo.VertexData;
             CombinedMesh.ElementDataBuffer = CombinedMeshInfo.ElementData;
-            CombinedMesh.VertexCount = CombinedMeshInfo.VertexCount;
-            CombinedMesh.ElementCount = CombinedMeshInfo.ElementCount;
-            CombinedMesh.MaterialIndex = 0;
+            CombinedMesh.VertexCount       = CombinedMeshInfo.VertexCount;
+            CombinedMesh.ElementCount      = CombinedMeshInfo.ElementCount;
+            CombinedMesh.MaterialIndex     = 0;
             ImportedMesh->SubMeshes.Add(CombinedMesh);
 
             ImportedMesh->MinPosX = MeshInfoHelper.MinX;
@@ -511,9 +517,9 @@ namespace lucid::resources
             {
                 for (u16 i = 0; i < MeshInfoHelper.SubMeshes.GetLength(); ++i)
                 {
-                    const auto& SubMeshInfo = MeshInfoHelper.SubMeshes[i];
-                    auto SubMeshName = SPrintf("%s_%s", *MeshName, SubMeshInfo->Name.C_Str());
-                    auto* ImportedMesh = new CMeshResource{ sole::uuid4(),
+                    const auto& SubMeshInfo  = MeshInfoHelper.SubMeshes[i];
+                    auto        SubMeshName  = SPrintf("%s_%s", *MeshName, SubMeshInfo->Name.C_Str());
+                    auto*       ImportedMesh = new CMeshResource{ sole::uuid4(),
                                                             SubMeshName,
                                                             SPrintf("assets/meshes/%s.asset", *SubMeshName, SubMeshInfo->Name.C_Str()),
                                                             0,
@@ -522,15 +528,15 @@ namespace lucid::resources
                     ImportedMeshes.Add(ImportedMesh);
 
                     FSubMesh SubMesh;
-                    SubMesh.MaterialIndex = 0;
-                    SubMesh.bHasPositions = SubMeshInfo->bHasPositions;
-                    SubMesh.bHasNormals = SubMeshInfo->bHasNormals;
-                    SubMesh.bHasTangetns = SubMeshInfo->bHasTangents;
-                    SubMesh.bHasUVs = SubMeshInfo->bHasUVs;
-                    SubMesh.VertexDataBuffer = SubMeshInfo->VertexData;
+                    SubMesh.MaterialIndex     = 0;
+                    SubMesh.bHasPositions     = SubMeshInfo->bHasPositions;
+                    SubMesh.bHasNormals       = SubMeshInfo->bHasNormals;
+                    SubMesh.bHasTangetns      = SubMeshInfo->bHasTangents;
+                    SubMesh.bHasUVs           = SubMeshInfo->bHasUVs;
+                    SubMesh.VertexDataBuffer  = SubMeshInfo->VertexData;
                     SubMesh.ElementDataBuffer = SubMeshInfo->ElementData;
-                    SubMesh.VertexCount = SubMeshInfo->VertexCount;
-                    SubMesh.ElementCount = SubMeshInfo->ElementCount;
+                    SubMesh.VertexCount       = SubMeshInfo->VertexCount;
+                    SubMesh.ElementCount      = SubMeshInfo->ElementCount;
                     ImportedMesh->SubMeshes.Add(SubMesh);
 
                     ImportedMesh->MinPosX = MeshInfoHelper.MinX;
@@ -556,15 +562,15 @@ namespace lucid::resources
                 for (u16 i = 0; i < MeshInfoHelper.SubMeshes.GetLength(); ++i)
                 {
                     FSubMesh SubMesh;
-                    SubMesh.MaterialIndex = MeshInfoHelper.SubMeshes[i]->MaterialIndex;
-                    SubMesh.bHasPositions = MeshInfoHelper.SubMeshes[i]->bHasPositions;
-                    SubMesh.bHasNormals = MeshInfoHelper.SubMeshes[i]->bHasNormals;
-                    SubMesh.bHasTangetns = MeshInfoHelper.SubMeshes[i]->bHasTangents;
-                    SubMesh.bHasUVs = MeshInfoHelper.SubMeshes[i]->bHasUVs;
-                    SubMesh.VertexDataBuffer = MeshInfoHelper.SubMeshes[i]->VertexData;
+                    SubMesh.MaterialIndex     = MeshInfoHelper.SubMeshes[i]->MaterialIndex;
+                    SubMesh.bHasPositions     = MeshInfoHelper.SubMeshes[i]->bHasPositions;
+                    SubMesh.bHasNormals       = MeshInfoHelper.SubMeshes[i]->bHasNormals;
+                    SubMesh.bHasTangetns      = MeshInfoHelper.SubMeshes[i]->bHasTangents;
+                    SubMesh.bHasUVs           = MeshInfoHelper.SubMeshes[i]->bHasUVs;
+                    SubMesh.VertexDataBuffer  = MeshInfoHelper.SubMeshes[i]->VertexData;
                     SubMesh.ElementDataBuffer = MeshInfoHelper.SubMeshes[i]->ElementData;
-                    SubMesh.VertexCount = MeshInfoHelper.SubMeshes[i]->VertexCount;
-                    SubMesh.ElementCount = MeshInfoHelper.SubMeshes[i]->ElementCount;
+                    SubMesh.VertexCount       = MeshInfoHelper.SubMeshes[i]->VertexCount;
+                    SubMesh.ElementCount      = MeshInfoHelper.SubMeshes[i]->ElementCount;
                     ImportedMesh->SubMeshes.Add(SubMesh);
                 }
 
@@ -582,7 +588,7 @@ namespace lucid::resources
         // Create actors for the meshes
         if (InMeshImportStrategy == EMeshImportStretegy::SPLIT_MESHES)
         {
-            FArray<scene::CMaterial*> ImportedMaterials { 1, true };
+            FArray<scene::CMaterial*> ImportedMaterials{ 1, true };
 
             // Load materials
             for (int MaterialIndex = 0; MaterialIndex < Root->mNumMaterials; ++MaterialIndex)
@@ -607,10 +613,10 @@ namespace lucid::resources
                   AssimpImportMaterialTexture(0, MeshFileDirPath, Material, aiTextureType_HEIGHT, MeshName, FString{ "Normal" }, InbFilpUVs);
 
                 auto* ImportedMaterial = new scene::CBlinnPhongMapsMaterial{ sole::uuid4(),
-                                                       SPrintf("%s_%s", *MeshName, MaterialName.C_Str()),
-                                                       SPrintf("assets/materials/%s_%s.asset", *MeshName, MaterialName.C_Str()),
-                                                       GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
-                
+                                                                             SPrintf("%s_%s", *MeshName, MaterialName.C_Str()),
+                                                                             SPrintf("assets/materials/%s_%s.asset", *MeshName, MaterialName.C_Str()),
+                                                                             GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+
                 ImportedMaterial->SetShininess(32);
                 ImportedMaterial->SetDiffuseMap(DiffuseMap);
                 ImportedMaterial->SetSpecularMap(SpecularMap);
@@ -628,14 +634,14 @@ namespace lucid::resources
             // Create a static mesh actor for each of the submeshes
             for (u32 i = 0; i < ImportedMeshes.GetLength(); ++i)
             {
-                auto* ImportedMesh = *ImportedMeshes[i];
+                auto* ImportedMesh         = *ImportedMeshes[i];
                 auto* StaticMeshActorAsset = new scene::CStaticMesh{ SPrintf("%s_%s", *MeshName, MeshInfoHelper.SubMeshes[i]->Name.C_Str()),
                                                                      nullptr,
                                                                      nullptr,
                                                                      ImportedMesh,
                                                                      scene::EStaticMeshType::STATIONARY };
 
-                StaticMeshActorAsset->ResourceId = sole::uuid4();
+                StaticMeshActorAsset->ResourceId   = sole::uuid4();
                 StaticMeshActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *StaticMeshActorAsset->Name);
 
                 StaticMeshActorAsset->AddMaterial(*ImportedMaterials[MeshInfoHelper.SubMeshes[i]->MaterialIndex]);
@@ -650,7 +656,7 @@ namespace lucid::resources
             auto* StaticMeshActorAsset = new scene::CStaticMesh{
                 CopyToString(*MeshName, MeshName.GetLength()), nullptr, nullptr, *ImportedMeshes[0], scene::EStaticMeshType::STATIONARY
             };
-            StaticMeshActorAsset->ResourceId = sole::uuid4();
+            StaticMeshActorAsset->ResourceId   = sole::uuid4();
             StaticMeshActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *MeshName);
 
             // Load materials
@@ -740,52 +746,105 @@ namespace lucid::resources
 
     void LoadAssimpMesh(aiMesh* Mesh, FMeshInfoHelper& MeshData)
     {
-        FMeshImportInfo SubMeshInfo;
-        SubMeshInfo.VertexCount = Mesh->mNumVertices;
-        SubMeshInfo.ElementCount = Mesh->mNumFaces * 3;
-        SubMeshInfo.Name = Mesh->mName;
+        u32              ElementDataOffset = 0;
+        FMeshImportInfo* SubMeshInfo       = nullptr;
 
-        u16 VertexSize = 0;
-        if (Mesh->HasPositions())
+        // Check if we already have as submesh using this material
+        for (u32 i = 0; i < MeshData.SubMeshes.GetLength(); ++i)
         {
-            VertexSize += sizeof(glm::vec3);
-            SubMeshInfo.bHasPositions = true;
+            if (MeshData.SubMeshes[i]->MaterialIndex == Mesh->mMaterialIndex)
+            {
+                SubMeshInfo = MeshData.SubMeshes[i];
+                break;
+            }
         }
 
-        if (Mesh->HasNormals())
+        // If we have - combine meshes data
+        if (SubMeshInfo)
         {
-            VertexSize += sizeof(glm::vec3);
-            SubMeshInfo.bHasNormals = true;
-        }
+            if (SubMeshInfo->ElementCount)
+            {
+                assert(Mesh->mNumFaces);
+            }
 
-        if (Mesh->HasTangentsAndBitangents())
+            // Create a bigger vertex and element buffers to accomodate for the new data
+            const u32 VertexDataSize  = (SubMeshInfo->VertexCount + Mesh->mNumVertices) * SubMeshInfo->VertexSize;
+            const u32 ElementDataSize = (SubMeshInfo->ElementCount + (Mesh->mNumFaces * 3)) * sizeof(u32);
+
+            FMemBuffer NewVertexBuffer  = CreateMemBuffer(VertexDataSize);
+            FMemBuffer NewElementBuffer = ElementDataSize > 0 ? CreateMemBuffer(ElementDataSize) : FMemBuffer{};
+
+            // Copy current vertex data
+            memcpy(NewVertexBuffer.Pointer, SubMeshInfo->VertexData.Pointer, SubMeshInfo->VertexData.Size);
+            NewVertexBuffer.Size = SubMeshInfo->VertexData.Size;
+            SubMeshInfo->VertexData.Free();
+            SubMeshInfo->VertexData = NewVertexBuffer;
+
+            if (SubMeshInfo->ElementCount)
+            {
+                // Copy current element data
+                memcpy(NewElementBuffer.Pointer, SubMeshInfo->ElementData.Pointer, SubMeshInfo->ElementData.Size);
+                NewElementBuffer.Size = SubMeshInfo->ElementData.Size;
+                SubMeshInfo->ElementData.Free();
+                SubMeshInfo->ElementData = NewElementBuffer;
+            }
+
+            ElementDataOffset = SubMeshInfo->VertexCount; 
+            
+            SubMeshInfo->VertexCount += Mesh->mNumVertices;
+            SubMeshInfo->ElementCount += (Mesh->mNumFaces * 3);
+        }
+        else
         {
-            VertexSize += sizeof(glm::vec3);
-            SubMeshInfo.bHasTangents = true;
+            FMeshImportInfo NewSubMesh;
+            NewSubMesh.MaterialIndex = Mesh->mMaterialIndex;
+            NewSubMesh.Name          = Mesh->mName;
+
+            if (Mesh->HasPositions())
+            {
+                NewSubMesh.VertexSize += sizeof(glm::vec3);
+                NewSubMesh.bHasPositions = true;
+            }
+
+            if (Mesh->HasNormals())
+            {
+                NewSubMesh.VertexSize += sizeof(glm::vec3);
+                NewSubMesh.bHasNormals = true;
+            }
+
+            if (Mesh->HasTangentsAndBitangents())
+            {
+                NewSubMesh.VertexSize += sizeof(glm::vec3);
+                NewSubMesh.bHasTangents = true;
+            }
+
+            if (Mesh->HasTextureCoords(0))
+            {
+                NewSubMesh.VertexSize += sizeof(glm::vec2);
+                NewSubMesh.bHasUVs = true;
+            }
+
+            const u32 VertexDataSize  = Mesh->mNumVertices * NewSubMesh.VertexSize;
+            const u32 ElementDataSize = (Mesh->mNumFaces * 3 * sizeof(u32));
+
+            NewSubMesh.VertexCount  = Mesh->mNumVertices;
+            NewSubMesh.ElementCount = Mesh->mNumFaces * 3;
+
+            NewSubMesh.VertexData  = CreateMemBuffer(VertexDataSize);
+            NewSubMesh.ElementData = ElementDataSize > 0 ? CreateMemBuffer(ElementDataSize) : FMemBuffer{};
+
+            MeshData.SubMeshes.Add(NewSubMesh);
+            SubMeshInfo = MeshData.SubMeshes.Last();
         }
-
-        if (Mesh->HasTextureCoords(0))
-        {
-            VertexSize += sizeof(glm::vec2);
-            SubMeshInfo.bHasUVs = true;
-        }
-
-        // UV
-        const u32 VertexDataSize = Mesh->mNumVertices * VertexSize;
-        const u32 ElementDataSize = (Mesh->mNumFaces * 3 * sizeof(u32));
-
-        SubMeshInfo.VertexData = CreateMemBuffer(VertexDataSize);
-        SubMeshInfo.ElementData = ElementDataSize > 0 ? CreateMemBuffer(ElementDataSize) : FMemBuffer{};
 
         for (uint32_t i = 0; i < Mesh->mNumVertices; ++i)
         {
-            glm::vec3* VertexDataPointer = (glm::vec3*)(SubMeshInfo.VertexData.Pointer + SubMeshInfo.VertexData.Size);
+            glm::vec3* VertexDataPointer = (glm::vec3*)(SubMeshInfo->VertexData.Pointer + SubMeshInfo->VertexData.Size);
 
-            // @TODO Extract the bHasXXX out of the loop to
-            // avoid so many checks
+            // @TODO Extract the bHasXXX out of the loop to avoid so many checks
 
             // Position
-            if (SubMeshInfo.bHasPositions)
+            if (SubMeshInfo->bHasPositions)
             {
                 VertexDataPointer->x = Mesh->mVertices[i].x;
                 VertexDataPointer->y = Mesh->mVertices[i].y;
@@ -801,36 +860,36 @@ namespace lucid::resources
                 MeshData.MaxZ = VertexDataPointer->z > MeshData.MaxZ ? VertexDataPointer->z : MeshData.MaxZ;
 
                 VertexDataPointer += 1;
-                SubMeshInfo.VertexData.Size += sizeof(glm::vec3);
+                SubMeshInfo->VertexData.Size += sizeof(glm::vec3);
             }
 
-            if (SubMeshInfo.bHasNormals)
+            if (SubMeshInfo->bHasNormals)
             {
                 VertexDataPointer->x = Mesh->mNormals[i].x;
                 VertexDataPointer->y = Mesh->mNormals[i].y;
                 VertexDataPointer->z = Mesh->mNormals[i].z;
                 VertexDataPointer += 1;
-                SubMeshInfo.VertexData.Size += sizeof(glm::vec3);
+                SubMeshInfo->VertexData.Size += sizeof(glm::vec3);
             }
 
-            if (SubMeshInfo.bHasTangents)
+            if (SubMeshInfo->bHasTangents)
             {
                 VertexDataPointer->x = Mesh->mTangents[i].x;
                 VertexDataPointer->y = Mesh->mTangents[i].y;
                 VertexDataPointer->z = Mesh->mTangents[i].z;
 
                 VertexDataPointer += 1;
-                SubMeshInfo.VertexData.Size += sizeof(glm::vec3);
+                SubMeshInfo->VertexData.Size += sizeof(glm::vec3);
             }
 
-            if (SubMeshInfo.bHasUVs)
+            if (SubMeshInfo->bHasUVs)
             {
                 glm::vec2* texPtr = (glm::vec2*)VertexDataPointer;
 
-                texPtr->x = Mesh->mTextureCoords[0][i].x;
-                texPtr->y = Mesh->mTextureCoords[0][i].y;
+                texPtr->x         = Mesh->mTextureCoords[0][i].x;
+                texPtr->y         = Mesh->mTextureCoords[0][i].y;
                 VertexDataPointer = (glm::vec3*)(texPtr + 1);
-                SubMeshInfo.VertexData.Size += sizeof(glm::vec2);
+                SubMeshInfo->VertexData.Size += sizeof(glm::vec2);
             }
         }
 
@@ -842,18 +901,15 @@ namespace lucid::resources
             aiFace* Face = Mesh->mFaces + idx;
 
             // Copy the face's indices to the element buffer
-            u32* ElementPtr = (uint32_t*)(SubMeshInfo.ElementData.Pointer + SubMeshInfo.ElementData.Size);
+            u32*           ElementPtr   = (uint32_t*)(SubMeshInfo->ElementData.Pointer + SubMeshInfo->ElementData.Size);
             const uint32_t FaceDataSize = 3 * sizeof(uint32_t);
 
-            ElementPtr[0] = Face->mIndices[0];
-            ElementPtr[1] = Face->mIndices[1];
-            ElementPtr[2] = Face->mIndices[2];
+            ElementPtr[0] = ElementDataOffset + Face->mIndices[0];
+            ElementPtr[1] = ElementDataOffset + Face->mIndices[1];
+            ElementPtr[2] = ElementDataOffset + Face->mIndices[2];
 
-            SubMeshInfo.ElementData.Size += FaceDataSize;
+            SubMeshInfo->ElementData.Size += FaceDataSize;
         }
-
-        SubMeshInfo.MaterialIndex = Mesh->mMaterialIndex;
-        MeshData.SubMeshes.Add(SubMeshInfo);
     }
 
     void LoadAssimpMeshAsSingleMesh(aiMesh* Mesh, FMeshInfoHelper& MeshData, FMeshImportInfo& CombinedMesh)
@@ -861,7 +917,7 @@ namespace lucid::resources
         uint32_t CurrentTotalElementCount = CombinedMesh.VertexCount;
         CombinedMesh.VertexCount += Mesh->mNumVertices;
         CombinedMesh.ElementCount += Mesh->mNumFaces * 3;
-        
+
         for (uint32_t i = 0; i < Mesh->mNumVertices; ++i)
         {
             glm::vec3* VertexDataPointer = (glm::vec3*)(CombinedMesh.VertexData.Pointer + CombinedMesh.VertexData.Size);
@@ -912,7 +968,7 @@ namespace lucid::resources
             aiFace* Face = Mesh->mFaces + idx;
 
             // Copy the face's indices to the element buffer
-            u32* ElementPtr = (uint32_t*)(CombinedMesh.ElementData.Pointer + CombinedMesh.ElementData.Size);
+            u32*           ElementPtr   = (uint32_t*)(CombinedMesh.ElementData.Pointer + CombinedMesh.ElementData.Size);
             const uint32_t FaceDataSize = 3 * sizeof(uint32_t);
 
             ElementPtr[0] = (CurrentTotalElementCount + Face->mIndices[0]);
@@ -923,13 +979,13 @@ namespace lucid::resources
         }
     }
 
-    static CTextureResource* AssimpImportMaterialTexture(const u8& InIndex,
+    static CTextureResource* AssimpImportMaterialTexture(const u8&      InIndex,
                                                          const FString& InMeshDirPath,
-                                                         aiMaterial* Material,
-                                                         aiTextureType TextureType,
+                                                         aiMaterial*    Material,
+                                                         aiTextureType  TextureType,
                                                          const FString& MeshName,
                                                          const FString& TextureTypeName,
-                                                         const bool& InFlipUV)
+                                                         const bool&    InFlipUV)
     {
         // Import the texture
         aiString TextureFilePath;
@@ -940,8 +996,8 @@ namespace lucid::resources
         std::filesystem::path Path{ TextureFilePath.C_Str() };
         Path.replace_extension("");
 
-        FDString TexturePath = SPrintf("%s/%s", *InMeshDirPath, TextureFilePath.C_Str());
-        FDString TextureName = SPrintf("%s_Texture_%s_%s", *MeshName, Path.filename().string().c_str(), *TextureTypeName);
+        FDString TexturePath             = SPrintf("%s/%s", *InMeshDirPath, TextureFilePath.C_Str());
+        FDString TextureName             = SPrintf("%s_Texture_%s_%s", *MeshName, Path.filename().string().c_str(), *TextureTypeName);
         FDString TextureResourceFilePath = SPrintf("assets/textures/%s.asset", *TextureName);
 
         bool bGammaCorrect = false;
@@ -953,9 +1009,10 @@ namespace lucid::resources
             break;
         }
 
-        CTextureResource* Texture = ImportTexture(TexturePath, TextureResourceFilePath, bGammaCorrect, gpu::ETextureDataType::UNSIGNED_BYTE, InFlipUV, false, TextureName);
+        CTextureResource* Texture =
+          ImportTexture(TexturePath, TextureResourceFilePath, bGammaCorrect, gpu::ETextureDataType::UNSIGNED_BYTE, InFlipUV, false, TextureName);
         Texture->FreeMainMemory();
-        
+
         // Update engine resources database
         GEngine.AddTextureResource(Texture);
 

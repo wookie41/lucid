@@ -14,6 +14,13 @@ namespace lucid
         char*   Pointer     = nullptr;
         u32     Capacity    = 0;
         u32     Size        = 0;
+
+        void Free()
+        {
+            assert(Pointer);
+            free(Pointer);
+            Pointer = nullptr;
+        }
     };
 
     struct FBinaryData

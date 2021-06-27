@@ -22,9 +22,14 @@ namespace lucid
 
         inline u32 GetLength() const { return Length; }
         inline u32 GetCapacity() const { return Capacity; } 
-        inline u64 GetSizeInBytes() const { return sizeof(T) * Length; } 
+        inline u64 GetSizeInBytes() const { return sizeof(T) * Length; }
+        inline T* Last()
+        {
+            assert(Length);
+            return ArrayPointer + (Length - 1);
+        }
 
-      private:
+    private:
         T*      ArrayPointer;
         bool    AutoResize;
         u8      ResizeFactor;
