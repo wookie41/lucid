@@ -221,94 +221,115 @@
             "Type": 1
         },
         {
-            "Id": "1fbf7dfa-75e6-447c-8ca8-28ce0e30a2dc",
+            "Id": "fc3903b8-7a56-414c-afc8-0709c2bd1ded",
             "Name": "Nanosuit_Texture_arm_dif_Diffuse",
             "Path": "assets/textures/Nanosuit_Texture_arm_dif_Diffuse.asset"
         },
         {
-            "Id": "a4e35be2-ff30-4eb7-bf10-a8719a0f06df",
+            "Id": "9c288377-9a84-4d76-a80d-38fc1dd9a33a",
             "Name": "Nanosuit_Texture_arm_showroom_spec_Specular",
             "Path": "assets/textures/Nanosuit_Texture_arm_showroom_spec_Specular.asset"
         },
         {
-            "Id": "2433423e-6572-460d-9410-882751e48376",
+            "Id": "8881e27c-f042-40b7-841d-059322d7736a",
             "Name": "Nanosuit_Texture_arm_showroom_ddn_Normal",
             "Path": "assets/textures/Nanosuit_Texture_arm_showroom_ddn_Normal.asset"
         },
         {
-            "Id": "b3f47697-7dd3-4817-8679-9d7af3a9f309",
+            "Id": "7567d2a0-c064-435f-8dd8-b0993f1a6eb6",
             "Name": "Nanosuit_Texture_body_dif_Diffuse",
             "Path": "assets/textures/Nanosuit_Texture_body_dif_Diffuse.asset"
         },
         {
-            "Id": "a287193c-f9e0-492c-b1a7-d08060afbd42",
+            "Id": "1b3a9203-d26b-417c-a93c-9d596ead2233",
             "Name": "Nanosuit_Texture_body_showroom_spec_Specular",
             "Path": "assets/textures/Nanosuit_Texture_body_showroom_spec_Specular.asset"
         },
         {
-            "Id": "1feefc90-314e-4edf-96ac-727415798de3",
+            "Id": "89e4991b-eaa3-409a-b1b7-ab4d3af1848f",
             "Name": "Nanosuit_Texture_body_showroom_ddn_Normal",
             "Path": "assets/textures/Nanosuit_Texture_body_showroom_ddn_Normal.asset"
         },
         {
-            "Id": "77c4cfa9-4d6e-4d41-be36-d94b8d29b451",
+            "Id": "49d8b08d-4f69-4a9e-8bb7-f616c9e9b5e9",
             "Name": "Nanosuit_Texture_glass_dif_Diffuse",
             "Path": "assets/textures/Nanosuit_Texture_glass_dif_Diffuse.asset"
         },
         {
-            "Id": "f6b7e262-d0a0-4714-885d-03c0d3217a1c",
+            "Id": "2a6e2c80-547d-4cbc-98d3-81314548425b",
             "Name": "Nanosuit_Texture_glass_ddn_Normal",
             "Path": "assets/textures/Nanosuit_Texture_glass_ddn_Normal.asset"
         },
         {
-            "Id": "021e6732-8fc3-40bb-a43d-d4cd211093e1",
+            "Id": "b2567012-3da8-4c36-bfca-6680307b58fc",
             "Name": "Nanosuit_Texture_hand_dif_Diffuse",
             "Path": "assets/textures/Nanosuit_Texture_hand_dif_Diffuse.asset"
         },
         {
-            "Id": "0e83d686-a6c3-4884-ac42-f2fe85db0edd",
+            "Id": "c1d71c9c-94ed-4d73-8959-c70560af7d83",
             "Name": "Nanosuit_Texture_hand_showroom_spec_Specular",
             "Path": "assets/textures/Nanosuit_Texture_hand_showroom_spec_Specular.asset"
         },
         {
-            "Id": "de72aa0f-939d-4df2-8f10-382cc96a069d",
+            "Id": "c954a193-59c2-4950-90b3-9d8239a7a73e",
             "Name": "Nanosuit_Texture_hand_showroom_ddn_Normal",
             "Path": "assets/textures/Nanosuit_Texture_hand_showroom_ddn_Normal.asset"
         },
         {
-            "Id": "40c0c5fc-492d-4004-8ecc-5eb428bc2af3",
+            "Id": "e553242e-ffa2-4e7d-819e-b9022ac0f5c9",
             "Name": "Nanosuit_Texture_helmet_diff_Diffuse",
             "Path": "assets/textures/Nanosuit_Texture_helmet_diff_Diffuse.asset"
         },
         {
-            "Id": "53b58f14-2af6-453a-a763-bd18282bbef7",
+            "Id": "c38b287c-dc13-4c0b-8127-93027502348c",
             "Name": "Nanosuit_Texture_helmet_showroom_spec_Specular",
             "Path": "assets/textures/Nanosuit_Texture_helmet_showroom_spec_Specular.asset"
         },
         {
-            "Id": "e35ddd43-0c03-4046-a2ae-68925d5aba1d",
+            "Id": "d7fe511a-fb07-471f-8eab-5eaa3c8da524",
             "Name": "Nanosuit_Texture_helmet_showroom_ddn_Normal",
             "Path": "assets/textures/Nanosuit_Texture_helmet_showroom_ddn_Normal.asset"
         },
         {
-            "Id": "1e0ff128-3fbf-483a-8edc-c633f3ae0a10",
+            "Id": "760c0db7-84cb-4e6b-a5f3-35819bda2e9f",
             "Name": "Nanosuit_Texture_leg_dif_Diffuse",
             "Path": "assets/textures/Nanosuit_Texture_leg_dif_Diffuse.asset"
         },
         {
-            "Id": "5027af42-d910-4caa-8dca-d5e2018d2181",
+            "Id": "0de46334-850c-4060-8a54-1e636b4eb494",
             "Name": "Nanosuit_Texture_leg_showroom_spec_Specular",
             "Path": "assets/textures/Nanosuit_Texture_leg_showroom_spec_Specular.asset"
         },
         {
-            "Id": "8c6f4d85-047f-431d-abb2-92180101b011",
+            "Id": "d6e12ee7-5f59-47d4-8656-f56a898ed5e8",
             "Name": "Nanosuit_Texture_leg_showroom_ddn_Normal",
             "Path": "assets/textures/Nanosuit_Texture_leg_showroom_ddn_Normal.asset"
         },
         {
-            "Id": "3bc6029a-997d-429d-898a-69a1773f4088",
+            "Id": "51b2549f-175f-423f-9215-ab362c5c695a",
             "Name": "Nanosuit",
             "Path": "assets/meshes/Nanosuit.asset",
+            "Type": 1
+        },
+        {
+            "Id": "0f4b3d0d-173a-42e7-bd1b-2549d186431e",
+            "Name": "Cyborg_Texture_cyborg_diffuse_Diffuse",
+            "Path": "assets/textures/Cyborg_Texture_cyborg_diffuse_Diffuse.asset"
+        },
+        {
+            "Id": "72c1aca8-e42a-4437-bc47-e302f46aa853",
+            "Name": "Cyborg_Texture_cyborg_specular_Specular",
+            "Path": "assets/textures/Cyborg_Texture_cyborg_specular_Specular.asset"
+        },
+        {
+            "Id": "02d49d63-c43c-40ba-938d-95addcecd9aa",
+            "Name": "Cyborg_Texture_cyborg_normal_Normal",
+            "Path": "assets/textures/Cyborg_Texture_cyborg_normal_Normal.asset"
+        },
+        {
+            "Id": "7b32848a-6eb4-4a16-a3f4-41b114b9d8e7",
+            "Name": "Cyborg",
+            "Path": "assets/meshes/Cyborg.asset",
             "Type": 1
         }
     ]

@@ -1,0 +1,10 @@
+{
+    "Id": "e76d2373-ed5f-4cef-a1b3-c1c03ca58a8d",
+    "Name": "Cyborg_DefaultMaterial",
+    "ShaderName": "BlinnPhongMaps",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

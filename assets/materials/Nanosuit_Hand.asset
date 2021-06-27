@@ -1,8 +1,8 @@
 {
-    "Id": "9e2d5312-ce91-441c-bf7c-9becaaa83482",
+    "Id": "ca096ba8-3807-40ba-ad96-3c4e3dae6107",
     "Name": "Nanosuit_Hand",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "021e6732-8fc3-40bb-a43d-d4cd211093e1",
-    "SpecularTextureID": "0e83d686-a6c3-4884-ac42-f2fe85db0edd",
-    "NormalTextureID": "de72aa0f-939d-4df2-8f10-382cc96a069d"
+    "DiffuseTextureID": "b2567012-3da8-4c36-bfca-6680307b58fc",
+    "SpecularTextureID": "c1d71c9c-94ed-4d73-8959-c70560af7d83",
+    "NormalTextureID": "c954a193-59c2-4950-90b3-9d8239a7a73e"
 }

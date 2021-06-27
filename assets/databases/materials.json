@@ -192,38 +192,53 @@
             "MaterialType": 3
         },
         {
-            "Id": "25ecdf8a-b6fb-4b3b-90b9-9729a1018c27",
+            "Id": "34142056-be13-421b-857e-1bb25d925253",
+            "MaterialPath": "assets/materials/Nanosuit_Helmet_NotFlipped.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "b602627d-3b1d-4004-934b-ba906f112c83",
             "MaterialPath": "assets/materials/Nanosuit_DefaultMaterial.asset",
             "MaterialType": 3
         },
         {
-            "Id": "33263c77-8702-481a-9bc3-e56996569508",
+            "Id": "24ca8415-4a41-49a5-9294-4dd6b43158ca",
             "MaterialPath": "assets/materials/Nanosuit_Arm.asset",
             "MaterialType": 3
         },
         {
-            "Id": "c252782e-9eb2-4b98-a339-096ddb5cde33",
+            "Id": "41cd291f-a246-4811-a32c-3a0e1feaa9ab",
             "MaterialPath": "assets/materials/Nanosuit_Body.asset",
             "MaterialType": 3
         },
         {
-            "Id": "ed0a75ea-ac6b-43f5-a216-450e1636d060",
+            "Id": "b6dc1b52-a893-4ce3-9bba-1961d1ffc386",
             "MaterialPath": "assets/materials/Nanosuit_Glass.asset",
             "MaterialType": 3
         },
         {
-            "Id": "9e2d5312-ce91-441c-bf7c-9becaaa83482",
+            "Id": "ca096ba8-3807-40ba-ad96-3c4e3dae6107",
             "MaterialPath": "assets/materials/Nanosuit_Hand.asset",
             "MaterialType": 3
         },
         {
-            "Id": "76e96798-d742-4014-a2b7-0a6a698d3ea9",
+            "Id": "81c417a0-c099-4a4a-b47d-7cac7920d85f",
             "MaterialPath": "assets/materials/Nanosuit_Helmet.asset",
             "MaterialType": 3
         },
         {
-            "Id": "c28a3b91-66fa-4488-801f-c1155f49f28e",
+            "Id": "12a42fe9-dc21-4543-9fba-004e2b929b70",
             "MaterialPath": "assets/materials/Nanosuit_Leg.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "e76d2373-ed5f-4cef-a1b3-c1c03ca58a8d",
+            "MaterialPath": "assets/materials/Cyborg_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "8b8c9f9a-cfdf-4a83-be12-cd7cfc5160e4",
+            "MaterialPath": "assets/materials/Cyborg_Cyborg.asset",
             "MaterialType": 3
         }
     ]

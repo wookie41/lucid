@@ -36,8 +36,13 @@
             "ActorType": 2
         },
         {
-            "ActorId": "c26d3f5e-a269-471e-9808-928e9e171e73",
+            "ActorId": "57e0ec34-05b4-4b81-9380-ee37ea0440ec",
             "ActorPath": "assets/actors/Nanosuit.asset",
+            "ActorType": 1
+        },
+        {
+            "ActorId": "58f893a2-3d23-4257-b645-f89006c67c0d",
+            "ActorPath": "assets/actors/Cyborg.asset",
             "ActorType": 1
         }
     ]
