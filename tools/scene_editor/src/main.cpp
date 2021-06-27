@@ -953,13 +953,13 @@ void UIDrawResourceBrowserWindow()
                     {
                         MeshResource->GetThumbnail()->ImGuiImageButton(ResourceItemSize);
                     }
+
+                    ImGui::Button(*MeshResource->GetName(), { ResourceItemWidth, MeshResource->GetThumbnail() ? 0 : ResourceItemWidth });
+                    ImGui::EndGroup();
                     if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
                     {
                         GSceneEditorState.ClickedMeshResource = MeshResource;
                     }
-
-                    ImGui::Button(*MeshResource->GetName(), { ResourceItemWidth, MeshResource->GetThumbnail() ? 0 : ResourceItemWidth });
-                    ImGui::EndGroup();
                     ++CurrentRowItemsCount;
                 }
             }
@@ -1351,8 +1351,7 @@ void UIDrawTextureImporter()
 
 void UIDrawMeshContextMenu()
 {
-    UIOpenPopup("Material actions");
-
+    ImGui::Text(*GSceneEditorState.ClickedMeshResource->GetName());
     if (ImGui::Button("Migrate to latest version"))
     {
         GSceneEditorState.ClickedMeshResource->MigrateToLatestVersion();
@@ -1381,8 +1380,7 @@ void UIDrawMeshContextMenu()
 
 void UIDrawTextureContextMenu()
 {
-    UIOpenPopup("Texture actions");
-
+    ImGui::Text(*GSceneEditorState.ClickedTextureResource->GetName());
     if (ImGui::Button("Migrate to latest version"))
     {
         GSceneEditorState.ClickedTextureResource->MigrateToLatestVersion();
