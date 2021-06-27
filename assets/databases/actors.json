@@ -21,28 +21,23 @@
             "ActorType": 1
         },
         {
-            "ActorId": "f1d722a9-af8e-4f7a-9e7f-3b271dc6ce9b",
-            "ActorPath": "assets/actors/Sponza.asset",
-            "ActorType": 1
-        },
-        {
-            "ActorId": "f1d722a9-af8e-4f7a-9e7f-3b271dc6ce9b",
-            "ActorPath": "assets/actors/Sponza.asset",
-            "ActorType": 1
-        },
-        {
             "ActorId": "2802c388-b5a0-4c84-aa87-2eb3545ed03f",
             "ActorPath": "assets/actors/TestSkybox.asset",
             "ActorType": 2
         },
         {
-            "ActorId": "57e0ec34-05b4-4b81-9380-ee37ea0440ec",
-            "ActorPath": "assets/actors/Nanosuit.asset",
+            "ActorId": "55a0d22d-2eaa-438e-bf49-b111bb076962",
+            "ActorPath": "assets/actors/Sponza.asset",
             "ActorType": 1
         },
         {
-            "ActorId": "58f893a2-3d23-4257-b645-f89006c67c0d",
+            "ActorId": "001f7432-2627-44d4-97d9-e78aea60560a",
             "ActorPath": "assets/actors/Cyborg.asset",
+            "ActorType": 1
+        },
+        {
+            "ActorId": "47e313d6-7b07-4207-ae14-0e7fad846573",
+            "ActorPath": "assets/actors/Nanosuit.asset",
             "ActorType": 1
         }
     ]

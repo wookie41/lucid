@@ -1,8 +1,8 @@
 {
-    "Id": "8b8c9f9a-cfdf-4a83-be12-cd7cfc5160e4",
+    "Id": "effdef01-1074-4c6e-a26f-0b5916461fac",
     "Name": "Cyborg_Cyborg",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "0f4b3d0d-173a-42e7-bd1b-2549d186431e",
-    "SpecularTextureID": "72c1aca8-e42a-4437-bc47-e302f46aa853",
-    "NormalTextureID": "02d49d63-c43c-40ba-938d-95addcecd9aa"
+    "DiffuseTextureID": "7f035991-71b0-434d-bea5-b505c83b55cb",
+    "SpecularTextureID": "9c1649ed-b2c4-4c59-81c9-484d1eb27355",
+    "NormalTextureID": "ed5cb27f-13fc-4f29-a63d-d5dc01ae7619"
 }

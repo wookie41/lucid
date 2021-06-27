@@ -1,8 +1,8 @@
 {
-    "Id": "61e01e08-1ac2-4962-b883-2ad6056a3fc0",
+    "Id": "9c4976e1-3f20-456b-aec0-83e0a3871a4a",
     "Name": "Sponza_leaf",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "8cee3964-bd2c-4fe7-8566-93a396501366",
+    "DiffuseTextureID": "8fd4a4d3-0b88-4ab3-b4f0-8469b95f958d",
     "SpecularColor": [
         1.0,
         1.0,

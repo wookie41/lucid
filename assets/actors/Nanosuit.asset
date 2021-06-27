@@ -8,36 +8,36 @@
     ],
     "MeshResourceId": {
         "bChanged": true,
-        "Value": "51b2549f-175f-423f-9215-ab362c5c695a"
+        "Value": "e46007fe-933c-49fa-9590-cb299ac37ad9"
     },
     "MaterialIds": [
         {
             "bChanged": true,
-            "Value": "b602627d-3b1d-4004-934b-ba906f112c83"
+            "Value": "dfc785a5-8f03-47fc-938c-f8ac9cdd023f"
         },
         {
             "bChanged": true,
-            "Value": "24ca8415-4a41-49a5-9294-4dd6b43158ca"
+            "Value": "32c28086-ced3-4c0f-ac50-2a00e08322e2"
         },
         {
             "bChanged": true,
-            "Value": "41cd291f-a246-4811-a32c-3a0e1feaa9ab"
+            "Value": "3c184a45-509b-4a55-be72-b6d3b0486079"
         },
         {
             "bChanged": true,
-            "Value": "b6dc1b52-a893-4ce3-9bba-1961d1ffc386"
+            "Value": "a996c08e-1cf8-4043-a626-e746fcfa868d"
         },
         {
             "bChanged": true,
-            "Value": "ca096ba8-3807-40ba-ad96-3c4e3dae6107"
+            "Value": "4801d5ae-4b33-45b2-9d0d-e7f44459c665"
         },
         {
             "bChanged": true,
-            "Value": "81c417a0-c099-4a4a-b47d-7cac7920d85f"
+            "Value": "cd5ba48c-bec1-4814-b2c8-7cb848cb6fc2"
         },
         {
             "bChanged": true,
-            "Value": "12a42fe9-dc21-4543-9fba-004e2b929b70"
+            "Value": "06ad013d-57a6-41b8-9b0d-3ddc24f07658"
         }
     ]
 }

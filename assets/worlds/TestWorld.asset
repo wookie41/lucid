@@ -1,0 +1,328 @@
+{
+    "StaticMeshes": [
+        {
+            "Id": 4,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                1.4505428075790406,
+                1.0687555074691773,
+                2.9729464054107668
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "b61c567e-ee51-4a5a-b80d-aca4cd9f0747"
+                }
+            ]
+        },
+        {
+            "Id": 7,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                0.9419947862625122,
+                -0.5205638408660889,
+                -4.882791996002197
+            ],
+            "Rotation": [
+                0.0,
+                -0.0,
+                -0.9498206973075867,
+                0.31279486417770388
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "24f49047-090b-4d13-900b-e65f66327148"
+                }
+            ]
+        },
+        {
+            "Id": 5,
+            "Name": "Gigacube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Scale": [
+                20.0,
+                20.0,
+                20.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "5f13c189-43af-4816-94a9-36a7d8918e71"
+                }
+            ],
+            "bReverseNormals": true
+        },
+        {
+            "Id": 6,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                5.392471790313721,
+                1.0687555074691773,
+                2.9729464054107668
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "b61c567e-ee51-4a5a-b80d-aca4cd9f0747"
+                }
+            ]
+        },
+        {
+            "Id": 8,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -4.511558532714844,
+                -0.43596091866493227,
+                -4.376196384429932
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
+                }
+            ]
+        },
+        {
+            "Id": 9,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -1.3788321018218995,
+                -0.43596091866493227,
+                -4.376196384429932
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
+                }
+            ]
+        },
+        {
+            "Id": 10,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -1.3788321018218995,
+                -0.43596091866493227,
+                -4.376196384429932
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "19a3eca1-7804-49ee-8b4d-6c1027f06494"
+                }
+            ]
+        },
+        {
+            "Id": 11,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                3.5043671131134035,
+                -0.5205638408660889,
+                -3.226863145828247
+            ],
+            "Rotation": [
+                0.0,
+                -0.0,
+                -0.9498206973075867,
+                0.31279486417770388
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "24f49047-090b-4d13-900b-e65f66327148"
+                }
+            ]
+        },
+        {
+            "Id": 12,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -3.6045804023742677,
+                1.5904347896575928,
+                -0.1012505292892456
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                }
+            ]
+        },
+        {
+            "Id": 13,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                -0.6716461181640625,
+                0.5008471012115479,
+                -0.9944154620170593
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "5f13c189-43af-4816-94a9-36a7d8918e71"
+                }
+            ]
+        },
+        {
+            "Id": 14,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                4.509332656860352,
+                0.9876943230628967,
+                1.9257241487503052
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                }
+            ]
+        },
+        {
+            "Id": 18,
+            "Name": "Cube",
+            "BaseActorResourceId": "0abeaa63-b7cd-4493-b939-809986855b30",
+            "Postion": [
+                4.139986038208008,
+                2.197547197341919,
+                -0.18356657028198243
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
+                }
+            ]
+        }
+    ],
+    "SpotLights": [
+        {
+            "Id": 15,
+            "Color": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "Name": "SpotLight",
+            "Postion": [
+                -2.009882926940918,
+                2.5879061222076418,
+                3.591341018676758
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "Direction": [
+                0.0,
+                0.0,
+                -1.0
+            ],
+            "Constant": 0.20000000298023225,
+            "Linear": 0.10000000149011612,
+            "InnerCutOffRad": 0.5235987901687622,
+            "OuterCutOffRad": 0.7853981852531433
+        },
+        {
+            "Id": 16,
+            "Color": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "Name": "SpotLight",
+            "Postion": [
+                -0.0013003051280975342,
+                1.2832896709442139,
+                3.754674196243286
+            ],
+            "Rotation": [
+                0.0,
+                0.5300348997116089,
+                0.0,
+                0.8479758501052856
+            ],
+            "Direction": [
+                0.0,
+                0.0,
+                -1.0
+            ],
+            "Constant": 0.20000000298023225,
+            "Linear": 0.10000000149011612,
+            "InnerCutOffRad": 0.5235987901687622,
+            "OuterCutOffRad": 0.7853981852531433
+        },
+        {
+            "Id": 17,
+            "Color": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "Name": "SpotLight",
+            "Postion": [
+                -0.834944486618042,
+                1.8573694229125977,
+                3.9997053146362306
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "Direction": [
+                0.0,
+                0.0,
+                -1.0
+            ],
+            "Constant": 0.20000000298023225,
+            "Linear": 0.10000000149011612,
+            "InnerCutOffRad": 0.5235987901687622,
+            "OuterCutOffRad": 0.7853981852531433
+        }
+    ]
+}

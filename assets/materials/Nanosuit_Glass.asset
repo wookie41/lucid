@@ -1,9 +1,9 @@
 {
-    "Id": "b6dc1b52-a893-4ce3-9bba-1961d1ffc386",
+    "Id": "a996c08e-1cf8-4043-a626-e746fcfa868d",
     "Name": "Nanosuit_Glass",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "49d8b08d-4f69-4a9e-8bb7-f616c9e9b5e9",
-    "NormalTextureID": "2a6e2c80-547d-4cbc-98d3-81314548425b",
+    "DiffuseTextureID": "2c7be80b-d992-4a40-91c8-bcfc0a106911",
+    "NormalTextureID": "4fc348c3-3275-4323-bd02-05b9bc7ae9a4",
     "SpecularColor": [
         1.0,
         1.0,
