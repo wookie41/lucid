@@ -46,6 +46,6 @@ premake5 vs2017
 
 ### Some screen shots
 
-![Sponza](./demo/demo-1.JPG)
+![Sponza](./demo/demo-1.jpg)
 
-![Gigacube](./demo/demo-2.JPG)
+![Gigacube](./demo/demo-2.jpg)
