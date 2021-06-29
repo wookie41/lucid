@@ -61,10 +61,10 @@ namespace lucid::scene
          *  If empty, then it means there is already a resource file (under ResourcePath) for this actor present and we simply override it
          *  If not empty, then a new resource file is create
          */
-        void SaveToResourceFile();
-        virtual void UpdateDirtyResources() {};
+        void         SaveToResourceFile();
+        virtual void UpdateDirtyResources(){};
 
-    protected:
+      protected:
         virtual void InternalSaveToResourceFile(const FString& InActorResourceName) = 0;
 
       public:
@@ -118,8 +118,8 @@ namespace lucid::scene
          * Unique id for an actor in the world, used e.x. by the renderer when generating the hitmap texture
          * Starts with 1, 0 = INVALID
          */
-        u32          ActorId     = 0;
-        IActor*      Parent = nullptr;
+        u32          ActorId = 0;
+        IActor*      Parent  = nullptr;
         FDString     Name;
         FTransform3D Transform;
         bool         bVisible   = true;
@@ -143,7 +143,10 @@ namespace lucid::scene
         bool bParentable = true;
 
 #if DEVELOPMENT
-        bool bRenaming = false;
+        bool bRenaming           = false;
+        bool bTranslationUpdated = false;
+        bool bScaleUpdated       = false;
+        bool bRotationUpdated    = false;
 #endif
     };
 } // namespace lucid::scene

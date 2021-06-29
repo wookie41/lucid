@@ -28,7 +28,7 @@ namespace lucid::scene
                 SaveToResourceFile();
             }
         }
-        
+
         // Common actor options
         if (ImGui::CollapsingHeader("Actor"))
         {
@@ -167,9 +167,22 @@ namespace lucid::scene
                                              glm::degrees(eulerAngles(Transform.Rotation).y),
                                              glm::degrees(eulerAngles(Transform.Rotation).z) };
 
-                    ImGui::DragFloat3("Translation (x, y, z)", &Transform.Translation.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
-                    ImGui::DragFloat3("Scale (x, y, z)", &Transform.Scale.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX);
-                    ImGui::DragFloat3("Rotation", &EulerRotation.x, 0.1f, -360, 360);
+                    bTranslationUpdated = false;
+                    bScaleUpdated       = false;
+                    bRotationUpdated    = false;
+
+                    if (ImGui::DragFloat3("Translation (x, y, z)", &Transform.Translation.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX))
+                    {
+                        bTranslationUpdated = true;
+                    }
+                    if (ImGui::DragFloat3("Scale (x, y, z)", &Transform.Scale.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX))
+                    {
+                        bScaleUpdated = true;
+                    }
+                    if (ImGui::DragFloat3("Rotation", &EulerRotation.x, 0.1f, -360, 360))
+                    {
+                        bRotationUpdated = true;
+                    }
                     ImGui::Checkbox("Visible", &bVisible);
                     ImGui::Spacing();
 
@@ -275,17 +288,24 @@ namespace lucid::scene
             glm::quat Rotation;
             glm::decompose(ModelMatrix, Scale, Rotation, Translation, Skew, Perspective);
 
+            bTranslationUpdated = false;
+            bScaleUpdated       = false;
+            bRotationUpdated    = false;
+
             if (CurrentGizmoOperation == ImGuizmo::TRANSLATE)
             {
                 Transform.Translation = Translation;
+                bTranslationUpdated   = true;
             }
             else if (CurrentGizmoOperation == ImGuizmo::ROTATE)
             {
                 Transform.Rotation = Rotation;
+                bRotationUpdated   = true;
             }
             else
             {
                 Transform.Scale = Scale;
+                bScaleUpdated   = true;
             }
         }
     }

@@ -1268,8 +1268,6 @@ namespace lucid::scene
         BillboardShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
         BillboardShader->UseTexture(BILLBOARD_TEXTURE, LightBulbTexture);
         BillboardShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
-        BillboardShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
-        BillboardShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
         ScreenWideQuadVAO->Bind();
 
         for (int i = 0; i < InScene->AllLights.GetLength(); ++i)
@@ -1317,8 +1315,6 @@ namespace lucid::scene
         BillboardHitMapShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
         BillboardHitMapShader->UseTexture(BILLBOARD_TEXTURE, LightBulbTexture);
         BillboardHitMapShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
-        BillboardHitMapShader->SetMatrix(VIEW_MATRIX, InRenderView->Camera->GetViewMatrix());
-        BillboardHitMapShader->SetMatrix(PROJECTION_MATRIX, InRenderView->Camera->GetProjectionMatrix());
 
         for (int i = 0; i < InScene->AllLights.GetLength(); ++i)
         {
