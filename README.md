@@ -20,6 +20,8 @@ I don't guarantee that it'll run on every platform and on every GPU, as that's n
 - some editor primitives (debug lines, world grid, billboards)
 - simple shading using blinn phong materials
 - skybox
+- bump mapping
+- normal mapping
 
 ### Whats is left to do:
 - culling
