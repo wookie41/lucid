@@ -4,9 +4,8 @@ uniform vec3 uBillboardWorldPos;        // position of the billboard in the worl
 
 vec4 CalculateBillboardPosition() 
 {
-    vec4 VertexClipPos = uProjection * uView * uBillboardMatrix * vec4(aPosition, 1);
-    vec4 BillboardCenterClipPos = uProjection * uView * vec4(uBillboardWorldPos, 1.0);
-    vec4 BillboardHalfSize = vec4((uViewportSize * uBillboardViewportSize) / uViewportSize / 2.0, 0, 0);
+    vec4 BillboardCenterClipPos = uProjection * uView  * uBillboardMatrix * vec4(uBillboardWorldPos, 1.0);
+    vec2 BillboardHalfSize = vec2(uBillboardViewportSize / 2.0);
     
-    return BillboardCenterClipPos + (BillboardHalfSize * VertexClipPos);
+    return BillboardCenterClipPos + vec4(BillboardHalfSize * aPosition.xy, 0, 0);
 }

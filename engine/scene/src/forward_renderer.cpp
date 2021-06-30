@@ -199,7 +199,6 @@ namespace lucid::scene
         LightpassPipelineState.Viewport.Width           = ResultResolution.x;
         LightpassPipelineState.Viewport.Height          = ResultResolution.y;
 
-
         SkyboxPipelineState                   = LightpassPipelineState;
         SkyboxPipelineState.IsBlendingEnabled = false;
         SkyboxPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
@@ -632,13 +631,13 @@ namespace lucid::scene
         {
             gpu::PushDebugGroup("World grid");
             RenderWorldGrid(InRenderView);
-            gpu::PopDebugGroup();            
+            gpu::PopDebugGroup();
         }
-        
+
         gpu::PushDebugGroup("Debug lines");
         RenderDebugLines(InRenderView);
         gpu::PopDebugGroup();
-        
+
         gpu::PushDebugGroup("Billboards");
         DrawLightsBillboards(InSceneToRender, InRenderView);
         gpu::PopDebugGroup();
@@ -1152,7 +1151,7 @@ namespace lucid::scene
         {
             gpu::ClearBuffers(COLOR_AND_DEPTH);
         }
-        
+
         RenderStaticMeshes(InSceneToRender, InRenderView);
         if (InSceneToRender->Skybox)
         {
@@ -1259,9 +1258,7 @@ namespace lucid::scene
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         // Keep it camera-oriented
-        const glm::mat4 BillboardMatrix = {
-            { InRenderView->Camera->RightVector, 0 }, { InRenderView->Camera->UpVector, 0 }, { -InRenderView->Camera->FrontVector, 0 }, { 0, 0, 0, 1 }
-        };
+        const glm::mat4 BillboardMatrix { 1 };
 
         BillboardShader->Use();
         BillboardShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
@@ -1306,10 +1303,7 @@ namespace lucid::scene
         ScreenWideQuadVAO->Bind();
 
         // Keep it camera-oriented
-        const glm::mat4 BillboardMatrix = {
-            { InRenderView->Camera->RightVector, 0 }, { InRenderView->Camera->UpVector, 0 }, { -InRenderView->Camera->FrontVector, 0 }, { 0, 0, 0, 1 }
-        };
-
+        const glm::mat4 BillboardMatrix { 1 };
         BillboardHitMapShader->Use();
         BillboardHitMapShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
         BillboardHitMapShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
@@ -1462,16 +1456,16 @@ namespace lucid::scene
             ImGui::DragInt("Num PCF samples", &NumSamplesPCF, 1, 0, 64);
             ImGui::Checkbox("Enable SSAO", &bEnableSSAO);
             ImGui::Checkbox("Draw grid", &bDrawGrid);
-            if(ImGui::Checkbox("Depth prepass", &bEnableDepthPrepass))
+            if (ImGui::Checkbox("Depth prepass", &bEnableDepthPrepass))
             {
                 if (bEnableDepthPrepass)
                 {
-                    LightpassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::EQUAL;
+                    LightpassPipelineState.DepthTestFunction     = gpu::EDepthTestFunction::EQUAL;
                     LightpassPipelineState.IsDepthBufferReadOnly = true;
                 }
                 else
                 {
-                    LightpassPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
+                    LightpassPipelineState.DepthTestFunction     = gpu::EDepthTestFunction::LEQUAL;
                     LightpassPipelineState.IsDepthBufferReadOnly = false;
                 }
             }
