@@ -122,7 +122,8 @@ namespace lucid::scene
                                  const float&      InPersistTime,
                                  const ESpaceType& InSpaceType)
     {
-        DebugLines.emplace_back(InStart, InEnd, InStartColor, InEndColor, InPersistTime < 0 ? -1 : platform::GetCurrentTimeSeconds() + InPersistTime, InSpaceType);
+        DebugLines.emplace_back(
+          InStart, InEnd, InStartColor, InEndColor, InPersistTime < 0 ? -1 : platform::GetCurrentTimeSeconds() + InPersistTime, InSpaceType);
     }
 
     void CRenderer::RemoveStaleDebugLines()
@@ -141,6 +142,24 @@ namespace lucid::scene
 
         DebugLines.clear();
         DebugLines = std::move(PersistedLines);
+    }
+
+    FDebugArrow MakeDebugArrowData(const glm::vec3& InStart, const glm::vec3& InDirection, const float& InLength)
+    {
+        FDebugArrow DebugArrow;
+
+        DebugArrow.BodyStart = InStart;
+        DebugArrow.BodyEnd   = InStart + (InDirection * InLength);
+
+        constexpr glm::vec3 HeadRise { 0, 0.15, 0 };
+        
+        DebugArrow.HeadStart0 = DebugArrow.BodyEnd;
+        DebugArrow.HeadEnd0 = DebugArrow.HeadStart0 + (((-InDirection) + HeadRise) * InLength / 10.f);
+
+        DebugArrow.HeadStart1 = DebugArrow.BodyEnd;
+        DebugArrow.HeadEnd1 = DebugArrow.HeadStart1 + (((-InDirection) - HeadRise) * InLength / 10.f);
+
+        return DebugArrow;
     }
 
 #endif

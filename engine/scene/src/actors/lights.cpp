@@ -1,7 +1,6 @@
 #include "scene/actors/lights.hpp"
 
-#include <scene/world.hpp>
-
+#include "scene/world.hpp"
 #include "engine/engine.hpp"
 
 #include "devices/gpu/texture.hpp"
@@ -144,10 +143,27 @@ namespace lucid::scene
             ImGui::DragFloat3("Light up", &LightUp.x, 0.001, -1, 1);
         }
 
-        
         if (bRotationUpdated)
         {
-            Direction = Transform.Rotation * glm::vec3{ 0, 0, 1 };            
+            Direction = Transform.Rotation * glm::vec3{ 0, 0, 1 };
+        }
+    }
+
+    void CDirectionalLight::OnSelectedPreFrameRender()
+    {
+        constexpr glm::vec3 ArrowsOffsets[] = {
+            { 0, 0, 0 },
+            { 0, 2, 0 },
+            { 0, -3, 0 },
+        };
+
+        const FDebugArrow DebugArrow = MakeDebugArrowData(Transform.Translation, Direction, 20);
+
+        for (int i = 0; i < sizeof(ArrowsOffsets)/sizeof(glm::vec3); ++i)
+        {
+            GEngine.GetRenderer()->AddDebugLine(DebugArrow.BodyStart + ArrowsOffsets[i], DebugArrow.BodyEnd + ArrowsOffsets[i], Color, Color);
+            GEngine.GetRenderer()->AddDebugLine(DebugArrow.HeadStart0 + ArrowsOffsets[i], DebugArrow.HeadEnd0 + ArrowsOffsets[i], Color, Color);
+            GEngine.GetRenderer()->AddDebugLine(DebugArrow.HeadStart1 + ArrowsOffsets[i], DebugArrow.HeadEnd1 + ArrowsOffsets[i], Color, Color);            
         }
     }
 #endif
@@ -252,7 +268,7 @@ namespace lucid::scene
 
         if (bRotationUpdated)
         {
-            Direction = Transform.Rotation * glm::vec3{ 0, 0, 1 };            
+            Direction = Transform.Rotation * glm::vec3{ 0, 0, 1 };
         }
     }
 #endif

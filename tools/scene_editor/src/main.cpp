@@ -264,10 +264,10 @@ int main(int argc, char** argv)
         {
             dt -= platform::SimulationStep;
 
-            HandleCameraMovement(dt);
+            HandleCameraMovement(platform::SimulationStep);
 
-            GSceneEditorState.CurrentCamera->Update(dt);
-            GSceneEditorState.SecondsSinceLastVideoMemorySnapshot += dt;
+            GSceneEditorState.CurrentCamera->Update(platform::SimulationStep);
+            GSceneEditorState.SecondsSinceLastVideoMemorySnapshot += platform::SimulationStep;
 
             if (GSceneEditorState.SecondsSinceLastVideoMemorySnapshot > 1)
             {
@@ -275,20 +275,25 @@ int main(int argc, char** argv)
                   float(gpu::GGPUStatus.TotalAvailableVideoMemoryKB - gpu::GGPUStatus.CurrentAvailableVideoMemoryKB) / 1024.f;
                 GSceneEditorState.SecondsSinceLastVideoMemorySnapshot = 0;
             }
-
-            DoActorPicking();
         }
 
+        if (GSceneEditorState.CurrentlySelectedActor)
+        {
+            GSceneEditorState.CurrentlySelectedActor->OnSelectedPreFrameRender();
+        }
+        
         // Render the scene to off-screen framebuffer
         if (GSceneEditorState.World)
         {
             GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
         }
-        
+
         GSceneEditorState.NumDrawCalls[GSceneEditorState.NumDrawCallsIndex++ % GSceneEditorState.NumDrawCallSamples] =
           scene::GRenderStats.NumDrawCalls;
         GSceneEditorState.FrameTimes[GSceneEditorState.FrameTimesIndex++ % (GSceneEditorState.NumFrameTimesSamples)] =
           scene::GRenderStats.FrameTimeMiliseconds;
+
+        DoActorPicking();
         
         GSceneEditorState.Window->ImgUiStartNewFrame();
         {
@@ -468,7 +473,6 @@ void HandleCameraMovement(const float& DeltaTime)
 
 void DoActorPicking()
 {
-    const glm::vec2 MouseNDCPos         = GetMouseNDCPos();
     const glm::vec2 MouseScreenSpacePos = GetMouseScreenSpacePos();
 
     // Check if we're outside the scene window

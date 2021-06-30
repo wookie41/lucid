@@ -36,7 +36,7 @@ namespace lucid::scene
         : Start(InStart), End(InEnd), StartColor(InStartColor), EndColor(InEndColor), RemoveTime(InTime), SpaceType(InSpaceType)
         {
         }
-        
+
         glm::vec3  Start{ 0 };
         glm::vec3  StartColor{ 0 };
         glm::vec3  End{ 0 };
@@ -144,12 +144,11 @@ namespace lucid::scene
 
         virtual void ResetState() = 0;
 
-
         /**
          * Returns the framebuffer which holds the result of last Render() call.
          */
-        virtual gpu::CFramebuffer*  GetResultFramebuffer() = 0;
-        virtual gpu::CTexture*      GetResultFrameTexture() = 0;
+        virtual gpu::CFramebuffer* GetResultFramebuffer()  = 0;
+        virtual gpu::CTexture*     GetResultFrameTexture() = 0;
 
         /** Stalls the CPU until GPU finished executing all commands of the previous Render() call.  */
         void WaitForFrameEnd() const { gpu::Finish(); }
@@ -193,9 +192,9 @@ namespace lucid::scene
         const u16               MaxDebugLines = 1024;
         std::vector<FDebugLine> DebugLines;
 
-    public:
+      public:
         virtual void UIDrawSettingsWindow() = 0;
-        
+
 #endif
 
         /** Lights and shadow maps arrays */
@@ -224,4 +223,20 @@ namespace lucid::scene
         FHitMap CachedHitMap;
 #endif
     };
+
+    
+    /** Collection of lines needed to draw a debug arrow with arrow heads */
+    struct FDebugArrow
+    {
+        glm::vec3 BodyStart;
+        glm::vec3 BodyEnd;
+
+        glm::vec3 HeadStart0;
+        glm::vec3 HeadEnd0;
+
+        glm::vec3 HeadStart1;
+        glm::vec3 HeadEnd1;
+    };
+
+    FDebugArrow MakeDebugArrowData(const glm::vec3& InStart, const glm::vec3& InDirection, const float& InLength);
 } // namespace lucid::scene

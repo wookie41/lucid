@@ -64,6 +64,12 @@ namespace lucid::scene
         void         SaveToResourceFile();
         virtual void UpdateDirtyResources(){};
 
+        /**
+         * Called on the selected actor by the editor after the simulation is updated but before a frame.
+         * Used to do editor-only stuff like drawing lines indicating light direction.
+         */
+        virtual void OnSelectedPreFrameRender(){};
+
       protected:
         virtual void InternalSaveToResourceFile(const FString& InActorResourceName) = 0;
 

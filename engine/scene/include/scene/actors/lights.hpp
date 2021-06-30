@@ -28,13 +28,10 @@ namespace lucid::scene
     class CLight : public IActor
     {
       public:
-
-        CLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : IActor(InName, InParent, InWorld)
-        {
-        };
+        CLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : IActor(InName, InParent, InWorld){};
 
         virtual ELightType GetType() const = 0;
-        
+
         /** Recalculates the light space matrix when e.x. the light moves or is initially created */
         virtual void UpdateLightSpaceMatrix(const LightSettings& LightSettings) = 0;
 
@@ -44,30 +41,40 @@ namespace lucid::scene
 
         virtual float GetVerticalMidPoint() const override;
 
-        static  EActorType  GetActorTypeStatic() { return EActorType::LIGHT; }
+        static EActorType GetActorTypeStatic() { return EActorType::LIGHT; }
 
-        virtual EActorType  GetActorType() const override { return EActorType::LIGHT; }
-        virtual IActor*     CreateActorAsset(const FDString& InName) const override { assert(0); return nullptr; }
-        virtual IActor*     CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override { assert(0); return nullptr; };
+        virtual EActorType GetActorType() const override { return EActorType::LIGHT; }
+        virtual IActor*    CreateActorAsset(const FDString& InName) const override
+        {
+            assert(0);
+            return nullptr;
+        }
+        virtual IActor* CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override
+        {
+            assert(0);
+            return nullptr;
+        };
 
         void CleanupAfterRemove() override;
 
-        glm::vec3       Color           { 1, 1, 1 };
-        u8              Quality         = 1;
+        glm::vec3 Color{ 1, 1, 1 };
+        u8        Quality = 1;
 
-        CShadowMap*     ShadowMap       = nullptr;
+        CShadowMap* ShadowMap = nullptr;
 
-        bool            bShouldCastShadow = false;
+        bool bShouldCastShadow = false;
 
         virtual ~CLight() = default;
 
 #if DEVELOPMENT
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
-    protected:
+
+      protected:
         virtual void InternalSaveToResourceFile(const FString& InActorResourceName) override;
-    public:
-#endif  
+
+      public:
+#endif
     };
 
     /////////////////////////////////////
@@ -79,25 +86,26 @@ namespace lucid::scene
       public:
         CDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
 
-        virtual void        UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
-        virtual void        SetupShader(gpu::CShader* InShader) const override;
-        virtual void        SetupShadowMapShader(gpu::CShader* InShader) override;
-        virtual IActor*     CreateCopy() override;
+        virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
+        virtual void    SetupShader(gpu::CShader* InShader) const override;
+        virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
+        virtual IActor* CreateCopy() override;
 
-        virtual void        OnAddToWorld(CWorld* InWorld) override;
-        virtual void        OnRemoveFromWorld(const bool& InbHardRemove) override;
+        virtual void OnAddToWorld(CWorld* InWorld) override;
+        virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
 
         virtual ELightType GetType() const override { return ELightType::DIRECTIONAL; }
 
         glm::vec3 Direction = { 0, 0, -1 };
         glm::vec3 LightUp{ 0, 1, 0 };
         glm::mat4 LightSpaceMatrix{ 1 };
-        
+
         CShadowMap* ShadowMap = nullptr;
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;
-#endif  
+        virtual void OnSelectedPreFrameRender() override;
+#endif
     };
 
     /////////////////////////////////////
@@ -106,9 +114,9 @@ namespace lucid::scene
 
     class CSpotLight : public CLight
     {
-    public:
+      public:
         CSpotLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
-        
+
         virtual ELightType GetType() const override { return ELightType::SPOT; }
 
         virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
@@ -116,23 +124,23 @@ namespace lucid::scene
         virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
         virtual IActor* CreateCopy() override;
 
-        virtual void    OnAddToWorld(CWorld* InWorld) override;
-        virtual void    OnRemoveFromWorld(const bool& InbHardRemove) override;
+        virtual void OnAddToWorld(CWorld* InWorld) override;
+        virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
 
-        glm::vec3 Direction { 0, 0, -1 };
-        glm::vec3 LightUp   { 0, 1, 0 };
+        glm::vec3 Direction{ 0, 0, -1 };
+        glm::vec3 LightUp{ 0, 1, 0 };
 
-        glm::mat4 LightSpaceMatrix { 1 };
+        glm::mat4 LightSpaceMatrix{ 1 };
 
-        float Constant  = 0.2;
-        float Linear    = 0.1;
-        float Quadratic = 1/6;
+        float Constant       = 0.2;
+        float Linear         = 0.1;
+        float Quadratic      = 1 / 6;
         float InnerCutOffRad = 0.523598776; // 30 deg
         float OuterCutOffRad = 0.785398163; // 45 deg
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;
-#endif  
+#endif
     };
 
     /////////////////////////////////////
@@ -142,9 +150,8 @@ namespace lucid::scene
     class CPointLight : public CLight
     {
       public:
-
         CPointLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
-        
+
         virtual ELightType GetType() const override { return ELightType::POINT; }
 
         virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
@@ -152,8 +159,8 @@ namespace lucid::scene
         virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
         virtual IActor* CreateCopy() override;
 
-        virtual void    OnAddToWorld(CWorld* InWorld) override;
-        virtual void    OnRemoveFromWorld(const bool& InbHardRemove) override;
+        virtual void OnAddToWorld(CWorld* InWorld) override;
+        virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
 
         float Constant  = 0.2;
         float Linear    = 0.1;
@@ -166,6 +173,6 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;
-#endif  
+#endif
     };
 } // namespace lucid::scene
