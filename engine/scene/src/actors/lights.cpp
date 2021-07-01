@@ -278,10 +278,8 @@ namespace lucid::scene
 
     void CSpotLight::OnSelectedPreFrameRender()
     {
-        constexpr float Step = glm::radians(15.f);
-
-        const float Radius = AttenuationRadius / glm::tan(OuterCutOffRad);
-
+        constexpr float Step       = glm::radians(15.f);
+        const float     Radius     = AttenuationRadius / glm::tan(OuterCutOffRad);
         const glm::vec3 BaseMiddle = Transform.Translation + (Direction * AttenuationRadius);
 
         for (float Rotation = 0; Rotation < 6.14; Rotation += Step)
@@ -412,9 +410,15 @@ namespace lucid::scene
         CLight::UIDrawActorDetails();
         if (ImGui::CollapsingHeader("Spot light"))
         {
-            ImGui::DragFloat("Attenuation Radius", &AttenuationRadius, 0.001, 0, 3);
+            ImGui::DragFloat("Attenuation Radius", &AttenuationRadius, 1, 0, 10000);
         }
     }
+
+    void CPointLight::OnSelectedPreFrameRender()
+    {
+        DrawDebugSphere(Transform.Translation, AttenuationRadius, Color);
+    }
+
 #endif
 
     IActor* CPointLight::CreateCopy()

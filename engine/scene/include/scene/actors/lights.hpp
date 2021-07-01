@@ -171,6 +171,7 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;
+        virtual void OnSelectedPreFrameRender() override;
 #endif
     };
 } // namespace lucid::scene

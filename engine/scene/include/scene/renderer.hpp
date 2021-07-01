@@ -239,4 +239,6 @@ namespace lucid::scene
     };
 
     FDebugArrow MakeDebugArrowData(const glm::vec3& InStart, const glm::vec3& InDirection, const float& InLength);
+
+    void DrawDebugSphere(const glm::vec3& InCenter, const float& InRadius, const glm::vec3& InColor);
 } // namespace lucid::scene

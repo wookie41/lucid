@@ -2,6 +2,8 @@
 
 #include <stb_ds.h>
 
+#include "engine/engine.hpp"
+
 #include "platform/util.hpp"
 
 #include "devices/gpu/texture_enums.hpp"
@@ -164,4 +166,36 @@ namespace lucid::scene
 
 #endif
 
+
+    void DrawDebugSphere(const glm::vec3& InCenter, const float& InRadius, const glm::vec3& InColor)
+    {
+        const float     SphereRadius = InRadius;
+        const glm::vec3 SphereCenter = InCenter;
+        constexpr float RotationStep = glm::radians(15.f);
+
+        for (float Rotation = 0; Rotation < 6.14; Rotation += RotationStep)
+        {
+            const float CurrentPointOffsetSin = glm::sin(Rotation) * SphereRadius;
+            const float CurrentPointOffsetCos = glm::cos(Rotation) * SphereRadius;
+
+            const float NextPointOffsetSin = glm::sin(Rotation + RotationStep) * SphereRadius;
+            const float NextPointOffsetCos = glm::cos(Rotation + RotationStep) * SphereRadius;
+
+            const glm::vec3 AroundYStart = SphereCenter + glm::vec3{ CurrentPointOffsetSin, 0, CurrentPointOffsetCos };
+            const glm::vec3 AroundYEnd   = SphereCenter + glm::vec3{ NextPointOffsetSin, 0, NextPointOffsetCos };
+
+            GEngine.GetRenderer()->AddDebugLine(AroundYStart, AroundYEnd, InColor, InColor);
+
+            const glm::vec3 AroundXStart = SphereCenter + glm::vec3{ 0, CurrentPointOffsetSin, CurrentPointOffsetCos };
+            const glm::vec3 AroundXEnd   = SphereCenter + glm::vec3{ 0, NextPointOffsetSin, NextPointOffsetCos };
+
+            GEngine.GetRenderer()->AddDebugLine(AroundXStart, AroundXEnd, InColor, InColor);
+
+            const glm::vec3 AroundZStart = SphereCenter + glm::vec3{ CurrentPointOffsetCos, CurrentPointOffsetSin, 0 };
+            const glm::vec3 AroundZEnd   = SphereCenter + glm::vec3{ NextPointOffsetCos, NextPointOffsetSin, 0 };
+
+            GEngine.GetRenderer()->AddDebugLine(AroundZStart, AroundZEnd, InColor, InColor);
+        }}
+    
+    
 } // namespace lucid::scene
