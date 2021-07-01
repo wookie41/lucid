@@ -132,14 +132,14 @@ namespace lucid::scene
 
         glm::mat4 LightSpaceMatrix{ 1 };
 
-        float Constant       = 0.2;
-        float Linear         = 0.1;
-        float Quadratic      = 1 / 6;
-        float InnerCutOffRad = 0.523598776; // 30 deg
-        float OuterCutOffRad = 0.785398163; // 45 deg
+        float AttenuationRadius = 50;
+        
+        float InnerCutOffRad    = 0.523598776; // 30 deg
+        float OuterCutOffRad    = 0.785398163; // 45 deg
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;
+        virtual void OnSelectedPreFrameRender() override;
 #endif
     };
 
@@ -162,9 +162,7 @@ namespace lucid::scene
         virtual void OnAddToWorld(CWorld* InWorld) override;
         virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
 
-        float Constant  = 0.2;
-        float Linear    = 0.1;
-        float Quadratic = 0.015;
+        float AttenuationRadius = 50;
 
         glm::mat4 LightSpaceMatrices[6];
 

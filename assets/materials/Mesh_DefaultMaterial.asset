@@ -1,0 +1,10 @@
+{
+    "Id": "e6ef8deb-d5f7-4d4e-9e44-a9dd06ca282e",
+    "Name": "Mesh_DefaultMaterial",
+    "ShaderName": "BlinnPhongMaps",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

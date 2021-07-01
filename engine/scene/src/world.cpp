@@ -185,11 +185,8 @@ namespace lucid::scene
         // Load lights
         for (const FDirectionalLightEntry& DirLightEntry : InWorldDescription.DirectionalLights)
         {
-            CDirectionalLight* DirLight =
-              GEngine.GetRenderer()->CreateDirectionalLight(DirLightEntry.Name,
-                                                            DirLightEntry.ParentId ? World->GetActorById(DirLightEntry.ParentId) : nullptr,
-                                                            World,
-                                                            DirLightEntry.bCastsShadow);
+            CDirectionalLight* DirLight = GEngine.GetRenderer()->CreateDirectionalLight(
+              DirLightEntry.Name, DirLightEntry.ParentId ? World->GetActorById(DirLightEntry.ParentId) : nullptr, World, DirLightEntry.bCastsShadow);
 
             DirLight->ActorId = DirLightEntry.Id;
 
@@ -226,9 +223,7 @@ namespace lucid::scene
             SpotLight->Direction = Float3ToVec(SpotLightEntry.Direction);
             SpotLight->LightUp   = Float3ToVec(SpotLightEntry.LightUp);
 
-            SpotLight->Constant          = SpotLightEntry.Constant;
-            SpotLight->Linear            = SpotLightEntry.Linear;
-            SpotLight->Quadratic         = SpotLightEntry.Quadratic;
+            SpotLight->AttenuationRadius = SpotLightEntry.AttenuationRadius;
             SpotLight->InnerCutOffRad    = SpotLightEntry.InnerCutOffRad;
             SpotLight->OuterCutOffRad    = SpotLightEntry.OuterCutOffRad;
             SpotLight->bShouldCastShadow = SpotLightEntry.bCastsShadow;
@@ -256,9 +251,7 @@ namespace lucid::scene
 
             PointLight->Color = Float3ToVec(PointLightEntry.Color);
 
-            PointLight->Constant          = PointLightEntry.Constant;
-            PointLight->Linear            = PointLightEntry.Linear;
-            PointLight->Quadratic         = PointLightEntry.Quadratic;
+            PointLight->AttenuationRadius = PointLightEntry.AttenuationRadius;
             PointLight->bShouldCastShadow = PointLightEntry.bCastsShadow;
 
             if (PointLightEntry.ParentId && !PointLight->Parent)
@@ -328,20 +321,18 @@ namespace lucid::scene
         {
             const CSpotLight* SpotLight = SpotLights.GetByIndex(i);
             FSpotLightEntry   SpotLightEntry;
-            SpotLightEntry.Id             = SpotLight->ActorId;
-            SpotLightEntry.ParentId       = SpotLight->Parent ? SpotLight->Parent->ActorId : 0;
-            SpotLightEntry.Color          = VecToFloat3(SpotLight->Color);
-            SpotLightEntry.Quality        = SpotLight->Quality;
-            SpotLightEntry.Name           = SpotLight->Name;
-            SpotLightEntry.Postion        = VecToFloat3(SpotLight->Transform.Translation);
-            SpotLightEntry.Rotation       = QuatToFloat4(SpotLight->Transform.Rotation);
-            SpotLightEntry.Direction      = VecToFloat3(SpotLight->Direction);
-            SpotLightEntry.Constant       = SpotLight->Constant;
-            SpotLightEntry.Linear         = SpotLight->Linear;
-            SpotLightEntry.Quadratic      = SpotLight->Quadratic;
-            SpotLightEntry.InnerCutOffRad = SpotLight->InnerCutOffRad;
-            SpotLightEntry.OuterCutOffRad = SpotLight->OuterCutOffRad;
-            SpotLightEntry.bCastsShadow   = SpotLight->ShadowMap != nullptr;
+            SpotLightEntry.Id                = SpotLight->ActorId;
+            SpotLightEntry.ParentId          = SpotLight->Parent ? SpotLight->Parent->ActorId : 0;
+            SpotLightEntry.Color             = VecToFloat3(SpotLight->Color);
+            SpotLightEntry.Quality           = SpotLight->Quality;
+            SpotLightEntry.Name              = SpotLight->Name;
+            SpotLightEntry.Postion           = VecToFloat3(SpotLight->Transform.Translation);
+            SpotLightEntry.Rotation          = QuatToFloat4(SpotLight->Transform.Rotation);
+            SpotLightEntry.Direction         = VecToFloat3(SpotLight->Direction);
+            SpotLightEntry.AttenuationRadius = SpotLight->AttenuationRadius;
+            SpotLightEntry.InnerCutOffRad    = SpotLight->InnerCutOffRad;
+            SpotLightEntry.OuterCutOffRad    = SpotLight->OuterCutOffRad;
+            SpotLightEntry.bCastsShadow      = SpotLight->ShadowMap != nullptr;
 
             OutWorldDescription.SpotLights.push_back(SpotLightEntry);
         }
@@ -351,16 +342,14 @@ namespace lucid::scene
         {
             const CPointLight* PointLight = PointLights.GetByIndex(i);
             FPointLightEntry   PointLightEntry;
-            PointLightEntry.Id           = PointLight->ActorId;
-            PointLightEntry.ParentId     = PointLight->Parent ? PointLight->Parent->ActorId : 0;
-            PointLightEntry.Color        = VecToFloat3(PointLight->Color);
-            PointLightEntry.Quality      = PointLight->Quality;
-            PointLightEntry.Name         = PointLight->Name;
-            PointLightEntry.Postion      = VecToFloat3(PointLight->Transform.Translation);
-            PointLightEntry.Constant     = PointLight->Constant;
-            PointLightEntry.Linear       = PointLight->Linear;
-            PointLightEntry.Quadratic    = PointLight->Quadratic;
-            PointLightEntry.bCastsShadow = PointLight->ShadowMap != nullptr;
+            PointLightEntry.Id                = PointLight->ActorId;
+            PointLightEntry.ParentId          = PointLight->Parent ? PointLight->Parent->ActorId : 0;
+            PointLightEntry.Color             = VecToFloat3(PointLight->Color);
+            PointLightEntry.Quality           = PointLight->Quality;
+            PointLightEntry.Name              = PointLight->Name;
+            PointLightEntry.Postion           = VecToFloat3(PointLight->Transform.Translation);
+            PointLightEntry.AttenuationRadius = PointLight->AttenuationRadius;
+            PointLightEntry.bCastsShadow      = PointLight->ShadowMap != nullptr;
 
             OutWorldDescription.PointLights.push_back(PointLightEntry);
         }
@@ -392,7 +381,7 @@ namespace lucid::scene
             {
                 Skybox = nullptr;
             }
-            
+
             return Actor;
         }
 

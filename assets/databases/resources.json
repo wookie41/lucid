@@ -331,6 +331,17 @@
             "Name": "Nanosuit",
             "Path": "assets/meshes/Nanosuit.asset",
             "Type": 1
+        },
+        {
+            "Id": "1bf46fc6-6627-4313-91a1-e062be4e5664",
+            "Name": "Mesh_Texture_bunny-atlas_Diffuse",
+            "Path": "assets/textures/Mesh_Texture_bunny-atlas_Diffuse.asset"
+        },
+        {
+            "Id": "076a6022-d4bd-4b3a-a133-ed73cbc06a76",
+            "Name": "Mesh",
+            "Path": "assets/meshes/Mesh.asset",
+            "Type": 1
         }
     ]
 }

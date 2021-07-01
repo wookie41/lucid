@@ -1,0 +1,11 @@
+{
+    "Id": "a1fcfbe0-2a8c-41a3-a1b5-3e9593ce38bb",
+    "Name": "Mesh_MAT_2E8851C",
+    "ShaderName": "BlinnPhongMaps",
+    "DiffuseTextureID": "1bf46fc6-6627-4313-91a1-e062be4e5664",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

@@ -39,6 +39,11 @@
             "ActorId": "47e313d6-7b07-4207-ae14-0e7fad846573",
             "ActorPath": "assets/actors/Nanosuit.asset",
             "ActorType": 1
+        },
+        {
+            "ActorId": "87951067-769d-4673-9436-090710a194f0",
+            "ActorPath": "assets/actors/Mesh.asset",
+            "ActorType": 1
         }
     ]
 }

@@ -230,6 +230,16 @@
             "Id": "06ad013d-57a6-41b8-9b0d-3ddc24f07658",
             "MaterialPath": "assets/materials/Nanosuit_Leg.asset",
             "MaterialType": 3
+        },
+        {
+            "Id": "e6ef8deb-d5f7-4d4e-9e44-a9dd06ca282e",
+            "MaterialPath": "assets/materials/Mesh_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "a1fcfbe0-2a8c-41a3-a1b5-3e9593ce38bb",
+            "MaterialPath": "assets/materials/Mesh_MAT_2E8851C.asset",
+            "MaterialType": 3
         }
     ]
 }

@@ -515,10 +515,7 @@
                 8.0,
                 -1.0
             ],
-            "bCastsShadow": true,
-            "Constant": 0.20000000298023225,
-            "Linear": 0.10000000149011612,
-            "Quadratic": 0.014999999664723874
+            "bCastsShadow": true
         },
         {
             "Id": 3,
@@ -533,10 +530,7 @@
                 8.0,
                 -1.0
             ],
-            "bCastsShadow": true,
-            "Constant": 0.20000000298023225,
-            "Linear": 0.10000000149011612,
-            "Quadratic": 0.014999999664723874
+            "bCastsShadow": true
         },
         {
             "Id": 4,
@@ -551,10 +545,7 @@
                 8.0,
                 -1.0
             ],
-            "bCastsShadow": true,
-            "Constant": 0.20000000298023225,
-            "Linear": 0.10000000149011612,
-            "Quadratic": 0.014999999664723874
+            "bCastsShadow": true
         }
     ]
 }

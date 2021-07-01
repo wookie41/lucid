@@ -30,9 +30,7 @@ namespace lucid::scene
     static const FSString LIGHT_SPACE_MATRIX_5{ "uLightMatrices[5]" };
 
     static const FSString LIGHT_DIRECTION("uLightDirection");
-    static const FSString LIGHT_CONSTANT("uLightConstant");
-    static const FSString LIGHT_LINEAR("uLightLinear");
-    static const FSString LIGHT_QUADRATIC("uLightQuadratic");
+    static const FSString ATTENUATION_RADIUS("uLightAttenuationRadius");
     static const FSString LIGHT_INNER_CUT_OFF("uLightInnerCutOffCos");
     static const FSString LIGHT_OUTER_CUT_OFF("uLightOuterCutOffCos");
     static const FSString LIGHT_SHADOW_MAP("uLightShadowMap");
@@ -145,7 +143,7 @@ namespace lucid::scene
 
         if (bRotationUpdated)
         {
-            Direction = Transform.Rotation * glm::vec3{ 0, 0, 1 };
+            Direction = glm::normalize(Transform.Rotation * glm::vec3{ 0, 0, 1 });
         }
     }
 
@@ -159,11 +157,11 @@ namespace lucid::scene
 
         const FDebugArrow DebugArrow = MakeDebugArrowData(Transform.Translation, Direction, 20);
 
-        for (int i = 0; i < sizeof(ArrowsOffsets)/sizeof(glm::vec3); ++i)
+        for (int i = 0; i < sizeof(ArrowsOffsets) / sizeof(glm::vec3); ++i)
         {
             GEngine.GetRenderer()->AddDebugLine(DebugArrow.BodyStart + ArrowsOffsets[i], DebugArrow.BodyEnd + ArrowsOffsets[i], Color, Color);
             GEngine.GetRenderer()->AddDebugLine(DebugArrow.HeadStart0 + ArrowsOffsets[i], DebugArrow.HeadEnd0 + ArrowsOffsets[i], Color, Color);
-            GEngine.GetRenderer()->AddDebugLine(DebugArrow.HeadStart1 + ArrowsOffsets[i], DebugArrow.HeadEnd1 + ArrowsOffsets[i], Color, Color);            
+            GEngine.GetRenderer()->AddDebugLine(DebugArrow.HeadStart1 + ArrowsOffsets[i], DebugArrow.HeadEnd1 + ArrowsOffsets[i], Color, Color);
         }
     }
 #endif
@@ -225,9 +223,7 @@ namespace lucid::scene
     {
         CLight::SetupShader(InShader);
         InShader->SetVector(LIGHT_DIRECTION, Direction);
-        InShader->SetFloat(LIGHT_CONSTANT, Constant);
-        InShader->SetFloat(LIGHT_LINEAR, Linear);
-        InShader->SetFloat(LIGHT_QUADRATIC, Quadratic);
+        InShader->SetFloat(ATTENUATION_RADIUS, AttenuationRadius);
         InShader->SetFloat(LIGHT_INNER_CUT_OFF, glm::cos(InnerCutOffRad));
         InShader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(OuterCutOffRad));
         InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
@@ -256,36 +252,65 @@ namespace lucid::scene
             float InnerCutOff = glm::degrees(InnerCutOffRad);
             float OuterCutOff = glm::degrees(OuterCutOffRad);
 
-            ImGui::DragFloat("Constant", &Constant, 0.001, 0, 3);
-            ImGui::DragFloat("Linear", &Linear, 0.001, 0, 3);
-            ImGui::DragFloat("Quadratic", &Quadratic, 0.001, 0, 3);
-            ImGui::DragFloat("Inner Cut Off", &InnerCutOff, 1, 0, 90);
-            ImGui::DragFloat("Outer Cut Off", &OuterCutOff, 1, 0, 90);
-
-            InnerCutOffRad = glm::radians(InnerCutOff);
-            OuterCutOffRad = glm::radians(OuterCutOff);
+            ImGui::DragFloat("Attenuation radius", &AttenuationRadius, 1, 0, 10000);
+            if (ImGui::DragFloat("Inner Cut Off", &InnerCutOff, 1, 0, 90))
+            {
+                if (InnerCutOff < OuterCutOff)
+                {
+                    InnerCutOffRad = glm::radians(InnerCutOff);
+                }
+            }
+            if (ImGui::DragFloat("Outer Cut Off", &OuterCutOff, 1, 0, 90))
+            {
+                if (OuterCutOff > InnerCutOff)
+                {
+                    OuterCutOffRad = glm::radians(OuterCutOff);
+                }
+            }
         }
 
         if (bRotationUpdated)
         {
-            Direction = Transform.Rotation * glm::vec3{ 0, 0, 1 };
+            Direction = glm::normalize(Transform.Rotation * glm::vec3{ 0, 0, 1 });
+            LightUp   = glm::normalize(Transform.Rotation * glm::vec3{ 0, 1, 0 });
         }
     }
+
+    void CSpotLight::OnSelectedPreFrameRender()
+    {
+        constexpr float Step = glm::radians(15.f);
+
+        const float Radius = AttenuationRadius / glm::tan(OuterCutOffRad);
+
+        const glm::vec3 BaseMiddle = Transform.Translation + (Direction * AttenuationRadius);
+
+        for (float Rotation = 0; Rotation < 6.14; Rotation += Step)
+        {
+            glm::vec3 LineEnd = BaseMiddle + ((glm::angleAxis(Rotation, Direction) * LightUp) * Radius);
+            GEngine.GetRenderer()->AddDebugLine(Transform.Translation, LineEnd, Color, Color);
+        }
+
+        {
+            const FDebugArrow DirectionArrow = MakeDebugArrowData(Transform.Translation, Direction, AttenuationRadius);
+            GEngine.GetRenderer()->AddDebugLine(DirectionArrow.BodyStart, DirectionArrow.BodyEnd, Color, Color);
+            GEngine.GetRenderer()->AddDebugLine(DirectionArrow.HeadStart0, DirectionArrow.HeadEnd0, Color, Color);
+            GEngine.GetRenderer()->AddDebugLine(DirectionArrow.HeadStart1, DirectionArrow.HeadEnd1, Color, Color);
+        }
+    }
+
 #endif
 
     IActor* CSpotLight::CreateCopy()
     {
-        auto* Copy           = new CSpotLight{ Name.GetCopy(), Parent, World };
-        Copy->Direction      = Direction;
-        Copy->Color          = Color;
-        Copy->LightUp        = LightUp;
-        Copy->Quality        = Quality;
-        Copy->Constant       = Constant;
-        Copy->Linear         = Linear;
-        Copy->Quadratic      = Quadratic;
-        Copy->InnerCutOffRad = InnerCutOffRad;
-        Copy->OuterCutOffRad = OuterCutOffRad;
-        Copy->Transform      = Transform;
+        auto* Copy              = new CSpotLight{ Name.GetCopy(), Parent, World };
+        Copy->Direction         = Direction;
+        Copy->Color             = Color;
+        Copy->LightUp           = LightUp;
+        Copy->Quality           = Quality;
+        Copy->AttenuationRadius = AttenuationRadius;
+        Copy->InnerCutOffRad    = InnerCutOffRad;
+        Copy->OuterCutOffRad    = OuterCutOffRad;
+        Copy->Transform         = Transform;
         Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
         Copy->bShouldCastShadow = bShouldCastShadow;
         if (ShadowMap)
@@ -347,9 +372,7 @@ namespace lucid::scene
     void CPointLight::SetupShader(gpu::CShader* InShader) const
     {
         CLight::SetupShader(InShader);
-        InShader->SetFloat(LIGHT_CONSTANT, Constant);
-        InShader->SetFloat(LIGHT_LINEAR, Linear);
-        InShader->SetFloat(LIGHT_QUADRATIC, Quadratic);
+        InShader->SetFloat(ATTENUATION_RADIUS, AttenuationRadius);
         InShader->SetFloat(LIGHT_NEAR_PLANE, CachedNearPlane);
         InShader->SetFloat(LIGHT_FAR_PLANE, CachedFarPlane);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_0, LightSpaceMatrices[0]);
@@ -389,24 +412,20 @@ namespace lucid::scene
         CLight::UIDrawActorDetails();
         if (ImGui::CollapsingHeader("Spot light"))
         {
-            ImGui::DragFloat("Constant", &Constant, 0.001, 0, 3);
-            ImGui::DragFloat("Linear", &Linear, 0.001, 0, 3);
-            ImGui::DragFloat("Quadratic", &Quadratic, 0.001, 0, 3);
+            ImGui::DragFloat("Attenuation Radius", &AttenuationRadius, 0.001, 0, 3);
         }
     }
 #endif
 
     IActor* CPointLight::CreateCopy()
     {
-        auto* Copy            = new CPointLight{ Name.GetCopy(), Parent, World };
-        Copy->Color           = Color;
-        Copy->Quality         = Quality;
-        Copy->Constant        = Constant;
-        Copy->Linear          = Linear;
-        Copy->Quadratic       = Quadratic;
-        Copy->CachedNearPlane = CachedNearPlane;
-        Copy->CachedFarPlane  = CachedFarPlane;
-        Copy->Transform       = Transform;
+        auto* Copy              = new CPointLight{ Name.GetCopy(), Parent, World };
+        Copy->Color             = Color;
+        Copy->Quality           = Quality;
+        Copy->AttenuationRadius = AttenuationRadius;
+        Copy->CachedNearPlane   = CachedNearPlane;
+        Copy->CachedFarPlane    = CachedFarPlane;
+        Copy->Transform         = Transform;
         Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
         Copy->bShouldCastShadow = bShouldCastShadow;
         if (ShadowMap)

@@ -8,9 +8,7 @@ uniform vec3    uLightPosition;
 
 uniform vec3    uLightDirection;
 
-uniform float   uLightConstant;
-uniform float   uLightLinear;
-uniform float   uLightQuadratic;
+uniform float   uLightAttenuationRadius;
 
 uniform float   uLightInnerCutOffCos;
 uniform float   uLightOuterCutOffCos;
@@ -64,7 +62,7 @@ LightContribution _CalculatePointLightContribution(in vec3 FragPos,
 {
     float distanceToLight = length(FragPos - uLightPosition);
     LightContribution ctrb = _CalculateDirectionalLightContribution(ToViewN, Normal, LightDirN, Shininess);
-    float attenuation = 1.0 / (uLightConstant + (uLightLinear * distanceToLight) + (uLightQuadratic * (distanceToLight * distanceToLight)));
+    float attenuation = 1.0 - (distanceToLight / uLightAttenuationRadius);
     return LightContribution(attenuation, ctrb.Diffuse * attenuation, ctrb.Specular * attenuation);
 }
 
