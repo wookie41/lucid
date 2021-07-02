@@ -121,18 +121,15 @@ namespace lucid::scene
 
     void CCamera::Update(const float& DeltaTime)
     {
-        if (MoveDuration > 0)
+        if (bMoveRequested)
         {
-            if (glm::length(Position - DesiredPos) < 0.01 || glm::abs(DesiredYaw - Yaw) < 0.1 || glm::abs(DesiredPitch - Pitch) < 0.1)
+            if (glm::length(Position - DesiredPos) < 0.01 && glm::abs(DesiredYaw - Yaw) < 0.1 && glm::abs(DesiredPitch - Pitch) < 0.1)
             {
-                MoveDuration = 0;
+                bMoveRequested = false;
             }
             else if (CurrenteMoveTime > MoveDuration)
             {
-                MoveDuration = 0;
-                Position     = DesiredPos;
-                Yaw          = DesiredYaw;
-                Pitch        = DesiredPitch;
+                bMoveRequested = false;
             }
             else
             {
@@ -154,6 +151,7 @@ namespace lucid::scene
         DesiredPos       = InLocation;
         DesiredYaw       = InYaw;
         DesiredPitch     = InPitch;
+        bMoveRequested   = true;
     }
 
 } // namespace lucid::scene

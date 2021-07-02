@@ -289,7 +289,7 @@ namespace lucid::scene
         }
 
         {
-            const FDebugArrow DirectionArrow = MakeDebugArrowData(Transform.Translation, Direction, AttenuationRadius);
+            const FDebugArrow DirectionArrow = MakeDebugArrowData(Transform.Translation, Direction, 2);
             GEngine.GetRenderer()->AddDebugLine(DirectionArrow.BodyStart, DirectionArrow.BodyEnd, Color, Color);
             GEngine.GetRenderer()->AddDebugLine(DirectionArrow.HeadStart0, DirectionArrow.HeadEnd0, Color, Color);
             GEngine.GetRenderer()->AddDebugLine(DirectionArrow.HeadStart1, DirectionArrow.HeadEnd1, Color, Color);

@@ -15,13 +15,13 @@ namespace lucid::scene
     {
       public:
         CCamera(const ECameraMode& CameraMode,
-               const glm::vec3& CameraPosition = { 0.0, 0.0, 0.0 },
-               const glm::vec3& CameraUp = { 0.0, 1.0, 0.0 },
-               const real& CameraYaw = 0,
-               const real& CameraPitch = 0.0,
-               const real& CameraSpeed = 7.5,
-               const real& CameraSensitivity = 0.5,
-               const real& CameraZoom = 45.0);
+                const glm::vec3&   CameraPosition    = { 0.0, 0.0, 0.0 },
+                const glm::vec3&   CameraUp          = { 0.0, 1.0, 0.0 },
+                const real&        CameraYaw         = 0,
+                const real&        CameraPitch       = 0.0,
+                const real&        CameraSpeed       = 7.5,
+                const real&        CameraSensitivity = 0.5,
+                const real&        CameraZoom        = 45.0);
 
         glm::mat4 GetViewMatrix() const;
         glm::mat4 GetProjectionMatrix() const;
@@ -47,15 +47,15 @@ namespace lucid::scene
 
         void Update(const float& DeltaTime);
         void MoveToOverTime(const glm::vec3& InLocation, const float& InYaw, const float& InPitch, const float& InDuration);
-        
+
         real NearPlane = 0.1;
-        real FarPlane = 100.0;
+        real FarPlane  = 100.0;
 
         real Left = 0, Right = 0;
         real Bottom = 0, Top = 0;
 
         ECameraMode Mode;
-        real AspectRatio = 0;
+        real        AspectRatio = 0;
 
         glm::vec3 Position;
         glm::vec3 FrontVector;
@@ -70,13 +70,13 @@ namespace lucid::scene
         real Sensitivity;
         real FOV;
 
-    protected:
-
-        float MoveDuration = 0;
+      protected:
+        float MoveDuration     = 0;
         float CurrenteMoveTime = 0;
+        bool  bMoveRequested   = false;
 
-        glm::vec3 DesiredPos    { 0, 0, 0 };
-        float DesiredYaw    = 0;
-        float DesiredPitch  = 0;
+        glm::vec3 DesiredPos{ 0, 0, 0 };
+        float     DesiredYaw   = 0;
+        float     DesiredPitch = 0;
     };
 } // namespace lucid::scene
