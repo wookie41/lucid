@@ -143,7 +143,7 @@ namespace lucid::scene
 
         if (bRotationUpdated)
         {
-            Direction = glm::normalize(Transform.Rotation * glm::vec3{ 0, 0, 1 });
+            Direction = glm::normalize(glm::vec3{ 0, 0, 1 } * Transform.Rotation);
         }
     }
 
@@ -271,8 +271,8 @@ namespace lucid::scene
 
         if (bRotationUpdated)
         {
-            Direction = glm::normalize(Transform.Rotation * glm::vec3{ 0, 0, 1 });
-            LightUp   = glm::normalize(Transform.Rotation * glm::vec3{ 0, 1, 0 });
+            Direction = glm::normalize(glm::vec3{ 0, 0, 1 } * Transform.Rotation);
+            LightUp   = glm::normalize(glm::vec3{ 0, 1, 0 } * Transform.Rotation);
         }
     }
 

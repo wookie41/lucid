@@ -24,3 +24,4 @@ Makefile
 shaders/glsl/*.frag
 shaders/glsl/*.vert
 .idea
+imgui.ini
