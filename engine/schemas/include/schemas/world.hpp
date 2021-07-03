@@ -16,6 +16,12 @@ STRUCT_INHERIT_BEGIN(lucid, FStaticMeshDescription, lucid::FActorEntry, "")
     STRUCT_FIELD(scene::EStaticMeshType, Type, lucid::scene::EStaticMeshType::STATIONARY, 0, "")
 STRUCT_END()
 
+STRUCT_INHERIT_BEGIN(lucid, FTerrainDescription, lucid::FActorEntry, "")
+    STRUCT_FIELD(UUID, TerrainMeshResourceId, lucid::UUID{}, "")
+    STRUCT_FIELD(float, ResolutionX, 0, "")
+    STRUCT_FIELD(float, ResolutionZ, 0, "")    
+STRUCT_END()
+
 STRUCT_BEGIN(lucid, FSkyboxDescription, "")
     STRUCT_FIELD(u32, Id, 0, "Id of the actor")	
     STRUCT_FIELD(FDString, Name, "Skybox", "Name of the actor")	

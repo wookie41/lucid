@@ -15,6 +15,7 @@ namespace lucid::scene
         UNKNOWN,
         STATIC_MESH,
         SKYBOX,
-        LIGHT
+        LIGHT,
+        TERRAIN
     };
 }
