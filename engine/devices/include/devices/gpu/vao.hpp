@@ -24,7 +24,7 @@ namespace lucid::gpu
         i32 BufferBindingIndex = -1;
     };
 
-    enum EDrawMode
+    enum EDrawMode : u8
     {
         POINTS = 0,
         LINE_STRIP,

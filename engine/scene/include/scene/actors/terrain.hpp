@@ -42,30 +42,30 @@ namespace lucid::scene
                  IActor*                   InParent,
                  CWorld*                   InWorld,
                  const FTerrainSettings&   InTerrainSettings,
-                 resources::CMeshResource* InTerrainMesh);
+                 resources::CMeshResource* InTerrainMesh,
+                 CMaterial*                InTerrainMaterial);
 
         /** Terrain stuff */
         static EActorType  GetActorTypeStatic() { return EActorType::TERRAIN; }
         virtual EActorType GetActorType() const override { return EActorType::TERRAIN; }
 
         inline resources::CMeshResource* GetTerrainMesh() const { return TerrainMesh; }
+        inline CMaterial*                GetTerrainMaterial() const { return TerrainMaterial; }
 
         /** Actor interface stuff */
 
         float GetVerticalMidPoint() const override;
-        
+
         void FillDescription(FTerrainDescription& OutDescription) const;
 
-
         static CTerrain* CreateAsset(const FDString& InName);
-        virtual IActor* CreateAssetFromActor(const FDString& InName) const override;
+        virtual IActor*  CreateAssetFromActor(const FDString& InName) const override;
         static CTerrain* LoadAsset(const FTerrainDescription& InTerrainDescription);
 
         virtual IActor* LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription);
         virtual IActor* CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
         virtual IActor* CreateActorCopy() override;
 
-        
         /** Asset stuff */
         virtual void LoadAssetResources() override;
         virtual void UnloadAssetResources() override;
@@ -86,7 +86,8 @@ namespace lucid::scene
 
       protected:
         FTerrainSettings          TerrainSettings;
-        resources::CMeshResource* TerrainMesh = nullptr;
+        resources::CMeshResource* TerrainMesh     = nullptr;
+        CMaterial*                TerrainMaterial = nullptr;
     };
 
     CTerrain* CreateTerrainAsset(const FDString& InName);

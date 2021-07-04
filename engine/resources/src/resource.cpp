@@ -5,20 +5,20 @@
 
 namespace lucid::resources
 {
-    CResource::CResource(const UUID& InID,
+    CResource::CResource(const UUID&    InID,
                          const FString& InName,
                          const FString& InFilePath,
-                         const u64& InOffset,
-                         const u64& InDataSize,
-                         const u32& InAssetSerializationVersion)
+                         const u64&     InOffset,
+                         const u64&     InDataSize,
+                         const u32&     InAssetSerializationVersion)
     : ID(InID), Name(InName), FilePath(InFilePath), Offset(InOffset), DataSize(InDataSize), AssetSerializationVersion(InAssetSerializationVersion)
     {
     }
 
     void CResource::SaveHeader(FILE* ResourceFile) const
     {
-        const u32           NameLength      = Name.GetLength();
-        const EResourceType ResourceType    = GetType();
+        const u32           NameLength   = Name.GetLength();
+        const EResourceType ResourceType = GetType();
 
         fwrite(&ID, sizeof(ID), 1, ResourceFile);
         fwrite(&ResourceType, sizeof(ResourceType), 1, ResourceFile);
@@ -28,11 +28,20 @@ namespace lucid::resources
         fwrite(*Name, Name.GetLength(), 1, ResourceFile);
     }
 
-    void CResource::Resave() const
+    void CResource::Resave(const u32& InAssetSerializationVersion)
     {
         FILE* ResourceFile;
-        if(fopen_s(&ResourceFile, *FilePath, "wb+") == 0)
+        bool  bNeedsFree = false;
+        if (!bLoadedToMainMemory)
         {
+            bNeedsFree = true;
+            LoadDataToMainMemorySynchronously();
+        }
+
+        if (fopen_s(&ResourceFile, *FilePath, "wb+") == 0)
+        {
+
+            AssetSerializationVersion = InAssetSerializationVersion;
             SaveSynchronously(ResourceFile);
             fclose(ResourceFile);
         }
@@ -40,12 +49,17 @@ namespace lucid::resources
         {
             LUCID_LOG(ELogLevel::WARN, "Failed to resave resource %s - couldn't open file", *Name);
         }
+
+        if (bNeedsFree)
+        {
+            FreeMainMemory();
+        }
     }
 
     void CResource::Acquire(const bool& InbNeededInMainMemory, const bool& InbNeededInVideoMemory)
     {
         bool bLoadedToMainMemoryBefore = bLoadedToMainMemory;
-        
+
         if (InbNeededInMainMemory)
         {
             LoadDataToMainMemorySynchronously();
@@ -68,7 +82,7 @@ namespace lucid::resources
         }
         else
         {
-            ++RefCount;    
+            ++RefCount;
         }
     }
 

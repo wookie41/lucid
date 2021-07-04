@@ -179,7 +179,7 @@ namespace lucid::scene
                 ImGuiShowMaterialEditor(CurrentlyEditedMaterial, &bMaterialEditorOpen);
                 if (!bMaterialEditorOpen)
                 {
-                    bMaterialEditorOpen = true;
+                    bMaterialEditorOpen     = true;
                     CurrentlyEditedMaterial = nullptr;
                 }
             }
@@ -233,9 +233,17 @@ namespace lucid::scene
 
     void CStaticMesh::HandleBaseAssetMaterialSlotChange(CMaterial* InOldMaterial, const u8& InMaterialSlot)
     {
-        MaterialsToUnload.push_back(InOldMaterial);
-        MaterialsToLoad.push_back(*MaterialSlots[InMaterialSlot]);
-        
+        if (InOldMaterial)
+        {
+            MaterialsToUnload.push_back(InOldMaterial);
+        }
+
+        CMaterial* NewMaterial = *MaterialSlots[InMaterialSlot];
+        if (NewMaterial)
+        {
+            MaterialsToLoad.push_back(NewMaterial);
+        }
+
         auto ChildReference = &AssetReferences.Head;
         while (ChildReference && ChildReference->Element)
         {
@@ -334,8 +342,8 @@ namespace lucid::scene
     {
         assert(InWorld);
 
-        auto* StaticMeshDescription = (FStaticMeshDescription*)(InActorDescription);        
-        auto* Parent = StaticMeshDescription->ParentId == 0 ? nullptr : InWorld->GetActorById(StaticMeshDescription->ParentId);
+        auto* StaticMeshDescription = (FStaticMeshDescription*)(InActorDescription);
+        auto* Parent                = StaticMeshDescription->ParentId == 0 ? nullptr : InWorld->GetActorById(StaticMeshDescription->ParentId);
 
         resources::CMeshResource* LoadedActorMeshResource;
         if (StaticMeshDescription->MeshResourceId.bChanged)
@@ -348,7 +356,7 @@ namespace lucid::scene
         }
 
         LoadedActorMeshResource->Acquire(false, true);
-        
+
         auto* StaticMesh    = new CStaticMesh{ StaticMeshDescription->Name, Parent, InWorld, LoadedActorMeshResource, StaticMeshDescription->Type };
         StaticMesh->ActorId = StaticMeshDescription->Id;
         StaticMesh->Transform.Translation = Float3ToVec(StaticMeshDescription->Postion);
@@ -440,7 +448,10 @@ namespace lucid::scene
             }
         }
 
-        MaterialsToLoad.push_back(NewMaterial);
+        if (NewMaterial)
+        {
+            MaterialsToLoad.push_back(NewMaterial);
+        }
     }
 
     IActor* CStaticMesh::CreateAssetFromActor(const FDString& InName) const
@@ -533,7 +544,7 @@ namespace lucid::scene
         auto* SpawnedMesh = new CStaticMesh{ Name.GetCopy(), nullptr, InWorld, MeshResource, Type };
 
         AddAssetReference(SpawnedMesh);
-        
+
         for (u8 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
             if (*MaterialSlots[i])

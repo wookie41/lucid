@@ -246,7 +246,10 @@ namespace lucid::resources
         return TextureResource;
     }
 
-    void CTextureResource::MigrateToLatestVersion() { Resave(); }
+    void CTextureResource::MigrateToLatestVersion()
+    {
+        Resave(TEXTURE_SERIALIZATION_VERSION);
+    }
 
     void CTextureResource::LoadThumbnail()
     {

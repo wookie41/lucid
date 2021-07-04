@@ -79,7 +79,7 @@ namespace lucid::resources
 
       protected:
         void SaveHeader(FILE* ResourceFile) const;
-        void Resave() const;
+        void Resave(const u32& InAssetSerializationVersion);
 
         UUID    ID;
         FString Name;

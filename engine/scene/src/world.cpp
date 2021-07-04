@@ -84,10 +84,7 @@ namespace lucid::scene
         }
     }
 
-    void CWorld::RemoveTerrain(CTerrain* InTerrain)
-    {
-        Terrains.Remove(InTerrain->ActorId);
-    }
+    void CWorld::RemoveTerrain(CTerrain* InTerrain) { Terrains.Remove(InTerrain->ActorId); }
 
     void CWorld::SetSkybox(CSkybox* InSkybox)
     {
@@ -113,6 +110,7 @@ namespace lucid::scene
         StaticRenderScene.PointLights       = PointLights;
         StaticRenderScene.StaticMeshes      = StaticMeshes;
         StaticRenderScene.Skybox            = Skybox;
+        StaticRenderScene.Terrains          = Terrains;
         return &StaticRenderScene;
     }
 
@@ -175,7 +173,7 @@ namespace lucid::scene
             }
 
             if (auto* StaticMesh = ActorAsset->LoadActor(World, &StaticMeshDescription))
-            {                
+            {
                 if (StaticMeshDescription.ParentId && !StaticMesh->Parent)
                 {
                     UnresolvedParents.Add(StaticMesh, StaticMeshDescription.ParentId);

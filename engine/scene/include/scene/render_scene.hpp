@@ -16,7 +16,7 @@ namespace lucid::scene
     class CPointLight;
     class CStaticMesh;
     class CSkybox;
-
+    class CTerrain;
 
     /*
      * The RenderScene contains things like objects to render, lights, fog volumes in a Renderer-implementation-agnostic format.
@@ -28,6 +28,7 @@ namespace lucid::scene
         FRenderScene() = default;
 
         FHashMap<u32, CStaticMesh*>       StaticMeshes;
+        FHashMap<u32, CTerrain*>          Terrains;
         FHashMap<u32, CDirectionalLight*> DirectionalLights;
         FHashMap<u32, CSpotLight*>        SpotLights;
         FHashMap<u32, CPointLight*>       PointLights;

@@ -37,7 +37,7 @@ void main()
     float FragDepth      = ClipPos.z / ClipPos.w;
     float ClipSpaceDepth = FragDepth * 2.0 - 1.0;
     float LinearDepth    = (2.0 * uNearPlane * uFarPlane) / (uFarPlane + uNearPlane - ClipSpaceDepth * (uFarPlane - uNearPlane));
-    float Fading         = LinearDepth / uFarPlane;
+    float Fading         = LinearDepth * 10 / uFarPlane;
     
     vec4 GridColor = Grid(FragPos, 1);
     GridColor.a /= Fading;

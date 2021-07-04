@@ -18,6 +18,7 @@ STRUCT_END()
 
 STRUCT_INHERIT_BEGIN(lucid, FTerrainDescription, lucid::FActorEntry, "")
     STRUCT_FIELD(UUID, TerrainMeshResourceId, lucid::UUID{}, "")
+    STRUCT_FIELD(UUID, TerrainMaterialId, lucid::UUID{}, "")
     STRUCT_FIELD(float, ResolutionX, 0, "")
     STRUCT_FIELD(float, ResolutionZ, 0, "")    
     STRUCT_FIELD(float, GridSizeX, 0, "")    

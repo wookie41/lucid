@@ -29,6 +29,8 @@
 
 #include <filesystem>
 
+#include "devices/gpu/vao.hpp"
+
 namespace lucid::resources
 {
 #define SUBMESH_INFO_SIZE (((sizeof(u32) * 4) + (sizeof(bool) * 4)))
@@ -47,6 +49,7 @@ namespace lucid::resources
     {
         u16 NumSubMeshes;
         fread_s(&NumSubMeshes, sizeof(NumSubMeshes), sizeof(NumSubMeshes), 1, ResourceFile);
+
         for (u16 i = 0; i < NumSubMeshes; ++i)
         {
             FSubMesh SubMesh;
@@ -86,6 +89,11 @@ namespace lucid::resources
             fread_s(&MinPosZ, sizeof(MinPosZ), sizeof(MinPosZ), 1, ResourceFile);
             fread_s(&MaxPosZ, sizeof(MaxPosZ), sizeof(MaxPosZ), 1, ResourceFile);
         }
+
+        if (AssetSerializationVersion > 2)
+        {
+            fread_s(&DrawMode, sizeof(DrawMode), sizeof(DrawMode), 1, ResourceFile);            
+        }
     }
 
     void CMeshResource::LoadDataToMainMemorySynchronously()
@@ -101,9 +109,8 @@ namespace lucid::resources
             LUCID_LOG(ELogLevel::WARN, "Failed to open file %s", *FilePath);
             return;
         }
-        // Position the file pointer to the beginning of
-        // mesh data
-        u32 VertexDataOffset = Offset + RESOURCE_FILE_HEADER_SIZE + Name.GetLength() + sizeof(u16) + (SUBMESH_INFO_SIZE * SubMeshes.GetLength());
+        // Position the file pointer to the beginning of mesh data
+        u32 VertexDataOffset = Offset + RESOURCE_FILE_HEADER_SIZE + Name.GetLength() + sizeof(u16)  + (SUBMESH_INFO_SIZE * SubMeshes.GetLength());
 
         if (AssetSerializationVersion > 0)
         {
@@ -113,6 +120,11 @@ namespace lucid::resources
         if (AssetSerializationVersion > 1)
         {
             VertexDataOffset += sizeof(u8) * SubMeshes.GetLength();
+        }
+
+        if (AssetSerializationVersion > 2)
+        {
+            VertexDataOffset += sizeof(DrawMode);
         }
 
         fseek(MeshFile, VertexDataOffset, SEEK_SET);
@@ -232,7 +244,7 @@ namespace lucid::resources
                                                   &MeshAttributes,
                                                   SubMesh->VertexBuffer,
                                                   SubMesh->ElementBuffer,
-                                                  gpu::EDrawMode::TRIANGLES,
+                                                  DrawMode,
                                                   SubMesh->VertexCount,
                                                   SubMesh->ElementCount);
             assert(SubMesh->VAO);
@@ -276,6 +288,8 @@ namespace lucid::resources
         fwrite(&MinPosZ, sizeof(MinPosZ), 1, ResourceFile);
         fwrite(&MaxPosZ, sizeof(MaxPosZ), 1, ResourceFile);
 
+        fwrite(&DrawMode, sizeof(gpu::EDrawMode), 1, ResourceFile);
+        
         // Save vertex and data for each submesh
         for (u16 i = 0; i < NumSubMeshes; ++i)
         {
@@ -285,11 +299,12 @@ namespace lucid::resources
                 fwrite(SubMeshes[i]->ElementDataBuffer.Pointer, SubMeshes[i]->ElementDataBuffer.Size, 1, ResourceFile);
             }
         }
+
     }
 
     void CMeshResource::FreeMainMemory()
     {
-        if (!IsMainMemoryFreed)
+        if (bLoadedToMainMemory && !IsMainMemoryFreed)
         {
             for (u16 i = 0; i < SubMeshes.GetLength(); ++i)
             {
@@ -304,7 +319,7 @@ namespace lucid::resources
 
     void CMeshResource::FreeVideoMemory()
     {
-        if (!IsVideoMemoryFreed)
+        if (bLoadedToVideoMemory && !IsVideoMemoryFreed)
         {
             for (u16 i = 0; i < SubMeshes.GetLength(); ++i)
             {
@@ -795,8 +810,8 @@ namespace lucid::resources
                 SubMeshInfo->ElementData = NewElementBuffer;
             }
 
-            ElementDataOffset = SubMeshInfo->VertexCount; 
-            
+            ElementDataOffset = SubMeshInfo->VertexCount;
+
             SubMeshInfo->VertexCount += Mesh->mNumVertices;
             SubMeshInfo->ElementCount += (Mesh->mNumFaces * 3);
         }
@@ -1077,7 +1092,12 @@ namespace lucid::resources
             AssetSerializationVersion = 1;
         }
 
-        Resave();
+        if (AssetSerializationVersion == 1)
+        {
+            DrawMode = gpu::EDrawMode::TRIANGLES;
+        }
+        
+        Resave(MESH_SERIALIZATION_VERSION);
     }
 
 } // namespace lucid::resources

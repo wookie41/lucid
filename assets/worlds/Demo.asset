@@ -535,41 +535,6 @@
         "Name": "Skybox",
         "BaseActorResourceId": "dfd87123-806f-4656-a086-2ec636e29fbc"
     },
-    "DirectionalLights": [
-        {
-            "Id": 16,
-            "Name": "DirectionalLight",
-            "Direction": [
-                0.0,
-                0.0,
-                -1.0
-            ]
-        }
-    ],
-    "SpotLights": [
-        {
-            "Id": 17,
-            "Name": "SpotLight",
-            "Postion": [
-                -66.9932861328125,
-                48.421836853027347,
-                13.681917190551758
-            ],
-            "Rotation": [
-                4.898414829312969e-8,
-                0.9916472434997559,
-                4.898414829312969e-8,
-                -0.1289794147014618
-            ],
-            "Direction": [
-                0.0,
-                0.0,
-                -1.0
-            ],
-            "InnerCutOffRad": 0.5235987901687622,
-            "OuterCutOffRad": 0.7853981852531433
-        }
-    ],
     "PointLights": [
         {
             "Id": 2,
@@ -585,7 +550,7 @@
                 -1.0
             ],
             "bCastsShadow": true,
-            "AttenuationRadius": 40.0
+            "AttenuationRadius": 50.0
         },
         {
             "Id": 3,
@@ -601,7 +566,7 @@
                 -1.0
             ],
             "bCastsShadow": true,
-            "AttenuationRadius": 40.0
+            "AttenuationRadius": 50.0
         },
         {
             "Id": 4,
@@ -617,7 +582,7 @@
                 -1.0
             ],
             "bCastsShadow": true,
-            "AttenuationRadius": 40.0
+            "AttenuationRadius": 50.0
         }
     ]
 }

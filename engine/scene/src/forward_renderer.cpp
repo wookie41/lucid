@@ -26,6 +26,7 @@
 #include "scene/camera.hpp"
 #include "scene/actors/static_mesh.hpp"
 #include "scene/actors/skybox.hpp"
+#include "scene/actors/terrain.hpp"
 
 #include "misc/basic_shapes.hpp"
 #include "misc/math.hpp"
@@ -568,6 +569,11 @@ namespace lucid::scene
             InSceneToRender->StaticMeshes.GetByIndex(i)->CalculateModelMatrix();
         }
 
+        for (u32 i = 0; i < InSceneToRender->Terrains.GetLength(); ++i)
+        {
+            InSceneToRender->Terrains.GetByIndex(i)->CalculateModelMatrix();
+        }
+
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
 
         // Make sure we can use the persistent buffers
@@ -712,9 +718,11 @@ namespace lucid::scene
 
     struct FMeshBatchBuilder
     {
-        std::vector<CStaticMesh*> StaticMeshes; // actor that owns the given mesh
-        std::vector<CMaterial*>   Materials; // Instances of the same material
-        u32                       MeshDataResourceIdx; // index to the mesh data array that hold actor's data (model matrix etc)
+        gpu::CShader*    BatchShader = nullptr;
+        std::vector<u32> ActorEntryIndices;
+        std::vector<u32> MaterialEntryIndices;
+
+        std::vector<CMaterial*> BatchedMaterials; // this is only needed for the prepass and should be removed
     };
 
     FMaterialDataBuffer CForwardRenderer::CreateMaterialBuffer(CMaterial const* InMaterial, const u32& InMaterialBufferSize)
@@ -749,6 +757,96 @@ namespace lucid::scene
         }
     }
 
+    void CForwardRenderer::HandleMaterialBufferUpdateIfNecessary(CMaterial* Material)
+    {
+        // Find material data buffer
+        if (MaterialDataBufferPerMaterialType.find(Material->GetType()) == MaterialDataBufferPerMaterialType.end())
+        {
+            // If there is no material buffer for this type of material - create one
+            FMaterialDataBuffer NewMaterialBuffer                  = CreateMaterialBuffer(Material, INITIAL_MATERIAL_DATA_BUFFER_SIZE);
+            MaterialDataBufferPerMaterialType[Material->GetType()] = NewMaterialBuffer;
+
+            Material->MaterialBufferIndex = 0;
+            Material->SetupShaderBuffer(NewMaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
+
+            return;
+        }
+
+        auto& MaterialBuffer = MaterialDataBufferPerMaterialType[Material->GetType()];
+        // If the material is dirty or was edited, return it's entry to the pool
+        if (Material->TypeToFree != EMaterialType::NONE)
+        {
+            FreeMaterialBufferEntry(Material->TypeToFree, Material->MaterialBufferIndexToFree);
+            Material->TypeToFree                = EMaterialType::NONE;
+            Material->MaterialBufferIndexToFree = -1;
+        }
+
+        // Assign a material buffer index so this material can write it's data
+        if (Material->MaterialBufferIndex == -1 || Material->IsMaterialDataDirty())
+        {
+            // Check if there are free indices - if yes, then get one
+            if (MaterialBuffer.FreeIndices.size())
+            {
+                Material->MaterialBufferIndex = MaterialBuffer.FreeIndices.back();
+                Material->SetupShaderBuffer(MaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
+
+                MaterialBuffer.FreeIndices.pop_back();
+            }
+            // If there are free entries at the end - get once
+            else if (MaterialBuffer.NumEntries < MaterialBuffer.MaxEntries)
+            {
+                Material->MaterialBufferIndex = MaterialBuffer.NumEntries++;
+                Material->SetupShaderBuffer(MaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
+            }
+            // Otherwise just create a bigger buffer
+            else
+            {
+                // Create a new buffer
+                FMaterialDataBuffer NewMaterialBuffer = CreateMaterialBuffer(Material, MaterialBuffer.GPUBuffer->GetSize() * 2);
+                Material->MaterialBufferIndex         = MaterialBuffer.NumEntries;
+                NewMaterialBuffer.NumEntries          = ++NewMaterialBuffer.NumEntries;
+
+                // Copy current data
+                memcpy(MaterialBuffer.MappedPtr, NewMaterialBuffer.MappedPtr, MaterialBuffer.GPUBuffer->GetSize());
+
+                // Remove the old buffer
+                MaterialBuffer.GPUBuffer->MemoryUnmap();
+                MaterialBuffer.GPUBuffer->Free();
+                delete MaterialBuffer.GPUBuffer;
+
+                // Update buffer mapping
+                MaterialDataBufferPerMaterialType[Material->GetType()] = NewMaterialBuffer;
+                MaterialBuffer                                         = NewMaterialBuffer;
+
+                // Send updated data
+                Material->SetupShaderBuffer(MaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
+
+                // Recycle free indices if there are any
+                auto& NewFreeEntriesIt = NewFreeMaterialBuffersEntries.find(Material->GetType());
+                if (NewFreeEntriesIt != NewFreeMaterialBuffersEntries.end())
+                {
+                    NewMaterialBuffer.FreeIndices.insert(
+                      NewMaterialBuffer.FreeIndices.end(), NewFreeEntriesIt->second.Indices.begin(), NewFreeEntriesIt->second.Indices.end());
+                }
+
+                std::vector<FFreeMaterialBufferEntries> FreeBufferEntries;
+                for (const auto& FreeEntries : FreeMaterialBuffersEntries)
+                {
+                    if (FreeEntries.MaterialType == Material->GetType())
+                    {
+                        NewMaterialBuffer.FreeIndices.insert(
+                          NewMaterialBuffer.FreeIndices.end(), NewFreeEntriesIt->second.Indices.begin(), NewFreeEntriesIt->second.Indices.end());
+                    }
+                    else
+                    {
+                        FreeBufferEntries.push_back(FreeEntries);
+                    }
+                }
+                FreeMaterialBuffersEntries = FreeBufferEntries;
+            }
+        }
+    }
+
     static inline u32 CalculateCurrentBufferOffset(const u32& InBufferSize)
     {
         const int BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
@@ -761,12 +859,64 @@ namespace lucid::scene
         std::unordered_map<EMaterialType, std::vector<FBatchKey>>       BatchKeyPerMaterialType;
         std::unordered_map<u32, u32>                                    ActorDataIdxByActorId;
 
-        u32       ActorDataSize   = 0;
-        const u32 ActorDataOffset = CalculateCurrentBufferOffset(ACTOR_DATA_BUFFER_SIZE);
+        const auto BatchMesh = [&MeshBatchBuilders, &BatchKeyPerMaterialType](
+                                 const FBatchKey& BatchKey, const u32& ActorEntryIndex, const u32& MaterialEntryIndex, CMaterial* Material) -> void {
+            auto& BatchIt = MeshBatchBuilders.find(BatchKey);
 
-        FActorData* ActorData = (FActorData*)(ActorDataMappedPtr + ActorDataOffset);
+            if (BatchIt == MeshBatchBuilders.end())
+            {
+                FMeshBatchBuilder BatchBuilder;
+                BatchBuilder.ActorEntryIndices    = { ActorEntryIndex };
+                BatchBuilder.MaterialEntryIndices = { MaterialEntryIndex };
+                BatchBuilder.BatchShader          = Material->Shader;
+                BatchBuilder.BatchedMaterials     = { Material };
+                MeshBatchBuilders[BatchKey]       = BatchBuilder;
 
-        // Create batch builders
+                if (BatchKeyPerMaterialType.find(BatchKey.MaterialType) == BatchKeyPerMaterialType.end())
+                {
+                    BatchKeyPerMaterialType[BatchKey.MaterialType] = { BatchKey };
+                }
+                else
+                {
+                    BatchKeyPerMaterialType[BatchKey.MaterialType].push_back(BatchKey);
+                }
+            }
+            else
+            {
+                BatchIt->second.ActorEntryIndices.push_back(ActorEntryIndex);
+                BatchIt->second.MaterialEntryIndices.push_back(MaterialEntryIndex);
+                BatchIt->second.BatchedMaterials.push_back(Material);
+            }
+        };
+
+        u32         ActorDataSize   = 0;
+        const u32   ActorDataOffset = CalculateCurrentBufferOffset(ACTOR_DATA_BUFFER_SIZE);
+        FActorData* ActorData       = (FActorData*)(ActorDataMappedPtr + ActorDataOffset);
+
+        const auto FindActorEntryIndex =
+          [&ActorDataIdxByActorId, &ActorData, &ActorDataSize](const u32& ActorId, const glm::mat4& ModelMatrix, const i8& NormalMultiplier) -> u32 {
+            const auto ActorDataIdxIt = ActorDataIdxByActorId.find(ActorId);
+            if (ActorDataIdxIt == ActorDataIdxByActorId.end())
+            {
+                u32 NewIndex                   = ActorDataIdxByActorId.size();
+                ActorDataIdxByActorId[ActorId] = static_cast<u32>(NewIndex);
+
+                ActorData->ModelMatrix      = ModelMatrix;
+                ActorData->NormalMultiplier = NormalMultiplier;
+                ActorData->ActorId          = ActorId;
+
+                ActorData += 1;
+
+                ActorDataSize += sizeof(FActorData);
+                assert(ActorDataSize < ACTOR_DATA_BUFFER_SIZE);
+
+                return NewIndex;
+            }
+
+            return ActorDataIdxIt->second;
+        };
+
+        // Create batch builders for static meshes
         for (u32 i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
         {
             CStaticMesh* StaticMesh = InSceneToRender->StaticMeshes.GetByIndex(i);
@@ -781,21 +931,8 @@ namespace lucid::scene
                 continue;
             }
 
-            // Write actor data index if we didn't already do it
-            const auto ActorDataIdxIt = ActorDataIdxByActorId.find(StaticMesh->ActorId);
-            if (ActorDataIdxIt == ActorDataIdxByActorId.end())
-            {
-                ActorDataIdxByActorId[StaticMesh->ActorId] = static_cast<u32>(ActorDataIdxByActorId.size());
+            const u32 ActorDataIdx = FindActorEntryIndex(StaticMesh->ActorId, StaticMesh->CachedModelMatrix, StaticMesh->bReverseNormals ? -1 : 1);
 
-                ActorData->ModelMatrix      = StaticMesh->CachedModelMatrix;
-                ActorData->NormalMultiplier = StaticMesh->bReverseNormals ? -1 : 1;
-                ActorData->ActorId          = StaticMesh->ActorId;
-
-                ActorData += 1;
-
-                ActorDataSize += sizeof(FActorData);
-                assert(ActorDataSize < ACTOR_DATA_BUFFER_SIZE);
-            }
             // Send material updates to GPU
             for (u32 j = 0; j < StaticMesh->GetNumMaterialSlots(); ++j)
             {
@@ -807,128 +944,46 @@ namespace lucid::scene
                     continue;
                 }
 
-                // Find material data buffer
-                if (MaterialDataBufferPerMaterialType.find(Material->GetType()) == MaterialDataBufferPerMaterialType.end())
-                {
-                    // If there is no material buffer for this type of material - create one
-                    FMaterialDataBuffer NewMaterialBuffer                  = CreateMaterialBuffer(Material, INITIAL_MATERIAL_DATA_BUFFER_SIZE);
-                    MaterialDataBufferPerMaterialType[Material->GetType()] = NewMaterialBuffer;
-
-                    Material->MaterialBufferIndex = 0;
-                    Material->SetupShaderBuffer(NewMaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
-                }
-                else
-                {
-                    auto& MaterialBuffer = MaterialDataBufferPerMaterialType[Material->GetType()];
-
-                    // If the material is dirty or was edited, return it's entry to the pool
-                    if (Material->TypeToFree != EMaterialType::NONE)
-                    {
-                        FreeMaterialBufferEntry(Material->TypeToFree, Material->MaterialBufferIndexToFree);
-                        Material->TypeToFree                = EMaterialType::NONE;
-                        Material->MaterialBufferIndexToFree = -1;
-                    }
-
-                    // Assign a material buffer index so this material can write it's data
-                    if (Material->MaterialBufferIndex == -1 || Material->IsMaterialDataDirty())
-                    {
-                        // Check if there are free indices - if yes, then get one
-                        if (MaterialBuffer.FreeIndices.size())
-                        {
-                            Material->MaterialBufferIndex = MaterialBuffer.FreeIndices.back();
-                            Material->SetupShaderBuffer(MaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
-
-                            MaterialBuffer.FreeIndices.pop_back();
-                        }
-                        // If there are free entries at the end - get once
-                        else if (MaterialBuffer.NumEntries < MaterialBuffer.MaxEntries)
-                        {
-                            Material->MaterialBufferIndex = MaterialBuffer.NumEntries++;
-                            Material->SetupShaderBuffer(MaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
-                        }
-                        // Otherwise just create a bigger buffer
-                        else
-                        {
-                            // Create a new buffer
-                            FMaterialDataBuffer NewMaterialBuffer = CreateMaterialBuffer(Material, MaterialBuffer.GPUBuffer->GetSize() * 2);
-                            Material->MaterialBufferIndex         = MaterialBuffer.NumEntries;
-                            NewMaterialBuffer.NumEntries          = ++NewMaterialBuffer.NumEntries;
-
-                            // Copy current data
-                            memcpy(MaterialBuffer.MappedPtr, NewMaterialBuffer.MappedPtr, MaterialBuffer.GPUBuffer->GetSize());
-
-                            // Remove the old buffer
-                            MaterialBuffer.GPUBuffer->MemoryUnmap();
-                            MaterialBuffer.GPUBuffer->Free();
-                            delete MaterialBuffer.GPUBuffer;
-
-                            // Update buffer mapping
-                            MaterialDataBufferPerMaterialType[Material->GetType()] = NewMaterialBuffer;
-                            MaterialBuffer                                         = NewMaterialBuffer;
-
-                            // Send updated data
-                            Material->SetupShaderBuffer(MaterialBuffer.MappedPtr + (Material->MaterialBufferIndex * Material->GetShaderDataSize()));
-
-                            // Recycle free indices if there are any
-                            auto& NewFreeEntriesIt = NewFreeMaterialBuffersEntries.find(Material->GetType());
-                            if (NewFreeEntriesIt != NewFreeMaterialBuffersEntries.end())
-                            {
-                                NewMaterialBuffer.FreeIndices.insert(NewMaterialBuffer.FreeIndices.end(),
-                                                                     NewFreeEntriesIt->second.Indices.begin(),
-                                                                     NewFreeEntriesIt->second.Indices.end());
-                            }
-
-                            std::vector<FFreeMaterialBufferEntries> FreeBufferEntries;
-                            for (const auto& FreeEntries : FreeMaterialBuffersEntries)
-                            {
-                                if (FreeEntries.MaterialType == Material->GetType())
-                                {
-                                    NewMaterialBuffer.FreeIndices.insert(NewMaterialBuffer.FreeIndices.end(),
-                                                                         NewFreeEntriesIt->second.Indices.begin(),
-                                                                         NewFreeEntriesIt->second.Indices.end());
-                                }
-                                else
-                                {
-                                    FreeBufferEntries.push_back(FreeEntries);
-                                }
-                            }
-                            FreeMaterialBuffersEntries = FreeBufferEntries;
-                        }
-                    }
-                }
+                HandleMaterialBufferUpdateIfNecessary(Material);
             }
 
-            // Iterate over meshes and prepare batch data
+            // Iterate over submeshes and create batch builders
             for (u32 j = 0; j < StaticMesh->MeshResource->SubMeshes.GetLength(); ++j)
             {
                 resources::FSubMesh* SubMesh         = StaticMesh->MeshResource->SubMeshes[j];
                 CMaterial*           SubMeshMaterial = StaticMesh->GetMaterialSlot(SubMesh->MaterialIndex);
 
                 const FBatchKey BatchKey{ SubMesh->VAO, SubMeshMaterial->GetType() };
-                auto&           BatchIt = MeshBatchBuilders.find(BatchKey);
 
-                if (BatchIt == MeshBatchBuilders.end())
-                {
-                    FMeshBatchBuilder BatchBuilder;
-                    BatchBuilder.StaticMeshes.push_back(StaticMesh);
-                    BatchBuilder.Materials.push_back(SubMeshMaterial);
-                    MeshBatchBuilders[BatchKey] = BatchBuilder;
-
-                    if (BatchKeyPerMaterialType.find(SubMeshMaterial->GetType()) == BatchKeyPerMaterialType.end())
-                    {
-                        BatchKeyPerMaterialType[SubMeshMaterial->GetType()] = { BatchKey };
-                    }
-                    else
-                    {
-                        BatchKeyPerMaterialType[SubMeshMaterial->GetType()].push_back(BatchKey);
-                    }
-                }
-                else
-                {
-                    BatchIt->second.StaticMeshes.push_back(StaticMesh);
-                    BatchIt->second.Materials.push_back(SubMeshMaterial);
-                }
+                BatchMesh(BatchKey, ActorDataIdx, SubMeshMaterial->MaterialBufferIndex, SubMeshMaterial);
             }
+        }
+
+        // Create batch builders for terrain
+        for (u32 i = 0; i < InSceneToRender->Terrains.GetLength(); ++i)
+        {
+            CTerrain* Terrain = InSceneToRender->Terrains.GetByIndex(i);
+
+            if (!Terrain->bVisible)
+            {
+                continue;
+            }
+
+            const u32 ActorDataIdx = FindActorEntryIndex(Terrain->ActorId, Terrain->CachedModelMatrix, 1);
+
+            // Send material updates to GPU
+            CMaterial* TerrainMaterial = Terrain->GetTerrainMaterial();
+            if (!TerrainMaterial)
+            {
+                LUCID_LOG(ELogLevel::ERR, "Terrain actor '%s' is missing a material", *Terrain->Name);
+                continue;
+            }
+            
+            HandleMaterialBufferUpdateIfNecessary(TerrainMaterial);
+
+            // Create batch builder for this terrain
+            const FBatchKey BatchKey{ Terrain->GetTerrainMesh()->SubMeshes[0]->VAO, Terrain->GetTerrainMaterial()->GetType() };
+            BatchMesh(BatchKey, ActorDataIdx, Terrain->GetTerrainMaterial()->MaterialBufferIndex, Terrain->GetTerrainMaterial());
         }
 
         ActorDataSSBO->BindIndexed(1, gpu::EBufferBindPoint::SHADER_STORAGE, ActorDataSize, ActorDataOffset);
@@ -946,29 +1001,24 @@ namespace lucid::scene
         {
             for (const auto& BatchKey : It.second)
             {
-                const auto&      BatchBuilder  = MeshBatchBuilders[BatchKey];
-                CMaterial const* BatchMaterial = BatchBuilder.Materials[0];
+                const auto& BatchBuilder = MeshBatchBuilders[BatchKey];
 
                 MeshBatches.push_back({});
                 FMeshBatch& MeshBatch = MeshBatches[MeshBatches.size() - 1];
 
                 MeshBatch.MeshVertexArray    = BatchKey.VertexArray;
-                MeshBatch.Shader             = BatchMaterial->Shader;
+                MeshBatch.Shader             = BatchBuilder.BatchShader;
                 MeshBatch.BatchedSoFar       = TotalBatchedMeshes;
-                MeshBatch.MaterialDataBuffer = &MaterialDataBufferPerMaterialType[BatchMaterial->GetType()];
-
-                // Build batch, prepare data to be sent to the GPU
-                for (int i = 0; i < BatchBuilder.Materials.size(); ++i, ++TotalBatchedMeshes)
+                MeshBatch.MaterialDataBuffer = &MaterialDataBufferPerMaterialType[BatchKey.MaterialType];
+                MeshBatch.BatchSize          = BatchBuilder.ActorEntryIndices.size();
+                MeshBatch.BatchedMaterials   = BatchBuilder.BatchedMaterials;
+                
+                // Build batch, write instance data to the gpu
+                for (int i = 0; i < BatchBuilder.ActorEntryIndices.size(); ++i, ++TotalBatchedMeshes)
                 {
-                    FBatchedMesh BatchedMesh;
-                    BatchedMesh.Material         = BatchBuilder.Materials[i];
-                    BatchedMesh.NormalMultiplier = BatchBuilder.StaticMeshes[i]->GetReverseNormals() ? -1 : 1;
-                    MeshBatch.BatchedMeshes.push_back(BatchedMesh);
-
                     //  instance data
-                    InstanceData->ActorDataIdx = ActorDataIdxByActorId[BatchBuilder.StaticMeshes[i]->ActorId];
-                    InstanceData->MaterialDataIdx =
-                      BatchBuilder.Materials[i]->MaterialBufferIndex == -1 ? 0 : BatchBuilder.Materials[i]->MaterialBufferIndex;
+                    InstanceData->ActorDataIdx    = BatchBuilder.ActorEntryIndices[i];
+                    InstanceData->MaterialDataIdx = BatchBuilder.MaterialEntryIndices[i];
 
                     InstanceData += 1;
                     InstanceDataSize += sizeof(FInstanceData);
@@ -1033,7 +1083,7 @@ namespace lucid::scene
             {
                 MeshBatch.MeshVertexArray->Bind();
                 CurrentShadowMapShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
-                MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
+                MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchSize);
             }
 
             gpu::PopDebugGroup();
@@ -1054,9 +1104,9 @@ namespace lucid::scene
 
             for (const auto& MeshBatch : MeshBatches)
             {
-                for (const auto& BatchedMesh : MeshBatch.BatchedMeshes)
+                for (const auto& BatchedMaterial : MeshBatch.BatchedMaterials)
                 {
-                    BatchedMesh.Material->SetupPrepassShader(PrepassDataPtr);
+                    BatchedMaterial->SetupPrepassShader(PrepassDataPtr);
 
                     // Advance the pointer
                     PrepassDataPtr += 1;
@@ -1085,7 +1135,7 @@ namespace lucid::scene
             {
                 PrepassShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
                 MeshBatch.MeshVertexArray->Bind();
-                MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
+                MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMaterials.size());
             }
 
             gpu::PopDebugGroup();
@@ -1197,7 +1247,7 @@ namespace lucid::scene
             MeshBatch.MaterialDataBuffer->GPUBuffer->BindIndexed(3, gpu::EBufferBindPoint::SHADER_STORAGE);
 
             MeshBatch.MeshVertexArray->Bind();
-            MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
+            MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMaterials.size());
             gpu::PopDebugGroup();
         }
         if (InLight)
@@ -1258,7 +1308,7 @@ namespace lucid::scene
         LightingPassFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
 
         // Keep it camera-oriented
-        const glm::mat4 BillboardMatrix { 1 };
+        const glm::mat4 BillboardMatrix{ 1 };
 
         BillboardShader->Use();
         BillboardShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
@@ -1296,14 +1346,14 @@ namespace lucid::scene
         {
             MeshBatch.MeshVertexArray->Bind();
             HitMapShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
-            MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMeshes.size());
+            MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMaterials.size());
         }
 
         // Render lights quads
         ScreenWideQuadVAO->Bind();
 
         // Keep it camera-oriented
-        const glm::mat4 BillboardMatrix { 1 };
+        const glm::mat4 BillboardMatrix{ 1 };
         BillboardHitMapShader->Use();
         BillboardHitMapShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
         BillboardHitMapShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);

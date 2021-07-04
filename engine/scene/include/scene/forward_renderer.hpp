@@ -39,12 +39,6 @@ namespace lucid::scene
     };
 #pragma pack(pop)
 
-    struct FBatchedMesh
-    {
-        int        NormalMultiplier = 1;
-        CMaterial* Material         = nullptr;
-    };
-
     struct FFreeMaterialBufferEntries
     {
         EMaterialType    MaterialType;
@@ -64,11 +58,13 @@ namespace lucid::scene
 
     struct FMeshBatch
     {
-        gpu::CVertexArray*        MeshVertexArray = nullptr;
-        gpu::CShader*             Shader          = nullptr;
-        std::vector<FBatchedMesh> BatchedMeshes;
-        u32                       BatchedSoFar       = 0; // Total number of batched meshes processed up until this batch
-        FMaterialDataBuffer*      MaterialDataBuffer = nullptr;
+        gpu::CVertexArray*   MeshVertexArray    = nullptr;
+        gpu::CShader*        Shader             = nullptr;
+        u32                  BatchedSoFar       = 0; // Total number of batched meshes processed up until this batch
+        FMaterialDataBuffer* MaterialDataBuffer = nullptr;
+        u32                  BatchSize          = 0;
+
+        std::vector<CMaterial*> BatchedMaterials; // this is currently needed only for the prepass and should be removed
     };
 
     class CForwardRenderer : public CRenderer
@@ -88,20 +84,21 @@ namespace lucid::scene
         virtual ~CForwardRenderer() = default;
 
         /** Renderer properties, have to be set before the first Setup() call */
-        float AmbientStrength = 0.1;
-        int   NumSamplesPCF   = 5;
-        int   NumFrameBuffers = 2;
-        bool  bEnableSSAO     = true;
-        u8    NumSSAOSamples  = 64;
-        float SSAOBias        = 0.025;
-        float SSAORadius      = 0.5;
-        bool  bDrawGrid       = true;
-        bool  bEnableDepthPrepass   = true;
+        float AmbientStrength     = 0.1;
+        int   NumSamplesPCF       = 5;
+        int   NumFrameBuffers     = 2;
+        bool  bEnableSSAO         = true;
+        u8    NumSSAOSamples      = 64;
+        float SSAOBias            = 0.025;
+        float SSAORadius          = 0.5;
+        bool  bDrawGrid           = true;
+        bool  bEnableDepthPrepass = true;
 
       private:
         FMaterialDataBuffer CreateMaterialBuffer(CMaterial const* InMaterial, const u32& InMaterialBufferSize);
 
         void FreeMaterialBufferEntry(const EMaterialType& InMaterialType, const i32& InIndex);
+        void HandleMaterialBufferUpdateIfNecessary(CMaterial* Material);
         void CreateMeshBatches(FRenderScene* InSceneToRender);
 
         void SetupGlobalRenderData(const FRenderView* InRenderView);
