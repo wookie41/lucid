@@ -31,7 +31,7 @@ namespace lucid::scene
         CMaterial*                       GetMaterialSlot(const u16& InMaterialSlotIndex) const { return *MaterialSlots[InMaterialSlotIndex]; }
         void                             AddMaterial(CMaterial* InMaterial) { MaterialSlots.Add(InMaterial); }
 
-        void SetMaterialSlot(const u16& InMaterialSlotIndex, CMaterial* InMaterial) { (*MaterialSlots[InMaterialSlotIndex]) = InMaterial; }
+        void SetMaterialSlot(const u16& InMaterialSlotIndex, CMaterial* InMaterial) const { (*MaterialSlots[InMaterialSlotIndex]) = InMaterial; }
         u32  GetNumMaterialSlots() const { return MaterialSlots.GetLength(); }
 
         virtual float GetVerticalMidPoint() const override;
@@ -41,16 +41,17 @@ namespace lucid::scene
 
         static EActorType  GetActorTypeStatic() { return EActorType::STATIC_MESH; }
         virtual EActorType GetActorType() const override { return EActorType::STATIC_MESH; }
-        virtual IActor*    CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
-        virtual IActor*    CreateCopy() override;
 
-        static CStaticMesh* CreateActor(CStaticMesh* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription);
+        virtual IActor*    CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
+        virtual IActor*    LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription) override;
+        virtual IActor*    CreateActorCopy() override;
 
-        static CStaticMesh* LoadActorAsset(const FStaticMeshDescription& InStaticMeshDescription);
-        virtual IActor*     CreateActorAsset(const FDString& InName) const override;
-
-        virtual void LoadAsset() override;
-        virtual void UnloadAsset() override;
+        static CStaticMesh* CreateAsset(const FDString& InName);
+        virtual IActor*     CreateAssetFromActor(const FDString& InName) const override;
+        static CStaticMesh* LoadAsset(const FStaticMeshDescription& InStaticMeshDescription);
+        
+        virtual void LoadAssetResources() override;
+        virtual void UnloadAssetResources() override;
 
         virtual void OnAddToWorld(CWorld* InWorld) override;
         virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
@@ -96,4 +97,5 @@ namespace lucid::scene
 
         CStaticMesh* BaseStaticMesh = nullptr;
     };
+
 } // namespace lucid::scene

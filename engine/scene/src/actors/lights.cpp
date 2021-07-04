@@ -166,7 +166,7 @@ namespace lucid::scene
     }
 #endif
 
-    IActor* CDirectionalLight::CreateCopy()
+    IActor* CDirectionalLight::CreateActorCopy()
     {
         auto* Copy      = new CDirectionalLight{ Name.GetCopy(), Parent, World };
         Copy->Direction = Direction;
@@ -298,7 +298,7 @@ namespace lucid::scene
 
 #endif
 
-    IActor* CSpotLight::CreateCopy()
+    IActor* CSpotLight::CreateActorCopy()
     {
         auto* Copy              = new CSpotLight{ Name.GetCopy(), Parent, World };
         Copy->Direction         = Direction;
@@ -421,7 +421,7 @@ namespace lucid::scene
 
 #endif
 
-    IActor* CPointLight::CreateCopy()
+    IActor* CPointLight::CreateActorCopy()
     {
         auto* Copy              = new CPointLight{ Name.GetCopy(), Parent, World };
         Copy->Color             = Color;

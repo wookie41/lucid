@@ -51,18 +51,24 @@ namespace lucid::scene
         inline resources::CMeshResource* GetTerrainMesh() const { return TerrainMesh; }
 
         /** Actor interface stuff */
+
+        float GetVerticalMidPoint() const override;
+        
         void FillDescription(FTerrainDescription& OutDescription) const;
 
-        virtual IActor* CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
-        virtual IActor* CreateCopy() override;
-        virtual IActor* CreateActorAsset(const FDString& InName) const override;
 
-        static CTerrain* CreateActor(CTerrain* BaseActorResource, CWorld* InWorld, const FTerrainDescription& InTerrainDescription);
-        static CTerrain* LoadActorAsset(const FTerrainDescription& InTerrainDescription);
+        static CTerrain* CreateAsset(const FDString& InName);
+        virtual IActor* CreateAssetFromActor(const FDString& InName) const override;
+        static CTerrain* LoadAsset(const FTerrainDescription& InTerrainDescription);
 
+        virtual IActor* LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription);
+        virtual IActor* CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
+        virtual IActor* CreateActorCopy() override;
+
+        
         /** Asset stuff */
-        virtual void LoadAsset() override;
-        virtual void UnloadAsset() override;
+        virtual void LoadAssetResources() override;
+        virtual void UnloadAssetResources() override;
         virtual void UpdateDirtyResources() override;
 
         /** World callbacks */
@@ -82,4 +88,6 @@ namespace lucid::scene
         FTerrainSettings          TerrainSettings;
         resources::CMeshResource* TerrainMesh = nullptr;
     };
+
+    CTerrain* CreateTerrainAsset(const FDString& InName);
 } // namespace lucid::scene

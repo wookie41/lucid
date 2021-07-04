@@ -4,10 +4,12 @@
 #include "common/collections.hpp"
 
 #include "glm/glm.hpp"
-#include "glm/gtx/quaternion.hpp"
 
 #include "scene/transform.hpp"
 #include "scene/actors/actor_enums.hpp"
+
+#include "schemas/types.hpp"
+
 namespace lucid::gpu
 {
     class CVertexArray;
@@ -56,12 +58,16 @@ namespace lucid::scene
         virtual IActor* UIDrawHierarchy();
         virtual void    DrawGizmos(scene::CCamera const* InCamera);
 
-        /**
-         *  InActorResourceName will be the name of the resource file to which this actor is saved
-         *  If empty, then it means there is already a resource file (under ResourcePath) for this actor present and we simply override it
-         *  If not empty, then a new resource file is create
+        /** Saves the actor to a file.
+         * If called on an actor asset, it just saves te asset.
+         * If called on actor instance, it creates an asset based on the instance and saves it
          */
         void         SaveToResourceFile();
+
+        /**
+         * Called by the engine before a frame so the actor can react to changes in it's resources
+         * E.x. a mesh is changed on runtime and we have to unload the new mesh and load a new one
+         */
         virtual void UpdateDirtyResources(){};
 
         /**
@@ -82,15 +88,22 @@ namespace lucid::scene
         virtual float GetMaxY() const { return 0; }
         virtual float GetMaxZ() const { return 0; }
 
-        virtual IActor* CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) = 0;
-        virtual IActor* CreateCopy()                                                           = 0;
+        /** Called on the asset when to create an instance of this asset to place in the world */
+        virtual IActor* CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition) = 0;
 
-        /** Creates an actor asset from actocr instance so it can be saved to an asset file */
-        virtual IActor* CreateActorAsset(const FDString& InName) const = 0;
+        /**
+         *  Called on the asset when loading a world from file.
+         *  The InActor and InActorDescription will be derived types needed to spawn an actor of a given type
+         */
+        virtual IActor* LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription) = 0;
+        
+        /** Creates an actor asset from actor instance so it can be saved to an asset file */
+        virtual IActor* CreateAssetFromActor(const FDString& InName) const = 0;
+        virtual IActor* CreateActorCopy() = 0;
 
         /** Used when actor asset is referenced for the first time, up to this point no data is loaded for an asset */
-        virtual void LoadAsset(){};
-        virtual void UnloadAsset() {}
+        virtual void LoadAssetResources(){};
+        virtual void UnloadAssetResources() {}
 
         virtual void OnAddToWorld(CWorld* InWorld);
 
@@ -115,8 +128,12 @@ namespace lucid::scene
             InChild->Parent = nullptr;
         }
 
-        void AddChildReference(IActor* InChildReference);
-        void RemoveChildReference(IActor* InChildReference);
+        /**
+         * Methods used to track actors in the current world that reference the asset
+         * When the number of references drops to 0, resources used by the asset are unloaded
+         */
+        void AddAssetReference(IActor* InChildReference);
+        void RemoveAssetReference(IActor* InChildReference);
 
         virtual ~IActor() = default;
 
@@ -136,10 +153,10 @@ namespace lucid::scene
 
         FLinkedList<IActor> Children;
 
-        /** Actors that specify this actor as their BaseActorAsset, used for propagating changes */
-        FLinkedList<IActor> ChildReferences;
+        /** Actors that specify this asset as their BaseActorAsset, used for propagating changes */
+        FLinkedList<IActor> AssetReferences;
 
-        bool bAssetLoaded = false;
+        bool bAssetResourcesLoaded = false;
 
         IActor* BaseActorAsset     = nullptr;
         IActor* PrevBaseActorAsset = nullptr;

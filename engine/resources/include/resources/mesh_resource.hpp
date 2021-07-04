@@ -52,6 +52,8 @@ namespace lucid::resources
         
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
+
+        virtual CResource* CreateCopy() const override;
         
         float MinPosX = 0, MaxPosX = 0;
         float MinPosY = 0, MaxPosY = 0;

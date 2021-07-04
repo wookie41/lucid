@@ -28,16 +28,16 @@ namespace lucid::scene
         static EActorType  GetActorTypeStatic() { return EActorType::SKYBOX; }
         virtual EActorType GetActorType() const override { return EActorType::SKYBOX; }
 
-        virtual void LoadAsset() override;
-        virtual void UnloadAsset() override;
+        virtual void LoadAssetResources() override;
+        virtual void UnloadAssetResources() override;
 
-        virtual IActor* CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
-        virtual IActor* CreateCopy() override { return nullptr; }
+        static CSkybox* LoadAsset(const FSkyboxDescription& InSkyboxDescription);
+        static CSkybox* CreateAsset(const FDString& InName, const glm::uvec2& FaceTextureSize); 
+        virtual IActor* CreateAssetFromActor(const FDString& InName) const override;
 
-        static CSkybox* CreateActor(CSkybox* BaseActorResource, CWorld* InWorld, const FSkyboxDescription& InSkyboxDescription);
-
-        virtual IActor* CreateActorAsset(const FDString& InName) const override;
-        static CSkybox* LoadActorAsset(const FSkyboxDescription& InSkyboxDescription);
+        virtual IActor* LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription) override;
+        virtual IActor* CreateActorCopy() override { return nullptr; }
+        virtual IActor* CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition) override;
 
         virtual void OnAddToWorld(CWorld* InWorld) override;
         virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;

@@ -188,7 +188,7 @@ namespace lucid::scene
 
     void CStaticMesh::HandleBaseAssetMeshResourceChange(resources::CMeshResource* OldMesh)
     {
-        auto ChildReference = &ChildReferences.Head;
+        auto ChildReference = &AssetReferences.Head;
         while (ChildReference && ChildReference->Element)
         {
             auto* ChildStaticMeshRef = ChildReference->Element;
@@ -207,7 +207,7 @@ namespace lucid::scene
     void CStaticMesh::HandleBaseAssetNumMaterialsChange(const bool& bAdded)
     {
         const u16 AffectedMaterialSlot = GetNumMaterialSlots() - 1;
-        auto      ChildReference       = &ChildReferences.Head;
+        auto      ChildReference       = &AssetReferences.Head;
         while (ChildReference && ChildReference->Element)
         {
             auto* ChildStaticMeshRef = ChildReference->Element;
@@ -236,7 +236,7 @@ namespace lucid::scene
         MaterialsToUnload.push_back(InOldMaterial);
         MaterialsToLoad.push_back(*MaterialSlots[InMaterialSlot]);
         
-        auto ChildReference = &ChildReferences.Head;
+        auto ChildReference = &AssetReferences.Head;
         while (ChildReference && ChildReference->Element)
         {
             auto* ChildStaticMeshRef = ChildReference->Element;
@@ -330,49 +330,50 @@ namespace lucid::scene
         return 0;
     }
 
-    CStaticMesh* CStaticMesh::CreateActor(CStaticMesh* BaseActorResource, CWorld* InWorld, const FStaticMeshDescription& InStaticMeshDescription)
+    IActor* CStaticMesh::LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription)
     {
-        assert(BaseActorResource);
         assert(InWorld);
 
-        auto* Parent = InStaticMeshDescription.ParentId == 0 ? nullptr : InWorld->GetActorById(InStaticMeshDescription.ParentId);
+        auto* StaticMeshDescription = (FStaticMeshDescription*)(InActorDescription);        
+        auto* Parent = StaticMeshDescription->ParentId == 0 ? nullptr : InWorld->GetActorById(StaticMeshDescription->ParentId);
 
-        resources::CMeshResource* MeshResource;
-        if (InStaticMeshDescription.MeshResourceId.bChanged)
+        resources::CMeshResource* LoadedActorMeshResource;
+        if (StaticMeshDescription->MeshResourceId.bChanged)
         {
-            MeshResource = GEngine.GetMeshesHolder().Get(InStaticMeshDescription.MeshResourceId.Value);
+            LoadedActorMeshResource = GEngine.GetMeshesHolder().Get(StaticMeshDescription->MeshResourceId.Value);
         }
         else
         {
-            MeshResource = BaseActorResource->MeshResource;
+            LoadedActorMeshResource = MeshResource;
         }
-        MeshResource->Acquire(false, true);
 
-        auto* StaticMesh    = new CStaticMesh{ InStaticMeshDescription.Name, Parent, InWorld, MeshResource, InStaticMeshDescription.Type };
-        StaticMesh->ActorId = InStaticMeshDescription.Id;
-        StaticMesh->Transform.Translation = Float3ToVec(InStaticMeshDescription.Postion);
-        StaticMesh->Transform.Rotation    = Float4ToQuat(InStaticMeshDescription.Rotation);
-        StaticMesh->Transform.Scale       = Float3ToVec(InStaticMeshDescription.Scale);
-        StaticMesh->bVisible              = InStaticMeshDescription.bVisible;
-        StaticMesh->SetReverseNormals(InStaticMeshDescription.bReverseNormals);
-        StaticMesh->BaseActorAsset = BaseActorResource;
-        StaticMesh->BaseStaticMesh = dynamic_cast<CStaticMesh*>(BaseActorResource);
+        LoadedActorMeshResource->Acquire(false, true);
+        
+        auto* StaticMesh    = new CStaticMesh{ StaticMeshDescription->Name, Parent, InWorld, LoadedActorMeshResource, StaticMeshDescription->Type };
+        StaticMesh->ActorId = StaticMeshDescription->Id;
+        StaticMesh->Transform.Translation = Float3ToVec(StaticMeshDescription->Postion);
+        StaticMesh->Transform.Rotation    = Float4ToQuat(StaticMeshDescription->Rotation);
+        StaticMesh->Transform.Scale       = Float3ToVec(StaticMeshDescription->Scale);
+        StaticMesh->bVisible              = StaticMeshDescription->bVisible;
+        StaticMesh->SetReverseNormals(StaticMeshDescription->bReverseNormals);
+        StaticMesh->BaseActorAsset = BaseActorAsset;
+        StaticMesh->BaseStaticMesh = BaseStaticMesh;
 
-        for (u16 i = 0; i < BaseActorResource->GetNumMaterialSlots(); ++i)
+        for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
-            if (i < InStaticMeshDescription.MaterialIds.size() && InStaticMeshDescription.MaterialIds[i].bChanged)
+            if (i < StaticMeshDescription->MaterialIds.size() && StaticMeshDescription->MaterialIds[i].bChanged)
             {
-                StaticMesh->AddMaterial(GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialIds[i].Value)->GetCopy());
+                StaticMesh->AddMaterial(GEngine.GetMaterialsHolder().Get(StaticMeshDescription->MaterialIds[i].Value)->GetCopy());
             }
             else
             {
-                StaticMesh->AddMaterial(BaseActorResource->GetMaterialSlot(i)->GetCopy());
+                StaticMesh->AddMaterial(GetMaterialSlot(i)->GetCopy());
             }
             StaticMesh->GetMaterialSlot(i)->LoadResources();
         }
 
         InWorld->AddStaticMesh(StaticMesh);
-        BaseActorResource->AddChildReference(StaticMesh);
+        AddAssetReference(StaticMesh);
 
         return StaticMesh;
     }
@@ -442,7 +443,7 @@ namespace lucid::scene
         MaterialsToLoad.push_back(NewMaterial);
     }
 
-    IActor* CStaticMesh::CreateActorAsset(const FDString& InName) const
+    IActor* CStaticMesh::CreateAssetFromActor(const FDString& InName) const
     {
         auto* ActorAsset          = new CStaticMesh{ InName, nullptr, nullptr, MeshResource, EStaticMeshType::STATIONARY };
         ActorAsset->MaterialSlots = FArray<CMaterial*>(MaterialSlots.GetLength(), true);
@@ -453,7 +454,7 @@ namespace lucid::scene
         return ActorAsset;
     }
 
-    CStaticMesh* CStaticMesh::LoadActorAsset(const FStaticMeshDescription& InStaticMeshDescription)
+    CStaticMesh* CStaticMesh::LoadAsset(const FStaticMeshDescription& InStaticMeshDescription)
     {
         auto* ActorAsset         = new CStaticMesh{ InStaticMeshDescription.Name, nullptr, nullptr, nullptr, EStaticMeshType::STATIONARY };
         ActorAsset->MeshResource = GEngine.GetMeshesHolder().Get(InStaticMeshDescription.MeshResourceId.Value);
@@ -474,10 +475,10 @@ namespace lucid::scene
         return ActorAsset;
     }
 
-    void CStaticMesh::LoadAsset()
+    void CStaticMesh::LoadAssetResources()
     {
-        IActor::LoadAsset();
-        if (bAssetLoaded)
+        IActor::LoadAssetResources();
+        if (bAssetResourcesLoaded)
         {
             return;
         }
@@ -486,8 +487,6 @@ namespace lucid::scene
 
         assert(ResourcePath.GetLength());
 
-        // We might already loaded this asset previously and then unloaded it
-        // in that case we already have a mesh resource and it's material, but their data might not be loaded
         if (MeshResource)
         {
             MeshResource->Acquire(false, true);
@@ -495,23 +494,21 @@ namespace lucid::scene
             {
                 GetMaterialSlot(i)->LoadResources();
             }
-            bAssetLoaded = true;
+            bAssetResourcesLoaded = true;
             return;
         }
-
-        MeshResource->Acquire(false, true);
 
         for (u16 i = 0; i < GetNumMaterialSlots(); ++i)
         {
             GetMaterialSlot(i)->LoadResources();
         }
 
-        bAssetLoaded = true;
+        bAssetResourcesLoaded = true;
     }
 
-    void CStaticMesh::UnloadAsset()
+    void CStaticMesh::UnloadAssetResources()
     {
-        if (!bAssetLoaded)
+        if (!bAssetResourcesLoaded)
         {
             return;
         }
@@ -528,13 +525,15 @@ namespace lucid::scene
             }
         }
 
-        bAssetLoaded = false;
+        bAssetResourcesLoaded = false;
     }
 
-    IActor* CStaticMesh::CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition)
+    IActor* CStaticMesh::CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition)
     {
-        LoadAsset();
         auto* SpawnedMesh = new CStaticMesh{ Name.GetCopy(), nullptr, InWorld, MeshResource, Type };
+
+        AddAssetReference(SpawnedMesh);
+        
         for (u8 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
             if (*MaterialSlots[i])
@@ -551,13 +550,12 @@ namespace lucid::scene
         SpawnedMesh->BaseActorAsset        = this;
         SpawnedMesh->BaseStaticMesh        = this;
         SpawnedMesh->MeshResource          = MeshResource;
-        AddChildReference(SpawnedMesh);
         InWorld->AddStaticMesh(SpawnedMesh);
         SpawnedMesh->MeshResource->Acquire(false, true);
         return SpawnedMesh;
     }
 
-    IActor* CStaticMesh::CreateCopy()
+    IActor* CStaticMesh::CreateActorCopy()
     {
         auto* SpawnedMesh = new CStaticMesh{ Name.GetCopy(), Parent, World, MeshResource, Type };
         for (u8 i = 0; i < MaterialSlots.GetLength(); ++i)
@@ -576,10 +574,15 @@ namespace lucid::scene
         SpawnedMesh->Transform.Translation += glm::vec3{ 1, 0, 0 };
         SpawnedMesh->BaseActorAsset = BaseActorAsset;
         SpawnedMesh->BaseStaticMesh = BaseStaticMesh;
-        BaseStaticMesh->AddChildReference(SpawnedMesh);
+        BaseStaticMesh->AddAssetReference(SpawnedMesh);
         World->AddStaticMesh(SpawnedMesh);
         SpawnedMesh->MeshResource->Acquire(false, true);
         return SpawnedMesh;
+    }
+
+    CStaticMesh* CStaticMesh::CreateAsset(const FDString& InName)
+    {
+        return new CStaticMesh{ InName, nullptr, nullptr, nullptr, scene::EStaticMeshType::STATIONARY };
     }
 
     void CStaticMesh::OnAddToWorld(CWorld* InWorld)
@@ -639,14 +642,14 @@ namespace lucid::scene
 
         if (OldBaseMeshAsset)
         {
-            OldBaseMeshAsset->RemoveChildReference(this);
+            OldBaseMeshAsset->RemoveAssetReference(this);
             OldBaseMeshAsset = nullptr;
         }
 
         if (NewBaseMeshAsset)
         {
             MeshResource = NewBaseMeshAsset->MeshResource;
-            NewBaseMeshAsset->AddChildReference(this);
+            NewBaseMeshAsset->AddAssetReference(this);
             BaseStaticMesh = NewBaseMeshAsset;
             UpdateMaterialSlots(NewBaseMeshAsset);
             NewBaseMeshAsset = nullptr;

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "actors/terrain.hpp"
 #include "common/strings.hpp"
 
 #include "common/types.hpp"
@@ -16,6 +17,8 @@ namespace lucid::scene
     class CPointLight;
     class CCamera;
     class IActor;
+    class CTerrain;
+    
     struct FRenderScene;
 
     /**
@@ -41,6 +44,9 @@ namespace lucid::scene
         void AddPointLight(CPointLight* InLight);
         void RemovePointLight(const u32& InId);
 
+        void AddTerrain(CTerrain* InTerrain);
+        void RemoveTerrain(CTerrain* InTerrain);
+        
         void            SetSkybox(CSkybox* InSkybox);
         inline CSkybox* GetSkybox() const { return Skybox; }
 
@@ -55,8 +61,7 @@ namespace lucid::scene
         inline FHashMap<u32, IActor*>& GetActorsMap() { return ActorById; }
 
         void Unload();
-
-      private:
+    private:
         void CreateWorldDescription(FWorldDescription& OutWorldDescription) const;
         u32  AddActor(IActor* InActor);
 
@@ -69,6 +74,8 @@ namespace lucid::scene
         FHashMap<u32, CPointLight*>       PointLights;
         FHashMap<u32, CLight*>            AllLights;
         CSkybox*                          Skybox = nullptr;
+        FHashMap<u32, CTerrain*>          Terrains;
+
     };
 
     CWorld* LoadWorldFromJSONFile(const FString& InFilePath);

@@ -1,8 +1,5 @@
 ﻿#include "scene/world.hpp"
 
-#include <scene/material.hpp>
-
-#include "resources/texture_resource.hpp"
 #include "engine/engine.hpp"
 
 #include "scene/render_scene.hpp"
@@ -11,10 +8,9 @@
 #include "scene/actors/static_mesh.hpp"
 #include "scene/actors/skybox.hpp"
 #include "scene/actors/lights.hpp"
+#include "scene/actors/terrain.hpp"
 
-#include "stb_ds.h"
 #include "common/log.hpp"
-
 #include "common/types.hpp"
 
 #include "schemas/types.hpp"
@@ -78,6 +74,19 @@ namespace lucid::scene
     {
         PointLights.Remove(InId);
         AllLights.Remove(InId);
+    }
+
+    void CWorld::AddTerrain(CTerrain* InTerrain)
+    {
+        if (AddActor(InTerrain))
+        {
+            Terrains.Add(InTerrain->ActorId, InTerrain);
+        }
+    }
+
+    void CWorld::RemoveTerrain(CTerrain* InTerrain)
+    {
+        Terrains.Remove(InTerrain->ActorId);
     }
 
     void CWorld::SetSkybox(CSkybox* InSkybox)
@@ -165,9 +174,8 @@ namespace lucid::scene
                 continue;
             }
 
-            ActorAsset->LoadAsset();
-            if (auto* StaticMesh = CStaticMesh::CreateActor((CStaticMesh*)ActorAsset, World, StaticMeshDescription))
-            {
+            if (auto* StaticMesh = ActorAsset->LoadActor(World, &StaticMeshDescription))
+            {                
                 if (StaticMeshDescription.ParentId && !StaticMesh->Parent)
                 {
                     UnresolvedParents.Add(StaticMesh, StaticMeshDescription.ParentId);
@@ -178,8 +186,8 @@ namespace lucid::scene
         if (InWorldDescription.Skybox.BaseActorResourceId != sole::INVALID_UUID)
         {
             auto* ActorAsset = GEngine.GetActorsResources().Get(InWorldDescription.Skybox.BaseActorResourceId);
-            ActorAsset->LoadAsset();
-            CSkybox::CreateActor((CSkybox*)ActorAsset, World, InWorldDescription.Skybox);
+            ActorAsset->LoadAssetResources();
+            ActorAsset->LoadActor(World, &InWorldDescription.Skybox);
         }
 
         // Load lights

@@ -70,6 +70,8 @@ namespace lucid::resources
         void Acquire(const bool& InbNeededInMainMemory, const bool& InbNeededInVideoMemory);
         void Release();
 
+        virtual CResource* CreateCopy() const { return nullptr; } 
+        
         /** Called from CResourceHolder */
         inline void MarkAsFreed() { RefCount = -1; }
 

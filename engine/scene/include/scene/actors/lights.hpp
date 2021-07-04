@@ -44,17 +44,23 @@ namespace lucid::scene
         static EActorType GetActorTypeStatic() { return EActorType::LIGHT; }
 
         virtual EActorType GetActorType() const override { return EActorType::LIGHT; }
-        virtual IActor*    CreateActorAsset(const FDString& InName) const override
+        virtual IActor*    CreateAssetFromActor(const FDString& InName) const override
         {
             assert(0);
             return nullptr;
         }
-        virtual IActor* CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition) override
+        virtual IActor* CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition) override
         {
             assert(0);
             return nullptr;
         };
 
+        virtual IActor* LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription) override
+        {
+            assert(0);
+            return nullptr;
+            
+        }
         void CleanupAfterRemove() override;
 
         glm::vec3 Color{ 1, 1, 1 };
@@ -89,7 +95,7 @@ namespace lucid::scene
         virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
         virtual void    SetupShader(gpu::CShader* InShader) const override;
         virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
-        virtual IActor* CreateCopy() override;
+        virtual IActor* CreateActorCopy() override;
 
         virtual void OnAddToWorld(CWorld* InWorld) override;
         virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
@@ -122,7 +128,7 @@ namespace lucid::scene
         virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
         virtual void    SetupShader(gpu::CShader* InShader) const override;
         virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
-        virtual IActor* CreateCopy() override;
+        virtual IActor* CreateActorCopy() override;
 
         virtual void OnAddToWorld(CWorld* InWorld) override;
         virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
@@ -157,7 +163,7 @@ namespace lucid::scene
         virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
         virtual void    SetupShader(gpu::CShader* InShader) const override;
         virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
-        virtual IActor* CreateCopy() override;
+        virtual IActor* CreateActorCopy() override;
 
         virtual void OnAddToWorld(CWorld* InWorld) override;
         virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;

@@ -1,8 +1,17 @@
 ﻿#include "scene/actors/terrain.hpp"
+#include "scene/world.hpp"
+
+#include "engine/engine.hpp"
+
+#include "schemas/json.hpp"
+
 #include "devices/gpu/vao.hpp"
 #include "devices/gpu/buffer.hpp"
+
 #include "resources/mesh_resource.hpp"
 #include "resources/serialization_versions.hpp"
+
+#include <cassert>
 
 namespace lucid::scene
 {
@@ -14,6 +23,11 @@ namespace lucid::scene
     : IActor(InName, InParent, InWorld), TerrainSettings(InTerrainSettings), TerrainMesh(InTerrainMesh)
 
     {
+    }
+
+    float CTerrain::GetVerticalMidPoint() const
+    {
+        return 0;
     }
 
     void CTerrain::FillDescription(FTerrainDescription& OutDescription) const
@@ -29,7 +43,7 @@ namespace lucid::scene
         FMemBuffer      VertexDataBuffer      = CreateMemBuffer(TerrainVertexDataSize);
         FTerrainVertex* VertexData            = (FTerrainVertex*)VertexDataBuffer.Pointer;
 
-        const glm::vec3 UpperLeft = { -(TerrainSettings.GridSize.x / 2), 0, TerrainSettings.GridSize.y / 2 };
+        const glm::vec3 UpperLeft = { -(TerrainSettings.GridSize.x / 2), 0, -TerrainSettings.GridSize.y / 2 };
 
         u8 HorizontalStep = 0;
         u8 VerticalStep   = 1;
@@ -42,9 +56,9 @@ namespace lucid::scene
         {
             for (u32 x = 0; x < TerrainSettings.Resolution.x * 4; ++x)
             {
-                VertexData->Position = UpperLeft + glm::vec3{ HorizontalStep * CellSize.x, 0, -((VerticalStep * CellSize.y) + (z * CellSize.y)) };
+                VertexData->Position = UpperLeft + glm::vec3{ HorizontalStep * CellSize.x, 0, (VerticalStep * CellSize.y) + (z * CellSize.y) };
                 VertexData->Normal   = { 0, 1, 0 };
-                VertexData->TextureCoords = glm::vec2{ 0, 1 } + glm::vec2{ HorizontalStep * UVStep.x, -((VerticalStep * UVStep.y) + (z * UVStep.y)) };
+                VertexData->TextureCoords = glm::vec2{ 0, 1 } + glm::vec2{ HorizontalStep * UVStep.x, (VerticalStep * UVStep.y) + (z * UVStep.y) };
 
                 HorizontalStep = (HorizontalStep + 1) % 2;
                 VerticalStep   = (VerticalStep + 1) % 2;
@@ -74,18 +88,152 @@ namespace lucid::scene
         TerrainMesh->SubMeshes.Add(TerrainSubMesh);
 
         TerrainMesh->MinPosX = UpperLeft.x;
-        TerrainMesh->MinPosY = -UpperLeft.y;
-
         TerrainMesh->MaxPosX = -UpperLeft.x;
-        TerrainMesh->MaxPosY = UpperLeft.y;
+
+        TerrainMesh->MaxPosY = 0;
+        TerrainMesh->MinPosY = 0;
+
+        return TerrainMesh;
     }
 
-    IActor* CTerrain::CreateActorInstance(CWorld* InWorld, const glm::vec3& InSpawnPosition)
+    IActor* CTerrain::CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition)
+    {
+        auto* Terrain = new CTerrain { CopyToString("Terrain"), nullptr, InWorld, TerrainSettings, TerrainMesh };
+        InWorld->AddTerrain(Terrain);
+        return Terrain;
+    }
+
+    IActor* CTerrain::CreateActorCopy()
+    {
+        return new CTerrain { Name.GetCopy(), Parent, World, TerrainSettings, TerrainMesh };
+    }
+
+    IActor* CTerrain::CreateAssetFromActor(const FDString& InName) const
+    {
+        return new CTerrain { Name.GetCopy(), nullptr, nullptr, TerrainSettings, TerrainMesh };
+    }
+
+    IActor* CTerrain::LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription)
+    {
+        auto* TerrainDescription = (FTerrainDescription const*)InActorDescription;
+        
+        FTerrainSettings TerrainSettings;
+        TerrainSettings.Resolution.x  = TerrainDescription->ResolutionX;
+        TerrainSettings.Resolution.y  = TerrainDescription->ResolutionZ;
+        TerrainSettings.GridSize.x    = TerrainDescription->GridSizeX;
+        TerrainSettings.GridSize.y    = TerrainDescription->GridSizeZ;
+
+        resources::CMeshResource* TerrainMeshResource = nullptr;
+        if (TerrainDescription->TerrainMeshResourceId == sole::INVALID_UUID)
+        {
+            TerrainMeshResource = TerrainMesh;
+        }
+        else
+        {
+            TerrainMeshResource = GEngine.GetMeshesHolder().Get(TerrainDescription->TerrainMeshResourceId);
+        }
+        
+        TerrainMeshResource->Acquire(false, true);
+        
+        auto* TerrainActor = new CTerrain { TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, TerrainSettings, TerrainMeshResource};
+        
+        AddAssetReference(TerrainActor);
+
+        return TerrainActor;
+        
+    }
+
+    CTerrain* CTerrain::LoadAsset(const FTerrainDescription& InTerrainDescription)
+    {
+        FTerrainSettings TerrainSettings;
+        TerrainSettings.Resolution.x  = InTerrainDescription.ResolutionX;
+        TerrainSettings.Resolution.y  = InTerrainDescription.ResolutionZ;
+        TerrainSettings.GridSize.x    = InTerrainDescription.GridSizeX;
+        TerrainSettings.GridSize.y    = InTerrainDescription.GridSizeZ;
+        
+        return new CTerrain { InTerrainDescription.Name, nullptr, nullptr, TerrainSettings, GEngine.GetMeshesHolder().Get(InTerrainDescription.TerrainMeshResourceId) };
+    }
+
+    void CTerrain::LoadAssetResources()
+    {
+        if (bAssetResourcesLoaded)
+        {
+            return;
+        }
+
+        if (TerrainMesh)
+        {
+            TerrainMesh->Acquire(false, true);
+        }
+
+        bAssetResourcesLoaded = true;
+    }
+
+    void CTerrain::UnloadAssetResources()
+    {
+        if (!bAssetResourcesLoaded)
+        {
+            return;
+        }
+
+        if (TerrainMesh)
+        {
+            TerrainMesh->Release();
+        }
+
+        bAssetResourcesLoaded = false;
+    }
+
+    void CTerrain::UpdateDirtyResources()
+    {
+        // noop
+    }
+
+    void CTerrain::OnAddToWorld(CWorld* InWorld)
+    {
+        InWorld->AddTerrain(this);
+    }
+
+    void CTerrain::OnRemoveFromWorld(const bool& InbHardRemove)
+    {
+        IActor::OnRemoveFromWorld(InbHardRemove);
+        World->RemoveTerrain(this);
+
+        if (InbHardRemove)
+        {
+            CleanupAfterRemove();
+        }
+    }
+
+    void CTerrain::CleanupAfterRemove()
+    {
+        if (TerrainMesh)
+        {
+            TerrainMesh->Release();
+        }
+    }
+
+    void CTerrain::UIDrawActorDetails()
+    {
+        
+    }
+
+    void CTerrain::InternalSaveToResourceFile(const FString& InFilePath)
+    {
+        FTerrainDescription TerrainDescription;
+        FillDescription(TerrainDescription);
+        WriteToJSONFile(TerrainDescription, *InFilePath);
+    }
+
+    CTerrain* CTerrain::CreateAsset(const FDString& InName)
     {
         static FTerrainSettings DefaultTerrainSettings;
         DefaultTerrainSettings.Resolution = { 1024, 1024 };
         DefaultTerrainSettings.GridSize   = { 100, 100 };
 
         resources::CMeshResource* TerrainMesh = CreateFlatTerrainMesh(DefaultTerrainSettings);
+
+        return new CTerrain { InName, nullptr, nullptr, DefaultTerrainSettings, TerrainMesh };
     }
+
 } // namespace lucid::scene

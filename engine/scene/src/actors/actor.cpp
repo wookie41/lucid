@@ -73,17 +73,17 @@ namespace lucid::scene
                     if (BaseActorAsset && BaseActorAsset != OldBaseActor && BaseActorAsset->GetActorType() == OldBaseActor->GetActorType())
                     {
                         PrevBaseActorAsset = OldBaseActor;
-                        if (!BaseActorAsset->bAssetLoaded)
+                        if (!BaseActorAsset->bAssetResourcesLoaded)
                         {
-                            BaseActorAsset->LoadAsset();
-                            BaseActorAsset->bAssetLoaded = true;
+                            BaseActorAsset->LoadAssetResources();
+                            BaseActorAsset->bAssetResourcesLoaded = true;
                         }
 
-                        BaseActorAsset->ChildReferences.Add(this);
-                        PrevBaseActorAsset->ChildReferences.Remove(this);
-                        if (PrevBaseActorAsset->ChildReferences.IsEmpty())
+                        BaseActorAsset->AssetReferences.Add(this);
+                        PrevBaseActorAsset->AssetReferences.Remove(this);
+                        if (PrevBaseActorAsset->AssetReferences.IsEmpty())
                         {
-                            PrevBaseActorAsset->UnloadAsset();
+                            PrevBaseActorAsset->UnloadAssetResources();
                         }
                     }
                     else
@@ -316,7 +316,7 @@ namespace lucid::scene
     {
         if (BaseActorAsset)
         {
-            auto* NewActorAsset         = CreateActorAsset(Name.GetCopy());
+            auto* NewActorAsset         = CreateAssetFromActor(Name.GetCopy());
             NewActorAsset->ResourceId   = sole::uuid4();
             NewActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *Name);
 
@@ -347,7 +347,7 @@ namespace lucid::scene
         World = InWorld;
         if (BaseActorAsset)
         {
-            BaseActorAsset->AddChildReference(this);
+            BaseActorAsset->AddAssetReference(this);
         }
     }
 
@@ -369,7 +369,7 @@ namespace lucid::scene
         }
         if (BaseActorAsset)
         {
-            BaseActorAsset->RemoveChildReference(this);
+            BaseActorAsset->RemoveAssetReference(this);
         }
     }
 
@@ -383,21 +383,21 @@ namespace lucid::scene
         Children.Free();
     }
 
-    void IActor::AddChildReference(IActor* InChildReference)
+    void IActor::AddAssetReference(IActor* InChildReference)
     {
-        if (ChildReferences.IsEmpty())
+        if (AssetReferences.IsEmpty())
         {
-            LoadAsset();
+            LoadAssetResources();
         }
-        ChildReferences.Add(InChildReference);
+        AssetReferences.Add(InChildReference);
     }
 
-    void IActor::RemoveChildReference(IActor* InChildReference)
+    void IActor::RemoveAssetReference(IActor* InChildReference)
     {
-        ChildReferences.Remove(InChildReference);
-        if (ChildReferences.IsEmpty())
+        AssetReferences.Remove(InChildReference);
+        if (AssetReferences.IsEmpty())
         {
-            UnloadAsset();
+            UnloadAssetResources();
         }
     }
 

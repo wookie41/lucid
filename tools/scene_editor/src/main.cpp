@@ -530,7 +530,7 @@ void HandleInput()
         if (GSceneEditorState.ClipboardActor && (platform::GetCurrentTimeSeconds() - GSceneEditorState.LastActorSpawnTime) > 0.5)
         {
             GSceneEditorState.LastActorSpawnTime = platform::GetCurrentTimeSeconds();
-            GSceneEditorState.ClipboardActor->CreateCopy();
+            GSceneEditorState.ClipboardActor->CreateActorCopy();
         }
     }
 
@@ -793,7 +793,7 @@ void UIDrawSceneWindow()
                     {
                         const glm::vec2 MouseNDCPos              = GetMouseNDCPos();
                         const glm::vec3 SpawnedActorPos          = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(MouseNDCPos, 5);
-                        auto*           SpawnedActor             = ActorAsset->CreateActorInstance(GSceneEditorState.World, SpawnedActorPos);
+                        auto*           SpawnedActor             = ActorAsset->CreateActorInstanceFromAsset(GSceneEditorState.World, SpawnedActorPos);
                         GSceneEditorState.CurrentlySelectedActor = SpawnedActor;
                     }
                 }
@@ -1050,6 +1050,11 @@ void UIDrawResourceBrowserWindow()
                         if (ImGui::MenuItem("Skybox"))
                         {
                             GSceneEditorState.TypeOfActorToCreate    = scene::EActorType::SKYBOX;
+                            GSceneEditorState.bDisableCameraMovement = true;
+                        }
+                        if (ImGui::MenuItem("Terrain"))
+                        {
+                            GSceneEditorState.TypeOfActorToCreate    = scene::EActorType::TERRAIN;
                             GSceneEditorState.bDisableCameraMovement = true;
                         }
                         ImGui::EndMenu();
@@ -1619,9 +1624,7 @@ void UIDrawActorResourceCreationMenu()
                 case scene::EActorType::STATIC_MESH:
                 {
                     GSceneEditorState.bDisableCameraMovement = true;
-                    CreatedActor                             = new scene::CStaticMesh{
-                        CopyToString(GSceneEditorState.AssetNameBuffer), nullptr, nullptr, nullptr, scene::EStaticMeshType::STATIONARY
-                    };
+                    CreatedActor                             = scene::CStaticMesh::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer));
                     break;
                 }
                 case scene::EActorType::SKYBOX:
@@ -1629,14 +1632,20 @@ void UIDrawActorResourceCreationMenu()
                     if (GSceneEditorState.GenericIntParam0 > 0 || GSceneEditorState.GenericIntParam1 > 0)
                     {
                         GSceneEditorState.bDisableCameraMovement = true;
-                        CreatedActor                             = new scene::CSkybox{
-                            CopyToString(GSceneEditorState.AssetNameBuffer), nullptr,    nullptr, nullptr, (u32)GSceneEditorState.GenericIntParam0,
-                            (u32)GSceneEditorState.GenericIntParam1,         { nullptr }
-                        };
+                        CreatedActor                             = scene::CSkybox::CreateAsset(
+                            CopyToString(GSceneEditorState.AssetNameBuffer),
+                            { (u32)GSceneEditorState.GenericIntParam0, (u32)GSceneEditorState.GenericIntParam1 }
+                        );
                     }
                     break;
                 }
-
+                case scene::EActorType::TERRAIN:
+                    {
+                        GSceneEditorState.bDisableCameraMovement = true;
+                        CreatedActor = scene::CTerrain::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer));
+                        break;
+                    }
+                    
                 default:
                     assert(0);
                 }

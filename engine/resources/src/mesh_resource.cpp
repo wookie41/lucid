@@ -320,6 +320,12 @@ namespace lucid::resources
         }
     }
 
+    CResource* CMeshResource::CreateCopy() const
+    {
+        assert(0); //@TODO
+        return nullptr;
+    }
+
     CResourcesHolder<CMeshResource> MeshesHolder;
 
     static Assimp::Importer AssimpImporter;
