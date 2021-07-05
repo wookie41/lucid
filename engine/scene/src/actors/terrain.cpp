@@ -43,24 +43,28 @@ namespace lucid::scene
 
         const glm::vec3 UpperLeft = { -(TerrainSettings.GridSize.x / 2), 0, -TerrainSettings.GridSize.y / 2 };
 
-        u8 HorizontalStep = 0;
-        u8 VerticalStep   = 1;
-
         // Generate a triangle strip mesh for this
         const glm::vec2 CellSize = TerrainSettings.GridSize / glm::vec2(TerrainSettings.Resolution);
         const glm::vec2 UVStep   = { 1.f / TerrainSettings.Resolution.x, 1 / TerrainSettings.Resolution.y };
 
         for (u32 z = 0; z < TerrainSettings.Resolution.y; ++z)
         {
+            i8 StepX = 0;
+            i8 StepZ = 0;
+
             for (u32 x = 0; x < TerrainSettings.Resolution.x * 4; ++x)
             {
-                VertexData->Position =
-                  UpperLeft + glm::vec3{ (HorizontalStep * CellSize.x) + (x * CellSize.x), 0, (VerticalStep * CellSize.y) + (z * CellSize.y) };
-                VertexData->Normal        = { 0, 1, 0 };
-                VertexData->TextureCoords = glm::vec2{ 0, 1 } + glm::vec2{ HorizontalStep * UVStep.x, (VerticalStep * UVStep.y) + (z * UVStep.y) };
+                VertexData->Position = UpperLeft;
+                // Move to the next square on the X axis every two vertices, move on Z for each strip
+                VertexData->Position += glm::vec3 {x / 2 * CellSize.x, 0, (z * CellSize.y) };
+                // Move on x or z axis in order to create a triangle strip
+                VertexData->Position += glm::vec3 { StepX * CellSize.x, 0, (StepZ * CellSize.y)}; 
 
-                HorizontalStep = (HorizontalStep + 1) % 2;
-                VerticalStep   = (VerticalStep + 1) % 2;
+                VertexData->Normal        = { 0, 1, 0 };
+                VertexData->TextureCoords = glm::vec2{ 0, 1 } + glm::vec2{ StepX * UVStep.x, (StepZ * UVStep.y) + (z * UVStep.y) };
+
+                StepX = (StepX + x) % 2;
+                StepZ = (StepZ + 1) % 2;
 
                 VertexData += 1;
             }
