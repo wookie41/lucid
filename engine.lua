@@ -25,7 +25,8 @@ project "lucid_engine"
       "libs/assimp/include",
       "libs/rapidjson",
       "libs/df_serialize",
-      "libs/sole/include"
+      "libs/sole/include",
+      "libs/simplex_noise/include"
    }
    
    libdirs { 
@@ -66,7 +67,8 @@ project "lucid_engine"
       "engine/imgui/src/*.cpp",
       "libs/rapidjson/**.h",
       "libs/df_serialize/*.h",
-      "libs/glad/src/glad.c"  
+      "libs/glad/src/glad.c",
+      "libs/simplex_noise/src/*.cpp"  
    }
 
    filter "platforms:Win64"

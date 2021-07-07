@@ -11,7 +11,10 @@
 #include "resources/mesh_resource.hpp"
 #include "resources/serialization_versions.hpp"
 
+#include "simplex_noise/simplex_noise.h"
+
 #include <cassert>
+#include <random>
 
 namespace lucid::scene
 {
@@ -36,7 +39,7 @@ namespace lucid::scene
         OutDescription.TerrainMaterialId     = TerrainMaterial ? TerrainMaterial->GetID() : sole::INVALID_UUID;
     }
 
-    lucid::resources::CMeshResource* CreateFlatTerrainMesh(const FTerrainSettings& TerrainSettings)
+    static lucid::resources::CMeshResource* GenerateTerrainMesh(const FTerrainSettings& TerrainSettings)
     {
         const u32 VertexCount  = (TerrainSettings.Resolution.x + 1) * (TerrainSettings.Resolution.y + 1);
         const u32 IndicesCount = TerrainSettings.Resolution.x * TerrainSettings.Resolution.y * 6;
@@ -55,6 +58,26 @@ namespace lucid::scene
         const glm::vec2 CellSize = TerrainSettings.GridSize / glm::vec2(TerrainSettings.Resolution);
         const glm::vec2 UVStep   = { 1.f / TerrainSettings.Resolution.x, 1 / TerrainSettings.Resolution.y };
 
+        std::function<float(u32, u32)> HeightFunc = [](const u32& X, const u32& Z) -> float { return 0; };
+
+        if (!TerrainSettings.bFlatMesh)
+        {
+            static std::default_random_engine RandomEngine{ std::mt19937(TerrainSettings.Seed == -1 ? math::RandomFloat() * UINT32_MAX :
+                                                                                                      TerrainSettings.Seed) };
+
+            static std::uniform_real_distribution<float> dis(0, 100000.0f);
+
+            const auto SimplexGenerator =
+              SimplexNoise{ TerrainSettings.Frequency, TerrainSettings.Amplitude, TerrainSettings.Lacunarity, TerrainSettings.Persistence };
+
+            const float OffsetX = dis(RandomEngine);
+            const float OffsetZ = dis(RandomEngine);
+
+            HeightFunc = [&SimplexGenerator, &TerrainSettings, OffsetX, OffsetZ](const u32& X, const u32& Z) -> float {
+                return SimplexGenerator.fractal(TerrainSettings.Octaves, X + OffsetX, Z + OffsetZ);
+            };
+        }
+
         // Generate vertex data
         for (u32 z = 0; z < TerrainSettings.Resolution.y + 1; ++z)
         {
@@ -64,11 +87,7 @@ namespace lucid::scene
                 VertexData->Position = UpperLeft;
                 VertexData->Position += glm::vec3{ x * CellSize.x, 0, z * CellSize.y };
 
-                VertexData->Position.y = (1 - (glm::length(VertexData->Position) /
-                                               glm::length(glm::vec3{ TerrainSettings.GridSize.x / 2.f, 0, TerrainSettings.GridSize.y / 2.f })));
-                VertexData->Position.y = VertexData->Position.y * VertexData->Position.y * VertexData->Position.y *
-                                         (VertexData->Position.y * (VertexData->Position.y * 6 - 15) + 10);
-                VertexData->Position.y *= 5;
+                VertexData->Position.y = HeightFunc(x, z);
 
                 VertexData->Normal = glm::vec3{ 0 };
                 VertexData->TextureCoords += glm::vec2{ x * UVStep.x, z * UVStep.y };
@@ -310,15 +329,11 @@ namespace lucid::scene
         WriteToJSONFile(TerrainDescription, *InFilePath);
     }
 
-    CTerrain* CTerrain::CreateAsset(const FDString& InName)
+    CTerrain* CTerrain::CreateAsset(const FDString& InName, const FTerrainSettings& InTerrainSettings)
     {
-        static FTerrainSettings DefaultTerrainSettings;
-        DefaultTerrainSettings.Resolution = { 100, 100 };
-        DefaultTerrainSettings.GridSize   = { 100, 100 };
+        resources::CMeshResource* TerrainMesh = GenerateTerrainMesh(InTerrainSettings);
 
-        resources::CMeshResource* TerrainMesh = CreateFlatTerrainMesh(DefaultTerrainSettings);
-
-        auto* TerrainActorAsset = new CTerrain{ InName, nullptr, nullptr, DefaultTerrainSettings, TerrainMesh, GEngine.GetDefaultMaterial() };
+        auto* TerrainActorAsset = new CTerrain{ InName, nullptr, nullptr, InTerrainSettings, TerrainMesh, GEngine.GetDefaultMaterial() };
 
         TerrainActorAsset->ResourceId   = sole::uuid4();
         TerrainActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *TerrainActorAsset->Name);

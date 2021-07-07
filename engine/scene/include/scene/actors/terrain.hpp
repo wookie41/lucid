@@ -26,6 +26,16 @@ namespace lucid::scene
 
         /** Resolution of the terrain mesh, i.e. how many cells in x and y does it have */
         glm::ivec2 Resolution = { 0, 0 };
+
+        bool bFlatMesh = true;
+
+        u32 Seed = -1;
+
+        int32_t Octaves     = 4;
+        float   Frequency   = 0.005f;
+        float   Amplitude   = 1.0f;
+        float   Lacunarity  = 4.152f;
+        float   Persistence = 0.122f;
     };
 
     struct FTerrainVertex
@@ -58,7 +68,7 @@ namespace lucid::scene
 
         void FillDescription(FTerrainDescription& OutDescription) const;
 
-        static CTerrain* CreateAsset(const FDString& InName);
+        static CTerrain* CreateAsset(const FDString& InName, const FTerrainSettings& InTerrainSettings);
         virtual IActor*  CreateAssetFromActor(const FDString& InName) const override;
         static CTerrain* LoadAsset(const FTerrainDescription& InTerrainDescription);
 

@@ -43,6 +43,7 @@
 
 #include "ImGuizmo.h"
 #include "imgui_lucid.h"
+#include "scene/actors/terrain.hpp"
 
 using namespace lucid;
 
@@ -145,8 +146,16 @@ struct FSceneEditorState
     bool GenericBoolParam0 = false;
     bool GenericBoolParam1 = false;
 
+    float GenericFloat2Param0[2] = { 0 };
+    float GenericFloat2Param1[2] = { 0 };
+
     int GenericIntParam0 = 0;
     int GenericIntParam1 = 0;
+
+    float GenericFloatParam0 = 0;
+    float GenericFloatParam1 = 0;
+    float GenericFloatParam2 = 0;
+    float GenericFloatParam3 = 0;
 
     int ResourceItemsPerRow = 12;
 
@@ -222,7 +231,7 @@ glm::vec2 GetMouseNDCPos();
 
 int main(int argc, char** argv)
 {
-    if(!InitializeSceneEditor())
+    if (!InitializeSceneEditor())
     {
         return -1;
     }
@@ -281,7 +290,7 @@ int main(int argc, char** argv)
         {
             GSceneEditorState.CurrentlySelectedActor->OnSelectedPreFrameRender();
         }
-        
+
         // Render the scene to off-screen framebuffer
         if (GSceneEditorState.World)
         {
@@ -294,7 +303,7 @@ int main(int argc, char** argv)
           scene::GRenderStats.FrameTimeMiliseconds;
 
         DoActorPicking();
-        
+
         GSceneEditorState.Window->ImgUiStartNewFrame();
         {
             UISetupDockspace();
@@ -1056,6 +1065,17 @@ void UIDrawResourceBrowserWindow()
                         {
                             GSceneEditorState.TypeOfActorToCreate    = scene::EActorType::TERRAIN;
                             GSceneEditorState.bDisableCameraMovement = true;
+                            GSceneEditorState.GenericFloat2Param0[0] = 100;
+                            GSceneEditorState.GenericFloat2Param0[1] = 100;
+                            GSceneEditorState.GenericFloat2Param1[0] = 100;
+                            GSceneEditorState.GenericFloat2Param1[1] = 100;
+                            GSceneEditorState.GenericBoolParam0      = false;
+                            GSceneEditorState.GenericIntParam0       = -1;
+                            GSceneEditorState.GenericIntParam1       = 4;
+                            GSceneEditorState.GenericFloatParam0     = 0.005f;
+                            GSceneEditorState.GenericFloatParam1     = 1.0f;
+                            GSceneEditorState.GenericFloatParam2     = 4.152f;
+                            GSceneEditorState.GenericFloatParam3     = 0.122f;
                         }
                         ImGui::EndMenu();
                     }
@@ -1602,10 +1622,23 @@ void UIDrawActorResourceCreationMenu()
     ImGui::BeginPopupModal(POPUP_WINDOW, nullptr, ImGuiWindowFlags_NoTitleBar);
     {
         ImGui::InputText("Actor resource name name (max 255)", GSceneEditorState.AssetNameBuffer, 255);
+
         if (GSceneEditorState.TypeOfActorToCreate == scene::EActorType::SKYBOX)
         {
             ImGui::InputInt("Width", &GSceneEditorState.GenericIntParam0);
             ImGui::InputInt("Height", &GSceneEditorState.GenericIntParam1);
+        }
+        else if (GSceneEditorState.TypeOfActorToCreate == scene::EActorType::TERRAIN)
+        {
+            ImGui::InputFloat2("Grid size", GSceneEditorState.GenericFloat2Param0);
+            ImGui::InputFloat2("Resolution", GSceneEditorState.GenericFloat2Param1);
+            ImGui::Checkbox("Flat", &GSceneEditorState.GenericBoolParam0);
+            ImGui::InputInt("Seed", &GSceneEditorState.GenericIntParam0);
+            ImGui::InputInt("Octaves", &GSceneEditorState.GenericIntParam1);
+            ImGui::InputFloat("Frequency", &GSceneEditorState.GenericFloatParam0);
+            ImGui::InputFloat("Amplitude", &GSceneEditorState.GenericFloatParam1);
+            ImGui::InputFloat("Lacunarity", &GSceneEditorState.GenericFloatParam2);
+            ImGui::InputFloat("Persistence", &GSceneEditorState.GenericFloatParam3);
         }
 
         if (ImGui::Button("Create"))
@@ -1632,20 +1665,31 @@ void UIDrawActorResourceCreationMenu()
                     if (GSceneEditorState.GenericIntParam0 > 0 || GSceneEditorState.GenericIntParam1 > 0)
                     {
                         GSceneEditorState.bDisableCameraMovement = true;
-                        CreatedActor                             = scene::CSkybox::CreateAsset(
-                            CopyToString(GSceneEditorState.AssetNameBuffer),
-                            { (u32)GSceneEditorState.GenericIntParam0, (u32)GSceneEditorState.GenericIntParam1 }
-                        );
+                        CreatedActor =
+                          scene::CSkybox::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer),
+                                                      { (u32)GSceneEditorState.GenericIntParam0, (u32)GSceneEditorState.GenericIntParam1 });
                     }
                     break;
                 }
                 case scene::EActorType::TERRAIN:
-                    {
-                        GSceneEditorState.bDisableCameraMovement = true;
-                        CreatedActor = scene::CTerrain::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer));
-                        break;
-                    }
-                    
+                {
+
+                    scene::FTerrainSettings TerrainSettings;
+                    TerrainSettings.GridSize    = { GSceneEditorState.GenericFloat2Param0[0], GSceneEditorState.GenericFloat2Param0[1] };
+                    TerrainSettings.Resolution  = { GSceneEditorState.GenericFloat2Param1[0], GSceneEditorState.GenericFloat2Param1[1] };
+                    TerrainSettings.bFlatMesh   = GSceneEditorState.GenericBoolParam0;
+                    TerrainSettings.Seed        = GSceneEditorState.GenericIntParam0;
+                    TerrainSettings.Octaves     = GSceneEditorState.GenericIntParam1;
+                    TerrainSettings.Frequency   = GSceneEditorState.GenericFloatParam0;
+                    TerrainSettings.Amplitude   = GSceneEditorState.GenericFloatParam1;
+                    TerrainSettings.Lacunarity  = GSceneEditorState.GenericFloatParam2;
+                    TerrainSettings.Persistence = GSceneEditorState.GenericFloatParam3;
+
+                    GSceneEditorState.bDisableCameraMovement = true;
+                    CreatedActor                             = scene::CTerrain::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer), TerrainSettings);
+                    break;
+                }
+
                 default:
                     assert(0);
                 }
