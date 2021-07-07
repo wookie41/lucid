@@ -11,11 +11,6 @@
             "ActorType": 1
         },
         {
-            "ActorId": "dfd87123-806f-4656-a086-2ec636e29fbc",
-            "ActorPath": "assets/actors/ArcticSkybox.asset",
-            "ActorType": 2
-        },
-        {
             "ActorId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
             "ActorPath": "assets/actors/TestCube.asset",
             "ActorType": 1
@@ -44,51 +39,6 @@
             "ActorId": "87951067-769d-4673-9436-090710a194f0",
             "ActorPath": "assets/actors/Mesh.asset",
             "ActorType": 1
-        },
-        {
-            "ActorId": "4adf399e-78c3-4a02-89f4-1cf4b63b3a4f",
-            "ActorPath": "assets/actors/TestStaticMeshActorAsset.asset",
-            "ActorType": 1
-        },
-        {
-            "ActorId": "e0cc4740-8b39-42d0-8259-e0365a135fc2",
-            "ActorPath": "assets/actors/Terrain.asset",
-            "ActorType": 4
-        },
-        {
-            "ActorId": "ddb18f53-a38e-4eb0-bb6d-65e087fdfaaf",
-            "ActorPath": "assets/actors/Terrain.asset",
-            "ActorType": 4
-        },
-        {
-            "ActorId": "a5cdca69-1db5-43c9-80eb-495f597e482d",
-            "ActorPath": "assets/actors/Terrain.asset",
-            "ActorType": 4
-        },
-        {
-            "ActorId": "977b8a8a-7b1d-4f98-af7f-4f3b54361386",
-            "ActorPath": "assets/actors/Terrain.asset",
-            "ActorType": 4
-        },
-        {
-            "ActorId": "56c03226-b9b9-4de0-b98c-b0831350319c",
-            "ActorPath": "assets/actors/Terrain.asset",
-            "ActorType": 4
-        },
-        {
-            "ActorId": "15d469d1-25c1-46a0-a95f-ee891e9fdde1",
-            "ActorPath": "assets/actors/Terrain.asset",
-            "ActorType": 4
-        },
-        {
-            "ActorId": "f3b640a3-d100-4c11-813e-691fbc319d33",
-            "ActorPath": "assets/actors/Terrain.asset",
-            "ActorType": 4
-        },
-        {
-            "ActorId": "6a8bf8ae-679f-4e71-b113-3ab32c1f7cde",
-            "ActorPath": "assets/actors/Terrain.asset",
-            "ActorType": 4
         }
     ]
 }

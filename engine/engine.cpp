@@ -12,6 +12,7 @@
 #define LUCID_SCHEMAS_IMPLEMENTATION
 #include "scene/material.hpp"
 #include "scene/actors/static_mesh.hpp"
+#include "scene/actors/terrain.hpp"
 
 #include "schemas/types.hpp"
 #include "schemas/binary.hpp"
@@ -20,7 +21,7 @@
 namespace lucid
 {
 
-    CEngine GEngine;
+    CEngine          GEngine;
     EEngineInitError CEngine::InitEngine(const FEngineConfig& InEngineConfig)
     {
         srand(time(NULL));
@@ -43,13 +44,12 @@ namespace lucid
         }
 
         // Setup the renderer
-        auto* ForwardRenderer = new scene::CForwardRenderer{ 32, 4 };
-        ForwardRenderer->AmbientStrength = 0.05;
-        ForwardRenderer->NumSamplesPCF = 25;
+        auto* ForwardRenderer             = new scene::CForwardRenderer{ 32, 4 };
+        ForwardRenderer->AmbientStrength  = 0.05;
+        ForwardRenderer->NumSamplesPCF    = 25;
         ForwardRenderer->ResultResolution = { 1920, 1080 };
-        Renderer = ForwardRenderer;
+        Renderer                          = ForwardRenderer;
 
-        
         EngineObjects.Add(&MeshesHolder);
         EngineObjects.Add(&TexturesHolder);
 
@@ -104,7 +104,7 @@ namespace lucid
                     {
                         LoadedTexture->MakeThumbnail();
                     }
-                    
+
                     if (Entry.bIsDefault)
                     {
                         GEngine.GetTexturesHolder().SetDefaultResource(LoadedTexture);
@@ -119,8 +119,8 @@ namespace lucid
         ReadFromJSONFile(MaterialDatabase, "assets/databases/materials.json");
 
         // Create materials for the materials definitions
-        bool bFileReadSuccess = false;
-        scene::CMaterial* LoadedMaterial = nullptr;
+        bool              bFileReadSuccess = false;
+        scene::CMaterial* LoadedMaterial   = nullptr;
         for (const FMaterialDatabaseEntry& Entry : MaterialDatabase.Entries)
         {
             LoadedMaterial = nullptr;
@@ -240,6 +240,11 @@ namespace lucid
                 LoadActorAsset<scene::CSkybox, FSkyboxDescription>(Entry);
                 break;
             }
+            case scene::EActorType::TERRAIN:
+            {
+                LoadActorAsset<scene::CTerrain, FTerrainDescription>(Entry);
+                break;
+            }
             default:
                 LUCID_LOG(ELogLevel::WARN, "Unsupported actor type %d", Entry.ActorType);
             }
@@ -251,10 +256,10 @@ namespace lucid
     void CEngine::AddTextureResource(resources::CTextureResource* InTexture)
     {
         FResourceDatabaseEntry Entry;
-        Entry.Id = InTexture->GetID();
-        Entry.Name = CopyToString(*InTexture->GetName(), InTexture->GetName().GetLength());
-        Entry.Path = CopyToString(*InTexture->GetFilePath(), InTexture->GetFilePath().GetLength());
-        Entry.Type = resources::TEXTURE;
+        Entry.Id         = InTexture->GetID();
+        Entry.Name       = CopyToString(*InTexture->GetName(), InTexture->GetName().GetLength());
+        Entry.Path       = CopyToString(*InTexture->GetFilePath(), InTexture->GetFilePath().GetLength());
+        Entry.Type       = resources::TEXTURE;
         Entry.bIsDefault = false;
         ResourceDatabase.Entries.push_back(Entry);
         TexturesHolder.Add(InTexture->GetID(), InTexture);
@@ -264,10 +269,10 @@ namespace lucid
     void CEngine::AddMeshResource(resources::CMeshResource* InMesh)
     {
         FResourceDatabaseEntry Entry;
-        Entry.Id = InMesh->GetID();
-        Entry.Name = CopyToString(*InMesh->GetName(), InMesh->GetName().GetLength());
-        Entry.Path = CopyToString(*InMesh->GetFilePath(), InMesh->GetFilePath().GetLength());
-        Entry.Type = resources::MESH;
+        Entry.Id         = InMesh->GetID();
+        Entry.Name       = CopyToString(*InMesh->GetName(), InMesh->GetName().GetLength());
+        Entry.Path       = CopyToString(*InMesh->GetFilePath(), InMesh->GetFilePath().GetLength());
+        Entry.Type       = resources::MESH;
         Entry.bIsDefault = false;
         ResourceDatabase.Entries.push_back(Entry);
         MeshesHolder.Add(InMesh->GetID(), InMesh);
@@ -277,10 +282,9 @@ namespace lucid
     void CEngine::RemoveTextureResource(resources::CTextureResource* InTexture)
     {
         // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
-        ResourceDatabase.Entries.erase(std::remove_if(
-          ResourceDatabase.Entries.begin(), ResourceDatabase.Entries.end(), [&](const FResourceDatabaseEntry& Entry) {
-              return Entry.Id == InTexture->GetID();
-          }));
+        ResourceDatabase.Entries.erase(std::remove_if(ResourceDatabase.Entries.begin(),
+                                                      ResourceDatabase.Entries.end(),
+                                                      [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == InTexture->GetID(); }));
 
         TexturesHolder.Remove(InTexture->GetID());
         remove(*InTexture->GetFilePath());
@@ -291,10 +295,9 @@ namespace lucid
     void CEngine::RemoveMeshResource(resources::CMeshResource* InMesh)
     {
         // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
-        ResourceDatabase.Entries.erase(std::remove_if(
-          ResourceDatabase.Entries.begin(), ResourceDatabase.Entries.end(), [&](const FResourceDatabaseEntry& Entry) {
-              return Entry.Id == InMesh->GetID();
-          }));
+        ResourceDatabase.Entries.erase(std::remove_if(ResourceDatabase.Entries.begin(),
+                                                      ResourceDatabase.Entries.end(),
+                                                      [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == InMesh->GetID(); }));
 
         MeshesHolder.Remove(InMesh->GetID());
         remove(*InMesh->GetFilePath());
@@ -304,9 +307,7 @@ namespace lucid
 
     void CEngine::Shutdown() {}
 
-    void CEngine::AddMaterialAsset(scene::CMaterial* InMaterial,
-                                   const scene::EMaterialType& InMaterialType,
-                                   const FDString& InMaterialPath)
+    void CEngine::AddMaterialAsset(scene::CMaterial* InMaterial, const scene::EMaterialType& InMaterialType, const FDString& InMaterialPath)
     {
         MaterialsHolder.Add(InMaterial->GetID(), InMaterial);
         MaterialDatabase.Entries.push_back({ InMaterial->GetID(), InMaterialPath, EFileFormat::Json, InMaterialType, false });
@@ -315,8 +316,8 @@ namespace lucid
 
     void CEngine::RemoveMaterialAsset(scene::CMaterial* InMaterial)
     {
-        MaterialDatabase.Entries.erase(std::remove_if(
-          MaterialDatabase.Entries.begin(), MaterialDatabase.Entries.end(), [&](const FMaterialDatabaseEntry& Entry) {
+        MaterialDatabase.Entries.erase(
+          std::remove_if(MaterialDatabase.Entries.begin(), MaterialDatabase.Entries.end(), [&](const FMaterialDatabaseEntry& Entry) {
               if (Entry.Id == InMaterial->GetID())
               {
                   remove(*Entry.MaterialPath);
@@ -331,15 +332,14 @@ namespace lucid
 
     void CEngine::RemoveActorAsset(scene::IActor* InActorResource)
     {
-        ActorDatabase.Entries.erase(
-          std::remove_if(ActorDatabase.Entries.begin(), ActorDatabase.Entries.end(), [&](const FActorDatabaseEntry& Entry) {
-              if (Entry.ActorId == InActorResource->ResourceId)
-              {
-                  remove(*Entry.ActorPath);
-                  return true;
-              }
-              return false;
-          }));
+        ActorDatabase.Entries.erase(std::remove_if(ActorDatabase.Entries.begin(), ActorDatabase.Entries.end(), [&](const FActorDatabaseEntry& Entry) {
+            if (Entry.ActorId == InActorResource->ResourceId)
+            {
+                remove(*Entry.ActorPath);
+                return true;
+            }
+            return false;
+        }));
 
         ActorResourceById.Remove(InActorResource->ResourceId);
         WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
@@ -354,7 +354,7 @@ namespace lucid
 
     void CEngine::SetDefaultMaterial(scene::CMaterial* InMaterial)
     {
-        bool bDefaultSet = false;
+        bool bDefaultSet   = false;
         bool bDefaultUnset = false;
 
         for (FMaterialDatabaseEntry& Entry : MaterialDatabase.Entries)
@@ -362,7 +362,7 @@ namespace lucid
             if (Entry.Id == InMaterial->GetID())
             {
                 Entry.bDefault = true;
-                bDefaultSet = true;
+                bDefaultSet    = true;
                 if (bDefaultUnset || !DefaultMaterial)
                 {
                     break;
@@ -371,7 +371,7 @@ namespace lucid
             else if (DefaultMaterial && DefaultMaterial->GetID() == Entry.Id)
             {
                 Entry.bDefault = false;
-                bDefaultUnset = true;
+                bDefaultUnset  = true;
                 if (bDefaultSet)
                 {
                     break;
@@ -382,10 +382,7 @@ namespace lucid
         DefaultMaterial = InMaterial;
     }
 
-    void CEngine::SaveMaterialDatabase()
-    {
-        WriteToJSONFile(MaterialDatabase, "assets/databases/materials.json");
-    }
+    void CEngine::SaveMaterialDatabase() { WriteToJSONFile(MaterialDatabase, "assets/databases/materials.json"); }
 
     void CEngine::BeginFrame()
     {
@@ -397,7 +394,7 @@ namespace lucid
         }
 
         ActorsWithDirtyResources.clear();
-        
+
         auto Node = &EngineObjects.Head;
         while (Node && Node->Element)
         {

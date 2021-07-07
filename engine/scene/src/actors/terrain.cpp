@@ -29,6 +29,7 @@ namespace lucid::scene
 
     void CTerrain::FillDescription(FTerrainDescription& OutDescription) const
     {
+        OutDescription.Name                  = Name;
         OutDescription.ResolutionX           = TerrainSettings.Resolution.x;
         OutDescription.ResolutionZ           = TerrainSettings.Resolution.y;
         OutDescription.TerrainMeshResourceId = TerrainMesh ? TerrainMesh->GetID() : sole::INVALID_UUID;
@@ -142,6 +143,8 @@ namespace lucid::scene
                                                           TerrainVertexDataSize + TerrainIndicesDataSize,
                                                           resources::MESH_SERIALIZATION_VERSION };
 
+        GEngine.AddMeshResource(TerrainMesh);
+
         resources::FSubMesh TerrainSubMesh;
         TerrainSubMesh.bHasPositions     = true;
         TerrainSubMesh.bHasNormals       = true;
@@ -161,8 +164,6 @@ namespace lucid::scene
         TerrainMesh->MinPosY  = 0;
         TerrainMesh->DrawMode = gpu::EDrawMode::TRIANGLES;
 
-        // @TODO here we should save the asset and free the memory used by VertexDataBuffer and ElementDataBuffer
-        // Same thing for mesh_resource.cpp
         TerrainMesh->SaveSynchronously();
 
         VertexDataBuffer.Free();
@@ -317,7 +318,14 @@ namespace lucid::scene
 
         resources::CMeshResource* TerrainMesh = CreateFlatTerrainMesh(DefaultTerrainSettings);
 
-        return new CTerrain{ InName, nullptr, nullptr, DefaultTerrainSettings, TerrainMesh, GEngine.GetDefaultMaterial() };
+        auto* TerrainActorAsset = new CTerrain{ InName, nullptr, nullptr, DefaultTerrainSettings, TerrainMesh, GEngine.GetDefaultMaterial() };
+
+        TerrainActorAsset->ResourceId   = sole::uuid4();
+        TerrainActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *TerrainActorAsset->Name);
+
+        TerrainActorAsset->SaveToResourceFile();
+
+        return TerrainActorAsset;
     }
 
 } // namespace lucid::scene
