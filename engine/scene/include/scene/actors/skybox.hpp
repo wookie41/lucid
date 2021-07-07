@@ -48,7 +48,7 @@ namespace lucid::scene
         virtual void UIDrawActorDetails() override;
 
       protected:
-        virtual void InternalSaveToResourceFile(const FString& InFilePath) override;
+        virtual void InternalSaveAssetToFile(const FString& InFilePath) override;
 
       public:
 #endif

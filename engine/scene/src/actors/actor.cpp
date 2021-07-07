@@ -25,7 +25,7 @@ namespace lucid::scene
         {
             if (ImGui::Button("Save"))
             {
-                SaveToResourceFile();
+                SaveAssetToFile();
             }
         }
 
@@ -47,7 +47,7 @@ namespace lucid::scene
             }
             else
             {
-                ImGui::Text(ResourceId == sole::INVALID_UUID ? "Actor name: %s" : "Actor asset name: %s", *Name);
+                ImGui::Text(AssetId == sole::INVALID_UUID ? "Actor name: %s" : "Actor asset name: %s", *Name);
                 ImGui::SameLine();
                 if (ImGui::Button("Rename"))
                 {
@@ -59,7 +59,7 @@ namespace lucid::scene
             }
 
             // Don't allow do modify translation and similar things on actor assets
-            if (ResourceId == sole::INVALID_UUID)
+            if (AssetId == sole::INVALID_UUID)
             {
                 PrevBaseActorAsset   = nullptr;
                 IActor* OldBaseActor = BaseActorAsset;
@@ -312,27 +312,27 @@ namespace lucid::scene
 
 #endif
 
-    void IActor::SaveToResourceFile()
+    void IActor::SaveAssetToFile()
     {
         if (BaseActorAsset)
         {
             auto* NewActorAsset         = CreateAssetFromActor(Name.GetCopy());
-            NewActorAsset->ResourceId   = sole::uuid4();
-            NewActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *Name);
+            NewActorAsset->AssetId   = sole::uuid4();
+            NewActorAsset->AssetPath = SPrintf("assets/actors/%s.asset", *Name);
 
             FActorDatabaseEntry NewEntry;
-            NewEntry.ActorId   = NewActorAsset->ResourceId;
-            NewEntry.ActorPath = NewActorAsset->ResourcePath;
+            NewEntry.ActorId   = NewActorAsset->AssetId;
+            NewEntry.ActorPath = NewActorAsset->AssetPath;
 
             GEngine.AddActorAsset(NewActorAsset);
 
             BaseActorAsset = NewActorAsset;
-            NewActorAsset->InternalSaveToResourceFile(NewActorAsset->ResourcePath);
+            NewActorAsset->InternalSaveAssetToFile(NewActorAsset->AssetPath);
         }
         else
         {
-            assert(ResourcePath.GetLength());
-            InternalSaveToResourceFile(ResourcePath);
+            assert(AssetPath.GetLength());
+            InternalSaveAssetToFile(AssetPath);
         }
     }
 
@@ -385,6 +385,7 @@ namespace lucid::scene
 
     void IActor::AddAssetReference(IActor* InChildReference)
     {
+        InChildReference->BaseActorAsset = this;
         if (AssetReferences.IsEmpty())
         {
             LoadAssetResources();

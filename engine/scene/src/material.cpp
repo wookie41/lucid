@@ -37,16 +37,16 @@ namespace lucid::scene
     {
         if (bIsAsset)
         {
-            assert(ResourcePath.GetLength());
+            assert(AssetPath.GetLength());
             InternalSaveToResourceFile(InFileFormat);
         }
         else
         {
             bIsAsset = true;
-            ID = sole::uuid4();
-            Name = SPrintf("%s_%s", *Name, ID.str().c_str());
-            ResourcePath = SPrintf("assets/materials/%s.asset", *Name);
-            GEngine.GetMaterialDatabase().Entries.push_back({ID, ResourcePath, InFileFormat, GetType(), false});
+            AssetId = sole::uuid4();
+            Name = SPrintf("%s_%s", *Name, AssetId.str().c_str());
+            AssetPath = SPrintf("assets/materials/%s.asset", *Name);
+            GEngine.GetMaterialDatabase().Entries.push_back({AssetId, AssetPath, InFileFormat, GetType(), false});
             GEngine.SaveMaterialDatabase();
             SaveToResourceFile(InFileFormat);
         }

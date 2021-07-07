@@ -56,7 +56,7 @@ namespace lucid::scene
     void CFlatMaterial::InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat)
     {
         FFlatMaterialDescription FlatMaterialDescription;
-        FlatMaterialDescription.Id         = ID;
+        FlatMaterialDescription.Id         = AssetId;
         FlatMaterialDescription.Name       = FDString{ *Name };
         FlatMaterialDescription.ShaderName = FDString{ *Shader->GetName() };
         FlatMaterialDescription.Color      = VecToFloat4(Color);
@@ -64,10 +64,10 @@ namespace lucid::scene
         switch (InFileFormat)
         {
         case EFileFormat::Binary:
-            WriteToBinaryFile(FlatMaterialDescription, *ResourcePath);
+            WriteToBinaryFile(FlatMaterialDescription, *AssetPath);
             break;
         case EFileFormat::Json:
-            WriteToJSONFile(FlatMaterialDescription, *ResourcePath);
+            WriteToJSONFile(FlatMaterialDescription, *AssetPath);
             break;
         }
     }
@@ -85,7 +85,7 @@ namespace lucid::scene
 
     CMaterial* CFlatMaterial::GetCopy() const
     {
-        auto* Copy  = new CFlatMaterial{ ID, Name, ResourcePath, Shader };
+        auto* Copy  = new CFlatMaterial{ AssetId, Name, AssetPath, Shader };
         Copy->Color = Color;
         return Copy;
     }

@@ -206,19 +206,19 @@ namespace lucid::scene
         return Skybox;
     }
 
-    void CSkybox::InternalSaveToResourceFile(const FString& InFilePath)
+    void CSkybox::InternalSaveAssetToFile(const FString& InFilePath)
     {
         FSkyboxDescription SkyboxDescription;
         FillDescription(SkyboxDescription);
         WriteToJSONFile(SkyboxDescription, *InFilePath);
-        GEngine.GetActorsDatabase().Entries.push_back({ ResourceId, ResourcePath, EActorType::SKYBOX });
+        GEngine.GetActorsDatabase().Entries.push_back({ AssetId, AssetPath, EActorType::SKYBOX });
     }
 
     void CSkybox::FillDescription(FSkyboxDescription& OutDescription) const
     {
         if (BaseSkyboxResource)
         {
-            OutDescription.BaseActorResourceId = BaseSkyboxResource->ResourceId;
+            OutDescription.BaseActorResourceId = BaseSkyboxResource->AssetId;
             OutDescription.Id = ActorId;
 
             // if (BaseSkyboxResource->FaceTextures[0] != FaceTextures[0])
@@ -309,7 +309,7 @@ namespace lucid::scene
 
     void CSkybox::LoadAssetResources()
     {
-        assert(ResourcePath.GetLength());
+        assert(AssetPath.GetLength());
 
         FSkyboxDescription SkyboxDescription;
         for (u8 i = 0; i < 6; ++i)

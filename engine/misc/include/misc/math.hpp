@@ -32,4 +32,9 @@ namespace lucid::math
         return x * (1.f - t) + y * t;
     }
 
+    inline float Remap(const float& Value, const float& Low1, const float& High1, const float& Low2, const float& High2)
+    {
+        return Low2 + (Value - Low1) * (High2 - Low2) / (High1 - Low1);
+    }
+
 } // namespace lucid::misc

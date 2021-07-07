@@ -333,7 +333,7 @@ namespace lucid
     void CEngine::RemoveActorAsset(scene::IActor* InActorResource)
     {
         ActorDatabase.Entries.erase(std::remove_if(ActorDatabase.Entries.begin(), ActorDatabase.Entries.end(), [&](const FActorDatabaseEntry& Entry) {
-            if (Entry.ActorId == InActorResource->ResourceId)
+            if (Entry.ActorId == InActorResource->AssetId)
             {
                 remove(*Entry.ActorPath);
                 return true;
@@ -341,14 +341,14 @@ namespace lucid
             return false;
         }));
 
-        ActorResourceById.Remove(InActorResource->ResourceId);
+        ActorResourceById.Remove(InActorResource->AssetId);
         WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
     }
 
     void CEngine::AddActorAsset(scene::IActor* InActorResource)
     {
-        ActorDatabase.Entries.push_back({ InActorResource->ResourceId, InActorResource->ResourcePath, InActorResource->GetActorType() });
-        ActorResourceById.Add(InActorResource->ResourceId, InActorResource);
+        ActorDatabase.Entries.push_back({ InActorResource->AssetId, InActorResource->AssetPath, InActorResource->GetActorType() });
+        ActorResourceById.Add(InActorResource->AssetId, InActorResource);
         WriteToJSONFile(ActorDatabase, "assets/databases/actors.json");
     }
 

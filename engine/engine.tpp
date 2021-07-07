@@ -19,8 +19,8 @@ namespace lucid
         }
 
         auto* ActorAsset = TActor::LoadAsset(ActorAssetDescription);
-        ActorAsset->ResourceId = ActorEntry.ActorId;
-        ActorAsset->ResourcePath = ActorEntry.ActorPath;
+        ActorAsset->AssetId = ActorEntry.ActorId;
+        ActorAsset->AssetPath = ActorEntry.ActorPath;
 
         ActorResourceById.Add(ActorEntry.ActorId, ActorAsset);
     }

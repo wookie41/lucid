@@ -293,7 +293,7 @@ namespace lucid::scene
                 }
             }
 
-            OutDescription.BaseActorResourceId = BaseStaticMesh->ResourceId;
+            OutDescription.BaseActorResourceId = BaseStaticMesh->AssetId;
         }
         else
         {
@@ -315,7 +315,7 @@ namespace lucid::scene
         OutDescription.bReverseNormals = bReverseNormals;
     }
 
-    void CStaticMesh::InternalSaveToResourceFile(const FString& InFilePath)
+    void CStaticMesh::InternalSaveAssetToFile(const FString& InFilePath)
     {
         FStaticMeshDescription StaticMeshDescription;
         FillDescription(StaticMeshDescription);
@@ -496,7 +496,7 @@ namespace lucid::scene
 
         LUCID_LOG(ELogLevel::INFO, "Loading StaticMesh %s", *Name);
 
-        assert(ResourcePath.GetLength());
+        assert(AssetPath.GetLength());
 
         if (MeshResource)
         {

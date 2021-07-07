@@ -443,7 +443,7 @@ namespace lucid::resources
     static void AddAssetsToEngine(scene::CStaticMesh* InStaticMesh, CMeshResource* InMesh)
     {
         // Save actor to file
-        InStaticMesh->SaveToResourceFile();
+        InStaticMesh->SaveAssetToFile();
 
         // Save mesh to file
         FILE* ImportedMeshFile;
@@ -663,7 +663,7 @@ namespace lucid::resources
 
                 // Add material do the engine
                 ImportedMaterial->SaveToResourceFile(EFileFormat::Json);
-                GEngine.AddMaterialAsset(ImportedMaterial, scene::EMaterialType::BLINN_PHONG_MAPS, ImportedMaterial->ResourcePath);
+                GEngine.AddMaterialAsset(ImportedMaterial, scene::EMaterialType::BLINN_PHONG_MAPS, ImportedMaterial->AssetPath);
             }
 
             // Create a static mesh actor for each of the submeshes
@@ -676,8 +676,8 @@ namespace lucid::resources
                                                                      ImportedMesh,
                                                                      scene::EStaticMeshType::STATIONARY };
 
-                StaticMeshActorAsset->ResourceId   = sole::uuid4();
-                StaticMeshActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *StaticMeshActorAsset->Name);
+                StaticMeshActorAsset->AssetId   = sole::uuid4();
+                StaticMeshActorAsset->AssetPath = SPrintf("assets/actors/%s.asset", *StaticMeshActorAsset->Name);
 
                 StaticMeshActorAsset->AddMaterial(*ImportedMaterials[MeshInfoHelper.SubMeshes[i]->MaterialIndex]);
                 AddAssetsToEngine(StaticMeshActorAsset, ImportedMesh);
@@ -691,8 +691,8 @@ namespace lucid::resources
             auto* StaticMeshActorAsset = new scene::CStaticMesh{
                 CopyToString(*MeshName, MeshName.GetLength()), nullptr, nullptr, *ImportedMeshes[0], scene::EStaticMeshType::STATIONARY
             };
-            StaticMeshActorAsset->ResourceId   = sole::uuid4();
-            StaticMeshActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *MeshName);
+            StaticMeshActorAsset->AssetId   = sole::uuid4();
+            StaticMeshActorAsset->AssetPath = SPrintf("assets/actors/%s.asset", *MeshName);
 
             // Load materials
             for (int MaterialIndex = 0; MaterialIndex < Root->mNumMaterials; ++MaterialIndex)
@@ -735,7 +735,7 @@ namespace lucid::resources
 
                 // Add material do the engine
                 ImportedMaterial->SaveToResourceFile(EFileFormat::Json);
-                GEngine.AddMaterialAsset(ImportedMaterial, scene::EMaterialType::BLINN_PHONG_MAPS, ImportedMaterial->ResourcePath);
+                GEngine.AddMaterialAsset(ImportedMaterial, scene::EMaterialType::BLINN_PHONG_MAPS, ImportedMaterial->AssetPath);
             }
 
             AddAssetsToEngine(StaticMeshActorAsset, StaticMeshActorAsset->MeshResource);

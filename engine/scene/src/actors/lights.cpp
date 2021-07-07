@@ -85,7 +85,7 @@ namespace lucid::scene
 
     float CLight::GetVerticalMidPoint() const { return 0; }
 
-    void CLight::InternalSaveToResourceFile(const FString& InFilePath)
+    void CLight::InternalSaveAssetToFile(const FString& InFilePath)
     {
         // Light data is written directly to the world file
     }

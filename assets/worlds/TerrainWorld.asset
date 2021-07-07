@@ -1,0 +1,20 @@
+{
+    "DirectionalLights": [
+        {
+            "Id": 2,
+            "Name": "DirectionalLight",
+            "Direction": [
+                0.0,
+                -0.30702319741249087,
+                -0.9517021179199219
+            ]
+        }
+    ],
+    "Terrains": [
+        {
+            "Id": 3,
+    "Name": "Terrain",
+            "BaseActorResourceId": "cccbfbab-f460-4cff-b2e8-56c84f2887e2"
+        }
+    ]
+}

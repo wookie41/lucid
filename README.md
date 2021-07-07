@@ -22,6 +22,7 @@ I don't guarantee that it'll run on every platform and on every GPU, as that's n
 - skybox
 - bump mapping
 - normal mapping
+- terrain generation
 
 ### Whats is left to do:
 - culling
@@ -51,3 +52,5 @@ premake5 vs2017
 ![Sponza](./demo/demo-1.jpg)
 
 ![Gigacube](./demo/demo-2.jpg)
+
+![Terrain](./demo/demo-3.jpg)

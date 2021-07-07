@@ -156,6 +156,8 @@ struct FSceneEditorState
     float GenericFloatParam1 = 0;
     float GenericFloatParam2 = 0;
     float GenericFloatParam3 = 0;
+    float GenericFloatParam4 = 0;
+    float GenericFloatParam5 = 0;
 
     int ResourceItemsPerRow = 12;
 
@@ -962,10 +964,10 @@ void UIDrawResourceBrowserWindow()
                 if (MeshResource)
                 {
                     ImGui::BeginGroup();
-                    if (MeshResource->GetThumbnail())
-                    {
-                        MeshResource->GetThumbnail()->ImGuiImageButton(ResourceItemSize);
-                    }
+                    // if (MeshResource->GetThumbnail())
+                    // {
+                    //     MeshResource->GetThumbnail()->ImGuiImageButton(ResourceItemSize);
+                    // }
 
                     ImGui::Button(*MeshResource->GetName(), { ResourceItemWidth, MeshResource->GetThumbnail() ? 0 : ResourceItemWidth });
                     ImGui::EndGroup();
@@ -1076,6 +1078,8 @@ void UIDrawResourceBrowserWindow()
                             GSceneEditorState.GenericFloatParam1     = 1.0f;
                             GSceneEditorState.GenericFloatParam2     = 4.152f;
                             GSceneEditorState.GenericFloatParam3     = 0.122f;
+                            GSceneEditorState.GenericFloatParam4     = 0.f;
+                            GSceneEditorState.GenericFloatParam5     = 5.f;
                         }
                         ImGui::EndMenu();
                     }
@@ -1179,7 +1183,7 @@ void UIDrawResourceBrowserWindow()
                     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
                     {
                         // Set payload the pointer to ActorAsset
-                        ImGui::SetDragDropPayload(ACTOR_ASSET_DRAG_TYPE, &ActorAsset->ResourceId, sizeof(sole::uuid));
+                        ImGui::SetDragDropPayload(ACTOR_ASSET_DRAG_TYPE, &ActorAsset->AssetId, sizeof(sole::uuid));
 
                         // Display preview (could be anything, e.g. when dragging an image we could decide to display
                         // the filename and a small preview of the image, etc.)
@@ -1639,6 +1643,8 @@ void UIDrawActorResourceCreationMenu()
             ImGui::InputFloat("Amplitude", &GSceneEditorState.GenericFloatParam1);
             ImGui::InputFloat("Lacunarity", &GSceneEditorState.GenericFloatParam2);
             ImGui::InputFloat("Persistence", &GSceneEditorState.GenericFloatParam3);
+            ImGui::InputFloat("Min height", &GSceneEditorState.GenericFloatParam4);
+            ImGui::InputFloat("Max height", &GSceneEditorState.GenericFloatParam5);
         }
 
         if (ImGui::Button("Create"))
@@ -1683,7 +1689,9 @@ void UIDrawActorResourceCreationMenu()
                     TerrainSettings.Frequency   = GSceneEditorState.GenericFloatParam0;
                     TerrainSettings.Amplitude   = GSceneEditorState.GenericFloatParam1;
                     TerrainSettings.Lacunarity  = GSceneEditorState.GenericFloatParam2;
-                    TerrainSettings.Persistence = GSceneEditorState.GenericFloatParam3;
+                        TerrainSettings.Persistence = GSceneEditorState.GenericFloatParam3;
+                        TerrainSettings.MinHeight = GSceneEditorState.GenericFloatParam4;
+                        TerrainSettings.MaxHeight = GSceneEditorState.GenericFloatParam5;
 
                     GSceneEditorState.bDisableCameraMovement = true;
                     CreatedActor                             = scene::CTerrain::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer), TerrainSettings);
@@ -1694,8 +1702,8 @@ void UIDrawActorResourceCreationMenu()
                     assert(0);
                 }
 
-                CreatedActor->ResourceId   = sole::uuid4();
-                CreatedActor->ResourcePath = CreatedActorPath;
+                CreatedActor->AssetId   = sole::uuid4();
+                CreatedActor->AssetPath = CreatedActorPath;
 
                 GEngine.AddActorAsset(CreatedActor);
                 GSceneEditorState.TypeOfActorToCreate = scene::EActorType::UNKNOWN;

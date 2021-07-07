@@ -67,11 +67,14 @@ namespace lucid::resources
         inline const FString& GetFilePath() const { return FilePath; }
         inline u32            GetRefCount() const { return RefCount; }
 
+        inline bool IsLoadedToMainMemory() const { return bLoadedToMainMemory; }
+        inline bool IsLoadedToVideoMemory() const { return bLoadedToVideoMemory; }
+
         void Acquire(const bool& InbNeededInMainMemory, const bool& InbNeededInVideoMemory);
         void Release();
 
-        virtual CResource* CreateCopy() const { return nullptr; } 
-        
+        virtual CResource* CreateCopy() const { return nullptr; }
+
         /** Called from CResourceHolder */
         inline void MarkAsFreed() { RefCount = -1; }
 

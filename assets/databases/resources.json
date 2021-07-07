@@ -342,6 +342,12 @@
             "Name": "Mesh",
             "Path": "assets/meshes/Mesh.asset",
             "Type": 1
+        },
+        {
+            "Id": "0964473d-1f25-4e38-bef2-3ec243d3b9ea",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_ee5a3b64-58c3-4630-80d5-c7d11283618e.asset",
+            "Type": 1
         }
     ]
 }

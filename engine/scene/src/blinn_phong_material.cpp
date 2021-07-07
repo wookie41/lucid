@@ -75,7 +75,7 @@ namespace lucid::scene
     void CBlinnPhongMaterial::InternalSaveToResourceFile(const lucid::EFileFormat& InFileFormat)
     {
         FBlinnPhongMaterialDescription BlinnPhongMaterialDescription;
-        BlinnPhongMaterialDescription.Id            = ID;
+        BlinnPhongMaterialDescription.Id            = AssetId;
         BlinnPhongMaterialDescription.Name          = FDString{ *Name, Name.GetLength() };
         BlinnPhongMaterialDescription.ShaderName    = FDString{ *Shader->GetName(), Shader->GetName().GetLength() };
         BlinnPhongMaterialDescription.Shininess     = Shininess;
@@ -85,10 +85,10 @@ namespace lucid::scene
         switch (InFileFormat)
         {
         case EFileFormat::Binary:
-            WriteToBinaryFile(BlinnPhongMaterialDescription, *ResourcePath);
+            WriteToBinaryFile(BlinnPhongMaterialDescription, *AssetPath);
             break;
         case EFileFormat::Json:
-            WriteToJSONFile(BlinnPhongMaterialDescription, *ResourcePath);
+            WriteToJSONFile(BlinnPhongMaterialDescription, *AssetPath);
             break;
         }
     }
@@ -113,7 +113,7 @@ namespace lucid::scene
 
     CMaterial* CBlinnPhongMaterial::GetCopy() const
     {
-        auto* Copy          = new CBlinnPhongMaterial{ ID, Name, ResourcePath, Shader };
+        auto* Copy          = new CBlinnPhongMaterial{ AssetId, Name, AssetPath, Shader };
         Copy->Shininess     = Shininess;
         Copy->DiffuseColor  = DiffuseColor;
         Copy->SpecularColor = SpecularColor;
@@ -204,7 +204,7 @@ namespace lucid::scene
     void CBlinnPhongMapsMaterial::InternalSaveToResourceFile(const EFileFormat& InFileFormat)
     {
         FBlinnPhongMapsMaterialDescription BlinnPhongMapsMaterialDescription;
-        BlinnPhongMapsMaterialDescription.Id         = ID;
+        BlinnPhongMapsMaterialDescription.Id         = AssetId;
         BlinnPhongMapsMaterialDescription.Name       = FDString{ *Name, Name.GetLength() };
         BlinnPhongMapsMaterialDescription.ShaderName = FDString{ *Shader->GetName(), Shader->GetName().GetLength() };
 
@@ -248,10 +248,10 @@ namespace lucid::scene
         switch (InFileFormat)
         {
         case EFileFormat::Binary:
-            WriteToBinaryFile(BlinnPhongMapsMaterialDescription, *ResourcePath);
+            WriteToBinaryFile(BlinnPhongMapsMaterialDescription, *AssetPath);
             break;
         case EFileFormat::Json:
-            WriteToJSONFile(BlinnPhongMapsMaterialDescription, *ResourcePath);
+            WriteToJSONFile(BlinnPhongMapsMaterialDescription, *AssetPath);
             break;
         }
     }
@@ -341,7 +341,7 @@ namespace lucid::scene
 
     CMaterial* CBlinnPhongMapsMaterial::GetCopy() const
     {
-        auto* Copy                          = new CBlinnPhongMapsMaterial{ ID, Name, ResourcePath, Shader };
+        auto* Copy                          = new CBlinnPhongMapsMaterial{ AssetId, Name, AssetPath, Shader };
         Copy->Shininess                     = Shininess;
         Copy->SpecularColor                 = SpecularColor;
         Copy->DiffuseMap                    = DiffuseMap;

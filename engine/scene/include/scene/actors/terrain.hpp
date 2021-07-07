@@ -25,17 +25,19 @@ namespace lucid::scene
         glm::vec2 GridSize = { 0, 0 };
 
         /** Resolution of the terrain mesh, i.e. how many cells in x and y does it have */
-        glm::ivec2 Resolution = { 0, 0 };
+        glm::vec2 Resolution = { 0, 0 };
 
         bool bFlatMesh = true;
 
-        u32 Seed = -1;
+        i32 Seed = -1;
 
-        int32_t Octaves     = 4;
-        float   Frequency   = 0.005f;
-        float   Amplitude   = 1.0f;
-        float   Lacunarity  = 4.152f;
-        float   Persistence = 0.122f;
+        i32   Octaves     = 4;
+        float Frequency   = 0.005f;
+        float Amplitude   = 1.0f;
+        float Lacunarity  = 4.152f;
+        float Persistence = 0.122f;
+        float MinHeight   = 5.f;
+        float MaxHeight   = 5.f;
     };
 
     struct FTerrainVertex
@@ -87,14 +89,18 @@ namespace lucid::scene
         virtual void CleanupAfterRemove() override;
 
 #if DEVELOPMENT
+        void UpdateBaseAssetTerrainMeshUpdate(resources::CMeshResource* InNewTerrainMesh, const FTerrainSettings& InNewTerrainSettings);
         /** Editor stuff */
         virtual void UIDrawActorDetails() override;
 
       protected:
-        virtual void InternalSaveToResourceFile(const FString& InFilePath) override;
+        virtual void InternalSaveAssetToFile(const FString& InFilePath) override;
 #endif
 
       protected:
+#if DEVELOPMENT
+        FTerrainSettings NewTerrainSettings;
+#endif
         FTerrainSettings          TerrainSettings;
         resources::CMeshResource* TerrainMesh     = nullptr;
         CMaterial*                TerrainMaterial = nullptr;

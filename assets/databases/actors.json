@@ -39,6 +39,11 @@
             "ActorId": "87951067-769d-4673-9436-090710a194f0",
             "ActorPath": "assets/actors/Mesh.asset",
             "ActorType": 1
+        },
+        {
+            "ActorId": "cccbfbab-f460-4cff-b2e8-56c84f2887e2",
+            "ActorPath": "assets/actors/GeneratedTerrain.asset",
+            "ActorType": 4
         }
     ]
 }

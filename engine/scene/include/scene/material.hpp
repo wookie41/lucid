@@ -28,7 +28,7 @@ namespace lucid::scene
     {
       public:
         CMaterial(const UUID InID, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader = nullptr)
-        : ID(InID), Name(InName), ResourcePath(InResourcePath), Shader(InShader)
+        : AssetId(InID), Name(InName), AssetPath(InResourcePath), Shader(InShader)
         {
         }
 
@@ -46,7 +46,7 @@ namespace lucid::scene
         virtual void SetupShaderBuffer(char* InMaterialDataPtr) { bMaterialDataDirty = false; }
         virtual void SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms) = 0;
 
-        inline const UUID&    GetID() const { return ID; };
+        inline const UUID&    GetID() const { return AssetId; };
         inline const FString& GetName() const { return Name; };
         virtual EMaterialType GetType() const { return EMaterialType::NONE; }
         inline gpu::CShader*  GetShader() const { return Shader; }
@@ -69,9 +69,9 @@ namespace lucid::scene
         virtual void UIDrawMaterialEditor();
 #endif
 
-        UUID          ID;
+        UUID          AssetId;
         FDString      Name;
-        FDString      ResourcePath;
+        FDString      AssetPath;
         gpu::CShader* Shader;
         bool          bIsAsset            = false;
         i32           MaterialBufferIndex = -1;

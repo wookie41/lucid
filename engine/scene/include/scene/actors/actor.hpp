@@ -62,7 +62,7 @@ namespace lucid::scene
          * If called on an actor asset, it just saves te asset.
          * If called on actor instance, it creates an asset based on the instance and saves it
          */
-        void         SaveToResourceFile();
+        void         SaveAssetToFile();
 
         /**
          * Called by the engine before a frame so the actor can react to changes in it's resources
@@ -77,7 +77,7 @@ namespace lucid::scene
         virtual void OnSelectedPreFrameRender(){};
 
       protected:
-        virtual void InternalSaveToResourceFile(const FString& InActorResourceName) = 0;
+        virtual void InternalSaveAssetToFile(const FString& InActorResourceName) = 0;
 
       public:
 #endif
@@ -146,8 +146,8 @@ namespace lucid::scene
         FDString     Name;
         FTransform3D Transform;
         bool         bVisible   = true;
-        UUID         ResourceId = sole::INVALID_UUID;
-        FDString     ResourcePath{ "" };
+        UUID         AssetId = sole::INVALID_UUID;
+        FDString     AssetPath{ "" };
         CWorld*      World; // World that this actor is in
         glm::mat4    CachedModelMatrix{ 1 };
 

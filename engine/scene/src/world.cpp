@@ -282,6 +282,25 @@ namespace lucid::scene
             }
         }
 
+        // Terrains
+        for (const FTerrainDescription& TerrainDescription : InWorldDescription.Terrains)
+        {
+            auto* ActorAsset = GEngine.GetActorsResources().Get(TerrainDescription.BaseActorResourceId);
+            if (!ActorAsset)
+            {
+                LUCID_LOG(ELogLevel::WARN, "Failed to create terrain %s - no base asset", *TerrainDescription.Name);
+                continue;
+            }
+
+            if (auto* Terrain = ActorAsset->LoadActor(World, &TerrainDescription))
+            {
+                if (TerrainDescription.ParentId && !Terrain->Parent)
+                {
+                    UnresolvedParents.Add(Terrain, TerrainDescription.ParentId);
+                }
+            }
+        }
+
         UnresolvedParents.FreeAll();
         return World;
     }
@@ -358,6 +377,22 @@ namespace lucid::scene
             PointLightEntry.bCastsShadow      = PointLight->ShadowMap != nullptr;
 
             OutWorldDescription.PointLights.push_back(PointLightEntry);
+        }
+
+        // Save terrains
+        for (u32 i = 0; i < Terrains.GetLength(); ++i)
+        {
+            const CTerrain*     Terrain = Terrains.GetByIndex(i);
+            FTerrainDescription TerrainEntry;
+            TerrainEntry.Name                = Terrain->Name;
+            TerrainEntry.ParentId            = Terrain->Parent ? Terrain->Parent->ActorId : 0;
+            TerrainEntry.ParentId            = Terrain->Parent ? Terrain->Parent->ActorId : 0;
+            TerrainEntry.BaseActorResourceId = Terrain->BaseActorAsset->AssetId;
+            TerrainEntry.Postion             = VecToFloat3(Terrain->Transform.Translation);
+            TerrainEntry.Rotation            = QuatToFloat4(Terrain->Transform.Rotation);
+            TerrainEntry.Scale               = VecToFloat3(Terrain->Transform.Scale);
+
+            OutWorldDescription.Terrains.push_back(TerrainEntry);
         }
     }
 

@@ -24,7 +24,8 @@ namespace lucid::scene
                        const FTerrainSettings&   InTerrainSettings,
                        resources::CMeshResource* InTerrainMesh,
                        CMaterial*                InTerrainMaterial)
-    : IActor(InName, InParent, InWorld), TerrainSettings(InTerrainSettings), TerrainMesh(InTerrainMesh), TerrainMaterial(InTerrainMaterial)
+    : IActor(InName, InParent, InWorld), TerrainSettings(InTerrainSettings), TerrainMesh(InTerrainMesh), TerrainMaterial(InTerrainMaterial),
+      NewTerrainSettings(InTerrainSettings)
     {
     }
 
@@ -35,6 +36,15 @@ namespace lucid::scene
         OutDescription.Name                  = Name;
         OutDescription.ResolutionX           = TerrainSettings.Resolution.x;
         OutDescription.ResolutionZ           = TerrainSettings.Resolution.y;
+        OutDescription.bFlat                 = TerrainSettings.bFlatMesh;
+        OutDescription.Seed                  = TerrainSettings.Seed;
+        OutDescription.Octaves               = TerrainSettings.Octaves;
+        OutDescription.Frequency             = TerrainSettings.Frequency;
+        OutDescription.Amplitude             = TerrainSettings.Amplitude;
+        OutDescription.Lacunarity            = TerrainSettings.Lacunarity;
+        OutDescription.Persistence           = TerrainSettings.Persistence;
+        OutDescription.MinHeight             = TerrainSettings.MinHeight;
+        OutDescription.MaxHeight             = TerrainSettings.MaxHeight;
         OutDescription.TerrainMeshResourceId = TerrainMesh ? TerrainMesh->GetID() : sole::INVALID_UUID;
         OutDescription.TerrainMaterialId     = TerrainMaterial ? TerrainMaterial->GetID() : sole::INVALID_UUID;
     }
@@ -55,7 +65,7 @@ namespace lucid::scene
 
         const glm::vec3 UpperLeft = { -TerrainSettings.GridSize.x / 2, 0, -TerrainSettings.GridSize.y / 2 };
 
-        const glm::vec2 CellSize = TerrainSettings.GridSize / glm::vec2(TerrainSettings.Resolution);
+        const glm::vec2 CellSize = TerrainSettings.GridSize / TerrainSettings.Resolution;
         const glm::vec2 UVStep   = { 1.f / TerrainSettings.Resolution.x, 1 / TerrainSettings.Resolution.y };
 
         std::function<float(u32, u32)> HeightFunc = [](const u32& X, const u32& Z) -> float { return 0; };
@@ -74,7 +84,9 @@ namespace lucid::scene
             const float OffsetZ = dis(RandomEngine);
 
             HeightFunc = [&SimplexGenerator, &TerrainSettings, OffsetX, OffsetZ](const u32& X, const u32& Z) -> float {
-                return SimplexGenerator.fractal(TerrainSettings.Octaves, X + OffsetX, Z + OffsetZ);
+                const float f = SimplexGenerator.fractal(TerrainSettings.Octaves, X + OffsetX, Z + OffsetZ);
+
+                return math::Remap(f, -1, 1, TerrainSettings.MinHeight, TerrainSettings.MaxHeight);
             };
         }
 
@@ -215,11 +227,21 @@ namespace lucid::scene
     {
         auto* TerrainDescription = (FTerrainDescription const*)InActorDescription;
 
-        FTerrainSettings TerrainSettings;
-        TerrainSettings.Resolution.x = TerrainDescription->ResolutionX;
-        TerrainSettings.Resolution.y = TerrainDescription->ResolutionZ;
-        TerrainSettings.GridSize.x   = TerrainDescription->GridSizeX;
-        TerrainSettings.GridSize.y   = TerrainDescription->GridSizeZ;
+        FTerrainSettings InTerrainSettings;
+
+        InTerrainSettings.Resolution.x = TerrainDescription->ResolutionX;
+        InTerrainSettings.Resolution.y = TerrainDescription->ResolutionZ;
+        InTerrainSettings.GridSize.x   = TerrainDescription->GridSizeX;
+        InTerrainSettings.GridSize.y   = TerrainDescription->GridSizeZ;
+        InTerrainSettings.bFlatMesh    = TerrainDescription->bFlat;
+        InTerrainSettings.Seed         = TerrainDescription->Seed;
+        InTerrainSettings.Octaves      = TerrainDescription->Octaves;
+        InTerrainSettings.Frequency    = TerrainDescription->Frequency;
+        InTerrainSettings.Amplitude    = TerrainDescription->Amplitude;
+        InTerrainSettings.Lacunarity   = TerrainDescription->Lacunarity;
+        InTerrainSettings.Persistence  = TerrainDescription->Persistence;
+        InTerrainSettings.MinHeight    = TerrainDescription->MinHeight;
+        InTerrainSettings.MaxHeight    = TerrainDescription->MaxHeight;
 
         resources::CMeshResource* TerrainMeshResource = nullptr;
         if (TerrainDescription->TerrainMeshResourceId == sole::INVALID_UUID)
@@ -233,27 +255,42 @@ namespace lucid::scene
 
         TerrainMeshResource->Acquire(false, true);
 
-        auto* TerrainActor =
-          new CTerrain{ TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, TerrainSettings, TerrainMeshResource,
-                        TerrainMaterial };
+        auto* TerrainActor = new CTerrain{
+            TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, InTerrainSettings, TerrainMeshResource,
+            TerrainMaterial
+        };
 
         AddAssetReference(TerrainActor);
+
+        TerrainActor->Transform.Translation = Float3ToVec(InActorDescription->Postion);
+        TerrainActor->Transform.Rotation    = Float4ToQuat(InActorDescription->Rotation);
+        TerrainActor->Transform.Scale       = Float3ToVec(InActorDescription->Scale);
+        
+        InWorld->AddTerrain(TerrainActor);
 
         return TerrainActor;
     }
 
     CTerrain* CTerrain::LoadAsset(const FTerrainDescription& InTerrainDescription)
     {
-        FTerrainSettings TerrainSettings;
-        TerrainSettings.Resolution.x = InTerrainDescription.ResolutionX;
-        TerrainSettings.Resolution.y = InTerrainDescription.ResolutionZ;
-        TerrainSettings.GridSize.x   = InTerrainDescription.GridSizeX;
-        TerrainSettings.GridSize.y   = InTerrainDescription.GridSizeZ;
-
+        FTerrainSettings InTerrainSettings;
+        InTerrainSettings.Resolution.x = InTerrainDescription.ResolutionX;
+        InTerrainSettings.Resolution.y = InTerrainDescription.ResolutionZ;
+        InTerrainSettings.GridSize.x   = InTerrainDescription.GridSizeX;
+        InTerrainSettings.GridSize.y   = InTerrainDescription.GridSizeZ;
+        InTerrainSettings.bFlatMesh    = InTerrainDescription.bFlat;
+        InTerrainSettings.Seed         = InTerrainDescription.Seed;
+        InTerrainSettings.Octaves      = InTerrainDescription.Octaves;
+        InTerrainSettings.Frequency    = InTerrainDescription.Frequency;
+        InTerrainSettings.Amplitude    = InTerrainDescription.Amplitude;
+        InTerrainSettings.Lacunarity   = InTerrainDescription.Lacunarity;
+        InTerrainSettings.Persistence  = InTerrainDescription.Persistence;
+        InTerrainSettings.MinHeight    = InTerrainDescription.MinHeight;
+        InTerrainSettings.MaxHeight    = InTerrainDescription.MaxHeight;
         return new CTerrain{ InTerrainDescription.Name,
                              nullptr,
                              nullptr,
-                             TerrainSettings,
+                             InTerrainSettings,
                              GEngine.GetMeshesHolder().Get(InTerrainDescription.TerrainMeshResourceId),
                              GEngine.GetMaterialsHolder().Get(InTerrainDescription.TerrainMaterialId) };
     }
@@ -320,9 +357,67 @@ namespace lucid::scene
         }
     }
 
-    void CTerrain::UIDrawActorDetails() { IActor::UIDrawActorDetails(); }
+    void CTerrain::UpdateBaseAssetTerrainMeshUpdate(resources::CMeshResource* InNewTerrainMesh, const FTerrainSettings& InNewTerrainSettings)
+    {
+        auto ChildReference = &AssetReferences.Head;
+        while (ChildReference && ChildReference->Element)
+        {
+            auto* ChildRef = ChildReference->Element;
+            if (auto* TerrainRef = dynamic_cast<CTerrain*>(ChildRef))
+            {
+                InNewTerrainMesh->Acquire(TerrainRef->TerrainMesh->IsLoadedToMainMemory(), TerrainRef->TerrainMesh->IsLoadedToVideoMemory());
+                TerrainRef->TerrainMesh->Release();
 
-    void CTerrain::InternalSaveToResourceFile(const FString& InFilePath)
+                TerrainRef->TerrainMesh     = InNewTerrainMesh;
+                TerrainRef->TerrainSettings = TerrainRef->NewTerrainSettings = InNewTerrainSettings;
+            }
+            ChildReference = ChildReference->Next;
+        }
+
+        delete TerrainMesh;
+        TerrainMesh = InNewTerrainMesh;
+
+        TerrainSettings = NewTerrainSettings = InNewTerrainSettings;
+        SaveAssetToFile();
+    }
+
+    void CTerrain::UIDrawActorDetails()
+    {
+        IActor::UIDrawActorDetails();
+
+        if (ImGui::CollapsingHeader("Terrain"))
+        {
+            bool bRegenerateTerrain = false;
+            bRegenerateTerrain |= ImGui::InputFloat2("Grid size", &NewTerrainSettings.GridSize[0]);
+            bRegenerateTerrain |= ImGui::InputFloat2("Resolution", &NewTerrainSettings.Resolution[0]);
+            bRegenerateTerrain |= ImGui::Checkbox("Flat", &NewTerrainSettings.bFlatMesh);
+            bRegenerateTerrain |= ImGui::InputInt("Seed", &NewTerrainSettings.Seed);
+            bRegenerateTerrain |= ImGui::InputInt("Octaves", &NewTerrainSettings.Octaves);
+            bRegenerateTerrain |= ImGui::InputFloat("Frequency", &NewTerrainSettings.Frequency);
+            bRegenerateTerrain |= ImGui::InputFloat("Amplitude", &NewTerrainSettings.Amplitude);
+            bRegenerateTerrain |= ImGui::InputFloat("Lacunarity", &NewTerrainSettings.Lacunarity);
+            bRegenerateTerrain |= ImGui::InputFloat("Persistence", &NewTerrainSettings.Persistence);
+            bRegenerateTerrain |= ImGui::InputFloat("Min height", &NewTerrainSettings.MinHeight);
+            bRegenerateTerrain |= ImGui::InputFloat("Max height", &NewTerrainSettings.MaxHeight);
+
+            if (bRegenerateTerrain)
+            {
+                resources::CMeshResource* NewTerrainMesh = GenerateTerrainMesh(NewTerrainSettings);
+                GEngine.RemoveMeshResource(TerrainMesh);
+
+                if (auto* BaseTerrainAsset = dynamic_cast<CTerrain*>(BaseActorAsset))
+                {
+                    BaseTerrainAsset->UpdateBaseAssetTerrainMeshUpdate(NewTerrainMesh, NewTerrainSettings);
+                }
+                else
+                {
+                    UpdateBaseAssetTerrainMeshUpdate(NewTerrainMesh, NewTerrainSettings);
+                }
+            }
+        }
+    }
+
+    void CTerrain::InternalSaveAssetToFile(const FString& InFilePath)
     {
         FTerrainDescription TerrainDescription;
         FillDescription(TerrainDescription);
@@ -335,10 +430,10 @@ namespace lucid::scene
 
         auto* TerrainActorAsset = new CTerrain{ InName, nullptr, nullptr, InTerrainSettings, TerrainMesh, GEngine.GetDefaultMaterial() };
 
-        TerrainActorAsset->ResourceId   = sole::uuid4();
-        TerrainActorAsset->ResourcePath = SPrintf("assets/actors/%s.asset", *TerrainActorAsset->Name);
+        TerrainActorAsset->AssetId   = sole::uuid4();
+        TerrainActorAsset->AssetPath = SPrintf("assets/actors/%s.asset", *TerrainActorAsset->Name);
 
-        TerrainActorAsset->SaveToResourceFile();
+        TerrainActorAsset->SaveAssetToFile();
 
         return TerrainActorAsset;
     }
