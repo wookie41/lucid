@@ -260,6 +260,16 @@ namespace lucid::resources
     {
         assert(SubMeshes.GetLength());
 
+        bool bShouldCloseFile = false;
+        if (ResourceFile == nullptr)
+        {
+            if (fopen_s(&ResourceFile, *FilePath, "wb+") != 0)
+            {
+                return;
+            }
+            bShouldCloseFile = true;
+        }
+        
         // Write header
         SaveHeader(ResourceFile);
 
@@ -300,6 +310,10 @@ namespace lucid::resources
             }
         }
 
+        if (bShouldCloseFile)
+        {
+            fclose(ResourceFile);
+        }
     }
 
     void CMeshResource::FreeMainMemory()
@@ -1097,7 +1111,7 @@ namespace lucid::resources
             DrawMode = gpu::EDrawMode::TRIANGLES;
         }
         
-        Resave(MESH_SERIALIZATION_VERSION);
+        Save(MESH_SERIALIZATION_VERSION);
     }
 
 } // namespace lucid::resources

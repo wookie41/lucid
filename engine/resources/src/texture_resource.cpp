@@ -192,6 +192,16 @@ namespace lucid::resources
     {
         assert(TextureData);
 
+        bool bShouldCloseFile = false;
+        if (ResourceFile == nullptr)
+        {
+            if (fopen_s(&ResourceFile, *FilePath, "wb+") != 0)
+            {
+                return;
+            }
+            bShouldCloseFile = true;
+        }
+        
         // Write header
         SaveHeader(ResourceFile);
 
@@ -205,6 +215,11 @@ namespace lucid::resources
 
         // Write texture data
         fwrite(TextureData, DataSize, 1, ResourceFile);
+
+        if (bShouldCloseFile)
+        {
+            fclose(ResourceFile);
+        }
     }
 
     void CTextureResource::FreeMainMemory()
@@ -248,7 +263,7 @@ namespace lucid::resources
 
     void CTextureResource::MigrateToLatestVersion()
     {
-        Resave(TEXTURE_SERIALIZATION_VERSION);
+        Save(TEXTURE_SERIALIZATION_VERSION);
     }
 
     void CTextureResource::LoadThumbnail()

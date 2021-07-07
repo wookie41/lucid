@@ -37,45 +37,109 @@ namespace lucid::scene
 
     lucid::resources::CMeshResource* CreateFlatTerrainMesh(const FTerrainSettings& TerrainSettings)
     {
-        const u32       TerrainVertexDataSize = TerrainSettings.Resolution.x * TerrainSettings.Resolution.y * 4 * sizeof(FTerrainVertex);
-        FMemBuffer      VertexDataBuffer      = CreateMemBuffer(TerrainVertexDataSize);
-        FTerrainVertex* VertexData            = (FTerrainVertex*)VertexDataBuffer.Pointer;
+        const u32 VertexCount  = (TerrainSettings.Resolution.x + 1) * (TerrainSettings.Resolution.y + 1);
+        const u32 IndicesCount = TerrainSettings.Resolution.x * TerrainSettings.Resolution.y * 6;
 
-        const glm::vec3 UpperLeft = { -(TerrainSettings.GridSize.x / 2), 0, -TerrainSettings.GridSize.y / 2 };
+        const u32 TerrainVertexDataSize  = VertexCount * sizeof(FTerrainVertex);
+        const u32 TerrainIndicesDataSize = IndicesCount * sizeof(u32);
 
-        // Generate a triangle strip mesh for this
+        FMemBuffer VertexDataBuffer  = CreateMemBuffer(TerrainVertexDataSize);
+        FMemBuffer IndicesDataBuffer = CreateMemBuffer(TerrainIndicesDataSize);
+
+        FTerrainVertex* VertexData  = (FTerrainVertex*)VertexDataBuffer.Pointer;
+        u32*            IndicesData = (u32*)IndicesDataBuffer.Pointer;
+
+        const glm::vec3 UpperLeft = { -TerrainSettings.GridSize.x / 2, 0, -TerrainSettings.GridSize.y / 2 };
+
         const glm::vec2 CellSize = TerrainSettings.GridSize / glm::vec2(TerrainSettings.Resolution);
         const glm::vec2 UVStep   = { 1.f / TerrainSettings.Resolution.x, 1 / TerrainSettings.Resolution.y };
 
-        for (u32 z = 0; z < TerrainSettings.Resolution.y; ++z)
+        // Generate vertex data
+        for (u32 z = 0; z < TerrainSettings.Resolution.y + 1; ++z)
         {
-            i8 StepX = 0;
-            i8 StepZ = 0;
-
-            for (u32 x = 0; x < TerrainSettings.Resolution.x * 4; ++x)
+            for (u32 x = 0; x < TerrainSettings.Resolution.x + 1; ++x)
             {
+                // Vertex data
                 VertexData->Position = UpperLeft;
-                // Move to the next square on the X axis every two vertices, move on Z for each strip
-                VertexData->Position += glm::vec3 {x / 2 * CellSize.x, 0, (z * CellSize.y) };
-                // Move on x or z axis in order to create a triangle strip
-                VertexData->Position += glm::vec3 { StepX * CellSize.x, 0, (StepZ * CellSize.y)}; 
+                VertexData->Position += glm::vec3{ x * CellSize.x, 0, z * CellSize.y };
 
-                VertexData->Normal        = { 0, 1, 0 };
-                VertexData->TextureCoords = glm::vec2{ 0, 1 } + glm::vec2{ StepX * UVStep.x, (StepZ * UVStep.y) + (z * UVStep.y) };
+                VertexData->Position.y = (1 - (glm::length(VertexData->Position) /
+                                               glm::length(glm::vec3{ TerrainSettings.GridSize.x / 2.f, 0, TerrainSettings.GridSize.y / 2.f })));
+                VertexData->Position.y = VertexData->Position.y * VertexData->Position.y * VertexData->Position.y *
+                                         (VertexData->Position.y * (VertexData->Position.y * 6 - 15) + 10);
+                VertexData->Position.y *= 5;
 
-                StepX = (StepX + x) % 2;
-                StepZ = (StepZ + 1) % 2;
+                VertexData->Normal = glm::vec3{ 0 };
+                VertexData->TextureCoords += glm::vec2{ x * UVStep.x, z * UVStep.y };
 
                 VertexData += 1;
             }
         }
-        VertexDataBuffer.Size = TerrainVertexDataSize;
+
+        // Reset the pointer so we can index when generating normals
+        VertexData = (FTerrainVertex*)VertexDataBuffer.Pointer;
+
+        const auto StoreIndicesAndUpdateNormals = [VertexData,
+                                                   &IndicesData](const u32& FaceVert0, const u32& FaceVert1, const u32& FaceVert2) -> void {
+            *IndicesData = FaceVert0;
+            IndicesData += 1;
+
+            *IndicesData = FaceVert1;
+            IndicesData += 1;
+
+            *IndicesData = FaceVert2;
+            IndicesData += 1;
+
+            // Normals
+            const glm::vec3 Edge0 = VertexData[FaceVert0].Position - VertexData[FaceVert1].Position;
+            const glm::vec3 Edge1 = VertexData[FaceVert2].Position - VertexData[FaceVert1].Position;
+
+            const glm::vec3 Normal = glm::cross(Edge0, Edge1);
+
+            VertexData[FaceVert0].Normal += Normal;
+            VertexData[FaceVert1].Normal += Normal;
+            VertexData[FaceVert2].Normal += Normal;
+        };
+
+        // Generate indices, calculate normals
+        for (u32 z = 0; z < TerrainSettings.Resolution.y; ++z)
+        {
+            for (u32 x = 0; x < TerrainSettings.Resolution.x; ++x)
+            {
+                // First triangle
+                {
+                    const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x;
+                    const u32 FaceVert1 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                    const u32 FaceVert2 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
+
+                    StoreIndicesAndUpdateNormals(FaceVert0, FaceVert1, FaceVert2);
+                }
+
+                // Second triangle
+                {
+                    const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                    const u32 FaceVert1 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                    const u32 FaceVert2 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
+
+                    StoreIndicesAndUpdateNormals(FaceVert0, FaceVert1, FaceVert2);
+                }
+            }
+        }
+
+        // Normalize the normals
+        for (u32 i = 0; i < (TerrainSettings.Resolution.x + 1) * (TerrainSettings.Resolution.y + 1); ++i)
+        {
+            VertexData[i].Normal = glm::normalize(VertexData[i].Normal);
+        }
+
+        VertexDataBuffer.Size  = TerrainVertexDataSize;
+        IndicesDataBuffer.Size = TerrainIndicesDataSize;
 
         auto* TerrainMesh = new resources::CMeshResource{ sole::uuid4(),
                                                           "Terrain",
                                                           SPrintf("assets/meshes/Terrain_%s.asset", sole::uuid4().str().c_str()),
                                                           0,
-                                                          TerrainVertexDataSize,
+                                                          TerrainVertexDataSize + TerrainIndicesDataSize,
                                                           resources::MESH_SERIALIZATION_VERSION };
 
         resources::FSubMesh TerrainSubMesh;
@@ -84,9 +148,9 @@ namespace lucid::scene
         TerrainSubMesh.bHasTangetns      = false;
         TerrainSubMesh.bHasUVs           = true;
         TerrainSubMesh.VertexDataBuffer  = VertexDataBuffer;
-        TerrainSubMesh.ElementDataBuffer = {};
-        TerrainSubMesh.VertexCount       = TerrainSettings.Resolution.x * TerrainSettings.Resolution.y * 3;
-        TerrainSubMesh.ElementCount      = 0;
+        TerrainSubMesh.ElementDataBuffer = IndicesDataBuffer;
+        TerrainSubMesh.VertexCount       = VertexCount;
+        TerrainSubMesh.ElementCount      = IndicesCount;
         TerrainSubMesh.MaterialIndex     = 0;
         TerrainMesh->SubMeshes.Add(TerrainSubMesh);
 
@@ -95,7 +159,14 @@ namespace lucid::scene
 
         TerrainMesh->MaxPosY  = 0;
         TerrainMesh->MinPosY  = 0;
-        TerrainMesh->DrawMode = gpu::EDrawMode::TRIANGLE_STRIP;
+        TerrainMesh->DrawMode = gpu::EDrawMode::TRIANGLES;
+
+        // @TODO here we should save the asset and free the memory used by VertexDataBuffer and ElementDataBuffer
+        // Same thing for mesh_resource.cpp
+        TerrainMesh->SaveSynchronously();
+
+        VertexDataBuffer.Free();
+        IndicesDataBuffer.Free();
 
         return TerrainMesh;
     }
@@ -241,7 +312,7 @@ namespace lucid::scene
     CTerrain* CTerrain::CreateAsset(const FDString& InName)
     {
         static FTerrainSettings DefaultTerrainSettings;
-        DefaultTerrainSettings.Resolution = { 1024, 1024 };
+        DefaultTerrainSettings.Resolution = { 100, 100 };
         DefaultTerrainSettings.GridSize   = { 100, 100 };
 
         resources::CMeshResource* TerrainMesh = CreateFlatTerrainMesh(DefaultTerrainSettings);

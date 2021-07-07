@@ -8,8 +8,7 @@
         {
             "Id": "d7c004da-4cc5-4d8f-8bde-b8e26cfcd744",
             "MaterialPath": "assets/materials/FlatRedMaterial.asset",
-            "MaterialType": 1,
-            "bDefault": true
+            "MaterialType": 1
         },
         {
             "Id": "e5ff6221-a86c-4cc6-9ef2-958a98492729",
@@ -24,7 +23,8 @@
         {
             "Id": "23d2531e-f152-4e17-87e4-f84cde87b018",
             "MaterialPath": "assets/materials/FlatBlinnPhongMaterial.asset",
-            "MaterialType": 2
+            "MaterialType": 2,
+            "bDefault": true
         },
         {
             "Id": "5f13c189-43af-4816-94a9-36a7d8918e71",

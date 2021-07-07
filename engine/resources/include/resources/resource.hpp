@@ -50,7 +50,7 @@ namespace lucid::resources
          */
         virtual void LoadDataToVideoMemorySynchronously() = 0;
 
-        virtual void SaveSynchronously(FILE* ResourceFile) const = 0;
+        virtual void SaveSynchronously(FILE* ResourceFile = nullptr) const = 0;
 
         /** This method migrates the asset to it's latest version by filling the new values with defaults and saving it to the file */
         virtual void MigrateToLatestVersion() = 0;
@@ -79,7 +79,7 @@ namespace lucid::resources
 
       protected:
         void SaveHeader(FILE* ResourceFile) const;
-        void Resave(const u32& InAssetSerializationVersion);
+        void Save(const u32& InAssetSerializationVersion);
 
         UUID    ID;
         FString Name;

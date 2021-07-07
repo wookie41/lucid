@@ -203,7 +203,8 @@ namespace lucid::scene
         SkyboxPipelineState                   = LightpassPipelineState;
         SkyboxPipelineState.IsBlendingEnabled = false;
         SkyboxPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
-
+        SkyboxPipelineState.IsSRGBFramebufferEnabled = false;
+        
         GammaCorrectionPipelineState.ClearColorBufferColor    = FColor{ 0 };
         GammaCorrectionPipelineState.IsDepthTestEnabled       = false;
         GammaCorrectionPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
@@ -511,7 +512,7 @@ namespace lucid::scene
         DebugLinesPipelineState.IsBlendingEnabled        = true;
         DebugLinesPipelineState.BlendFunctionSrc         = gpu::EBlendFunction::ONE;
         DebugLinesPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE;
-        DebugLinesPipelineState.IsSRGBFramebufferEnabled = true;
+        DebugLinesPipelineState.IsSRGBFramebufferEnabled = false;
         DebugLinesPipelineState.IsDepthBufferReadOnly    = false;
         DebugLinesPipelineState.LineWidth                = 2;
         DebugLinesPipelineState.Viewport                 = LightpassPipelineState.Viewport;

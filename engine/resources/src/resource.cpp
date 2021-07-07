@@ -28,19 +28,17 @@ namespace lucid::resources
         fwrite(*Name, Name.GetLength(), 1, ResourceFile);
     }
 
-    void CResource::Resave(const u32& InAssetSerializationVersion)
+    void CResource::Save(const u32& InAssetSerializationVersion)
     {
-        FILE* ResourceFile;
         bool  bNeedsFree = false;
         if (!bLoadedToMainMemory)
         {
             bNeedsFree = true;
             LoadDataToMainMemorySynchronously();
         }
-
+        FILE* ResourceFile;
         if (fopen_s(&ResourceFile, *FilePath, "wb+") == 0)
         {
-
             AssetSerializationVersion = InAssetSerializationVersion;
             SaveSynchronously(ResourceFile);
             fclose(ResourceFile);
