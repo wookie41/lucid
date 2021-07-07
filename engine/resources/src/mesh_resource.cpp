@@ -748,6 +748,17 @@ namespace lucid::resources
         LUCID_LOG(ELogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshName, platform::GetCurrentTimeSeconds() - StartTime);
 #endif
 
+
+        for (u32 i = 0; i < ImportedMeshes.GetLength(); ++i)
+        {
+            const FArray<FSubMesh>& CreatedSubmeshs = (*ImportedMeshes[i])->SubMeshes;
+            for (u32 j = 0; j < CreatedSubmeshs.GetLength(); ++j)
+            {
+                (*CreatedSubmeshs[j]).VertexDataBuffer.Free();
+                (*CreatedSubmeshs[j]).ElementDataBuffer.Free();
+            }
+        }
+
         return ImportedMeshes;
     }; // namespace lucid::resources
 
