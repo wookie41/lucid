@@ -80,6 +80,11 @@
             "Name": "DebugLines",
             "VertexShaderSourcePath": "shaders/glsl/debug_line.vert",
             "FragmentShaderSourcePath": "shaders/glsl/debug_line.frag"
+        },
+        {
+            "Name": "Terrain",
+            "VertexShaderSourcePath": "shaders/glsl/terrain.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/terrain.frag"
         }
     ]
 }

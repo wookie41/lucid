@@ -23,6 +23,9 @@ STRUCT_INHERIT_BEGIN(lucid, FBlinnPhongMapsMaterialDescription, lucid::FMaterial
     STRUCT_STATIC_ARRAY(float, SpecularColor, 3, {0 COMMA 0 COMMA 0}, "Fallback specular color when no specular map is present")	    
 STRUCT_END()
 
+STRUCT_INHERIT_BEGIN(lucid, FTerrainMaterialDescription, lucid::FMaterialDescription, "")
+STRUCT_END()
+
 STRUCT_BEGIN(lucid, FMaterialDatabaseEntry, "")
     STRUCT_FIELD(UUID, Id, sole::INVALID_UUID, "Id of the material")	
     STRUCT_FIELD(FDString, MaterialPath, "", "")

@@ -1,0 +1,12 @@
+{
+    "Name": "Terrain2",
+    "TerrainMeshResourceId": "9fdc255b-39e9-47ec-bcbc-f18056f10c90",
+    "TerrainMaterialId": "04d8577b-cdcf-4d53-b96c-12718448586e",
+    "ResolutionX": 100.0,
+    "ResolutionZ": 100.0,
+    "Seed": 0,
+    "Octaves": 4,
+    "Frequency": 0.05000000074505806,
+    "Amplitude": 10.0,
+    "MaxHeight": 15.0
+}

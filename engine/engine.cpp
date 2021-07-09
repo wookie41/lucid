@@ -6,6 +6,7 @@
 #include "misc/actor_thumbs.hpp"
 
 #include "scene/blinn_phong_material.hpp"
+#include "scene/terrain_material.hpp"
 #include "scene/flat_material.hpp"
 #include "scene/forward_renderer.hpp"
 
@@ -209,6 +210,33 @@ namespace lucid
 
                 break;
             }
+            case scene::EMaterialType::TERRAIN:
+                {
+                    FTerrainMaterialDescription MaterialDescription;
+                    switch (Entry.FileFormat)
+                    {
+                    case EFileFormat::Json:
+                        {
+                            bFileReadSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);
+                            break;
+                        }
+                    case EFileFormat::Binary:
+                        {
+                            bFileReadSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);
+                            break;
+                        }
+                    }
+                    if (bFileReadSuccess)
+                    {
+                        LoadedMaterial = scene::CTerrainMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);
+                    }
+                    else
+                    {
+                        LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);
+                    }
+
+                    break;
+                }
             default:
                 assert(0);
             }
@@ -312,6 +340,8 @@ namespace lucid
         MaterialsHolder.Add(InMaterial->GetID(), InMaterial);
         MaterialDatabase.Entries.push_back({ InMaterial->GetID(), InMaterialPath, EFileFormat::Json, InMaterialType, false });
         SaveMaterialDatabase();
+
+        InMaterial->SaveToResourceFile(EFileFormat::Json);
     }
 
     void CEngine::RemoveMaterialAsset(scene::CMaterial* InMaterial)

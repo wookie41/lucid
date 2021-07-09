@@ -1,5 +1,6 @@
 ﻿#include "scene/actors/terrain.hpp"
 #include "scene/world.hpp"
+#include "scene/terrain_material.hpp"
 
 #include "engine/engine.hpp"
 
@@ -15,6 +16,8 @@
 
 #include <cassert>
 #include <random>
+
+#include "scene/terrain_material.hpp"
 
 namespace lucid::scene
 {
@@ -265,7 +268,7 @@ namespace lucid::scene
         TerrainActor->Transform.Translation = Float3ToVec(InActorDescription->Postion);
         TerrainActor->Transform.Rotation    = Float4ToQuat(InActorDescription->Rotation);
         TerrainActor->Transform.Scale       = Float3ToVec(InActorDescription->Scale);
-        
+
         InWorld->AddTerrain(TerrainActor);
 
         return TerrainActor;
@@ -426,9 +429,24 @@ namespace lucid::scene
 
     CTerrain* CTerrain::CreateAsset(const FDString& InName, const FTerrainSettings& InTerrainSettings)
     {
+        gpu::CShader* TerrainShader = GEngine.GetShadersManager().GetShaderByName("Terrain");
+
+        if (!TerrainShader)
+        {
+            LUCID_LOG(ELogLevel::WARN, "Can't create terrain - no terrain shader")
+            return nullptr;
+        }
+
+        const UUID        MaterialAssetId   = sole::uuid4();
+        FDString          MaterialName      = SPrintf("TerrainMaterial_%s", MaterialAssetId.str().c_str());
+        FDString          MaterialAssetPath = SPrintf("assets/materials/%s.asset", *MaterialName);
+        CTerrainMaterial* TerrainMaterial   = new CTerrainMaterial{ MaterialAssetId, MaterialName, MaterialAssetPath, TerrainShader };
+
+        GEngine.AddMaterialAsset(TerrainMaterial, EMaterialType::TERRAIN, MaterialAssetPath);
+        
         resources::CMeshResource* TerrainMesh = GenerateTerrainMesh(InTerrainSettings);
 
-        auto* TerrainActorAsset = new CTerrain{ InName, nullptr, nullptr, InTerrainSettings, TerrainMesh, GEngine.GetDefaultMaterial() };
+        auto* TerrainActorAsset = new CTerrain{ InName, nullptr, nullptr, InTerrainSettings, TerrainMesh, TerrainMaterial };
 
         TerrainActorAsset->AssetId   = sole::uuid4();
         TerrainActorAsset->AssetPath = SPrintf("assets/actors/%s.asset", *TerrainActorAsset->Name);

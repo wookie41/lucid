@@ -21,7 +21,8 @@ namespace lucid::scene
         NONE,
         FLAT,
         BLINN_PHONG,
-        BLINN_PHONG_MAPS
+        BLINN_PHONG_MAPS,
+        TERRAIN
     };
 
     class CMaterial

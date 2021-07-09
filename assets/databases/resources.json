@@ -348,6 +348,12 @@
             "Name": "Terrain",
             "Path": "assets/meshes/Terrain_ee5a3b64-58c3-4630-80d5-c7d11283618e.asset",
             "Type": 1
+        },
+        {
+            "Id": "9fdc255b-39e9-47ec-bcbc-f18056f10c90",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_e5ff637a-651d-47f1-a391-648b36ba412c.asset",
+            "Type": 1
         }
     ]
 }
