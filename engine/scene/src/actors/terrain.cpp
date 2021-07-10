@@ -1,23 +1,27 @@
 ﻿#include "scene/actors/terrain.hpp"
 #include "scene/world.hpp"
 #include "scene/terrain_material.hpp"
+#include "scene/renderer.hpp"
 
 #include "engine/engine.hpp"
 
 #include "schemas/json.hpp"
 
 #include "devices/gpu/vao.hpp"
-#include "devices/gpu/buffer.hpp"
 
 #include "resources/mesh_resource.hpp"
 #include "resources/serialization_versions.hpp"
 
 #include "simplex_noise/simplex_noise.h"
 
-#include <cassert>
-#include <random>
+#include "lucid_editor/imgui_lucid.h"
 
-#include "scene/terrain_material.hpp"
+#include <random>
+#include <glm/common.hpp>
+#include <lucid_editor/editor.hpp>
+
+#include "devices/gpu/texture_enums.hpp"
+#include "resources/texture_resource.hpp"
 
 namespace lucid::scene
 {
@@ -114,8 +118,7 @@ namespace lucid::scene
         // Reset the pointer so we can index when generating normals
         VertexData = (FTerrainVertex*)VertexDataBuffer.Pointer;
 
-        const auto StoreIndicesAndUpdateNormals = [VertexData,
-                                                   &IndicesData](const u32& FaceVert0, const u32& FaceVert1, const u32& FaceVert2) -> void {
+        const auto StoreIndicesAndUpdateNormals = [VertexData, &IndicesData](const u32& FaceVert0, const u32& FaceVert1, const u32& FaceVert2) -> void {
             *IndicesData = FaceVert0;
             IndicesData += 1;
 
@@ -258,10 +261,9 @@ namespace lucid::scene
 
         TerrainMeshResource->Acquire(false, true);
 
-        auto* TerrainActor = new CTerrain{
-            TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, InTerrainSettings, TerrainMeshResource,
-            TerrainMaterial
-        };
+        auto* TerrainActor =
+          new CTerrain{ TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, InTerrainSettings, TerrainMeshResource,
+                        TerrainMaterial };
 
         AddAssetReference(TerrainActor);
 
@@ -417,6 +419,47 @@ namespace lucid::scene
                     UpdateBaseAssetTerrainMeshUpdate(NewTerrainMesh, NewTerrainSettings);
                 }
             }
+
+            // Terrain painting
+            if (bSculpting)
+            {
+                if (ImGui::Button("Submit terrain"))
+                {
+                    bSculpting                    = false;
+                }
+
+                if (IsMouseButtonPressed(EMouseButton::LEFT))
+                {
+                    if (SceneWindow_GetActorUnderCursor() == this)
+                    {
+                        const float     DistanceToTerrain = SceneWindow_GetDistanceToCameraUnderCursor();
+                        const glm::vec3 WorldRay          = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(GetMouseNDCPos(), DistanceToTerrain);
+
+                        const glm::vec2 TerrainGridUpperLeft = glm::vec2{ Transform.Translation.x, Transform.Translation.z } - (TerrainSettings.GridSize / 2.f);
+                        const glm::vec2 RayProjectedToGrid   = glm::vec2{ WorldRay.x, WorldRay.z } - TerrainGridUpperLeft;
+
+                        u32 OffsetX = glm::min(RayProjectedToGrid.x, 0.f) / TerrainSettings.GridSize.x;
+                        u32 OffsetZ = glm::min(RayProjectedToGrid.y, 0.f) / TerrainSettings.GridSize.y;
+
+                        // @TODO brush size, brush strenth
+                        for (int z = -16; z <= 16; ++z)
+                        {
+                            for (int x = -16; x <= 16; ++x)
+                            {
+                                const u32 TerrainDeltaTextureIndex = (TerrainSettings.Resolution.x * z) + x;
+                                if (TerrainDeltaTextureIndex > TerrainSettings.Resolution.x * TerrainSettings.Resolution.y - 1)
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (ImGui::Button("Sculpt  terrain"))
+            {
+                bSculpting = true;
+            }
         }
     }
 
@@ -443,7 +486,7 @@ namespace lucid::scene
         CTerrainMaterial* TerrainMaterial   = new CTerrainMaterial{ MaterialAssetId, MaterialName, MaterialAssetPath, TerrainShader };
 
         GEngine.AddMaterialAsset(TerrainMaterial, EMaterialType::TERRAIN, MaterialAssetPath);
-        
+
         resources::CMeshResource* TerrainMesh = GenerateTerrainMesh(InTerrainSettings);
 
         auto* TerrainActorAsset = new CTerrain{ InName, nullptr, nullptr, InTerrainSettings, TerrainMesh, TerrainMaterial };

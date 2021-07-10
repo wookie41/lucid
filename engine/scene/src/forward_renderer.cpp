@@ -72,8 +72,8 @@ namespace lucid::scene
     constexpr gpu::EImmutableBufferUsage COHERENT_WRITE_USAGE =
       (gpu::EImmutableBufferUsage)(gpu::EImmutableBufferUsage::IMM_BUFFER_WRITE | gpu::EImmutableBufferUsage::IMM_BUFFER_COHERENT);
 
-    constexpr gpu::EBufferMapPolicy COHERENT_WRITE = (gpu::EBufferMapPolicy)(
-      gpu::EBufferMapPolicy::BUFFER_WRITE | gpu::EBufferMapPolicy::BUFFER_COHERENT | gpu::EBufferMapPolicy::BUFFER_PERSISTENT);
+    constexpr gpu::EBufferMapPolicy COHERENT_WRITE =
+      (gpu::EBufferMapPolicy)(gpu::EBufferMapPolicy::BUFFER_WRITE | gpu::EBufferMapPolicy::BUFFER_COHERENT | gpu::EBufferMapPolicy::BUFFER_PERSISTENT);
 
     constexpr gpu::EGPUBuffer COLOR_AND_DEPTH = (gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH);
 
@@ -154,10 +154,10 @@ namespace lucid::scene
         GammaCorrectionShader = GEngine.GetShadersManager().GetShaderByName("GammaCorrection");
 
 #if DEVELOPMENT
-        HitMapShader          = GEngine.GetShadersManager().GetShaderByName("Hitmap");
-        BillboardHitMapShader = GEngine.GetShadersManager().GetShaderByName("BillboardHitmap");
-        WorldGridShader       = GEngine.GetShadersManager().GetShaderByName("WorldGrid");
-        DebugLinesShader      = GEngine.GetShadersManager().GetShaderByName("DebugLines");
+        EditorHelpersShader    = GEngine.GetShadersManager().GetShaderByName("Hitmap");
+        EditorBillboardsShader = GEngine.GetShadersManager().GetShaderByName("BillboardHitmap");
+        WorldGridShader        = GEngine.GetShadersManager().GetShaderByName("WorldGrid");
+        DebugLinesShader       = GEngine.GetShadersManager().GetShaderByName("DebugLines");
 #endif
 
         // Prepare pipeline states
@@ -200,11 +200,11 @@ namespace lucid::scene
         LightpassPipelineState.Viewport.Width           = ResultResolution.x;
         LightpassPipelineState.Viewport.Height          = ResultResolution.y;
 
-        SkyboxPipelineState                   = LightpassPipelineState;
-        SkyboxPipelineState.IsBlendingEnabled = false;
-        SkyboxPipelineState.DepthTestFunction = gpu::EDepthTestFunction::LEQUAL;
+        SkyboxPipelineState                          = LightpassPipelineState;
+        SkyboxPipelineState.IsBlendingEnabled        = false;
+        SkyboxPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
         SkyboxPipelineState.IsSRGBFramebufferEnabled = false;
-        
+
         GammaCorrectionPipelineState.ClearColorBufferColor    = FColor{ 0 };
         GammaCorrectionPipelineState.IsDepthTestEnabled       = false;
         GammaCorrectionPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
@@ -215,9 +215,9 @@ namespace lucid::scene
         GammaCorrectionPipelineState.Viewport                 = LightpassPipelineState.Viewport;
 
 #if DEVELOPMENT
-        HitMapGenerationPipelineState                          = SkyboxPipelineState;
-        HitMapGenerationPipelineState.IsDepthBufferReadOnly    = false;
-        HitMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
+        EditorHelpersPipelineState                          = SkyboxPipelineState;
+        EditorHelpersPipelineState.IsDepthBufferReadOnly    = false;
+        EditorHelpersPipelineState.IsSRGBFramebufferEnabled = false;
 
         WorldGridPipelineState.IsDepthTestEnabled       = true;
         WorldGridPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
@@ -469,7 +469,10 @@ namespace lucid::scene
         LightBulbTextureResource->Acquire(false, true);
         LightBulbTexture = LightBulbTextureResource->TextureHandle;
 
-        // HitMap generation
+        // Editor helpers
+        EditorHelpersFramebuffer = gpu::CreateFramebuffer(FSString{ "HitMapMapFramebuffer" });
+        EditorHelpersFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+
         HitMapTexture = gpu::CreateEmpty2DTexture(ResultResolution.x,
                                                   ResultResolution.y,
                                                   gpu::ETextureDataType::UNSIGNED_INT,
@@ -478,30 +481,48 @@ namespace lucid::scene
                                                   0,
                                                   FSString{ "HitMapTexture" });
 
-        HitMapDepthStencilRenderbuffer = gpu::CreateRenderbuffer(
-          gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { ResultResolution.x, ResultResolution.y }, FSString{ "HitMapRenderbuffer" });
-
-        HitMapFramebuffer = gpu::CreateFramebuffer(FSString{ "HitMapMapFramebuffer" });
-        HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-
         HitMapTexture->Bind();
         HitMapTexture->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
         HitMapTexture->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
 
-        HitMapFramebuffer->SetupColorAttachment(0, HitMapTexture);
+        EditorHelpersFramebuffer->SetupColorAttachment(0, HitMapTexture);
 
-        HitMapDepthStencilRenderbuffer->Bind();
-        HitMapFramebuffer->SetupDepthStencilAttachment(HitMapDepthStencilRenderbuffer);
+        DistanceToCameraTexture = gpu::CreateEmpty2DTexture(ResultResolution.x,
+                                                            ResultResolution.y,
+                                                            gpu::ETextureDataType::FLOAT,
+                                                            gpu::ETextureDataFormat::R32F,
+                                                            gpu::ETexturePixelFormat::RED,
+                                                            0,
+                                                            FSString{ "DistanceToCameraTexture" });
 
-        HitMapFramebuffer->IsComplete();
+        DistanceToCameraTexture->Bind();
+        DistanceToCameraTexture->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
+        DistanceToCameraTexture->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
+
+        EditorHelpersFramebuffer->SetupColorAttachment(1, DistanceToCameraTexture);
+
+        EditorHelpersDepthStencilRenderbuffer =
+          gpu::CreateRenderbuffer(gpu::ERenderbufferFormat::DEPTH24_STENCIL8, { ResultResolution.x, ResultResolution.y }, FSString{ "HitMapRenderbuffer" });
+
+        EditorHelpersDepthStencilRenderbuffer->Bind();
+        EditorHelpersFramebuffer->SetupDepthStencilAttachment(EditorHelpersDepthStencilRenderbuffer);
+
+        EditorHelpersFramebuffer->IsComplete();
 
         CachedHitMap.Width  = ResultResolution.x;
         CachedHitMap.Height = ResultResolution.y;
-        CachedHitMap.CachedTextureData =
-          (u32*)malloc(HitMapTexture->GetSizeInBytes()); // @Note doesn't get freed, but it's probably okay as it should die with the editor
+        // @Note doesn't get freed, but it's probably okay as it should die with the editor
+        CachedHitMap.CachedTextureData = (u32*)malloc(HitMapTexture->GetSizeInBytes());
         Zero(CachedHitMap.CachedTextureData, HitMapTexture->GetSizeInBytes());
 
-        HitmapReadPixelBuffer = gpu::CreatePixelBuffer("HitmapReadPixelBuffer_0", HitMapTexture->GetSizeInBytes());
+        CachedDistanceToCameraMap.Width  = ResultResolution.x;
+        CachedDistanceToCameraMap.Height = ResultResolution.y;
+        // @Note doesn't get freed, but it's probably okay as it should die with the editor
+        CachedDistanceToCameraMap.CachedTextureData = (float*)malloc(DistanceToCameraTexture->GetSizeInBytes()); //
+        Zero(CachedDistanceToCameraMap.CachedTextureData, DistanceToCameraTexture->GetSizeInBytes());
+
+        HitmapReadPBO       = gpu::CreatePixelBuffer("HitmapReadPixelBuffer_0", HitMapTexture->GetSizeInBytes());
+        DistanceToCameraPBO = gpu::CreatePixelBuffer("DistanceToCameraReadPixelBuffer_0", HitMapTexture->GetSizeInBytes());
 
         // Timer
         FrameTimer = gpu::CreateTimer("FameTimer");
@@ -650,7 +671,7 @@ namespace lucid::scene
         gpu::PopDebugGroup();
 
         gpu::PushDebugGroup("Hitmap");
-        GenerateHitmap(InSceneToRender, InRenderView);
+        RenderEditorHelpers(InSceneToRender, InRenderView);
         gpu::PopDebugGroup();
 
         gpu::PopDebugGroup();
@@ -979,7 +1000,7 @@ namespace lucid::scene
                 LUCID_LOG(ELogLevel::ERR, "Terrain actor '%s' is missing a material", *Terrain->Name);
                 continue;
             }
-            
+
             HandleMaterialBufferUpdateIfNecessary(TerrainMaterial);
 
             // Create batch builder for this terrain
@@ -1013,7 +1034,7 @@ namespace lucid::scene
                 MeshBatch.MaterialDataBuffer = &MaterialDataBufferPerMaterialType[BatchKey.MaterialType];
                 MeshBatch.BatchSize          = BatchBuilder.ActorEntryIndices.size();
                 MeshBatch.BatchedMaterials   = BatchBuilder.BatchedMaterials;
-                
+
                 // Build batch, write instance data to the gpu
                 for (int i = 0; i < BatchBuilder.ActorEntryIndices.size(); ++i, ++TotalBatchedMeshes)
                 {
@@ -1328,25 +1349,22 @@ namespace lucid::scene
     }
 
 #if DEVELOPMENT
-    void CForwardRenderer::GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView)
+    void CForwardRenderer::RenderEditorHelpers(const FRenderScene* InScene, const FRenderView* InRenderView)
     {
-        // We do it in a separate pass just for simplicity
-        // It might not be the most efficient way to do it, but that way we avoid the need to maintain two
-        // versions of the lighting pass shader - one used in tools that also writes the ids, and one for cooked games
-        gpu::ConfigurePipelineState(HitMapGenerationPipelineState);
+        gpu::ConfigurePipelineState(EditorHelpersPipelineState);
 
-        HitMapFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
-        HitMapFramebuffer->SetupDrawBuffers();
+        EditorHelpersFramebuffer->Bind(gpu::EFramebufferBindMode::READ_WRITE);
+        EditorHelpersFramebuffer->SetupDrawBuffers();
 
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
 
-        HitMapShader->Use();
+        EditorHelpersShader->Use();
 
         // Render static geometry
         for (const auto& MeshBatch : MeshBatches)
         {
             MeshBatch.MeshVertexArray->Bind();
-            HitMapShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
+            EditorHelpersShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
             MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchedMaterials.size());
         }
 
@@ -1355,18 +1373,18 @@ namespace lucid::scene
 
         // Keep it camera-oriented
         const glm::mat4 BillboardMatrix{ 1 };
-        BillboardHitMapShader->Use();
-        BillboardHitMapShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
-        BillboardHitMapShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
-        BillboardHitMapShader->UseTexture(BILLBOARD_TEXTURE, LightBulbTexture);
-        BillboardHitMapShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
+        EditorBillboardsShader->Use();
+        EditorBillboardsShader->SetMatrix(BILLBOARD_MATRIX, BillboardMatrix);
+        EditorBillboardsShader->SetVector(BILLBOARD_VIEWPORT_SIZE, BillboardViewportSize);
+        EditorBillboardsShader->UseTexture(BILLBOARD_TEXTURE, LightBulbTexture);
+        EditorBillboardsShader->SetVector(VIEWPORT_SIZE, glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height });
 
         for (int i = 0; i < InScene->AllLights.GetLength(); ++i)
         {
             CLight* Light = InScene->AllLights.GetByIndex(i);
 
-            BillboardHitMapShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
-            BillboardHitMapShader->SetUInt(ACTOR_ID, Light->ActorId);
+            EditorBillboardsShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
+            EditorBillboardsShader->SetUInt(ACTOR_ID, Light->ActorId);
 
             ScreenWideQuadVAO->Draw();
         }
@@ -1374,19 +1392,35 @@ namespace lucid::scene
         // Get the result
         if (GRenderStats.FrameNumber == 1)
         {
-            HitmapReadPixelBuffer->AsyncReadPixels(0, 0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), HitMapFramebuffer);
+            HitmapReadPBO->AsyncReadPixels(0, 0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), EditorHelpersFramebuffer);
+            DistanceToCameraPBO->AsyncReadPixels(1, 0, 0, DistanceToCameraTexture->GetWidth(), DistanceToCameraTexture->GetHeight(), EditorHelpersFramebuffer);
         }
-        // Check if the previous read has finished and skip the read if not - it's not a problem to be 1-2 frames behind with this
-        else if (HitmapReadPixelBuffer->IsReady())
+        else
         {
-            // Get the current result
-            char* HitmapPixels = HitmapReadPixelBuffer->MapBuffer(gpu::EMapMode::READ_ONLY);
-            memcpy(CachedHitMap.CachedTextureData, HitmapPixels, HitMapTexture->GetSizeInBytes());
-            HitmapReadPixelBuffer->UnmapBuffer();
+            // Check if the previous reads have finished and skip the read if not - it's not a problem to be 1-2 frames behind with this
 
-            // Async read the current frame
-            CurrentHitmapPBOIndex = (CurrentHitmapPBOIndex + 1) % 2;
-            HitmapReadPixelBuffer->AsyncReadPixels(0, 0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), HitMapFramebuffer);
+            if (HitmapReadPBO->IsReady())
+            {
+                // Get the current result
+                char* HitmapPixels = HitmapReadPBO->MapBuffer(gpu::EMapMode::READ_ONLY);
+                memcpy(CachedHitMap.CachedTextureData, HitmapPixels, HitMapTexture->GetSizeInBytes());
+                HitmapReadPBO->UnmapBuffer();
+
+                // Async read the current frame
+                HitmapReadPBO->AsyncReadPixels(0, 0, 0, HitMapTexture->GetWidth(), HitMapTexture->GetHeight(), EditorHelpersFramebuffer);
+            }
+
+            if (DistanceToCameraPBO->IsReady())
+            {
+                // Get the current result
+                char* DistanceToCameraPixelsPixels = DistanceToCameraPBO->MapBuffer(gpu::EMapMode::READ_ONLY);
+                memcpy(CachedDistanceToCameraMap.CachedTextureData, DistanceToCameraPixelsPixels, DistanceToCameraTexture->GetSizeInBytes());
+                DistanceToCameraPBO->UnmapBuffer();
+
+                // Async read the current frame
+                DistanceToCameraPBO->AsyncReadPixels(
+                  1, 0, 0, DistanceToCameraTexture->GetWidth(), DistanceToCameraTexture->GetHeight(), EditorHelpersFramebuffer);
+            }
         }
     }
 
@@ -1454,8 +1488,8 @@ namespace lucid::scene
 
         // Copy lines data to GPU
         DebugLinesBuffer->Bind(gpu::EBufferBindPoint::VERTEX);
-        char* DebugLinesMem = (char*)DebugLinesBuffer->MemoryMap(
-          (gpu::EBufferMapPolicy)(gpu::EBufferMapPolicy::BUFFER_WRITE | gpu::EBufferMapPolicy::BUFFER_UNSYNCHRONIZED));
+        char* DebugLinesMem =
+          (char*)DebugLinesBuffer->MemoryMap((gpu::EBufferMapPolicy)(gpu::EBufferMapPolicy::BUFFER_WRITE | gpu::EBufferMapPolicy::BUFFER_UNSYNCHRONIZED));
 
         for (const FDebugLine& DebugLine : DebugLines)
         {

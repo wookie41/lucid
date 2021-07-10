@@ -13,7 +13,7 @@
 
 #if DEVELOPMENT
 #include "imgui.h"
-#include "imgui_lucid.h"
+#include "lucid_editor/imgui_lucid.h"
 #endif
 
 namespace lucid::scene

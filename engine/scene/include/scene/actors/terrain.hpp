@@ -99,7 +99,11 @@ namespace lucid::scene
 
       protected:
 #if DEVELOPMENT
+
         FTerrainSettings NewTerrainSettings;
+        bool             bSculpting = false;
+        gpu::CTexture*    DeltaHeightTexture = nullptr;
+
 #endif
         FTerrainSettings          TerrainSettings;
         resources::CMeshResource* TerrainMesh     = nullptr;

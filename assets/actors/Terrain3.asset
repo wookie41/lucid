@@ -4,6 +4,8 @@
     "TerrainMaterialId": "95974dee-0010-4368-b045-a14ced15579b",
     "ResolutionX": 100.0,
     "ResolutionZ": 100.0,
+"GridSizeX": 100.0,
+    "GridSizeZ": 100.0,
     "Seed": -1,
     "Octaves": 4
 }

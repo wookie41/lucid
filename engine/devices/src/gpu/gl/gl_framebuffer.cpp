@@ -161,8 +161,8 @@ namespace lucid::gpu
                      InY,
                      InWidth,
                      InHeight,
-                     TO_GL_TEXTURE_PIXEL_FORMAT(colorAttachments[0]->GetAttachmentPixelFormat()),
-                     TO_GL_TEXTURE_DATA_TYPE(colorAttachments[0]->GetAttachmentDataType()),
+                     TO_GL_TEXTURE_PIXEL_FORMAT(colorAttachments[InAttachmentIdx]->GetAttachmentPixelFormat()),
+                     TO_GL_TEXTURE_DATA_TYPE(colorAttachments[InAttachmentIdx]->GetAttachmentDataType()),
                      Pixels);
     }
 

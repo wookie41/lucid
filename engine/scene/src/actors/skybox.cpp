@@ -8,7 +8,7 @@
 #include "engine/engine.hpp"
 #include "schemas/json.hpp"
 
-#include "imgui_lucid.h"
+#include "lucid_editor/imgui_lucid.h"
 
 namespace lucid::scene
 {

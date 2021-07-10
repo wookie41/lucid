@@ -8,5 +8,7 @@
     "Octaves": 4,
     "Frequency": 0.05000000074505806,
     "Amplitude": 10.0,
-    "MaxHeight": 15.0
+    "MaxHeight": 15.0,
+    "GridSizeX": 100.0,
+    "GridSizeZ": 100.0
 }

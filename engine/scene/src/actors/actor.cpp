@@ -5,7 +5,7 @@
 
 #include "imgui.h"
 #include "ImGuizmo.h"
-#include "imgui_lucid.h"
+#include "lucid_editor/imgui_lucid.h"
 
 #include <sole/sole.hpp>
 #include <glm/gtc/type_ptr.hpp>

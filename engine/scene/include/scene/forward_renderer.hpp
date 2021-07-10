@@ -118,7 +118,7 @@ namespace lucid::scene
 
 #if DEVELOPMENT
         void DrawLightsBillboards(const FRenderScene* InScene, const FRenderView* InRenderView);
-        void GenerateHitmap(const FRenderScene* InScene, const FRenderView* InRenderView);
+        void RenderEditorHelpers(const FRenderScene* InScene, const FRenderView* InRenderView);
         void RenderWithDefaultMaterial(const resources::CMeshResource* InMeshResource,
                                        const u16&                      InSubMeshIndex,
                                        const CLight*                   InLight,
@@ -229,9 +229,9 @@ namespace lucid::scene
          *  Shader that saves ids of the objects in the scene to a texture
          *  so it can be later used for picking, used only for tools
          */
-        gpu::CShader* HitMapShader          = nullptr;
-        gpu::CShader* BillboardHitMapShader = nullptr;
-        gpu::CShader* WorldGridShader       = nullptr;
+        gpu::CShader* EditorHelpersShader    = nullptr;
+        gpu::CShader* EditorBillboardsShader = nullptr;
+        gpu::CShader* WorldGridShader        = nullptr;
 
       private:
         gpu::FPipelineState LightsBillboardsPipelineState;
@@ -240,11 +240,13 @@ namespace lucid::scene
 
         /** Used to render ids of the objects in the scene so we can do nice mouse picking in the tools */
         gpu::CTexture*      HitMapTexture;
-        gpu::CFramebuffer*  HitMapFramebuffer;
-        gpu::FPipelineState HitMapGenerationPipelineState;
-        gpu::CRenderbuffer* HitMapDepthStencilRenderbuffer;
-        gpu::CPixelBuffer*  HitmapReadPixelBuffer;
-        u8                  CurrentHitmapPBOIndex = 0;
+        gpu::CTexture*      DistanceToCameraTexture;
+        gpu::CFramebuffer*  EditorHelpersFramebuffer;
+        gpu::FPipelineState EditorHelpersPipelineState;
+        gpu::CRenderbuffer* EditorHelpersDepthStencilRenderbuffer;
+
+        gpu::CPixelBuffer* HitmapReadPBO;
+        gpu::CPixelBuffer* DistanceToCameraPBO;
 
         gpu::CTimer* FrameTimer = nullptr;
 

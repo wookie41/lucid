@@ -13,7 +13,8 @@ project "lucid_engine"
       "engine/scene/include",
       "engine/resources/include",
       "engine/schemas/include",
-      "engine/imgui/include"       -- TODO include only in development
+      "engine/imgui/include",       -- TODO include only in development
+      "tools/scene_editor/include"       -- TODO include only in development
    }
 
    includedirs { 

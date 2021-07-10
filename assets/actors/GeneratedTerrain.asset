@@ -4,6 +4,8 @@
     "TerrainMaterialId": "23d2531e-f152-4e17-87e4-f84cde87b018",
     "ResolutionX": 100.0,
     "ResolutionZ": 100.0,
+    "GridSizeX": 100.0,
+    "GridSizeZ": 100.0,
     "Seed": -1,
     "Octaves": 4,
     "Frequency": 0.05000000074505806

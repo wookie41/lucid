@@ -88,10 +88,11 @@ namespace lucid::scene
     };
 
 #if DEVELOPMENT
-    /** Stores ids of the objects on the scene, used for picking in tools */
-    struct FHitMap
+
+    template <typename T>
+    struct FCachedTexture
     {
-        inline u64 GetIdAtMousePositon(const glm::vec2& MousePosition) const
+        inline T GetValueAtPosition(const glm::vec2& MousePosition) const
         {
             if (MousePosition.x > 0 && (int)MousePosition.x < Width && MousePosition.y > 0 && (int)MousePosition.y < Height)
             {
@@ -100,8 +101,8 @@ namespace lucid::scene
             return 0;
         }
 
-        u32* CachedTextureData;
-        u32  Width, Height;
+        T*  CachedTextureData;
+        u32 Width, Height;
     };
 
     /** Stores information about the last rendered frame, populated by the renderer in Render() */
@@ -165,8 +166,9 @@ namespace lucid::scene
         void        RemoveShadowMap(CShadowMap* InShadowMap);
 
 #if DEVELOPMENT
-        inline const FHitMap& GetCachedHitMap() const { return CachedHitMap; }
-        inline gpu::CTexture* GetLightBulbTexture() const { return LightBulbTexture; }
+        inline const FCachedTexture<u32>&   GetCachedHitMap() const { return CachedHitMap; }
+        inline const FCachedTexture<float>& GetCachedDistanceToCameraMap() const { return CachedDistanceToCameraMap; }
+        inline gpu::CTexture*               GetLightBulbTexture() const { return LightBulbTexture; }
 
         /** Queues a debug line to draw during the next Render() call.
          * The debug line will persist for n seconds after it's added.
@@ -217,14 +219,15 @@ namespace lucid::scene
                                                           { -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 70.f } };
 
 #if DEVELOPMENT
+      protected:
         /** Used to visualize light sources in the editor */
-        gpu::CTexture* LightBulbTexture;
+        gpu::CTexture* LightBulbTexture = nullptr;
 
-        FHitMap CachedHitMap;
+        FCachedTexture<u32>   CachedHitMap              = {};
+        FCachedTexture<float> CachedDistanceToCameraMap = {};
 #endif
     };
 
-    
     /** Collection of lines needed to draw a debug arrow with arrow heads */
     struct FDebugArrow
     {
