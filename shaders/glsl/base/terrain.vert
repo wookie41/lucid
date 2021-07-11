@@ -24,10 +24,6 @@ void main()
     InstanceID = gl_InstanceID;
 
     vec4 WorldPosition = vec4(aPosition, 1);
-    if (MATERIAL_DATA.bHasDeltaHeightMap)
-    {
-        WorldPosition.y += texture(MATERIAL_DATA.DeltaHeightMap, aTextureCoords).r;
-    }
 
     mat3 NormalMatrix = transpose(inverse(mat3(INSTANCE_DATA.ModelMatrix)));
     vec3 N            = normalize(NormalMatrix * aNormal);

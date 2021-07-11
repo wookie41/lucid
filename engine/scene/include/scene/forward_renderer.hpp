@@ -253,6 +253,9 @@ namespace lucid::scene
         gpu::CShader*      DebugLinesShader = nullptr;
         gpu::CVertexArray* DebugLinesVAO    = nullptr;
         gpu::CGPUBuffer*   DebugLinesVertexBuffers[FRAME_DATA_BUFFERS_COUNT]{ nullptr };
+
+        // @TODO add support for editing multiple terrains at the same time
+        gpu::CFence**      TerrainFenceToCreate = nullptr;
 #endif
     };
 

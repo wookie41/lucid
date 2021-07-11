@@ -557,8 +557,7 @@ namespace lucid::scene
             VertexAttributes.Add({ 1, 3, EType::FLOAT, false, Stride, sizeof(glm::vec3), 0, 0 });
             VertexAttributes.Add({ 2, 1, EType::INT_32, false, Stride, sizeof(glm::vec3) * 2, 0, 0 });
 
-            DebugLinesVAO = gpu::CreateVertexArray("DebugLinesVAO", &VertexAttributes, nullptr, nullptr, gpu::EDrawMode::LINES, 0, 0, false);
-            VertexAttributes.Free();
+            DebugLinesVAO = gpu::CreateVertexArray("DebugLinesVAO", VertexAttributes, nullptr, nullptr, gpu::EDrawMode::LINES, 0, 0, false);
         }
 #endif
 
@@ -695,6 +694,13 @@ namespace lucid::scene
         }
 
         NewFreeMaterialBuffersEntries.clear();
+
+        // Put fences for terrain sculpting
+        if (TerrainFenceToCreate)
+        {
+            *TerrainFenceToCreate = gpu::CreateFence("TerrainSculptFence");
+            TerrainFenceToCreate = nullptr;
+        }
     }
 
     void CForwardRenderer::ResetState()
@@ -993,6 +999,17 @@ namespace lucid::scene
 
             const u32 ActorDataIdx = FindActorEntryIndex(Terrain->ActorId, Terrain->CachedModelMatrix, 1);
 
+            // Check if we're currently sculpting this material
+            if (Terrain->bSculpFlushed)
+            {
+                TerrainFenceToCreate = &Terrain->SculptingVBOFences[Terrain->CurrentSculptingVBOIndex];
+                Terrain->bSculpFlushed = true;
+            }
+            else
+            {
+                TerrainFenceToCreate = nullptr;   
+            }
+            
             // Send material updates to GPU
             CMaterial* TerrainMaterial = Terrain->GetTerrainMaterial();
             if (!TerrainMaterial)

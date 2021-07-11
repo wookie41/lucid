@@ -15,7 +15,8 @@ namespace lucid::gpu
                        const uint32_t& InElementCount,
                        CGPUBuffer* InVertexBuffer,
                        CGPUBuffer* InElementBuffer,
-                       const bool& InAutoDestroyBuffers);
+                       const bool& InAutoDestroyBuffers,
+                       const FArray<FVertexAttribute>& InVertexAttributes);
 
         void SetObjectName() override;
         
@@ -40,6 +41,12 @@ namespace lucid::gpu
                                    const uint32_t& First = 0,
                                    const uint32_t& Count = 0) override;
 
+        virtual CGPUBuffer* GetVertexBuffer() const override;
+        virtual void        SetVertexBuffer(CGPUBuffer* InVertexBuffer) override;
+
+        virtual void SetupVertexAttributes() override;
+
+        
         virtual void Free() override;
 
         virtual ~CGLVertexArray() = default;
@@ -55,5 +62,7 @@ namespace lucid::gpu
         CGPUBuffer* ElementBuffer;
 
         GLuint GLVAOHandle;
+
+        FArray<FVertexAttribute> VertexAttributes;
     };
 } // namespace lucid::gpu

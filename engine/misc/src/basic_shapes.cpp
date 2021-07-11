@@ -74,8 +74,7 @@ namespace lucid::misc
         quadAttributes.Add({ 2, 3, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });
         quadAttributes.Add({ 3, 2, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 9), 0 });
 
-        gpu::CVertexArray* QuadVertexArray = gpu::CreateVertexArray(FSString {"QuadVertexArray" }, &quadAttributes, QuadVertexBuffer, nullptr, gpu::EDrawMode::TRIANGLE_STRIP, 4, 0);
-        quadAttributes.Free();
+        gpu::CVertexArray* QuadVertexArray = gpu::CreateVertexArray(FSString {"QuadVertexArray" }, quadAttributes, QuadVertexBuffer, nullptr, gpu::EDrawMode::TRIANGLE_STRIP, 4, 0);
         return QuadVertexArray;
     };
 
@@ -95,10 +94,8 @@ namespace lucid::misc
         cubeAttributes.Add({ 2, 3, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 6), 0 });
         cubeAttributes.Add({ 3, 2, EType::FLOAT, false, sizeof(float) * 11, (sizeof(float) * 9), 0 });
 
-        gpu::CVertexArray* CubeVertexArray = gpu::CreateVertexArray(FSString {"CubeVertexArray" }, &cubeAttributes, VertexBuffer, nullptr, gpu::EDrawMode::TRIANGLES,
+        gpu::CVertexArray* CubeVertexArray = gpu::CreateVertexArray(FSString {"CubeVertexArray" }, cubeAttributes, VertexBuffer, nullptr, gpu::EDrawMode::TRIANGLES,
                                                  sizeof(CUBE_VERTICES) / (sizeof(float) * 11), 0);
-        cubeAttributes.Free();
-
         return CubeVertexArray;
     };
 } // namespace lucid::misc

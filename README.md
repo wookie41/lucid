@@ -23,6 +23,7 @@ I don't guarantee that it'll run on every platform and on every GPU, as that's n
 - bump mapping
 - normal mapping
 - terrain generation
+- terrain sculpting
 
 ### Whats is left to do:
 - culling
@@ -50,7 +51,5 @@ premake5 vs2017
 ### Some screen shots
 
 ![Sponza](./demo/demo-1.jpg)
-
 ![Gigacube](./demo/demo-2.jpg)
-
-![Terrain](./demo/demo-3.jpg)
+![Terrain](./demo/demo-terrain.gif)

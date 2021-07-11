@@ -241,15 +241,13 @@ namespace lucid::resources
             }
 
             SubMesh->VAO = gpu::CreateVertexArray(SPrintf("%s_VAO_%d", *Name, i),
-                                                  &MeshAttributes,
+                                                  MeshAttributes,
                                                   SubMesh->VertexBuffer,
                                                   SubMesh->ElementBuffer,
                                                   DrawMode,
                                                   SubMesh->VertexCount,
                                                   SubMesh->ElementCount);
             assert(SubMesh->VAO);
-
-            MeshAttributes.Free();
         }
 
         bLoadedToVideoMemory = true;

@@ -26,22 +26,22 @@ GLenum GL_DRAW_MODES[] = { GL_POINTS,
 
 namespace lucid::gpu
 {
-    CVertexArray* CreateVertexArray(const FString&            InName,
-                                    FArray<FVertexAttribute>* VertexArrayAttributes,
-                                    CGPUBuffer*               VertexBuffer,
-                                    CGPUBuffer*               ElementBuffer,
-                                    const EDrawMode&          DrawMode,
-                                    const u32&                VertexCount,
-                                    const u32&                ElementCount,
-                                    const bool&               AutoDestroyBuffers)
+    CVertexArray* CreateVertexArray(const FString&                  InName,
+                                    const FArray<FVertexAttribute>& VertexArrayAttributes,
+                                    CGPUBuffer*                     VertexBuffer,
+                                    CGPUBuffer*                     ElementBuffer,
+                                    const EDrawMode&                DrawMode,
+                                    const u32&                      VertexCount,
+                                    const u32&                      ElementCount,
+                                    const bool&                     AutoDestroyBuffers)
     {
         GLuint VAO;
 
         glGenVertexArrays(1, &VAO);
 
-        CVertexArray* vertexArray =
-          new CGLVertexArray(InName, VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers);
-        vertexArray->Bind();
+        CVertexArray* VertexArray =
+          new CGLVertexArray(InName, VAO, DrawMode, VertexCount, ElementCount, VertexBuffer, ElementBuffer, AutoDestroyBuffers, VertexArrayAttributes);
+        VertexArray->Bind();
 
         if (VertexBuffer)
         {
@@ -51,32 +51,11 @@ namespace lucid::gpu
         if (ElementBuffer != nullptr)
             ElementBuffer->Bind(EBufferBindPoint::ELEMENT);
 
-        for (u32 attrIdx = 0; attrIdx < VertexArrayAttributes->GetLength(); ++attrIdx)
-        {
-            FVertexAttribute* vertexAttribute = (*VertexArrayAttributes)[attrIdx];
+        VertexArray->SetupVertexAttributes();
+        VertexArray->Unbind();
 
-            switch (vertexAttribute->AttributeType)
-            {
-            case lucid::EType::FLOAT:
-                vertexArray->AddVertexAttribute(*vertexAttribute);
-                break;
-            case lucid::EType::UINT_32:
-            case lucid::EType::INT_32:
-                vertexArray->AddIntegerVertexAttribute(*vertexAttribute);
-                break;
-            case lucid::EType::DOUBLE:
-                vertexArray->AddLongVertexAttribute(*vertexAttribute);
-                break;
-            default:
-                assert(0);
-                break;
-            }
-        }
-
-        vertexArray->Unbind();
-
-        vertexArray->SetObjectName();
-        return vertexArray;
+        VertexArray->SetObjectName();
+        return VertexArray;
     }
 
 #ifdef LINUX
@@ -137,9 +116,10 @@ namespace lucid::gpu
                                    const u32&       InElementCount,
                                    CGPUBuffer*      InVertexBuffer,
                                    CGPUBuffer*      InElementBuffer,
-                                   const bool&      InAutoDestroyBuffers)
+                                   const bool&      InAutoDestroyBuffers,
+                                   const FArray<FVertexAttribute>& InVertexAttributes)
     : CVertexArray(InName), GLVAOHandle(InGLVAOHandle), DrawMode(InDrawMode), VertexBuffer(InVertexBuffer), ElementBuffer(InElementBuffer),
-      AutoDestroyBuffers(InAutoDestroyBuffers), VertexCount(InVertexCount), ElementCount(InElementCount)
+      AutoDestroyBuffers(InAutoDestroyBuffers), VertexCount(InVertexCount), ElementCount(InElementCount), VertexAttributes(InVertexAttributes)
     {
     }
 
@@ -149,6 +129,8 @@ namespace lucid::gpu
     {
         assert(GLVAOHandle && VertexBuffer); // double free
 
+        VertexAttributes.Free();
+        
         if (AutoDestroyBuffers)
         {
             VertexBuffer->Free();
@@ -208,6 +190,42 @@ namespace lucid::gpu
         else
         {
             glDrawArraysInstanced(GL_DRAW_MODES[DrawMode], First, count, InstancesCount);
+        }
+    }
+
+    CGPUBuffer* CGLVertexArray::GetVertexBuffer() const
+    {
+        return VertexBuffer;
+    }
+
+    void CGLVertexArray::SetVertexBuffer(CGPUBuffer* InVertexBuffer)
+    {
+        Bind();
+        InVertexBuffer->Bind(EBufferBindPoint::VERTEX);
+        SetupVertexAttributes();
+        VertexBuffer = InVertexBuffer;
+    }
+
+    void CGLVertexArray::SetupVertexAttributes()
+    {
+        for (u32 i = 0; i < VertexAttributes.GetLength(); ++i)
+        {
+            switch (VertexAttributes[i]->AttributeType)
+            {
+            case lucid::EType::FLOAT:
+                AddVertexAttribute(*VertexAttributes[i]);
+                break;
+            case lucid::EType::UINT_32:
+            case lucid::EType::INT_32:
+                AddIntegerVertexAttribute(*VertexAttributes[i]);
+                break;
+            case lucid::EType::DOUBLE:
+                AddLongVertexAttribute(*VertexAttributes[i]);
+                break;
+            default:
+                assert(0);
+                break;
+            }
         }
     }
 

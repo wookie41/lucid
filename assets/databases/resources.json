@@ -344,15 +344,15 @@
             "Type": 1
         },
         {
-            "Id": "0964473d-1f25-4e38-bef2-3ec243d3b9ea",
-            "Name": "Terrain",
-            "Path": "assets/meshes/Terrain_ee5a3b64-58c3-4630-80d5-c7d11283618e.asset",
-            "Type": 1
-        },
-        {
             "Id": "9fdc255b-39e9-47ec-bcbc-f18056f10c90",
             "Name": "Terrain",
             "Path": "assets/meshes/Terrain_e5ff637a-651d-47f1-a391-648b36ba412c.asset",
+            "Type": 1
+        },
+        {
+            "Id": "2c455181-0023-44f5-84e2-ac8b60fcfabb",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_8f22ba44-6fce-47d1-93ec-ca93dfbb7c0f.asset",
             "Type": 1
         }
     ]

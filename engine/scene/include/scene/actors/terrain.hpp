@@ -14,6 +14,7 @@ namespace lucid
     {
         class CVertexArray;
         class CGPUBuffer;
+        class CFence;
     } // namespace gpu
 } // namespace lucid
 
@@ -101,10 +102,21 @@ namespace lucid::scene
 #if DEVELOPMENT
 
         FTerrainSettings NewTerrainSettings;
-        bool             bSculpting = false;
-        gpu::CTexture*    DeltaHeightTexture = nullptr;
+        bool             bSculpting                             = false;
+        bool             bShouldFreeMainMemoryAfterSculpting    = false;
+
+    public:
+        static constexpr u8 NumSculptingVBOs = 2;
+        gpu::CGPUBuffer*    SculptingVBOs[NumSculptingVBOs] = { nullptr };
+        gpu::CFence*        SculptingVBOFences[NumSculptingVBOs] = { nullptr };
+        u8                  CurrentSculptingVBOIndex = 0;
+        FTerrainVertex*     TerrainSculptData = nullptr;
+        bool                bSculptFlushNeeded = false;
+        bool                bSculpFlushed = false;
+        gpu::CGPUBuffer*    OriginalTerrainVBO;
 
 #endif
+    protected:
         FTerrainSettings          TerrainSettings;
         resources::CMeshResource* TerrainMesh     = nullptr;
         CMaterial*                TerrainMaterial = nullptr;

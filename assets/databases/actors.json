@@ -44,11 +44,6 @@
             "ActorId": "cccbfbab-f460-4cff-b2e8-56c84f2887e2",
             "ActorPath": "assets/actors/GeneratedTerrain.asset",
             "ActorType": 4
-        },
-        {
-            "ActorId": "219590d9-e695-4a3d-9a36-a68c4581ecbb",
-            "ActorPath": "assets/actors/Terrain2.asset",
-            "ActorType": 4
         }
     ]
 }

@@ -68,10 +68,16 @@ namespace lucid::gpu
                                    const u32& First = 0,
                                    const u32& Count = 0) = 0;
 
+        virtual CGPUBuffer* GetVertexBuffer() const = 0;
+        virtual void        SetVertexBuffer(CGPUBuffer* InVertexBuffer) = 0;
+
+        virtual void SetupVertexAttributes() = 0;
+
+        
         virtual ~CVertexArray() = default;
     };
     CVertexArray* CreateVertexArray(const FString& InName,
-                                    FArray<FVertexAttribute>* VertexArrayAttributes,
+                                    const FArray<FVertexAttribute>& VertexArrayAttributes,
                                     CGPUBuffer* VertexBuffer,
                                     CGPUBuffer* ElementBuffer,
                                     const EDrawMode& DrawMode,

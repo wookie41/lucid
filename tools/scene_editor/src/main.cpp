@@ -333,13 +333,21 @@ void HandleCameraMovement(const float& DeltaTime)
 
     if (IsMouseButtonPressed(RIGHT))
     {
-        GSceneEditorState.CurrentlySelectedActor = nullptr;
+        if (!GSceneEditorState.bBlockActorPicking)
+        {
+                GSceneEditorState.CurrentlySelectedActor = nullptr;
+        }
         GSceneEditorState.CurrentCamera->AddRotation(-MousePos.DeltaX * .9f, MousePos.DeltaY * .9f);
     }
 }
 
 void DoActorPicking()
 {
+    if (GSceneEditorState.bBlockActorPicking)
+    {
+        return;
+    }
+    
     if (scene::IActor* ClickedActor = SceneWindow_GetActorUnderCursor())
     {
         if (GSceneEditorState.CurrentlySelectedActor == nullptr)

@@ -167,6 +167,8 @@ namespace lucid
         bool bShowingControlsWindow        = false;
         bool bShowingStatsWindow           = false;
         bool bShowingRendererSettinsWindow = false;
+
+        bool bBlockActorPicking = false;
     };
 
     extern FSceneEditorState GSceneEditorState;

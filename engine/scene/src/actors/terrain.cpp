@@ -8,6 +8,8 @@
 #include "schemas/json.hpp"
 
 #include "devices/gpu/vao.hpp"
+#include "devices/gpu/buffer.hpp"
+#include "devices/gpu/fence.hpp"
 
 #include "resources/mesh_resource.hpp"
 #include "resources/serialization_versions.hpp"
@@ -25,6 +27,8 @@
 
 namespace lucid::scene
 {
+    static constexpr gpu::EBufferMapPolicy UNSYNCHRONIZED_WRITE = (gpu::EBufferMapPolicy)(gpu::EBufferMapPolicy::BUFFER_WRITE | gpu::EBufferMapPolicy::BUFFER_UNSYNCHRONIZED); 
+
     CTerrain::CTerrain(const FDString&           InName,
                        IActor*                   InParent,
                        CWorld*                   InWorld,
@@ -43,6 +47,8 @@ namespace lucid::scene
         OutDescription.Name                  = Name;
         OutDescription.ResolutionX           = TerrainSettings.Resolution.x;
         OutDescription.ResolutionZ           = TerrainSettings.Resolution.y;
+        OutDescription.GridSizeX             = TerrainSettings.GridSize.x;
+        OutDescription.GridSizeZ             = TerrainSettings.GridSize.y;
         OutDescription.bFlat                 = TerrainSettings.bFlatMesh;
         OutDescription.Seed                  = TerrainSettings.Seed;
         OutDescription.Octaves               = TerrainSettings.Octaves;
@@ -392,73 +398,183 @@ namespace lucid::scene
 
         if (ImGui::CollapsingHeader("Terrain"))
         {
-            bool bRegenerateTerrain = false;
-            bRegenerateTerrain |= ImGui::InputFloat2("Grid size", &NewTerrainSettings.GridSize[0]);
-            bRegenerateTerrain |= ImGui::InputFloat2("Resolution", &NewTerrainSettings.Resolution[0]);
-            bRegenerateTerrain |= ImGui::Checkbox("Flat", &NewTerrainSettings.bFlatMesh);
-            bRegenerateTerrain |= ImGui::InputInt("Seed", &NewTerrainSettings.Seed);
-            bRegenerateTerrain |= ImGui::InputInt("Octaves", &NewTerrainSettings.Octaves);
-            bRegenerateTerrain |= ImGui::InputFloat("Frequency", &NewTerrainSettings.Frequency);
-            bRegenerateTerrain |= ImGui::InputFloat("Amplitude", &NewTerrainSettings.Amplitude);
-            bRegenerateTerrain |= ImGui::InputFloat("Lacunarity", &NewTerrainSettings.Lacunarity);
-            bRegenerateTerrain |= ImGui::InputFloat("Persistence", &NewTerrainSettings.Persistence);
-            bRegenerateTerrain |= ImGui::InputFloat("Min height", &NewTerrainSettings.MinHeight);
-            bRegenerateTerrain |= ImGui::InputFloat("Max height", &NewTerrainSettings.MaxHeight);
-
-            if (bRegenerateTerrain)
+            if (!bSculpting)
             {
-                resources::CMeshResource* NewTerrainMesh = GenerateTerrainMesh(NewTerrainSettings);
-                GEngine.RemoveMeshResource(TerrainMesh);
+                // Show generation panel if we aren't currently sculpting
+                bool bRegenerateTerrain = false;
+                bRegenerateTerrain |= ImGui::InputFloat2("Grid size", &NewTerrainSettings.GridSize[0]);
+                bRegenerateTerrain |= ImGui::InputFloat2("Resolution", &NewTerrainSettings.Resolution[0]);
+                bRegenerateTerrain |= ImGui::Checkbox("Flat", &NewTerrainSettings.bFlatMesh);
+                bRegenerateTerrain |= ImGui::InputInt("Seed", &NewTerrainSettings.Seed);
+                bRegenerateTerrain |= ImGui::InputInt("Octaves", &NewTerrainSettings.Octaves);
+                bRegenerateTerrain |= ImGui::InputFloat("Frequency", &NewTerrainSettings.Frequency);
+                bRegenerateTerrain |= ImGui::InputFloat("Amplitude", &NewTerrainSettings.Amplitude);
+                bRegenerateTerrain |= ImGui::InputFloat("Lacunarity", &NewTerrainSettings.Lacunarity);
+                bRegenerateTerrain |= ImGui::InputFloat("Persistence", &NewTerrainSettings.Persistence);
+                bRegenerateTerrain |= ImGui::InputFloat("Min height", &NewTerrainSettings.MinHeight);
+                bRegenerateTerrain |= ImGui::InputFloat("Max height", &NewTerrainSettings.MaxHeight);
 
-                if (auto* BaseTerrainAsset = dynamic_cast<CTerrain*>(BaseActorAsset))
+                if (bRegenerateTerrain)
                 {
-                    BaseTerrainAsset->UpdateBaseAssetTerrainMeshUpdate(NewTerrainMesh, NewTerrainSettings);
-                }
-                else
-                {
-                    UpdateBaseAssetTerrainMeshUpdate(NewTerrainMesh, NewTerrainSettings);
-                }
-            }
+                    resources::CMeshResource* NewTerrainMesh = GenerateTerrainMesh(NewTerrainSettings);
+                    GEngine.RemoveMeshResource(TerrainMesh);
 
-            // Terrain painting
-            if (bSculpting)
-            {
-                if (ImGui::Button("Submit terrain"))
-                {
-                    bSculpting                    = false;
-                }
-
-                if (IsMouseButtonPressed(EMouseButton::LEFT))
-                {
-                    if (SceneWindow_GetActorUnderCursor() == this)
+                    if (auto* BaseTerrainAsset = dynamic_cast<CTerrain*>(BaseActorAsset))
                     {
-                        const float     DistanceToTerrain = SceneWindow_GetDistanceToCameraUnderCursor();
-                        const glm::vec3 WorldRay          = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(GetMouseNDCPos(), DistanceToTerrain);
-
-                        const glm::vec2 TerrainGridUpperLeft = glm::vec2{ Transform.Translation.x, Transform.Translation.z } - (TerrainSettings.GridSize / 2.f);
-                        const glm::vec2 RayProjectedToGrid   = glm::vec2{ WorldRay.x, WorldRay.z } - TerrainGridUpperLeft;
-
-                        u32 OffsetX = glm::min(RayProjectedToGrid.x, 0.f) / TerrainSettings.GridSize.x;
-                        u32 OffsetZ = glm::min(RayProjectedToGrid.y, 0.f) / TerrainSettings.GridSize.y;
-
-                        // @TODO brush size, brush strenth
-                        for (int z = -16; z <= 16; ++z)
-                        {
-                            for (int x = -16; x <= 16; ++x)
-                            {
-                                const u32 TerrainDeltaTextureIndex = (TerrainSettings.Resolution.x * z) + x;
-                                if (TerrainDeltaTextureIndex > TerrainSettings.Resolution.x * TerrainSettings.Resolution.y - 1)
-                                {
-                                    continue;
-                                }
-                            }
-                        }
+                        BaseTerrainAsset->UpdateBaseAssetTerrainMeshUpdate(NewTerrainMesh, NewTerrainSettings);
+                    }
+                    else
+                    {
+                        UpdateBaseAssetTerrainMeshUpdate(NewTerrainMesh, NewTerrainSettings);
                     }
                 }
             }
-            else if (ImGui::Button("Sculpt  terrain"))
+
+            // Handle sculpting
+            if (bSculpting)
             {
+                // Button to submit the new terrain
+                if (ImGui::Button("Submit terrain"))
+                {
+                    // @TODO recalculate normals
+                    
+                    bSculpting                           = false;
+                    GSceneEditorState.bBlockActorPicking = false;
+
+                    // Save the changes
+                    TerrainMesh->SaveSynchronously();
+
+                    // Restore the original VBO so it gets freed properly
+                    TerrainMesh->SubMeshes[0]->VAO->SetVertexBuffer(OriginalTerrainVBO);
+                    
+                    // Load the edited terrain to the GPU
+                    TerrainMesh->FreeVideoMemory();
+                    TerrainMesh->LoadDataToVideoMemorySynchronously();
+                    
+                    // Cleanup main memory if we need to
+                    if (bShouldFreeMainMemoryAfterSculpting)
+                    {
+                        TerrainMesh->FreeMainMemory();
+                        bShouldFreeMainMemoryAfterSculpting = false;
+                    }
+
+                    // Cleanup VBOs
+                    for (u8 i = 0; i < NumSculptingVBOs; ++i)
+                    {
+                        SculptingVBOs[i]->Free();
+                        delete SculptingVBOs[i];
+                    }
+                }
+
+                float SculptDelta = 0;
+                if (SceneWindow_GetActorUnderCursor() == this)
+                {
+                    if (IsMouseButtonPressed(EMouseButton::LEFT))
+                    {
+                        if (IsKeyPressed(SDLK_LSHIFT))
+                        {
+                            SculptDelta = -0.1;
+                            
+                        }
+                        else
+                        {
+                            SculptDelta = 0.1;
+                            
+                        }
+                    }
+                }
+                
+                // Sculpting
+                if (SculptDelta != 0 && bSculpting)
+                {
+                    const float     DistanceToTerrain = SceneWindow_GetDistanceToCameraUnderCursor();
+                    const glm::vec3 WorldRay          = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(GetMouseNDCPos(), DistanceToTerrain);
+
+                    const glm::vec2 TerrainGridUpperLeft = glm::vec2{ Transform.Translation.x, Transform.Translation.z } - (TerrainSettings.GridSize / 2.f);
+                    const glm::vec2 RayProjectedToGrid   = glm::vec2{ WorldRay.x, WorldRay.z } - TerrainGridUpperLeft;
+
+                    int OffsetX = (RayProjectedToGrid.x / TerrainSettings.GridSize.x) * TerrainSettings.Resolution.x;
+                    int OffsetZ = (RayProjectedToGrid.y / TerrainSettings.GridSize.y) * TerrainSettings.Resolution.y;
+
+                    ImGui::Text("[%d, %d]", OffsetX, OffsetZ);
+                    
+                    // @TODO brush size
+                    for (int z = -4; z <= 4; ++z)
+                    {
+                        for (int x = -4; x <= 4; ++x)
+                        {
+                            const int TerrainIndex = ((TerrainSettings.Resolution.x + 1) * (OffsetZ + z)) + OffsetX + x;
+                            if (TerrainIndex < 0 || TerrainIndex > ((TerrainSettings.Resolution.x + 1) * (TerrainSettings.Resolution.y + 1)  - 1))
+                            {
+                                continue;
+                            }
+
+                            // @TODO Brush strength
+                            TerrainSculptData[TerrainIndex].Position.y += SculptDelta;
+                        }
+
+                    }
+                }
+                bSculptFlushNeeded = true;
+
+                if (bSculptFlushNeeded && bSculpting)
+                {
+                    const u8 NextVBOIndex = (CurrentSculptingVBOIndex + 1) % NumSculptingVBOs;
+                    if (SculptingVBOFences[NextVBOIndex] == nullptr || SculptingVBOFences[NextVBOIndex]->Wait(10))
+                    {
+                        // Send updated data
+                        SculptingVBOs[NextVBOIndex]->Bind(gpu::EBufferBindPoint::WRITE);
+                        void* VBOMemoryPtr = SculptingVBOs[NextVBOIndex]->MemoryMap(UNSYNCHRONIZED_WRITE);
+                        memcpy(VBOMemoryPtr, TerrainSculptData, TerrainMesh->SubMeshes[0]->VertexDataBuffer.Size);
+                        SculptingVBOs[NextVBOIndex]->MemoryUnmap();
+                        SculptingVBOs[NextVBOIndex]->Unbind();
+                        
+                        // Change VBO to the new one
+                        TerrainMesh->SubMeshes[0]->VAO->SetVertexBuffer(SculptingVBOs[NextVBOIndex]);
+                        
+                        bSculptFlushNeeded = false;
+                        bSculpFlushed = true;
+
+                        // delete old fence
+                        if(SculptingVBOFences[NextVBOIndex])
+                        {
+                            SculptingVBOFences[NextVBOIndex]->Free();
+                            delete SculptingVBOFences[NextVBOIndex];
+                            SculptingVBOFences[NextVBOIndex] = nullptr;                            
+                        }
+
+                        // Update current VBO index
+                        CurrentSculptingVBOIndex = NextVBOIndex;
+                    }                    
+                }
+
+                
+            }
+            else if (ImGui::Button("Sculpt terrain"))
+            {
+                // Start sculpting when button is pressed
                 bSculpting = true;
+                GSceneEditorState.bBlockActorPicking = true;
+
+                if (!TerrainMesh->IsLoadedToMainMemory())
+                {
+                    TerrainMesh->LoadDataToMainMemorySynchronously();
+                    bShouldFreeMainMemoryAfterSculpting = true;
+                }
+
+                // Create VBOs set to stream-draw that we'll cycle through while sculpting
+                gpu::FBufferDescription SculptingVBODescription;
+                SculptingVBODescription.Offset = 0;
+                SculptingVBODescription.Size = TerrainMesh->SubMeshes[0]->VertexDataBuffer.Size;
+                SculptingVBODescription.Data = TerrainMesh->SubMeshes[0]->VertexDataBuffer.Pointer;
+
+                for (u8 i = 0; i < NumSculptingVBOs; ++i)
+                {
+                    SculptingVBOs[i] = gpu::CreateBuffer(SculptingVBODescription, gpu::EBufferUsage::STREAM_DRAW, "SculptingVBO");
+                }
+
+                OriginalTerrainVBO = TerrainMesh->SubMeshes[0]->VAO->GetVertexBuffer();
+                TerrainSculptData = (FTerrainVertex*)TerrainMesh->SubMeshes[0]->VertexDataBuffer.Pointer;
             }
         }
     }
