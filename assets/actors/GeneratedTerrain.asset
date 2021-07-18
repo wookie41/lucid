@@ -1,6 +1,6 @@
 {
     "Name": "GeneratedTerrain",
-    "TerrainMeshResourceId": "2c455181-0023-44f5-84e2-ac8b60fcfabb",
+    "TerrainMeshResourceId": "1d7c808c-4d9b-47e7-b842-70aa719e9fa8",
     "TerrainMaterialId": "23d2531e-f152-4e17-87e4-f84cde87b018",
     "ResolutionX": 100.0,
     "ResolutionZ": 100.0,
@@ -8,5 +8,6 @@
     "GridSizeZ": 100.0,
     "Seed": -1,
     "Octaves": 4,
-    "Frequency": 0.05000000074505806
+    "Frequency": 0.05000000074505806,
+    "MaxHeight": 10.0
 }

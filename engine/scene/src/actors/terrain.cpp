@@ -27,7 +27,8 @@
 
 namespace lucid::scene
 {
-    static constexpr gpu::EBufferMapPolicy UNSYNCHRONIZED_WRITE = (gpu::EBufferMapPolicy)(gpu::EBufferMapPolicy::BUFFER_WRITE | gpu::EBufferMapPolicy::BUFFER_UNSYNCHRONIZED); 
+    static constexpr gpu::EBufferMapPolicy UNSYNCHRONIZED_WRITE =
+      (gpu::EBufferMapPolicy)(gpu::EBufferMapPolicy::BUFFER_WRITE | gpu::EBufferMapPolicy::BUFFER_UNSYNCHRONIZED);
 
     CTerrain::CTerrain(const FDString&           InName,
                        IActor*                   InParent,
@@ -436,8 +437,47 @@ namespace lucid::scene
                 // Button to submit the new terrain
                 if (ImGui::Button("Submit terrain"))
                 {
-                    // @TODO recalculate normals
-                    
+                    // Recalculate the normals
+                    for (u32 z = 0; z < TerrainSettings.Resolution.y; ++z)
+                    {
+                        for (u32 x = 0; x < TerrainSettings.Resolution.x; ++x)
+                        {
+                            // First triangle
+                            {
+                                const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x;
+                                const u32 FaceVert1 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                                const u32 FaceVert2 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
+
+                                // Normals
+                                const glm::vec3 Edge0 = TerrainSculptData[FaceVert0].Position - TerrainSculptData[FaceVert1].Position;
+                                const glm::vec3 Edge1 = TerrainSculptData[FaceVert2].Position - TerrainSculptData[FaceVert1].Position;
+
+                                const glm::vec3 Normal = glm::cross(Edge0, Edge1);
+
+                                TerrainSculptData[FaceVert0].Normal += Normal;
+                                TerrainSculptData[FaceVert1].Normal += Normal;
+                                TerrainSculptData[FaceVert2].Normal += Normal;
+                            }
+
+                            // Second triangle
+                            {
+                                const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                                const u32 FaceVert1 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                                const u32 FaceVert2 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
+
+                                // Normals
+                                const glm::vec3 Edge0 = TerrainSculptData[FaceVert0].Position - TerrainSculptData[FaceVert1].Position;
+                                const glm::vec3 Edge1 = TerrainSculptData[FaceVert2].Position - TerrainSculptData[FaceVert1].Position;
+
+                                const glm::vec3 Normal = glm::cross(Edge0, Edge1);
+
+                                TerrainSculptData[FaceVert0].Normal += Normal;
+                                TerrainSculptData[FaceVert1].Normal += Normal;
+                                TerrainSculptData[FaceVert2].Normal += Normal;
+                            }
+                        }
+                    }
+
                     bSculpting                           = false;
                     GSceneEditorState.bBlockActorPicking = false;
 
@@ -446,11 +486,11 @@ namespace lucid::scene
 
                     // Restore the original VBO so it gets freed properly
                     TerrainMesh->SubMeshes[0]->VAO->SetVertexBuffer(OriginalTerrainVBO);
-                    
+
                     // Load the edited terrain to the GPU
                     TerrainMesh->FreeVideoMemory();
                     TerrainMesh->LoadDataToVideoMemorySynchronously();
-                    
+
                     // Cleanup main memory if we need to
                     if (bShouldFreeMainMemoryAfterSculpting)
                     {
@@ -474,16 +514,14 @@ namespace lucid::scene
                         if (IsKeyPressed(SDLK_LSHIFT))
                         {
                             SculptDelta = -0.1;
-                            
                         }
                         else
                         {
                             SculptDelta = 0.1;
-                            
                         }
                     }
                 }
-                
+
                 // Sculpting
                 if (SculptDelta != 0 && bSculpting)
                 {
@@ -497,14 +535,14 @@ namespace lucid::scene
                     int OffsetZ = (RayProjectedToGrid.y / TerrainSettings.GridSize.y) * TerrainSettings.Resolution.y;
 
                     ImGui::Text("[%d, %d]", OffsetX, OffsetZ);
-                    
+
                     // @TODO brush size
                     for (int z = -4; z <= 4; ++z)
                     {
                         for (int x = -4; x <= 4; ++x)
                         {
                             const int TerrainIndex = ((TerrainSettings.Resolution.x + 1) * (OffsetZ + z)) + OffsetX + x;
-                            if (TerrainIndex < 0 || TerrainIndex > ((TerrainSettings.Resolution.x + 1) * (TerrainSettings.Resolution.y + 1)  - 1))
+                            if (TerrainIndex < 0 || TerrainIndex > ((TerrainSettings.Resolution.x + 1) * (TerrainSettings.Resolution.y + 1) - 1))
                             {
                                 continue;
                             }
@@ -512,7 +550,6 @@ namespace lucid::scene
                             // @TODO Brush strength
                             TerrainSculptData[TerrainIndex].Position.y += SculptDelta;
                         }
-
                     }
                 }
                 bSculptFlushNeeded = true;
@@ -528,32 +565,30 @@ namespace lucid::scene
                         memcpy(VBOMemoryPtr, TerrainSculptData, TerrainMesh->SubMeshes[0]->VertexDataBuffer.Size);
                         SculptingVBOs[NextVBOIndex]->MemoryUnmap();
                         SculptingVBOs[NextVBOIndex]->Unbind();
-                        
+
                         // Change VBO to the new one
                         TerrainMesh->SubMeshes[0]->VAO->SetVertexBuffer(SculptingVBOs[NextVBOIndex]);
-                        
+
                         bSculptFlushNeeded = false;
-                        bSculpFlushed = true;
+                        bSculpFlushed      = true;
 
                         // delete old fence
-                        if(SculptingVBOFences[NextVBOIndex])
+                        if (SculptingVBOFences[NextVBOIndex])
                         {
                             SculptingVBOFences[NextVBOIndex]->Free();
                             delete SculptingVBOFences[NextVBOIndex];
-                            SculptingVBOFences[NextVBOIndex] = nullptr;                            
+                            SculptingVBOFences[NextVBOIndex] = nullptr;
                         }
 
                         // Update current VBO index
                         CurrentSculptingVBOIndex = NextVBOIndex;
-                    }                    
+                    }
                 }
-
-                
             }
             else if (ImGui::Button("Sculpt terrain"))
             {
                 // Start sculpting when button is pressed
-                bSculpting = true;
+                bSculpting                           = true;
                 GSceneEditorState.bBlockActorPicking = true;
 
                 if (!TerrainMesh->IsLoadedToMainMemory())
@@ -565,8 +600,8 @@ namespace lucid::scene
                 // Create VBOs set to stream-draw that we'll cycle through while sculpting
                 gpu::FBufferDescription SculptingVBODescription;
                 SculptingVBODescription.Offset = 0;
-                SculptingVBODescription.Size = TerrainMesh->SubMeshes[0]->VertexDataBuffer.Size;
-                SculptingVBODescription.Data = TerrainMesh->SubMeshes[0]->VertexDataBuffer.Pointer;
+                SculptingVBODescription.Size   = TerrainMesh->SubMeshes[0]->VertexDataBuffer.Size;
+                SculptingVBODescription.Data   = TerrainMesh->SubMeshes[0]->VertexDataBuffer.Pointer;
 
                 for (u8 i = 0; i < NumSculptingVBOs; ++i)
                 {
@@ -574,7 +609,7 @@ namespace lucid::scene
                 }
 
                 OriginalTerrainVBO = TerrainMesh->SubMeshes[0]->VAO->GetVertexBuffer();
-                TerrainSculptData = (FTerrainVertex*)TerrainMesh->SubMeshes[0]->VertexDataBuffer.Pointer;
+                TerrainSculptData  = (FTerrainVertex*)TerrainMesh->SubMeshes[0]->VertexDataBuffer.Pointer;
             }
         }
     }
