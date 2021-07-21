@@ -29,7 +29,7 @@ namespace lucid::gpu
     static const char FRAGMENT_SHADER_TYPE_NAME[] = "fragment";
 
 #ifndef NDEBUG
-    static char _infoLog[1024];
+    static char _infoLog[5096];
     void CheckCompileErrors(const FString& ShaderName, const u32& Shader, const u8& Type, const char* ShaderTypeName)
     {
         int success;
@@ -38,9 +38,9 @@ namespace lucid::gpu
             glGetShaderiv(Shader, GL_COMPILE_STATUS, &success);
             if (!success)
             {
-                Zero(_infoLog, 1024);
+                Zero(_infoLog, 5096);
                 GLsizei len;
-                glGetShaderInfoLog(Shader, 1024, &len, _infoLog);
+                glGetShaderInfoLog(Shader, 5096, &len, _infoLog);
                 LUCID_LOG(ELogLevel::WARN, "[OpenGL] Failed to compile %s shader of shader program %s: %s", ShaderTypeName, *ShaderName, _infoLog);
             }
         }

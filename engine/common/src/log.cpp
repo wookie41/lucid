@@ -12,7 +12,7 @@ namespace lucid
     static const char* LOG_LEVEL_NAMES[] = { INFO_LEVEL_NAME, WARN_LEVEL_NAME, ERROR_LEVEL_NAME };
 
     // dummy, temporary solution
-    static char msgBuff[5096];
+    static char msgBuff[100000];
 
     //  static ExampleAppLog my_log;
     //  my_log.AddLog("Hello %d world\n", 123);
@@ -21,7 +21,7 @@ namespace lucid
     {
         va_list args;
         va_start(args, InFormat);
-        vsprintf_s(msgBuff, 1024, InFormat, args);
+        vsprintf_s(msgBuff, 100000, InFormat, args);
         va_end(args);
         std::time_t t = std::time(0);
         std::tm* now = std::localtime(&t);

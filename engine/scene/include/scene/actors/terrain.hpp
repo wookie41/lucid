@@ -102,21 +102,25 @@ namespace lucid::scene
 #if DEVELOPMENT
 
         FTerrainSettings NewTerrainSettings;
-        bool             bSculpting                             = false;
-        bool             bShouldFreeMainMemoryAfterSculpting    = false;
+        bool             bSculpting                          = false;
+        bool             bShouldFreeMainMemoryAfterSculpting = false;
+        bool             bMaterialEditorOpen                 = false;
 
-    public:
-        static constexpr u8 NumSculptingVBOs = 2;
-        gpu::CGPUBuffer*    SculptingVBOs[NumSculptingVBOs] = { nullptr };
+        float SculptStrength = 1;
+        int   BrushSize      = 10;
+
+      public:
+        static constexpr u8 NumSculptingVBOs                     = 2;
+        gpu::CGPUBuffer*    SculptingVBOs[NumSculptingVBOs]      = { nullptr };
         gpu::CFence*        SculptingVBOFences[NumSculptingVBOs] = { nullptr };
-        u8                  CurrentSculptingVBOIndex = 0;
-        FTerrainVertex*     TerrainSculptData = nullptr;
-        bool                bSculptFlushNeeded = false;
-        bool                bSculpFlushed = false;
+        u8                  CurrentSculptingVBOIndex             = 0;
+        FTerrainVertex*     TerrainSculptData                    = nullptr;
+        bool                bSculptFlushNeeded                   = false;
+        bool                bSculpFlushed                        = false;
         gpu::CGPUBuffer*    OriginalTerrainVBO;
 
 #endif
-    protected:
+      protected:
         FTerrainSettings          TerrainSettings;
         resources::CMeshResource* TerrainMesh     = nullptr;
         CMaterial*                TerrainMaterial = nullptr;

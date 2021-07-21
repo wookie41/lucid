@@ -53,3 +53,4 @@ premake5 vs2017
 ![Sponza](./demo/demo-1.jpg)
 ![Gigacube](./demo/demo-2.jpg)
 ![Terrain](./demo/demo-terrain.gif)
+![Terrain](./demo/terrain-material.gif)

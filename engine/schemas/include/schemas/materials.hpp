@@ -23,7 +23,15 @@ STRUCT_INHERIT_BEGIN(lucid, FBlinnPhongMapsMaterialDescription, lucid::FMaterial
     STRUCT_STATIC_ARRAY(float, SpecularColor, 3, {0 COMMA 0 COMMA 0}, "Fallback specular color when no specular map is present")	    
 STRUCT_END()
 
+STRUCT_BEGIN(lucid, FTerrainMaterialLayerDescription, "")
+    STRUCT_FIELD(float, MaxHeight, 0, "")
+    STRUCT_STATIC_ARRAY(float, UVTiling, 2, {1 COMMA 1}, "")	
+    STRUCT_FIELD(UUID, DiffuseTextureID, sole::INVALID_UUID, "")	    
+    STRUCT_FIELD(UUID, NormalTextureID, sole::INVALID_UUID, "")
+STRUCT_END()
+
 STRUCT_INHERIT_BEGIN(lucid, FTerrainMaterialDescription, lucid::FMaterialDescription, "")
+STRUCT_DYNAMIC_ARRAY(FTerrainMaterialLayerDescription, TerrainLayers, ""    )
 STRUCT_END()
 
 STRUCT_BEGIN(lucid, FMaterialDatabaseEntry, "")

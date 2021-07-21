@@ -266,8 +266,6 @@ namespace lucid::scene
             TerrainMeshResource = GEngine.GetMeshesHolder().Get(TerrainDescription->TerrainMeshResourceId);
         }
 
-        TerrainMeshResource->Acquire(false, true);
-
         auto* TerrainActor =
           new CTerrain{ TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, InTerrainSettings, TerrainMeshResource,
                         TerrainMaterial };
@@ -309,6 +307,7 @@ namespace lucid::scene
 
     void CTerrain::LoadAssetResources()
     {
+        IActor::LoadAssetResources();
         if (bAssetResourcesLoaded)
         {
             return;
@@ -317,6 +316,11 @@ namespace lucid::scene
         if (TerrainMesh)
         {
             TerrainMesh->Acquire(false, true);
+        }
+
+        if (TerrainMaterial)
+        {
+            TerrainMaterial->LoadResources();
         }
 
         bAssetResourcesLoaded = true;
@@ -434,6 +438,31 @@ namespace lucid::scene
             // Handle sculpting
             if (bSculpting)
             {
+                if (GetMouseWheelDelta() > 0)
+                {
+                    if (IsKeyPressed(SDLK_LSHIFT))
+                    {
+                        SculptStrength += 0.1;
+                    }
+                    else
+                    {
+                        BrushSize += 1;
+                    }                    
+                }
+                else if (GetMouseWheelDelta() < 0)
+                {
+                    if (IsKeyPressed(SDLK_LSHIFT))
+                    {
+                        SculptStrength -= 0.1;
+                    }
+                    else
+                    {
+                        BrushSize -= 1;
+                    }
+                }
+
+                BrushSize = BrushSize < 1 ? 1 : BrushSize;
+                
                 // Button to submit the new terrain
                 if (ImGui::Button("Submit terrain"))
                 {
@@ -513,11 +542,11 @@ namespace lucid::scene
                     {
                         if (IsKeyPressed(SDLK_LSHIFT))
                         {
-                            SculptDelta = -0.1;
+                            SculptDelta = -SculptStrength;
                         }
                         else
                         {
-                            SculptDelta = 0.1;
+                            SculptDelta = SculptStrength;
                         }
                     }
                 }
@@ -534,12 +563,10 @@ namespace lucid::scene
                     int OffsetX = (RayProjectedToGrid.x / TerrainSettings.GridSize.x) * TerrainSettings.Resolution.x;
                     int OffsetZ = (RayProjectedToGrid.y / TerrainSettings.GridSize.y) * TerrainSettings.Resolution.y;
 
-                    ImGui::Text("[%d, %d]", OffsetX, OffsetZ);
-
                     // @TODO brush size
-                    for (int z = -4; z <= 4; ++z)
+                    for (int z = -BrushSize; z <= BrushSize; ++z)
                     {
-                        for (int x = -4; x <= 4; ++x)
+                        for (int x = -BrushSize; x <= BrushSize; ++x)
                         {
                             const int TerrainIndex = ((TerrainSettings.Resolution.x + 1) * (OffsetZ + z)) + OffsetX + x;
                             if (TerrainIndex < 0 || TerrainIndex > ((TerrainSettings.Resolution.x + 1) * (TerrainSettings.Resolution.y + 1) - 1))
@@ -610,6 +637,19 @@ namespace lucid::scene
 
                 OriginalTerrainVBO = TerrainMesh->SubMeshes[0]->VAO->GetVertexBuffer();
                 TerrainSculptData  = (FTerrainVertex*)TerrainMesh->SubMeshes[0]->VertexDataBuffer.Pointer;
+            }
+
+            if (ImGui::CollapsingHeader("Material"))
+            {
+
+                if (TerrainMaterial)
+                {
+                    ImGuiShowMaterialEditor(TerrainMaterial, &bMaterialEditorOpen);
+                    if (!bMaterialEditorOpen)
+                    {
+                        bMaterialEditorOpen = true;
+                    }
+                }
             }
         }
     }

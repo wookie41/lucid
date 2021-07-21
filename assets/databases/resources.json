@@ -354,6 +354,53 @@
             "Name": "Terrain",
             "Path": "assets/meshes/Terrain_16c76e2c-a341-418b-a474-2cf3ea42c111.asset",
             "Type": 1
+        },
+        {
+            "Id": "4e009e76-ceb9-40b0-b46b-134a5650134b",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_f88d8bad-fbaa-4997-9b36-ece23a5dcbfc.asset",
+            "Type": 1
+        },
+        {
+            "Id": "e21c9367-108e-4f6b-bdde-a3b5dab06273",
+            "Name": "Grass_Gry",
+            "Path": "assets/textures/Grass_Gry.asset"
+        },
+        {
+            "Id": "5880b6b3-cccb-4169-891c-927d3c614394",
+            "Name": "GrassNormal",
+            "Path": "assets/textures/GrassNormal.asset"
+        },
+        {
+            "Id": "9e24c5d9-2ba1-4751-9973-7ba65a256e56",
+            "Name": "Dirt",
+            "Path": "assets/textures/Dirt.asset"
+        },
+        {
+            "Id": "5941e9b9-141c-4899-81e6-24b6c9103a9c",
+            "Name": "DirtNormal",
+            "Path": "assets/textures/DirtNormal.asset"
+        },
+        {
+            "Id": "77213222-3427-4bc0-a7e1-0b7fdaf94402",
+            "Name": "Snow",
+            "Path": "assets/textures/Snow.asset"
+        },
+        {
+            "Id": "57af414d-db33-439e-949a-5331f4c0e551",
+            "Name": "SnowNormal",
+            "Path": "assets/textures/SnowNormal.asset"
+        },
+        {
+            "Id": "55e6df20-7612-46d2-bfab-76cdba624361",
+            "Name": "GrassNormal",
+            "Path": "assets/textures/GrassNormal.asset"
+        },
+        {
+            "Id": "e6ff8dab-2d89-4bbc-b4fd-3f3a82362232",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_87e52de7-e6e2-459f-b0f9-2b64aee92c58.asset",
+            "Type": 1
         }
     ]
 }

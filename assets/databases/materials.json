@@ -242,23 +242,8 @@
             "MaterialType": 3
         },
         {
-            "Id": "edf993c3-a9e7-4f01-95c6-1c9e742cef46",
-            "MaterialPath": "assets/materials/TerrainMaterial_edf993c3-a9e7-4f01-95c6-1c9e742cef46.asset",
-            "MaterialType": 4
-        },
-        {
-            "Id": "04d8577b-cdcf-4d53-b96c-12718448586e",
-            "MaterialPath": "assets/materials/TerrainMaterial_edf993c3-a9e7-4f01-95c6-1c9e742cef46_04d8577b-cdcf-4d53-b96c-12718448586e.asset",
-            "MaterialType": 4
-        },
-        {
-            "Id": "c45720eb-55dc-499d-80c0-5de35a15872a",
-            "MaterialPath": "assets/materials/TerrainMaterial_c45720eb-55dc-499d-80c0-5de35a15872a.asset",
-            "MaterialType": 4
-        },
-        {
-            "Id": "04b30216-5d15-45c9-86dd-6ac43fad5975",
-            "MaterialPath": "assets/materials/TerrainMaterial_04b30216-5d15-45c9-86dd-6ac43fad5975.asset",
+            "Id": "ac97150b-dd8f-4526-ae78-802571470adf",
+            "MaterialPath": "assets/materials/TerrainMaterial_af6694b1-c4cb-4e5f-bae5-847abcaa3f79_ac97150b-dd8f-4526-ae78-802571470adf.asset",
             "MaterialType": 4
         }
     ]

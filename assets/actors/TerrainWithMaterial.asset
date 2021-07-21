@@ -1,0 +1,16 @@
+{
+    "Name": "TerrainWithMaterial",
+    "TerrainMeshResourceId": "e6ff8dab-2d89-4bbc-b4fd-3f3a82362232",
+    "TerrainMaterialId": "ac97150b-dd8f-4526-ae78-802571470adf",
+    "ResolutionX": 2002.0,
+    "ResolutionZ": 400.0,
+    "GridSizeX": 200.0,
+    "GridSizeZ": 200.0,
+    "Seed": -1,
+    "Octaves": 4,
+    "Frequency": 0.05000000074505806,
+    "Amplitude": 2.0,
+    "Lacunarity": 0.0,
+    "Persistence": 0.9800000190734863,
+    "MaxHeight": 65.0
+}

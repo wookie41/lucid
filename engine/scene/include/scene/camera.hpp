@@ -49,7 +49,7 @@ namespace lucid::scene
         void MoveToOverTime(const glm::vec3& InLocation, const float& InYaw, const float& InPitch, const float& InDuration);
 
         real NearPlane = 0.1;
-        real FarPlane  = 100.0;
+        real FarPlane  = 1000.0;
 
         real Left = 0, Right = 0;
         real Bottom = 0, Top = 0;

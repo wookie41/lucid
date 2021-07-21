@@ -1,0 +1,30 @@
+{
+    "Id": "ac97150b-dd8f-4526-ae78-802571470adf",
+    "Name": "TerrainMaterial_af6694b1-c4cb-4e5f-bae5-847abcaa3f79_ac97150b-dd8f-4526-ae78-802571470adf",
+    "ShaderName": "Terrain",
+    "TerrainLayers": [
+        {
+            "MaxHeight": 20.0,
+            "UVTiling": [
+                20.0,
+                20.0
+            ],
+            "DiffuseTextureID": "9e24c5d9-2ba1-4751-9973-7ba65a256e56",
+            "NormalTextureID": "5941e9b9-141c-4899-81e6-24b6c9103a9c"
+        },
+        {
+            "MaxHeight": 45.0,
+            "UVTiling": [
+                20.0,
+                20.0
+            ],
+            "DiffuseTextureID": "e21c9367-108e-4f6b-bdde-a3b5dab06273",
+            "NormalTextureID": "55e6df20-7612-46d2-bfab-76cdba624361"
+        },
+        {
+            "MaxHeight": 50.0,
+            "DiffuseTextureID": "77213222-3427-4bc0-a7e1-0b7fdaf94402",
+            "NormalTextureID": "57af414d-db33-439e-949a-5331f4c0e551"
+        }
+    ]
+}
