@@ -1548,10 +1548,10 @@ namespace lucid::scene
         DebugLinesVAO->Draw(0, DebugLines.size() * 2);
     }
 
-    void CForwardRenderer::UIDrawSettingsWindow()
+    bool CForwardRenderer::UIDrawSettingsWindow()
     {
         ImGui::SetNextWindowSize({ 0, 0 });
-        bool bOpen;
+        bool bOpen = true;
         ImGui::Begin("Renderer settings", &bOpen);
         {
             ImGui::DragFloat("Ambient strength", &AmbientStrength, 0.01, 0, 1);
@@ -1573,6 +1573,7 @@ namespace lucid::scene
             }
         }
         ImGui::End();
+        return bOpen;
     }
 
 #endif

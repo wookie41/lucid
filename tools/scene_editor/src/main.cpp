@@ -1727,6 +1727,9 @@ void UIDrawSettingsWindows()
 {
     if (GSceneEditorState.bShowingRendererSettinsWindow)
     {
-        GEngine.GetRenderer()->UIDrawSettingsWindow();
+        if(!GEngine.GetRenderer()->UIDrawSettingsWindow())
+        {
+            GSceneEditorState.bShowingRendererSettinsWindow = false;
+        }
     }
 }

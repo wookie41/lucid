@@ -195,7 +195,7 @@ namespace lucid::scene
         std::vector<FDebugLine> DebugLines;
 
       public:
-        virtual void UIDrawSettingsWindow() = 0;
+        virtual bool UIDrawSettingsWindow() = 0;
 
 #endif
 

@@ -206,6 +206,7 @@
                 12.685256004333496,
                 4.207292079925537
             ],
+            "bCastsShadow": true,
             "AttenuationRadius": 30.0
         },
         {
@@ -221,6 +222,7 @@
                 12.685256004333496,
                 4.207292079925537
             ],
+            "bCastsShadow": true,
             "AttenuationRadius": 30.0
         },
         {
@@ -236,6 +238,7 @@
                 12.685256004333496,
                 4.207292079925537
             ],
+            "bCastsShadow": true,
             "AttenuationRadius": 30.0
         }
     ]

@@ -361,11 +361,8 @@ namespace lucid::scene
 
     void CTerrain::CleanupAfterRemove()
     {
-        if (TerrainMesh)
-        {
-            TerrainMesh->Release();
-        }
-
+        IActor::CleanupAfterRemove();
+        
         if (TerrainMaterial)
         {
             TerrainMaterial->UnloadResources();
@@ -462,6 +459,10 @@ namespace lucid::scene
                 }
 
                 BrushSize = BrushSize < 1 ? 1 : BrushSize;
+
+
+                ImGui::Text("Brush size: %d", BrushSize);
+                ImGui::Text("Brush strength: %f", SculptStrength);
                 
                 // Button to submit the new terrain
                 if (ImGui::Button("Submit terrain"))

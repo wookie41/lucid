@@ -397,9 +397,9 @@
             "Path": "assets/textures/GrassNormal.asset"
         },
         {
-            "Id": "e6ff8dab-2d89-4bbc-b4fd-3f3a82362232",
+            "Id": "f876e24f-18f2-4bc8-ad9a-056f101270ec",
             "Name": "Terrain",
-            "Path": "assets/meshes/Terrain_87e52de7-e6e2-459f-b0f9-2b64aee92c58.asset",
+            "Path": "assets/meshes/Terrain_18b3b318-d62f-44a3-8c13-3f1423307e44.asset",
             "Type": 1
         }
     ]
