@@ -1,8 +1,9 @@
 {
-    "Id": "0e62ddb3-176e-45ec-b477-05cded4d5e51",
+    "Id": "e331b7c3-68af-489e-b390-eaa6da947f7f",
     "Name": "Sponza_flagpole",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "4ad11315-b2a4-4321-a1a7-9cc6580534e1",
+    "DiffuseTextureID": "e5d25a5e-c827-4f1e-baf3-8e1953232262",
+    "NormalTextureID": "1ed31d89-3f05-449f-a823-24d04b365ddd",
     "SpecularColor": [
         1.0,
         1.0,

@@ -1,8 +1,9 @@
 {
-    "Id": "364147fa-2a7d-4147-9aa7-a2cf03b45b9b",
+    "Id": "dacd23c2-4a37-4928-a553-7dedcaaabad3",
     "Name": "Sponza_chain",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "1124a9d2-6216-4fa4-b420-4d95a3222b26",
+    "DiffuseTextureID": "efbf5a85-b91a-405c-a7e7-fafb266f75e4",
+    "NormalTextureID": "23a85f23-c1f5-45d8-81a3-444806e4c1b4",
     "SpecularColor": [
         1.0,
         1.0,

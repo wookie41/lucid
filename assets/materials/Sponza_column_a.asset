@@ -1,8 +1,9 @@
 {
-    "Id": "4988d78f-5b76-4965-a8cb-0438c7dd9471",
+    "Id": "2fcd5377-200a-421a-972b-95ecd25c04ae",
     "Name": "Sponza_column_a",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "79361106-9166-43c9-90fc-c45d07c1ee45",
+    "DiffuseTextureID": "75f20088-f7ac-4d95-ab58-9b8d8c1d49ea",
+    "NormalTextureID": "608b2270-6bae-4807-a005-a10fa04cb8dc",
     "SpecularColor": [
         1.0,
         1.0,

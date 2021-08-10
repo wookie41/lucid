@@ -1,8 +1,9 @@
 {
-    "Id": "ecad6ba6-1e50-4741-b8ee-d4d033c348ff",
+    "Id": "35eb27af-5b85-4e65-bc43-b4a107a4a1d3",
     "Name": "Sponza_bricks",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "1475d51f-9df5-4b36-b46f-d27305dc10e6",
+    "DiffuseTextureID": "3df0e8a7-b320-4c3c-8b5d-5bdf5cfe5b0f",
+    "NormalTextureID": "bd5d5787-1d67-4b4d-bab8-c058b30651c6",
     "SpecularColor": [
         1.0,
         1.0,

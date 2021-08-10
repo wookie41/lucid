@@ -21,11 +21,6 @@
             "ActorType": 2
         },
         {
-            "ActorId": "55a0d22d-2eaa-438e-bf49-b111bb076962",
-            "ActorPath": "assets/actors/Sponza.asset",
-            "ActorType": 1
-        },
-        {
             "ActorId": "001f7432-2627-44d4-97d9-e78aea60560a",
             "ActorPath": "assets/actors/Cyborg.asset",
             "ActorType": 1
@@ -44,6 +39,11 @@
             "ActorId": "84423a3f-a787-4b64-8eca-4a3c60c862ba",
             "ActorPath": "assets/actors/TerrainWithMaterial.asset",
             "ActorType": 4
+        },
+        {
+            "ActorId": "dae52ac9-a99c-4402-a998-0e2253a5051f",
+            "ActorPath": "assets/actors/Sponza.asset",
+            "ActorType": 1
         }
     ]
 }

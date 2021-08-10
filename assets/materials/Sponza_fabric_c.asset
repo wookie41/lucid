@@ -1,8 +1,9 @@
 {
-    "Id": "00cdcb0a-a2c7-44de-9c30-a2e5dad97572",
+    "Id": "222ca28b-bb4f-4ead-a0c1-889903f73084",
     "Name": "Sponza_fabric_c",
     "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "097a1e15-bb7f-450f-ad06-a60ce3f87f2a",
+    "DiffuseTextureID": "dbf7102f-4877-4a6a-89c5-8c12cf75798e",
+    "NormalTextureID": "8e551d2d-0361-4708-b114-423ebedaa746",
     "SpecularColor": [
         1.0,
         1.0,

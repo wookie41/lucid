@@ -16,11 +16,7 @@
 
 namespace lucid::scene
 {
-    CStaticMesh::CStaticMesh(const FDString&           InName,
-                             IActor*                   InParent,
-                             CWorld*                   InWorld,
-                             resources::CMeshResource* InMeshResource,
-                             const EStaticMeshType&    InType)
+    CStaticMesh::CStaticMesh(const FDString& InName, IActor* InParent, CWorld* InWorld, resources::CMeshResource* InMeshResource, const EStaticMeshType& InType)
     : IActor(InName, InParent, InWorld), MeshResource(InMeshResource), Type(InType)
     {
     }
@@ -363,9 +359,9 @@ namespace lucid::scene
         StaticMesh->Transform.Rotation    = Float4ToQuat(StaticMeshDescription->Rotation);
         StaticMesh->Transform.Scale       = Float3ToVec(StaticMeshDescription->Scale);
         StaticMesh->bVisible              = StaticMeshDescription->bVisible;
-        StaticMesh->SetReverseNormals(StaticMeshDescription->bReverseNormals);
-        StaticMesh->BaseActorAsset = BaseActorAsset;
-        StaticMesh->BaseStaticMesh = BaseStaticMesh;
+        StaticMesh->BaseActorAsset        = this;
+        StaticMesh->BaseStaticMesh        = this;
+        StaticMesh->bReverseNormals       = StaticMeshDescription->bReverseNormals;
 
         for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
         {

@@ -1,152 +1,6 @@
 {
     "StaticMeshes": [
         {
-            "Id": 1,
-            "Name": "Sponza",
-            "BaseActorResourceId": "55a0d22d-2eaa-438e-bf49-b111bb076962",
-            "Postion": [
-                2.0301742553710939,
-                5.14764404296875,
-                5.8733415603637699
-            ],
-            "Scale": [
-                0.02500000037252903,
-                0.02500000037252903,
-                0.02500000037252903
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "34afa877-5502-44c5-a75e-7bcd008aff7b"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "7e013fcc-d816-4272-bbf3-8a1349dea2a6"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "5f41e892-fb1d-4386-8621-001d732e5c63"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "ed118304-bd48-49fb-aaf6-615693082bbc"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "fe50af13-21c1-49c5-b516-f0c0706062dc"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "c2f39780-6708-41d8-bd6a-7ece17941862"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "ecad6ba6-1e50-4741-b8ee-d4d033c348ff"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "0735b93a-f3fd-43f2-8d22-171661154458"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "364147fa-2a7d-4147-9aa7-a2cf03b45b9b"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "4988d78f-5b76-4965-a8cb-0438c7dd9471"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "2269af70-0551-4e32-bd98-68c6786fb68f"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "2287e310-907f-4190-8877-507fcc948407"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "712f9949-6e01-4ad2-9a7c-c3084c00f547"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "7c618942-b096-4524-bd95-47158a6ae584"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "00cdcb0a-a2c7-44de-9c30-a2e5dad97572"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "5d9eb23c-51dc-404a-ac0c-c9dc486cb068"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "7c0adb5f-2a58-46c0-ae6d-ecf8afecb88a"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "f2d3024d-aa51-4d66-8deb-18563c931dbf"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "43961309-b1a6-4323-968a-183f1970904e"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "0e62ddb3-176e-45ec-b477-05cded4d5e51"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "607e9f30-31ef-4534-ab0e-9b1939498a46"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "9c4976e1-3f20-456b-aec0-83e0a3871a4a"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "7590105b-a49c-419b-86dc-092c7acfab9a"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "8ea1d5d4-693c-4948-99d4-0c6bbac87944"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "85668ca2-0f91-44fa-bd43-5c4b3306157f"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "f81c1067-c896-4b32-b4c8-610e0edd2fcb"
-                }
-            ]
-        },
-        {
-            "Id": 10,
-            "Name": "Cyborg",
-            "BaseActorResourceId": "001f7432-2627-44d4-97d9-e78aea60560a",
-            "Postion": [
-                -3.9765303134918215,
-                5.472792625427246,
-                2.247657537460327
-            ],
-            "Scale": [
-                1.75,
-                1.75,
-                1.75
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "2dad9dce-3385-41a9-bba6-57b114d691e4"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "effdef01-1074-4c6e-a26f-0b5916461fac"
-                }
-            ]
-        },
-        {
             "Id": 11,
             "Name": "Nanosuit",
             "BaseActorResourceId": "47e313d6-7b07-4207-ae14-0e7fad846573",
@@ -188,6 +42,152 @@
                 {
                     "bChanged": true,
                     "Value": "06ad013d-57a6-41b8-9b0d-3ddc24f07658"
+                }
+            ]
+        },
+        {
+            "Id": 10,
+            "Name": "Cyborg",
+            "BaseActorResourceId": "001f7432-2627-44d4-97d9-e78aea60560a",
+            "Postion": [
+                -3.9765303134918215,
+                5.261003494262695,
+                2.247657537460327
+            ],
+            "Scale": [
+                1.75,
+                1.75,
+                1.75
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "2dad9dce-3385-41a9-bba6-57b114d691e4"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "effdef01-1074-4c6e-a26f-0b5916461fac"
+                }
+            ]
+        },
+        {
+            "Id": 12,
+            "Name": "Sponza",
+            "BaseActorResourceId": "dae52ac9-a99c-4402-a998-0e2253a5051f",
+            "Postion": [
+                0.4052571952342987,
+                5.169904708862305,
+                6.207345008850098
+            ],
+            "Scale": [
+                0.02500000037252903,
+                0.02500000037252903,
+                0.02500000037252903
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "148cb343-2fd2-41ac-a271-a9beb6855d45"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "001f92d1-b51b-4549-b5ac-702b2a52a870"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "1185b233-5a30-46d2-bda4-05e832507138"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "a88a1db9-6bc4-49db-aaf8-6cffeaf8472a"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "05625ac4-8767-4675-9c1a-cfea7c9d2b09"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "a1a620e1-f0ca-4117-8a61-41f5f35cf6e7"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "35eb27af-5b85-4e65-bc43-b4a107a4a1d3"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "10686788-5495-49c5-bd13-e5d027d876ee"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "dacd23c2-4a37-4928-a553-7dedcaaabad3"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "2fcd5377-200a-421a-972b-95ecd25c04ae"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "4d4a4ba9-fc3e-493c-a1cf-419b1370daa5"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "55751321-6bc2-4586-8178-29c42fa44893"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "61496903-a569-4b29-9f43-174eaa14c031"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "db017a9a-d57c-41cc-afc0-9fceaaf3d18e"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "222ca28b-bb4f-4ead-a0c1-889903f73084"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "5e0db8cb-eb29-43cb-aaee-353680449d70"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "5376ab52-c40f-4db1-bac7-0df04a5415d3"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "76d0ed11-0ec1-43f4-9ebb-26c98a9f3676"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "a6942022-aa77-4bec-a210-72a665c97c07"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "e331b7c3-68af-489e-b390-eaa6da947f7f"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "1f6bee8d-0fa5-4006-9dcf-b1b010f6406a"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "c13dde67-7209-4570-911e-f661d196f9ef"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "a062bcb1-bcd3-4b83-a7d1-d2e68a5bc483"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "d596ddd8-3670-41f0-a9b5-58ce9fc90eeb"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "a72da743-1031-4ee1-b0f3-1b41ed046ccc"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "9674124a-d4a9-4ed3-97e9-96df95916c58"
                 }
             ]
         }
