@@ -725,7 +725,7 @@ void UIDrawResourceBrowserWindow()
                     if (ImGui::MenuItem("Texture"))
                     {
                         GSceneEditorState.FileDialog.SetTitle("Select a texture file");
-                        GSceneEditorState.FileDialog.SetTypeFilters({ ".png", ".jpg", ".jpeg" });
+                        GSceneEditorState.FileDialog.SetTypeFilters({ ".png", ".jpg", ".jpeg", ".tga" });
                         GSceneEditorState.OnFileSelected  = &ImportTexture;
                         GSceneEditorState.bShowFileDialog = true;
                         GSceneEditorState.FileDialog.ClearSelected();
@@ -1349,7 +1349,7 @@ void ImportTexture(const std::filesystem::path& SelectedFilePath)
     {
         GSceneEditorState.ImportingTextureType = EImportingTextureType::PNG;
     }
-    else if (EqualIgnoreCase(Extenstion, ".jpg"))
+    else if (EqualIgnoreCase(Extenstion, ".jpg") || EqualIgnoreCase(Extenstion, ".jpeg") || EqualIgnoreCase(Extenstion, ".tga"))
     {
         GSceneEditorState.ImportingTextureType = EImportingTextureType::JPG;
     }
