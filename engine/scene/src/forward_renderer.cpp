@@ -170,29 +170,25 @@ namespace lucid::scene
         ShadowMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
         ShadowMapGenerationPipelineState.IsDepthBufferReadOnly    = false;
 
-        PrepassPipelineState.ClearColorBufferColor = FColor{ 0 };
-        PrepassPipelineState.IsDepthTestEnabled    = true;
-        PrepassPipelineState.DepthTestFunction     = gpu::EDepthTestFunction::LEQUAL;
-        PrepassPipelineState.IsBlendingEnabled     = false;
-        PrepassPipelineState.IsCullingEnabled      = false;
-        // @TODO
-        // PrepassPipelineState.IsCullingEnabled = false;
-        // PrepassPipelineState.CullMode = gpu::ECullMode::BACK;
+        PrepassPipelineState.ClearColorBufferColor    = FColor{ 0 };
+        PrepassPipelineState.IsDepthTestEnabled       = true;
+        PrepassPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
+        PrepassPipelineState.IsBlendingEnabled        = false;
+        PrepassPipelineState.IsCullingEnabled         = false;
+        PrepassPipelineState.CullMode                 = gpu::ECullMode::BACK;
         PrepassPipelineState.IsSRGBFramebufferEnabled = false;
         PrepassPipelineState.IsDepthBufferReadOnly    = false;
 
-        LightpassPipelineState.ClearColorBufferColor = FColor{ 0 };
-        LightpassPipelineState.IsDepthTestEnabled    = true;
-        LightpassPipelineState.DepthTestFunction     = gpu::EDepthTestFunction::EQUAL;
-        LightpassPipelineState.IsBlendingEnabled     = true;
-        LightpassPipelineState.BlendFunctionSrc      = gpu::EBlendFunction::ONE;
-        LightpassPipelineState.BlendFunctionDst      = gpu::EBlendFunction::ONE;
-        LightpassPipelineState.BlendFunctionAlphaSrc = gpu::EBlendFunction::ONE;
-        LightpassPipelineState.BlendFunctionAlphaDst = gpu::EBlendFunction::ONE;
-        // @TODO
-        LightpassPipelineState.IsCullingEnabled = false;
-        // LightpassPipelineState.IsCullingEnabled = true;
-        // LightpassPipelineState.CullMode = gpu::ECullMode::BACK;
+        LightpassPipelineState.ClearColorBufferColor    = FColor{ 0 };
+        LightpassPipelineState.IsDepthTestEnabled       = true;
+        LightpassPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::EQUAL;
+        LightpassPipelineState.IsBlendingEnabled        = true;
+        LightpassPipelineState.BlendFunctionSrc         = gpu::EBlendFunction::ONE;
+        LightpassPipelineState.BlendFunctionDst         = gpu::EBlendFunction::ONE;
+        LightpassPipelineState.BlendFunctionAlphaSrc    = gpu::EBlendFunction::ONE;
+        LightpassPipelineState.BlendFunctionAlphaDst    = gpu::EBlendFunction::ONE;
+        LightpassPipelineState.IsCullingEnabled         = true;
+        LightpassPipelineState.CullMode                 = gpu::ECullMode::BACK;
         LightpassPipelineState.IsSRGBFramebufferEnabled = false;
         LightpassPipelineState.IsDepthBufferReadOnly    = true;
         LightpassPipelineState.Viewport.X               = 0;
@@ -597,6 +593,13 @@ namespace lucid::scene
 
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
 
+#if DEVELOPMENT
+        GRenderStats.NumDrawCalls = 0;
+        FrameTimer->StartTimer();
+#endif
+
+        ++GRenderStats.FrameNumber;
+        
         // Make sure we can use the persistent buffers
         const int    BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
         gpu::CFence* Fence     = PersistentBuffersFences[BufferIdx];
@@ -627,12 +630,6 @@ namespace lucid::scene
             }
             FreeMaterialBuffersEntries = EntriesStillInUse;
         }
-
-#if DEVELOPMENT
-        GRenderStats.NumDrawCalls = 0;
-        ++GRenderStats.FrameNumber;
-        FrameTimer->StartTimer();
-#endif
 
         SetupGlobalRenderData(InRenderView);
         CreateMeshBatches(InSceneToRender);
@@ -699,7 +696,7 @@ namespace lucid::scene
         if (TerrainFenceToCreate)
         {
             *TerrainFenceToCreate = gpu::CreateFence("TerrainSculptFence");
-            TerrainFenceToCreate = nullptr;
+            TerrainFenceToCreate  = nullptr;
         }
     }
 
@@ -1002,14 +999,14 @@ namespace lucid::scene
             // Check if we're currently sculpting this material
             if (Terrain->bSculpFlushed)
             {
-                TerrainFenceToCreate = &Terrain->SculptingVBOFences[Terrain->CurrentSculptingVBOIndex];
+                TerrainFenceToCreate   = &Terrain->SculptingVBOFences[Terrain->CurrentSculptingVBOIndex];
                 Terrain->bSculpFlushed = true;
             }
             else
             {
-                TerrainFenceToCreate = nullptr;   
+                TerrainFenceToCreate = nullptr;
             }
-            
+
             // Send material updates to GPU
             CMaterial* TerrainMaterial = Terrain->GetTerrainMaterial();
             if (!TerrainMaterial)
