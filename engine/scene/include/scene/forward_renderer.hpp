@@ -43,7 +43,7 @@ namespace lucid::scene
     {
         EMaterialType    MaterialType;
         std::vector<u32> Indices;
-        gpu::CFence* Fence; // when this fence is signaled, the buffers are re-written for FMaterialDataBuffer::FreeIndices so they can be recycled
+        gpu::CFence*     Fence; // when this fence is signaled, the buffers are re-written for FMaterialDataBuffer::FreeIndices so they can be recycled
     };
 
     struct FMaterialDataBuffer
@@ -84,15 +84,20 @@ namespace lucid::scene
         virtual ~CForwardRenderer() = default;
 
         /** Renderer properties, have to be set before the first Setup() call */
-        float AmbientStrength     = 0.1;
-        int   NumSamplesPCF       = 5;
-        int   NumFrameBuffers     = 2;
-        bool  bEnableSSAO         = true;
-        u8    NumSSAOSamples      = 64;
-        float SSAOBias            = 0.025;
-        float SSAORadius          = 0.5;
-        bool  bDrawGrid           = true;
-        bool  bEnableDepthPrepass = true;
+        float AmbientStrength = 0.1;
+        int   NumSamplesPCF   = 5;
+        int   NumFrameBuffers = 2;
+
+        struct FRendererSettings
+        {
+            bool  bEnableSSAO                     = true;
+            u8    NumSSAOSamples                  = 64;
+            float SSAOBias                        = 0.025;
+            float SSAORadius                      = 0.5;
+            bool  bDrawGrid                       = true;
+            bool  bEnableDepthPrepass             = true;
+            bool  bUseGeometryShaderForShadowMaps = true;
+        } RendererSettings;
 
       private:
         FMaterialDataBuffer CreateMaterialBuffer(CMaterial const* InMaterial, const u32& InMaterialBufferSize);
@@ -148,6 +153,7 @@ namespace lucid::scene
 
         gpu::CShader* ShadowMapShader;
         gpu::CShader* ShadowCubeMapShader;
+        gpu::CShader* ShadowCubeMapShaderNoGS;
         gpu::CShader* SkyboxShader;
         gpu::CShader* PrepassShader;
         gpu::CShader* SSAOShader;
@@ -255,7 +261,7 @@ namespace lucid::scene
         gpu::CGPUBuffer*   DebugLinesVertexBuffers[FRAME_DATA_BUFFERS_COUNT]{ nullptr };
 
         // @TODO add support for editing multiple terrains at the same time
-        gpu::CFence**      TerrainFenceToCreate = nullptr;
+        gpu::CFence** TerrainFenceToCreate = nullptr;
 #endif
     };
 

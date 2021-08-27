@@ -106,8 +106,8 @@ namespace lucid::gpu
         const GLenum GLPixelFormat = TO_GL_TEXTURE_PIXEL_FORMAT(InPixelFormat);
         const GLenum GLDataType    = TO_GL_TEXTURE_DATA_TYPE(InDataType);
 
-        GLuint GLTextureHandle = CreateGLTexture(
-          ETextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 }, GLDataType, GLDataFormat, GLPixelFormat, nullptr);
+        GLuint GLTextureHandle =
+          CreateGLTexture(ETextureType::TWO_DIMENSIONAL, MipMapLevel, glm::ivec3{ Width, Height, 0 }, GLDataType, GLDataFormat, GLPixelFormat, nullptr);
 
         auto* GLTexture = new CGLTexture(GLTextureHandle,
                                          GL_TEXTURE_2D,
@@ -135,8 +135,8 @@ namespace lucid::gpu
                            const ETextureDataType&    InDataType,
                            const ETextureDataFormat&  InTextureDataFormat,
                            const ETexturePixelFormat& InPixelFormat)
-    : CTexture(InName, InWidth, InHeight, InDataType, InTextureDataFormat, InPixelFormat), GLTextureHandle(InGLTextureID),
-      GLTextureTarget(InGLTextureTarget), GLPixelFormat(InGLPixelFormat), GLTextureDataType(InGLTextureDataType), SizeInBytes(InSizeInBytes)
+    : CTexture(InName, InWidth, InHeight, InDataType, InTextureDataFormat, InPixelFormat), GLTextureHandle(InGLTextureID), GLTextureTarget(InGLTextureTarget),
+      GLPixelFormat(InGLPixelFormat), GLTextureDataType(InGLTextureDataType), SizeInBytes(InSizeInBytes)
     {
     }
 
@@ -198,10 +198,7 @@ namespace lucid::gpu
         return GLBindlessHandle;
     }
 
-    bool CGLTexture::IsBindlessTextureResident() const
-    {
-        return bBindlessTextureResident;
-    }
+    bool CGLTexture::IsBindlessTextureResident() const { return bBindlessTextureResident; }
 
     void CGLTexture::MakeBindlessResident()
     {
@@ -219,7 +216,7 @@ namespace lucid::gpu
         if (bBindlessTextureResident)
         {
             bBindlessTextureResident = false;
-            glMakeTextureHandleNonResidentARB(GLBindlessHandle);            
+            glMakeTextureHandleNonResidentARB(GLBindlessHandle);
         }
     }
 
@@ -232,15 +229,9 @@ namespace lucid::gpu
 
     void CGLTexture::AttachAsDepth() { glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GLTextureTarget, GLTextureHandle, 0); }
 
-    void CGLTexture::AttachAsStencilDepth()
-    {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, GLTextureHandle, 0);
-    }
+    void CGLTexture::AttachAsStencilDepth() { glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, GLTextureHandle, 0); }
 
-    void CGLTexture::ImGuiDrawToImage(const ImVec2& InImageSize) const
-    {
-        ImGui::Image((ImTextureID)GLTextureHandle, InImageSize, { 0, 1 }, { 1, 0 });
-    }
+    void CGLTexture::ImGuiDrawToImage(const ImVec2& InImageSize) const { ImGui::Image((ImTextureID)GLTextureHandle, InImageSize, { 0, 1 }, { 1, 0 }); }
 
     bool CGLTexture::ImGuiImageButton(const ImVec2& InImageSize) const
     {
@@ -318,15 +309,20 @@ namespace lucid::gpu
 
     void CGLCubemap::AttachAsColor(const uint8_t& Index)
     {
-        assert(GGPUState->BoundTextures[gpu::GGPUInfo.ActiveTextureUnit] == this && GGPUState->Cubemap == this);
+        assert(GGPUState->Cubemap == this);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, glCubemapHandle, 0);
     }
 
-    void CGLCubemap::AttachAsColor(const uint8_t& Index, EFace InFace)
+    void CGLCubemap::AttachAsColor(const uint8_t& Index, EFace InFace) const
     {
-        assert(GGPUState->BoundTextures[gpu::GGPUInfo.ActiveTextureUnit] == this && GGPUState->Cubemap == this);
-        glFramebufferTexture2D(
-          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<uint8_t>(InFace), glCubemapHandle, 0);
+        assert(GGPUState->Cubemap == this);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<uint8_t>(InFace), glCubemapHandle, 0);
+    }
+
+    void CGLCubemap::AttachAsDepth(const uint8_t& Index, EFace InFace) const
+    {
+        assert(GGPUState->Cubemap == this);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<uint8_t>(InFace), glCubemapHandle, 0);
     }
 
     u64 CGLCubemap::GetBindlessHandle()
@@ -348,17 +344,14 @@ namespace lucid::gpu
 
     void CGLCubemap::MakeBindlessNonResident()
     {
-        assert(0); // not implemented  
+        assert(0); // not implemented
     }
 
     void CGLCubemap::AttachAsStencil() { glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, glCubemapHandle, 0); }
 
     void CGLCubemap::AttachAsDepth() { glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, glCubemapHandle, 0); }
 
-    void CGLCubemap::AttachAsStencilDepth()
-    {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_CUBE_MAP, glCubemapHandle, 0);
-    }
+    void CGLCubemap::AttachAsStencilDepth() { glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_CUBE_MAP, glCubemapHandle, 0); }
 
     u64 CGLCubemap::GetSizeInBytes() const
     {

@@ -21,6 +21,7 @@
 #include "devices/gpu/timer.hpp"
 #include "devices/gpu/fence.hpp"
 #include "devices/gpu/pixelbuffer.hpp"
+#include "devices/gpu/cubemap.hpp"
 
 #include "scene/actors/lights.hpp"
 #include "scene/camera.hpp"
@@ -69,6 +70,9 @@ namespace lucid::scene
 
     static const FSString MESH_BATCH_OFFSET("uMeshBatchOffset");
 
+    static const FSString LIGHT_NEAR_PLANE{ "uLightNearPlane" };
+    static const FSString LIGHT_FAR_PLANE{ "uLightFarPlane" };
+    
     constexpr gpu::EImmutableBufferUsage COHERENT_WRITE_USAGE =
       (gpu::EImmutableBufferUsage)(gpu::EImmutableBufferUsage::IMM_BUFFER_WRITE | gpu::EImmutableBufferUsage::IMM_BUFFER_COHERENT);
 
@@ -127,8 +131,9 @@ namespace lucid::scene
                                     gpu::GGPUInfo.UniformBlockAlignment % sizeof(FGlobalRenderData)))
 
     CForwardRenderer::CForwardRenderer(const u32& InMaxNumOfDirectionalLights, const u8& InNumSSAOSamples)
-    : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights), NumSSAOSamples(InNumSSAOSamples)
+    : MaxNumOfDirectionalLights(InMaxNumOfDirectionalLights)
     {
+        RendererSettings.NumSSAOSamples = InNumSSAOSamples;
     }
 
     void CForwardRenderer::Setup()
@@ -143,15 +148,16 @@ namespace lucid::scene
             UnitCubeVAO = misc::CreateCubeVAO();
         }
 
-        ShadowMapShader       = GEngine.GetShadersManager().GetShaderByName("ShadowMap");
-        ShadowCubeMapShader   = GEngine.GetShadersManager().GetShaderByName("ShadowCubemap");
-        PrepassShader         = GEngine.GetShadersManager().GetShaderByName("ForwardPrepass");
-        SSAOShader            = GEngine.GetShadersManager().GetShaderByName("SSAO");
-        SimpleBlurShader      = GEngine.GetShadersManager().GetShaderByName("SimpleBlur");
-        SkyboxShader          = GEngine.GetShadersManager().GetShaderByName("Skybox");
-        BillboardShader       = GEngine.GetShadersManager().GetShaderByName("Billboard");
-        FlatShader            = GEngine.GetShadersManager().GetShaderByName("Flat");
-        GammaCorrectionShader = GEngine.GetShadersManager().GetShaderByName("GammaCorrection");
+        ShadowMapShader         = GEngine.GetShadersManager().GetShaderByName("ShadowMap");
+        ShadowCubeMapShader     = GEngine.GetShadersManager().GetShaderByName("ShadowCubemap");
+        ShadowCubeMapShaderNoGS = GEngine.GetShadersManager().GetShaderByName("ShadowCubemapNoGS");
+        PrepassShader           = GEngine.GetShadersManager().GetShaderByName("ForwardPrepass");
+        SSAOShader              = GEngine.GetShadersManager().GetShaderByName("SSAO");
+        SimpleBlurShader        = GEngine.GetShadersManager().GetShaderByName("SimpleBlur");
+        SkyboxShader            = GEngine.GetShadersManager().GetShaderByName("Skybox");
+        BillboardShader         = GEngine.GetShadersManager().GetShaderByName("Billboard");
+        FlatShader              = GEngine.GetShadersManager().GetShaderByName("Flat");
+        GammaCorrectionShader   = GEngine.GetShadersManager().GetShaderByName("GammaCorrection");
 
 #if DEVELOPMENT
         EditorHelpersShader    = GEngine.GetShadersManager().GetShaderByName("Hitmap");
@@ -352,7 +358,7 @@ namespace lucid::scene
         SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
 
         // Sample vectors
-        for (int i = 0; i < NumSSAOSamples; ++i)
+        for (int i = 0; i < RendererSettings.NumSSAOSamples; ++i)
         {
             glm::vec3 Sample = math::RandomVec3();
 
@@ -363,7 +369,7 @@ namespace lucid::scene
             Sample *= math::RandomFloat();
 
             // Use an accelerating interpolation function so there are more samples close to the fragment
-            float Scale = (float)i / (float)NumSSAOSamples;
+            float Scale = (float)i / (float)RendererSettings.NumSSAOSamples;
             Scale       = math::Lerp(0.1, 1.0f, Scale * Scale);
             Sample *= Scale;
 
@@ -388,7 +394,7 @@ namespace lucid::scene
         SSAONoise->SetWrapSFilter(gpu::EWrapTextureFilter::REPEAT);
         SSAONoise->SetWrapTFilter(gpu::EWrapTextureFilter::REPEAT);
         SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
-        SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
+        SSAOShader->SetFloat(SSAO_RADIUS, RendererSettings.SSAORadius);
 
         // Fame data buffers fences
         for (u8 i = 0; i < FRAME_DATA_BUFFERS_COUNT; ++i)
@@ -599,7 +605,7 @@ namespace lucid::scene
 #endif
 
         ++GRenderStats.FrameNumber;
-        
+
         // Make sure we can use the persistent buffers
         const int    BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
         gpu::CFence* Fence     = PersistentBuffersFences[BufferIdx];
@@ -651,7 +657,7 @@ namespace lucid::scene
 #if DEVELOPMENT
         gpu::PushDebugGroup("Editor primitives");
 
-        if (bDrawGrid)
+        if (RendererSettings.bDrawGrid)
         {
             gpu::PushDebugGroup("World grid");
             RenderWorldGrid(InRenderView);
@@ -1079,7 +1085,6 @@ namespace lucid::scene
 
         u8 PrevShadowMapQuality = 255;
 
-        gpu::CShader* LastShadowMapShader = nullptr;
         for (int i = 0; i < InSceneToRender->AllLights.GetLength(); ++i)
         {
             CLight* Light = InSceneToRender->AllLights.GetByIndex(i);
@@ -1094,21 +1099,48 @@ namespace lucid::scene
             // @TODO This should happen only if light moves
             Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
 
-            gpu::CShader* CurrentShadowMapShader = Light->GetType() == ELightType::POINT ? ShadowCubeMapShader : ShadowMapShader;
-            if (CurrentShadowMapShader != LastShadowMapShader)
-            {
-                CurrentShadowMapShader->Use();
-                LastShadowMapShader = CurrentShadowMapShader;
-            }
-
-            Light->SetupShadowMapShader(CurrentShadowMapShader);
-
             // Check if we need to adjust the viewport based on light's shadow map quality
             if (Light->ShadowMap->GetQuality() != PrevShadowMapQuality)
             {
                 PrevShadowMapQuality = Light->ShadowMap->GetQuality();
                 gpu::SetViewport({ 0, 0, ShadowMapSizeByQuality[PrevShadowMapQuality].x, ShadowMapSizeByQuality[PrevShadowMapQuality].y });
             }
+
+            if (Light->GetType() == ELightType::POINT && !RendererSettings.bUseGeometryShaderForShadowMaps)
+            {
+                ShadowCubeMapShaderNoGS->Use();
+
+                CPointLight*   PointLight    = (CPointLight*)Light;
+                gpu::CCubemap* ShadowCubeMap = PointLight->ShadowMap->GetShadowCubeMapTexture();
+
+                ShadowCubeMap->Bind();
+
+                ShadowCubeMapShaderNoGS->SetVector("uLightPosition", PointLight->Transform.Translation);
+                ShadowCubeMapShaderNoGS->SetFloat(LIGHT_FAR_PLANE, PointLight->CachedFarPlane);
+
+                for (u8 Face = 0; Face < 6; ++Face)
+                {
+                    ShadowCubeMapShaderNoGS->SetMatrix("uLightSpaceMatrix", PointLight->LightSpaceMatrices[Face]);
+                    
+                    ShadowCubeMap->AttachAsDepth(0, static_cast<gpu::CCubemap::EFace>(Face));
+                    gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
+
+                    // Static geometry
+                    for (const FMeshBatch& MeshBatch : MeshBatches)
+                    {
+                        MeshBatch.MeshVertexArray->Bind();
+                        ShadowCubeMapShaderNoGS->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
+                        MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchSize);
+                    }
+                }
+
+                continue;
+            }
+
+            gpu::CShader* CurrentShadowMapShader = Light->GetType() == ELightType::POINT ? ShadowCubeMapShader : ShadowMapShader;
+
+            CurrentShadowMapShader->Use();
+            Light->SetupShadowMapShader(CurrentShadowMapShader);
 
             // Setup light's shadow map texture
             ShadowMapFramebuffer->SetupDepthAttachment(Light->ShadowMap->GetShadowMapTexture());
@@ -1130,7 +1162,7 @@ namespace lucid::scene
     {
         gpu::PushDebugGroup("Prepass");
 
-        if (bEnableDepthPrepass)
+        if (RendererSettings.bEnableDepthPrepass)
         {
             gpu::PushDebugGroup("Depth prepass");
 
@@ -1176,7 +1208,7 @@ namespace lucid::scene
 
             gpu::PopDebugGroup();
         }
-        if (bEnableDepthPrepass && bEnableSSAO)
+        if (RendererSettings.bEnableDepthPrepass && RendererSettings.bEnableSSAO)
         {
             gpu::PushDebugGroup("SSAO");
 
@@ -1192,8 +1224,8 @@ namespace lucid::scene
             SSAOShader->UseTexture(SSAO_NORMALS_VS, CurrentFrameVSNormalMap);
             SSAOShader->UseTexture(SSAO_NOISE, SSAONoise);
             SSAOShader->SetVector(SSAO_NOISE_SCALE, NoiseScale);
-            SSAOShader->SetFloat(SSAO_BIAS, SSAOBias);
-            SSAOShader->SetFloat(SSAO_RADIUS, SSAORadius);
+            SSAOShader->SetFloat(SSAO_BIAS, RendererSettings.SSAOBias);
+            SSAOShader->SetFloat(SSAO_RADIUS, RendererSettings.SSAORadius);
 
             ScreenWideQuadVAO->Bind();
             ScreenWideQuadVAO->Draw();
@@ -1229,7 +1261,7 @@ namespace lucid::scene
         LightingPassFramebuffer->SetupColorAttachment(0, ColorBuffer);
         LightingPassFramebuffer->SetupDrawBuffers();
 
-        if (bEnableDepthPrepass)
+        if (RendererSettings.bEnableDepthPrepass)
         {
             gpu::ClearBuffers(gpu::EGPUBuffer::COLOR);
         }
@@ -1310,7 +1342,7 @@ namespace lucid::scene
         GlobalRenderData->ViewPos                        = InRenderView->Camera->Position;
         GlobalRenderData->ParallaxHeightScale            = 0.1f;
         GlobalRenderData->ViewportSize                   = glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height };
-        GlobalRenderData->AmbientOcclusionBindlessHandle = bEnableSSAO ? SSAOBlurredBindlessHandle : BlankTextureBindlessHandle;
+        GlobalRenderData->AmbientOcclusionBindlessHandle = RendererSettings.bEnableSSAO ? SSAOBlurredBindlessHandle : BlankTextureBindlessHandle;
         GlobalRenderData->NearPlane                      = InRenderView->Camera->NearPlane;
         GlobalRenderData->FarPlane                       = InRenderView->Camera->FarPlane;
 
@@ -1553,11 +1585,12 @@ namespace lucid::scene
         {
             ImGui::DragFloat("Ambient strength", &AmbientStrength, 0.01, 0, 1);
             ImGui::DragInt("Num PCF samples", &NumSamplesPCF, 1, 0, 64);
-            ImGui::Checkbox("Enable SSAO", &bEnableSSAO);
-            ImGui::Checkbox("Draw grid", &bDrawGrid);
-            if (ImGui::Checkbox("Depth prepass", &bEnableDepthPrepass))
+            ImGui::Checkbox("Enable SSAO", &RendererSettings.bEnableSSAO);
+            ImGui::Checkbox("Draw grid", &RendererSettings.bDrawGrid);
+            ImGui::Checkbox("Use geometry shader for shadow mapping", &RendererSettings.bUseGeometryShaderForShadowMaps);
+            if (ImGui::Checkbox("Depth prepass", &RendererSettings.bEnableDepthPrepass))
             {
-                if (bEnableDepthPrepass)
+                if (RendererSettings.bEnableDepthPrepass)
                 {
                     LightpassPipelineState.DepthTestFunction     = gpu::EDepthTestFunction::EQUAL;
                     LightpassPipelineState.IsDepthBufferReadOnly = true;

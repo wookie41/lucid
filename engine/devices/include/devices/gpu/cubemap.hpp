@@ -19,6 +19,9 @@ namespace lucid::gpu
                  const ETextureDataFormat& InTextureDataFormat,
                  const ETexturePixelFormat& InTexturePixelFormat);
 
+
+        
+
         enum class EFace : u8
         {
             RIGHT,
@@ -29,7 +32,8 @@ namespace lucid::gpu
             FRONT
         };
 
-        virtual void AttachAsColor(const u8& Index, EFace InFace) = 0;
+        virtual void AttachAsColor(const u8& Index, EFace InFace) const = 0;
+        virtual void AttachAsDepth(const u8& Index, EFace InFace) const = 0;
 
 #if DEVELOPMENT
         virtual void ImGuiDrawToImage(const ImVec2& InImageSize) const;

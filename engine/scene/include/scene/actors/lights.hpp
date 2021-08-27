@@ -156,8 +156,8 @@ namespace lucid::scene
     class CPointLight : public CLight
     {
       public:
-        CPointLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
 
+        CPointLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {};
         virtual ELightType GetType() const override { return ELightType::POINT; }
 
         virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;

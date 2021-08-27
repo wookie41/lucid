@@ -27,7 +27,8 @@ namespace lucid::gpu
 
         virtual u64 GetSizeInBytes() const override;
 
-        virtual void AttachAsColor(const u8& Index, EFace InFace) override;
+        virtual void AttachAsColor(const u8& Index, EFace InFace) const override;
+        virtual void AttachAsDepth(const u8& Index, EFace InFace) const override;
 
         /** Bindless texture stuff */
         virtual u64  GetBindlessHandle() override;

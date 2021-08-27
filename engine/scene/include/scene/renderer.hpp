@@ -72,19 +72,19 @@ namespace lucid::scene
     class CShadowMap : public CRendererObject
     {
       public:
-        CShadowMap(const RID& InId, gpu::CTexture* InShadowMapTexture, const u8& InShadowMapQuality)
-        : CRendererObject(InId), ShadowMapTexture(InShadowMapTexture), ShadowMapQuality(InShadowMapQuality)
-        {
-        }
+        CShadowMap(const RID& InId, gpu::CTexture* InShadowMapTexture, const u8& InShadowMapQuality);
 
         inline gpu::CTexture* GetShadowMapTexture() const { return ShadowMapTexture; }
+        inline gpu::CCubemap* GetShadowCubeMapTexture() const { return ShadowCubeMapTexture; }
         inline u8             GetQuality() const { return ShadowMapQuality; }
 
         virtual void Free() override;
 
+
       private:
         u8             ShadowMapQuality;
-        gpu::CTexture* ShadowMapTexture;
+        gpu::CTexture* ShadowMapTexture = nullptr;
+        gpu::CCubemap* ShadowCubeMapTexture = nullptr;
     };
 
 #if DEVELOPMENT

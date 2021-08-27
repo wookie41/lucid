@@ -100,6 +100,13 @@ namespace lucid::scene
         return ShadowMap;
     }
 
+    CShadowMap::CShadowMap(const RID& InId, gpu::CTexture* InShadowMapTexture, const u8& InShadowMapQuality)
+    : CRendererObject(InId), ShadowMapTexture(InShadowMapTexture), ShadowMapQuality(InShadowMapQuality)
+    {
+        ShadowCubeMapTexture = dynamic_cast<gpu::CCubemap*>(InShadowMapTexture);
+        assert(ShadowCubeMapTexture);
+    }
+
     void CShadowMap::Free()
     {
         if (ShadowMapTexture)
@@ -153,19 +160,18 @@ namespace lucid::scene
         DebugArrow.BodyStart = InStart;
         DebugArrow.BodyEnd   = InStart + (InDirection * InLength);
 
-        constexpr glm::vec3 HeadRise { 0, 0.15, 0 };
-        
+        constexpr glm::vec3 HeadRise{ 0, 0.15, 0 };
+
         DebugArrow.HeadStart0 = DebugArrow.BodyEnd;
-        DebugArrow.HeadEnd0 = DebugArrow.HeadStart0 + (((-InDirection) + HeadRise) * InLength / 10.f);
+        DebugArrow.HeadEnd0   = DebugArrow.HeadStart0 + (((-InDirection) + HeadRise) * InLength / 10.f);
 
         DebugArrow.HeadStart1 = DebugArrow.BodyEnd;
-        DebugArrow.HeadEnd1 = DebugArrow.HeadStart1 + (((-InDirection) - HeadRise) * InLength / 10.f);
+        DebugArrow.HeadEnd1   = DebugArrow.HeadStart1 + (((-InDirection) - HeadRise) * InLength / 10.f);
 
         return DebugArrow;
     }
 
 #endif
-
 
     void DrawDebugSphere(const glm::vec3& InCenter, const float& InRadius, const glm::vec3& InColor)
     {
@@ -195,7 +201,7 @@ namespace lucid::scene
             const glm::vec3 AroundZEnd   = SphereCenter + glm::vec3{ NextPointOffsetCos, NextPointOffsetSin, 0 };
 
             GEngine.GetRenderer()->AddDebugLine(AroundZStart, AroundZEnd, InColor, InColor);
-        }}
-    
-    
+        }
+    }
+
 } // namespace lucid::scene

@@ -27,6 +27,11 @@
             "GeometryShaderSourcePath": "shaders/glsl/shadow_cubemap.geom"
         },
         {
+            "Name": "ShadowCubemapNoGS",
+            "VertexShaderSourcePath": "shaders/glsl/shadow_cubemap_no_gs.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/shadow_cubemap.frag"
+        },
+        {
             "Name": "Flat",
             "VertexShaderSourcePath": "shaders/glsl/flat.vert",
             "FragmentShaderSourcePath": "shaders/glsl/flat.frag"
