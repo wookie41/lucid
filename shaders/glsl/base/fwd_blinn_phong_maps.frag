@@ -74,6 +74,10 @@ void main()
         lightCntrb   = CalculateSpotLightContribution(fsIn.FragPos, toViewN, normal, MATERIAL_DATA.Shininess);
     }
 
-    vec3 fragColor = (diffuseColor * lightCntrb.Diffuse) + specularColor * lightCntrb.Specular;
-    oFragColor     = vec4((ambient * lightCntrb.Attenuation) + (fragColor * shadowFactor), 1);
+    vec3 fragColor = (diffuseColor * lightCntrb.Diffuse) + (specularColor * lightCntrb.Specular);
+    
+    fragColor *= lightCntrb.Attenuation * uLightIntensity * shadowFactor;
+    ambient *= lightCntrb.Diffuse;
+    
+    oFragColor     = vec4(ambient + fragColor, 1);
 }

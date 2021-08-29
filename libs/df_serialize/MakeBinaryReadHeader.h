@@ -363,3 +363,25 @@ bool BinaryRead(lucid::scene::EMaterialType& value, const TDYNAMICARRAY<char>& d
     }
     return false;
 }
+
+bool BinaryRead(lucid::scene::ELightUnit value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    int8_t int_value;
+    if(BinaryRead(int_value, data, offset))
+    {
+        value = static_cast<lucid::scene::ELightUnit>(int_value);
+        return true;
+    }
+    return false;
+}
+
+bool BinaryRead(lucid::scene::ELightSourceType value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    int8_t int_value;
+    if(BinaryRead(int_value, data, offset))
+    {
+        value = static_cast<lucid::scene::ELightSourceType>(int_value);
+        return true;
+    }
+    return false;
+}

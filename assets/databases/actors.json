@@ -36,14 +36,14 @@
             "ActorType": 1
         },
         {
-            "ActorId": "84423a3f-a787-4b64-8eca-4a3c60c862ba",
-            "ActorPath": "assets/actors/TerrainWithMaterial.asset",
-            "ActorType": 4
-        },
-        {
             "ActorId": "dae52ac9-a99c-4402-a998-0e2253a5051f",
             "ActorPath": "assets/actors/Sponza.asset",
             "ActorType": 1
+        },
+        {
+            "ActorId": "b19ac670-2657-46f5-816a-6cf2dd49ed70",
+            "ActorPath": "assets/actors/GenTerrain.asset",
+            "ActorType": 4
         }
     ]
 }

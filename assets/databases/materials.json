@@ -245,6 +245,56 @@
             "Id": "9674124a-d4a9-4ed3-97e9-96df95916c58",
             "MaterialPath": "assets/materials/Sponza_vase_round.asset",
             "MaterialType": 3
+        },
+        {
+            "Id": "c66c0a4b-9af2-47fa-a679-c28906a38533",
+            "MaterialPath": "assets/materials/TerrainMaterial_c66c0a4b-9af2-47fa-a679-c28906a38533.asset",
+            "MaterialType": 4
+        },
+        {
+            "Id": "c9e769e2-2a97-4a15-a175-7758b3139c19",
+            "MaterialPath": "assets/materials/TerrainMaterial_c9e769e2-2a97-4a15-a175-7758b3139c19.asset",
+            "MaterialType": 4
+        },
+        {
+            "Id": "0423146c-2da6-4171-8e81-5969a10332dc",
+            "MaterialPath": "assets/materials/TerrainMaterial_0423146c-2da6-4171-8e81-5969a10332dc.asset",
+            "MaterialType": 4
+        },
+        {
+            "Id": "f385f8a8-6eff-4ed8-992a-04739b14d64a",
+            "MaterialPath": "assets/materials/TerrainMaterial_f385f8a8-6eff-4ed8-992a-04739b14d64a.asset",
+            "MaterialType": 4
+        },
+        {
+            "Id": "96e93a3c-53ce-4492-abfe-d5417e9f49df",
+            "MaterialPath": "assets/materials/TerrainMaterial_96e93a3c-53ce-4492-abfe-d5417e9f49df.asset",
+            "MaterialType": 4
+        },
+        {
+            "Id": "328a3d7e-3876-41b4-9a6e-d9fc741f5be6",
+            "MaterialPath": "assets/materials/TerrainMaterial_328a3d7e-3876-41b4-9a6e-d9fc741f5be6.asset",
+            "MaterialType": 4
+        },
+        {
+            "Id": "2347d5bd-2a20-49b1-b330-297923754809",
+            "MaterialPath": "assets/materials/TerrainMaterial_2347d5bd-2a20-49b1-b330-297923754809.asset",
+            "MaterialType": 4
+        },
+        {
+            "Id": "15432c14-b134-4186-98b2-44a97d6358bb",
+            "MaterialPath": "assets/materials/TerrainMaterial_2347d5bd-2a20-49b1-b330-297923754809_15432c14-b134-4186-98b2-44a97d6358bb.asset",
+            "MaterialType": 4
+        },
+        {
+            "Id": "4870b088-04ba-4bae-8021-259bee2b8a3f",
+            "MaterialPath": "assets/materials/TerrainMaterial_4870b088-04ba-4bae-8021-259bee2b8a3f.asset",
+            "MaterialType": 4
+        },
+        {
+            "Id": "41d067a5-0526-4cfa-a484-b09af83223ca",
+            "MaterialPath": "assets/materials/TerrainMaterial_4870b088-04ba-4bae-8021-259bee2b8a3f_41d067a5-0526-4cfa-a484-b09af83223ca.asset",
+            "MaterialType": 4
         }
     ]
 }

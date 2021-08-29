@@ -203,6 +203,7 @@ namespace lucid::scene
             DirLight->Direction         = Float3ToVec(DirLightEntry.Direction);
             DirLight->LightUp           = Float3ToVec(DirLightEntry.LightUp);
             DirLight->bShouldCastShadow = DirLightEntry.bCastsShadow;
+            DirLight->Illuminance       = DirLightEntry.Illuminance;
 
             if (DirLightEntry.ParentId && !DirLight->Parent)
             {
@@ -214,11 +215,8 @@ namespace lucid::scene
 
         for (const FSpotLightEntry& SpotLightEntry : InWorldDescription.SpotLights)
         {
-            CSpotLight* SpotLight =
-              GEngine.GetRenderer()->CreateSpotLight(SpotLightEntry.Name,
-                                                     SpotLightEntry.ParentId ? World->GetActorById(SpotLightEntry.ParentId) : nullptr,
-                                                     World,
-                                                     SpotLightEntry.bCastsShadow);
+            CSpotLight* SpotLight = GEngine.GetRenderer()->CreateSpotLight(
+              SpotLightEntry.Name, SpotLightEntry.ParentId ? World->GetActorById(SpotLightEntry.ParentId) : nullptr, World, SpotLightEntry.bCastsShadow);
 
             SpotLight->ActorId = SpotLightEntry.Id;
 
@@ -233,6 +231,10 @@ namespace lucid::scene
             SpotLight->InnerCutOffRad    = SpotLightEntry.InnerCutOffRad;
             SpotLight->OuterCutOffRad    = SpotLightEntry.OuterCutOffRad;
             SpotLight->bShouldCastShadow = SpotLightEntry.bCastsShadow;
+            SpotLight->LightUnit         = SpotLightEntry.LightUnit;
+            SpotLight->LightSourceType   = SpotLightEntry.LightSourceType;
+            SpotLight->RadiantPower      = SpotLightEntry.RadiantPowery;
+            SpotLight->LuminousPower     = SpotLightEntry.LuminousPower;
 
             if (SpotLightEntry.ParentId && !SpotLight->Parent)
             {
@@ -244,11 +246,8 @@ namespace lucid::scene
 
         for (const FPointLightEntry& PointLightEntry : InWorldDescription.PointLights)
         {
-            CPointLight* PointLight =
-              GEngine.GetRenderer()->CreatePointLight(PointLightEntry.Name,
-                                                      PointLightEntry.ParentId ? World->GetActorById(PointLightEntry.ParentId) : nullptr,
-                                                      World,
-                                                      PointLightEntry.bCastsShadow);
+            CPointLight* PointLight = GEngine.GetRenderer()->CreatePointLight(
+              PointLightEntry.Name, PointLightEntry.ParentId ? World->GetActorById(PointLightEntry.ParentId) : nullptr, World, PointLightEntry.bCastsShadow);
 
             PointLight->ActorId = PointLightEntry.Id;
 
@@ -259,6 +258,10 @@ namespace lucid::scene
 
             PointLight->AttenuationRadius = PointLightEntry.AttenuationRadius;
             PointLight->bShouldCastShadow = PointLightEntry.bCastsShadow;
+            PointLight->LightUnit         = PointLightEntry.LightUnit;
+            PointLight->LightSourceType   = PointLightEntry.LightSourceType;
+            PointLight->RadiantPower      = PointLightEntry.RadiantPowery;
+            PointLight->LuminousPower     = PointLightEntry.LuminousPower;
 
             if (PointLightEntry.ParentId && !PointLight->Parent)
             {
@@ -332,11 +335,12 @@ namespace lucid::scene
             DirLightEntry.Color               = VecToFloat3(DirLight->Color);
             DirLightEntry.Quality             = DirLight->Quality;
             DirLightEntry.Name                = DirLight->Name;
-            DirLightEntry.Postion             = { 0, 0, 0 };
+            DirLightEntry.Postion             = VecToFloat3(DirLight->Transform.Translation);
             DirLightEntry.Rotation            = { 0, 0, 0 };
             DirLightEntry.Direction           = VecToFloat3(DirLight->Direction);
             DirLightEntry.LightUp             = VecToFloat3(DirLight->LightUp);
             DirLightEntry.bCastsShadow        = DirLight->ShadowMap != nullptr;
+            DirLightEntry.Illuminance         = DirLight->Illuminance;
 
             OutWorldDescription.DirectionalLights.push_back(DirLightEntry);
         }
@@ -358,6 +362,10 @@ namespace lucid::scene
             SpotLightEntry.InnerCutOffRad    = SpotLight->InnerCutOffRad;
             SpotLightEntry.OuterCutOffRad    = SpotLight->OuterCutOffRad;
             SpotLightEntry.bCastsShadow      = SpotLight->ShadowMap != nullptr;
+            SpotLightEntry.LightUnit         = SpotLight->LightUnit;
+            SpotLightEntry.LightSourceType   = SpotLight->LightSourceType;
+            SpotLightEntry.RadiantPowery     = SpotLight->RadiantPower;
+            SpotLightEntry.LuminousPower     = SpotLight->LuminousPower;
 
             OutWorldDescription.SpotLights.push_back(SpotLightEntry);
         }
@@ -375,6 +383,10 @@ namespace lucid::scene
             PointLightEntry.Postion           = VecToFloat3(PointLight->Transform.Translation);
             PointLightEntry.AttenuationRadius = PointLight->AttenuationRadius;
             PointLightEntry.bCastsShadow      = PointLight->ShadowMap != nullptr;
+            PointLightEntry.LightUnit         = PointLight->LightUnit;
+            PointLightEntry.LightSourceType   = PointLight->LightSourceType;
+            PointLightEntry.RadiantPowery     = PointLight->RadiantPower;
+            PointLightEntry.LuminousPower     = PointLight->LuminousPower;
 
             OutWorldDescription.PointLights.push_back(PointLightEntry);
         }

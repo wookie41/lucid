@@ -385,3 +385,29 @@ bool JSONRead(lucid::scene::EMaterialType& value, T& document)
     value = static_cast<lucid::scene::EMaterialType>(document.GetInt());
     return true;
 }
+
+template <typename T>
+bool JSONRead(lucid::scene::ELightSourceType& value, T& document)
+{
+    if (!document.IsInt())
+    {
+        DFS_LOG("Trying to read a string but it wasn't a string\n");
+        return false;
+    }
+
+    value = static_cast<lucid::scene::ELightSourceType>(document.GetInt());
+    return true;
+}
+
+template <typename T>
+bool JSONRead(lucid::scene::ELightUnit& value, T& document)
+{
+    if (!document.IsInt())
+    {
+        DFS_LOG("Trying to read a string but it wasn't a string\n");
+        return false;
+    }
+
+    value = static_cast<lucid::scene::ELightUnit>(document.GetInt());
+    return true;
+}

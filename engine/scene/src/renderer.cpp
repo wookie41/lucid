@@ -104,7 +104,6 @@ namespace lucid::scene
     : CRendererObject(InId), ShadowMapTexture(InShadowMapTexture), ShadowMapQuality(InShadowMapQuality)
     {
         ShadowCubeMapTexture = dynamic_cast<gpu::CCubemap*>(InShadowMapTexture);
-        assert(ShadowCubeMapTexture);
     }
 
     void CShadowMap::Free()

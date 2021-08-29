@@ -31,11 +31,90 @@ namespace lucid::scene
 
     static const FSString LIGHT_DIRECTION("uLightDirection");
     static const FSString ATTENUATION_RADIUS("uLightAttenuationRadius");
+    static const FSString INV_ATTENUATION_RADIUS_SQUARED("uLightInvAttenuationRadiusSquared");
+
     static const FSString LIGHT_INNER_CUT_OFF("uLightInnerCutOffCos");
     static const FSString LIGHT_OUTER_CUT_OFF("uLightOuterCutOffCos");
     static const FSString LIGHT_SHADOW_MAP("uLightShadowMap");
     static const FSString LIGHT_CASTS_SHADOWS("uLightCastsShadows");
     static const FSString LIGHT_SHADOW_CUBE("uLightShadowCube");
+    static const FSString LIGHT_INTENSITY("uLightIntensity");
+
+    static const float LightEfficiencyByLightSourceType[]{
+        3.5f, // Incandescent
+        9.f, // LED
+        12.5f // Fluorescent
+    };
+
+    void SetupLightIntensityBasedOnUnit(const ELightSourceType& LightSourceType,
+                                        const ELightUnit&       LightUnit,
+                                        const float&            LuminousPower,
+                                        const float&            RadiantPower,
+                                        gpu::CShader*           Shader)
+    {
+        float LightIntensity = 0;
+        switch (LightUnit)
+        {
+        case ELightUnit::WATTS:
+            LightIntensity = RadiantPower * 683.f * LightEfficiencyByLightSourceType[static_cast<u8>(LightSourceType)] / 4 * math::PI_F;
+            break;
+
+        case ELightUnit::LUMENS:
+            LightIntensity = LuminousPower / 4 * math::PI_F;
+            break;
+        default:
+            assert(0);
+        }
+
+        Shader->SetFloat(LIGHT_INTENSITY, LightIntensity);
+    }
+
+#if DEVELOPMENT
+    void UIDrawLightIntensityPanel(float* LuminousPower, float* RadiantPower, ELightUnit* LightUnitType, ELightSourceType* LightSourceType)
+    {
+
+        ImGui::Text("Light units");
+        if (ImGui::RadioButton("Lumens", *LightUnitType == ELightUnit::LUMENS))
+        {
+            *LightUnitType = ELightUnit::LUMENS;
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::RadioButton("Watts", *LightUnitType == ELightUnit::WATTS))
+        {
+            *LightUnitType = ELightUnit::WATTS;
+        }
+
+        if (*LightUnitType == ELightUnit::WATTS)
+        {
+            ImGui::Text("Light source type");
+
+            if (ImGui::RadioButton("Incandescent", *LightSourceType == ELightSourceType::INCANDESCENT))
+            {
+                *LightSourceType = ELightSourceType::INCANDESCENT;
+            }
+            ImGui::SameLine();
+
+            if (ImGui::RadioButton("LED", *LightSourceType == ELightSourceType::LED))
+            {
+                *LightSourceType = ELightSourceType::LED;
+            }
+            ImGui::SameLine();
+
+            if (ImGui::RadioButton("Fluorescent", *LightSourceType == ELightSourceType::FLUORESCENT))
+            {
+                *LightSourceType = ELightSourceType::FLUORESCENT;
+            }
+
+            ImGui::DragFloat("Radiant power (W)", RadiantPower, 1, 0, 10000);
+        }
+        else
+        {
+            ImGui::DragFloat("Luminous power (lm)", LuminousPower, 1, 0, 1000000);
+        }
+    }
+#endif
 
     void CLight::SetupShader(gpu::CShader* InShader) const
     {
@@ -66,18 +145,20 @@ namespace lucid::scene
             ImGui::DragFloat3("Light color", &Color.r, 0.01, 0, 1);
 
             bool bCastsShadow = ShadowMap != nullptr;
-            ImGui::Checkbox("Casts shadow", &bCastsShadow);
-            if (bCastsShadow)
+            if(ImGui::Checkbox("Casts shadow", &bCastsShadow))
             {
-                if (!ShadowMap)
+                if (bCastsShadow)
                 {
-                    ShadowMap = GEngine.GetRenderer()->CreateShadowMap(GetType());
+                    if (!ShadowMap)
+                    {
+                        ShadowMap = GEngine.GetRenderer()->CreateShadowMap(GetType());
+                    }
                 }
-            }
-            else if (ShadowMap)
-            {
-                ShadowMap->Free();
-                ShadowMap = nullptr;
+                else if (ShadowMap)
+                {
+                    ShadowMap->Free();
+                    ShadowMap = nullptr;
+                }                
             }
         }
     }
@@ -106,9 +187,12 @@ namespace lucid::scene
 
     void CDirectionalLight::UpdateLightSpaceMatrix(const LightSettings& LightSettings)
     {
+        const float ShadowMapWidth = -(float)ShadowMap->GetShadowMapTexture()->GetWidth();
+        const float ShadowMapHeight = -(float)ShadowMap->GetShadowMapTexture()->GetHeight();
+        
         const glm::mat4 ViewMatrix = glm::lookAt(Transform.Translation, Transform.Translation + Direction, LightUp);
         const glm::mat4 ProjectionMatrix =
-          glm::ortho(LightSettings.Left, LightSettings.Right, LightSettings.Bottom, LightSettings.Top, LightSettings.Near, LightSettings.Far);
+          glm::ortho(-ShadowMapWidth, ShadowMapWidth, -ShadowMapHeight, ShadowMapHeight, LightSettings.Near, FarPlane);
 
         LightSpaceMatrix = ProjectionMatrix * ViewMatrix;
     }
@@ -118,6 +202,7 @@ namespace lucid::scene
         CLight::SetupShader(InShader);
         InShader->SetVector(LIGHT_DIRECTION, Direction);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
+        InShader->SetFloat(LIGHT_INTENSITY, Illuminance);
 
         if (ShadowMap != nullptr)
         {
@@ -130,7 +215,10 @@ namespace lucid::scene
         }
     }
 
-    void CDirectionalLight::SetupShadowMapShader(gpu::CShader* InShader) { InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix); }
+    void CDirectionalLight::SetupShadowMapShader(gpu::CShader* InShader)
+    {
+        InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
+    }
 
 #if DEVELOPMENT
     void CDirectionalLight::UIDrawActorDetails()
@@ -139,6 +227,8 @@ namespace lucid::scene
         if (ImGui::CollapsingHeader("Directional light"))
         {
             ImGui::DragFloat3("Light up", &LightUp.x, 0.001, -1, 1);
+            ImGui::DragFloat("Illuminance (lux)", &Illuminance, 1);
+            ImGui::DragFloat("Far plane", &FarPlane, 1);
         }
 
         if (bRotationUpdated)
@@ -168,18 +258,22 @@ namespace lucid::scene
 
     IActor* CDirectionalLight::CreateActorCopy()
     {
-        auto* Copy      = new CDirectionalLight{ Name.GetCopy(), Parent, World };
-        Copy->Direction = Direction;
-        Copy->Color     = Color;
-        Copy->LightUp   = LightUp;
-        Copy->Quality   = Quality;
-        Copy->Transform = Transform;
-        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
+        auto* Copy              = new CDirectionalLight{ Name.GetCopy(), Parent, World };
+        Copy->Direction         = Direction;
+        Copy->Color             = Color;
+        Copy->LightUp           = LightUp;
+        Copy->Quality           = Quality;
+        Copy->Transform         = Transform;
         Copy->bShouldCastShadow = bShouldCastShadow;
+        Copy->Illuminance    = Illuminance;
+
         if (ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
         }
+
+        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
+
         World->AddDirectionalLight(Copy);
         return Copy;
     }
@@ -213,10 +307,9 @@ namespace lucid::scene
         const float ShadowMapWidth  = (float)ShadowMap->GetShadowMapTexture()->GetWidth();
         const float ShadowMapHeight = (float)ShadowMap->GetShadowMapTexture()->GetHeight();
 
-        const glm::mat4 ViewMatrix = glm::lookAt(Transform.Translation, Transform.Translation + Direction, LightUp);
-        const glm::mat4 ProjectionMatrix =
-          glm::perspective(OuterCutOffRad * 2, ShadowMapWidth / ShadowMapHeight, LightSettings.Near, LightSettings.Far);
-        LightSpaceMatrix = ProjectionMatrix * ViewMatrix;
+        const glm::mat4 ViewMatrix       = glm::lookAt(Transform.Translation, Transform.Translation + Direction, LightUp);
+        const glm::mat4 ProjectionMatrix = glm::perspective(OuterCutOffRad * 2, ShadowMapWidth / ShadowMapHeight, LightSettings.Near, LightSettings.Far);
+        LightSpaceMatrix                 = ProjectionMatrix * ViewMatrix;
     }
 
     void CSpotLight::SetupShader(gpu::CShader* InShader) const
@@ -224,9 +317,12 @@ namespace lucid::scene
         CLight::SetupShader(InShader);
         InShader->SetVector(LIGHT_DIRECTION, Direction);
         InShader->SetFloat(ATTENUATION_RADIUS, AttenuationRadius);
+        InShader->SetFloat(INV_ATTENUATION_RADIUS_SQUARED, powf(1.f / AttenuationRadius, 2.f));
         InShader->SetFloat(LIGHT_INNER_CUT_OFF, glm::cos(InnerCutOffRad));
         InShader->SetFloat(LIGHT_OUTER_CUT_OFF, glm::cos(OuterCutOffRad));
         InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
+
+        SetupLightIntensityBasedOnUnit(LightSourceType, LightUnit, LuminousPower, RadiantPower, InShader);
 
         if (ShadowMap)
         {
@@ -267,6 +363,8 @@ namespace lucid::scene
                     OuterCutOffRad = glm::radians(OuterCutOff);
                 }
             }
+
+            UIDrawLightIntensityPanel(&LuminousPower, &RadiantPower, &LightUnit, &LightSourceType);
         }
 
         if (bRotationUpdated)
@@ -309,12 +407,19 @@ namespace lucid::scene
         Copy->InnerCutOffRad    = InnerCutOffRad;
         Copy->OuterCutOffRad    = OuterCutOffRad;
         Copy->Transform         = Transform;
-        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
         Copy->bShouldCastShadow = bShouldCastShadow;
+        Copy->LightUnit         = LightUnit;
+        Copy->LightSourceType   = LightSourceType;
+        Copy->RadiantPower      = RadiantPower;
+        Copy->LuminousPower     = LuminousPower;
+
         if (ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::SPOT);
         }
+
+        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
+
         World->AddSpotLight(Copy);
         return Copy;
     }
@@ -371,6 +476,7 @@ namespace lucid::scene
     {
         CLight::SetupShader(InShader);
         InShader->SetFloat(ATTENUATION_RADIUS, AttenuationRadius);
+        InShader->SetFloat(INV_ATTENUATION_RADIUS_SQUARED, powf(1.f / AttenuationRadius, 2.f));
         InShader->SetFloat(LIGHT_NEAR_PLANE, CachedNearPlane);
         InShader->SetFloat(LIGHT_FAR_PLANE, CachedFarPlane);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_0, LightSpaceMatrices[0]);
@@ -389,6 +495,8 @@ namespace lucid::scene
         {
             InShader->SetBool(LIGHT_CASTS_SHADOWS, false);
         }
+
+        SetupLightIntensityBasedOnUnit(LightSourceType, LightUnit, LuminousPower, RadiantPower, InShader);
     }
 
     void CPointLight::SetupShadowMapShader(gpu::CShader* InShader)
@@ -408,16 +516,15 @@ namespace lucid::scene
     void CPointLight::UIDrawActorDetails()
     {
         CLight::UIDrawActorDetails();
-        if (ImGui::CollapsingHeader("Spot light"))
+        if (ImGui::CollapsingHeader("Point light"))
         {
             ImGui::DragFloat("Attenuation Radius", &AttenuationRadius, 1, 0, 10000);
+
+            UIDrawLightIntensityPanel(&LuminousPower, &RadiantPower, &LightUnit, &LightSourceType);
         }
     }
 
-    void CPointLight::OnSelectedPreFrameRender()
-    {
-        DrawDebugSphere(Transform.Translation, AttenuationRadius, Color);
-    }
+    void CPointLight::OnSelectedPreFrameRender() { DrawDebugSphere(Transform.Translation, AttenuationRadius, Color); }
 
 #endif
 
@@ -430,12 +537,18 @@ namespace lucid::scene
         Copy->CachedNearPlane   = CachedNearPlane;
         Copy->CachedFarPlane    = CachedFarPlane;
         Copy->Transform         = Transform;
-        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
         Copy->bShouldCastShadow = bShouldCastShadow;
+        Copy->LightUnit         = LightUnit;
+        Copy->LightSourceType   = LightSourceType;
+        Copy->RadiantPower      = RadiantPower;
+        Copy->LuminousPower     = LuminousPower;
+
         if (ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::POINT);
         }
+
+        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
         World->AddPointLight(Copy);
         return Copy;
     }

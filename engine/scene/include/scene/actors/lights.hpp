@@ -18,13 +18,6 @@ namespace lucid::scene
 {
     class CShadowMap;
 
-    enum class ELightType : u8
-    {
-        DIRECTIONAL = 1,
-        POINT,
-        SPOT
-    };
-
     class CLight : public IActor
     {
       public:
@@ -59,7 +52,6 @@ namespace lucid::scene
         {
             assert(0);
             return nullptr;
-            
         }
         void CleanupAfterRemove() override;
 
@@ -106,7 +98,8 @@ namespace lucid::scene
         glm::vec3 LightUp{ 0, 1, 0 };
         glm::mat4 LightSpaceMatrix{ 1 };
 
-        CShadowMap* ShadowMap = nullptr;
+        float Illuminance = 10;
+        float FarPlane = 10000;
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;
@@ -139,9 +132,20 @@ namespace lucid::scene
         glm::mat4 LightSpaceMatrix{ 1 };
 
         float AttenuationRadius = 50;
-        
-        float InnerCutOffRad    = 0.523598776; // 30 deg
-        float OuterCutOffRad    = 0.785398163; // 45 deg
+
+        float InnerCutOffRad = 0.523598776; // 30 deg
+        float OuterCutOffRad = 0.785398163; // 45 deg
+
+        ELightSourceType LightSourceType = ELightSourceType::INCANDESCENT;
+
+        /** Light unit in which intensity of this light is specified */
+        ELightUnit LightUnit = ELightUnit::LUMENS;
+
+        /** Luminous power in lumens, default corresponds to a light bulb */
+        float LuminousPower = 620.f;
+
+        /** Radiant power in Watts, default corresponds to a light bulb */
+        float RadiantPower = 8.f;
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;
@@ -156,8 +160,7 @@ namespace lucid::scene
     class CPointLight : public CLight
     {
       public:
-
-        CPointLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {};
+        CPointLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld){};
         virtual ELightType GetType() const override { return ELightType::POINT; }
 
         virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
@@ -174,6 +177,17 @@ namespace lucid::scene
 
         float CachedNearPlane = 1.f;
         float CachedFarPlane  = 25.f;
+
+        ELightSourceType LightSourceType = ELightSourceType::INCANDESCENT;
+        
+        /** Light unit in which intensity of this light is specified */
+        ELightUnit LightUnit = ELightUnit::LUMENS;
+
+        /** Luminous power in lumens, default corresponds to a light bulb */
+        float LuminousPower = 620.f;
+
+        /** Radiant power in Watts, default corresponds to a light bulb */
+        float RadiantPower = 8.f;
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;

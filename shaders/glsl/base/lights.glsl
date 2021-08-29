@@ -9,6 +9,8 @@ uniform vec3    uLightPosition;
 uniform vec3    uLightDirection;
 
 uniform float   uLightAttenuationRadius;
+uniform float   uLightInvAttenuationRadiusSquared;
+uniform float   uLightIntensity;
 
 uniform float   uLightInnerCutOffCos;
 uniform float   uLightOuterCutOffCos;
@@ -27,31 +29,24 @@ struct LightContribution
     vec3 Specular;
 };
 
-LightContribution _CalculateDirectionalLightContribution(in vec3 ToViewN,
-                                           in vec3 Normal,
-                                           in vec3 LightDirN,
-                                           in int Shininess)
-{
-    float diffuseStrength = max(dot(Normal, -LightDirN), 0.0);
-    vec3 diffuse = diffuseStrength * uLightColor;
-
-    vec3 specular = vec3(0);
-    // Cut specular contribution on back-facing sides
-    if(dot(fsIn.InterpolatedNormal, -LightDirN) > 0)
-    {
-        vec3 halfWayN = normalize(ToViewN + (-LightDirN));
-        float specularStrength = pow(max(dot(Normal, halfWayN), 0.0), Shininess);
-        specular = specularStrength * uLightColor;
-    }
-
-    return LightContribution(1, diffuse, specular);
-}
-
 LightContribution CalculateDirectionalLightContribution(in vec3 ToViewN,
                                            in vec3 Normal,
                                            in int Shininess)
 {
-    return _CalculateDirectionalLightContribution(ToViewN, Normal, normalize(uLightDirection), Shininess);
+    vec3 ToLight =  -uLightDirection;
+    float NdotL = max(dot(Normal, ToLight), 0.0);
+    vec3 diffuse = NdotL * uLightColor;
+
+    vec3 specular = vec3(0);
+    // Cut specular contribution on back-facing sides
+    if(dot(fsIn.InterpolatedNormal, ToLight) > 0)
+    {
+        vec3 halfWayN = normalize(ToViewN + ToLight);
+        float specularStrength = pow(max(dot(Normal, halfWayN), 0.0), Shininess);
+        specular = specularStrength * uLightColor;
+    }
+    
+    return LightContribution(1, diffuse * uLightIntensity * NdotL , specular * uLightIntensity * NdotL);
 }
 
 LightContribution _CalculatePointLightContribution(in vec3 FragPos,
@@ -61,9 +56,27 @@ LightContribution _CalculatePointLightContribution(in vec3 FragPos,
                                      in int Shininess)
 {
     float distanceToLight = length(FragPos - uLightPosition);
-    LightContribution ctrb = _CalculateDirectionalLightContribution(ToViewN, Normal, LightDirN, Shininess);
-    float attenuation = 1.0 - (distanceToLight / uLightAttenuationRadius);
-    return LightContribution(attenuation, ctrb.Diffuse * attenuation, ctrb.Specular * attenuation);
+    float NdotL = max(dot(Normal, -LightDirN), 0.0);
+    
+    
+    LightContribution ctrb;
+    ctrb.Diffuse = NdotL * uLightColor;
+    ctrb.Specular = vec3(0);
+    
+    // Cut specular contribution on back-facing sides
+    if(dot(fsIn.InterpolatedNormal, -LightDirN) > 0)
+    {
+        vec3 halfWayN = normalize(ToViewN + (-LightDirN));
+        float specularStrength = pow(max(dot(Normal, halfWayN), 0.0), Shininess);
+        ctrb.Specular = specularStrength * uLightColor;
+    }
+
+    float distanceSquare = distanceToLight * distanceToLight;
+    float factor = distanceSquare * uLightInvAttenuationRadiusSquared;
+    float smoothFactor = max(1.0 - factor * factor, 0.0);
+    ctrb.Attenuation = (smoothFactor * smoothFactor) / max(distanceSquare, 1e-4);
+    
+    return ctrb;
 }
 
 
@@ -88,5 +101,5 @@ LightContribution CalculateSpotLightContribution(in vec3 FragPos,
     float intensity = clamp((theta - uLightOuterCutOffCos) / epsilon, 0.0, 1.0);
 
     LightContribution ctrb = _CalculatePointLightContribution(FragPos, ToViewN, Normal, normalize(-toLightN), Shininess);
-    return LightContribution(ctrb.Attenuation, ctrb.Diffuse * intensity, ctrb.Specular * intensity);
+    return LightContribution(ctrb.Attenuation * intensity, ctrb.Diffuse, ctrb.Specular);
 }

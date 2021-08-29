@@ -1,0 +1,16 @@
+{
+    "Id": "41d067a5-0526-4cfa-a484-b09af83223ca",
+    "Name": "TerrainMaterial_4870b088-04ba-4bae-8021-259bee2b8a3f_41d067a5-0526-4cfa-a484-b09af83223ca",
+    "ShaderName": "Terrain",
+    "TerrainLayers": [
+        {
+            "MaxHeight": 20.0,
+            "UVTiling": [
+                20.0,
+                22.0
+            ],
+            "DiffuseTextureID": "9e24c5d9-2ba1-4751-9973-7ba65a256e56",
+            "NormalTextureID": "5941e9b9-141c-4899-81e6-24b6c9103a9c"
+        }
+    ]
+}

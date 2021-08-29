@@ -7,6 +7,8 @@
 
 namespace lucid::math
 {
+    constexpr float PI_F = glm::pi<float>();
+    
     struct FRectangle
     {
         int X, Y;

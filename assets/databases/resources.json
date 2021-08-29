@@ -516,6 +516,54 @@
             "Name": "Sponza",
             "Path": "assets/meshes/Sponza.asset",
             "Type": 1
+        },
+        {
+            "Id": "346a94ee-e398-4deb-b4d5-398b2e5c4d80",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_5bef27d9-ffbf-4d27-96d2-b14f98495040.asset",
+            "Type": 1
+        },
+        {
+            "Id": "2389fabe-4f6c-40dd-8dc6-65db1f00c233",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_c027baab-a401-439f-9820-1760eea0ddaf.asset",
+            "Type": 1
+        },
+        {
+            "Id": "8769b938-4f55-4544-91ba-81d54fc0fc97",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_5c0227ea-3c06-4bd2-b32c-9a361fa6117d.asset",
+            "Type": 1
+        },
+        {
+            "Id": "3e725dc3-47d3-46b2-b389-5aa782f79430",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_24c597ca-6631-47c2-aad8-9bc2115082a6.asset",
+            "Type": 1
+        },
+        {
+            "Id": "0b3ec4b4-47c0-4d2b-81d5-8e6d04f3cb9a",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_317710e9-6238-46d9-a8c7-28987750dc09.asset",
+            "Type": 1
+        },
+        {
+            "Id": "4d009579-49f4-49e4-9d01-3ce897f8e48a",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_6bbf13b5-ce01-4fee-b31d-b36b2b8f5361.asset",
+            "Type": 1
+        },
+        {
+            "Id": "ffc1b4f2-2a35-4ff2-aaac-9d37e388a0ff",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_61abaef0-1f95-40f1-a064-fb0943ccfbdf.asset",
+            "Type": 1
+        },
+        {
+            "Id": "18178ed3-d17a-4c93-99ec-9f73c0bd65e0",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_f11f801d-279a-46ed-aa62-1d9ff20ee8c5.asset",
+            "Type": 1
         }
     ]
 }

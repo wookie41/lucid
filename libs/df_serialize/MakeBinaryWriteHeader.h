@@ -203,3 +203,13 @@ void BinaryWrite(const lucid::scene::EMaterialType& value, TDYNAMICARRAY<char>& 
 {
     BinaryWrite(static_cast<uint8_t>(value), output);
 }
+
+void BinaryWrite(const lucid::scene::ELightUnit& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(static_cast<uint8_t>(value), output);
+}
+
+void BinaryWrite(const lucid::scene::ELightSourceType& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(static_cast<uint8_t>(value), output);
+}
