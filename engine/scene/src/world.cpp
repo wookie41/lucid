@@ -204,6 +204,12 @@ namespace lucid::scene
             DirLight->LightUp           = Float3ToVec(DirLightEntry.LightUp);
             DirLight->bShouldCastShadow = DirLightEntry.bCastsShadow;
             DirLight->Illuminance       = DirLightEntry.Illuminance;
+            DirLight->Left              = DirLightEntry.Left;
+            DirLight->Right             = DirLightEntry.Right;
+            DirLight->Bottom            = DirLightEntry.Bottom;
+            DirLight->Top               = DirLightEntry.Top;
+            DirLight->NearPlane         = DirLightEntry.NearPlane;
+            DirLight->FarPlane          = DirLightEntry.FarPlane;
 
             if (DirLightEntry.ParentId && !DirLight->Parent)
             {
@@ -341,6 +347,12 @@ namespace lucid::scene
             DirLightEntry.LightUp             = VecToFloat3(DirLight->LightUp);
             DirLightEntry.bCastsShadow        = DirLight->ShadowMap != nullptr;
             DirLightEntry.Illuminance         = DirLight->Illuminance;
+            DirLightEntry.Left                = DirLight->Left;
+            DirLightEntry.Right               = DirLight->Right;
+            DirLightEntry.Bottom              = DirLight->Bottom;
+            DirLightEntry.Top                 = DirLight->Top;
+            DirLightEntry.NearPlane           = DirLight->NearPlane;
+            DirLightEntry.FarPlane            = DirLight->FarPlane;
 
             OutWorldDescription.DirectionalLights.push_back(DirLightEntry);
         }

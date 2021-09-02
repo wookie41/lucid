@@ -99,7 +99,13 @@ namespace lucid::scene
         glm::mat4 LightSpaceMatrix{ 1 };
 
         float Illuminance = 10;
-        float FarPlane = 10000;
+
+        float Left      = -10;
+        float Right     = 10;
+        float Bottom    = -10;
+        float Top       = 10;
+        float NearPlane = -10;
+        float FarPlane  = 10000;
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;
@@ -179,7 +185,7 @@ namespace lucid::scene
         float CachedFarPlane  = 25.f;
 
         ELightSourceType LightSourceType = ELightSourceType::INCANDESCENT;
-        
+
         /** Light unit in which intensity of this light is specified */
         ELightUnit LightUnit = ELightUnit::LUMENS;
 
