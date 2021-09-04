@@ -93,7 +93,7 @@ namespace lucid::scene
         ShadowMapTexture->SetWrapTFilter(lucid::gpu::EWrapTextureFilter::CLAMP_TO_BORDER);
         ShadowMapTexture->SetMinFilter(lucid::gpu::EMinTextureFilter::NEAREST);
         ShadowMapTexture->SetMagFilter(lucid::gpu::EMagTextureFilter::NEAREST);
-        ShadowMapTexture->SetBorderColor({ 0, 0, 0, 1 });
+        ShadowMapTexture->SetBorderColor({ 1, 1, 1, 1 });
 
         auto* ShadowMap = new CShadowMap(arrlen(CreatedShadowMaps), ShadowMapTexture, DefaultShadowMapQuality);
         arrput(CreatedShadowMaps, ShadowMap);

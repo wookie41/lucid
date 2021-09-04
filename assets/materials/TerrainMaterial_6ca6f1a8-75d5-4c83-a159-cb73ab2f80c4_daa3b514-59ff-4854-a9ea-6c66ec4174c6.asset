@@ -1,0 +1,30 @@
+{
+    "Id": "daa3b514-59ff-4854-a9ea-6c66ec4174c6",
+    "Name": "TerrainMaterial_6ca6f1a8-75d5-4c83-a159-cb73ab2f80c4_daa3b514-59ff-4854-a9ea-6c66ec4174c6",
+    "ShaderName": "Terrain",
+    "TerrainLayers": [
+        {
+            "MaxHeight": 20.0,
+            "UVTiling": [
+                20.0,
+                20.0
+            ],
+            "DiffuseTextureID": "e21c9367-108e-4f6b-bdde-a3b5dab06273"
+        },
+        {
+            "MaxHeight": 40.0,
+            "UVTiling": [
+                20.0,
+                20.0
+            ],
+            "DiffuseTextureID": "9e24c5d9-2ba1-4751-9973-7ba65a256e56"
+        },
+        {
+            "MaxHeight": 100.0,
+            "UVTiling": [
+                20.0,
+                20.0
+            ]
+        }
+    ]
+}

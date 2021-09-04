@@ -415,7 +415,6 @@ namespace lucid::scene
             TerrainEntry.Postion             = VecToFloat3(Terrain->Transform.Translation);
             TerrainEntry.Rotation            = QuatToFloat4(Terrain->Transform.Rotation);
             TerrainEntry.Scale               = VecToFloat3(Terrain->Transform.Scale);
-
             OutWorldDescription.Terrains.push_back(TerrainEntry);
         }
     }

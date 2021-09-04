@@ -301,20 +301,25 @@
             ]
         }
     ],
+    "Skybox": {
+        "Id": 26,
+        "Name": "Skybox",
+        "BaseActorResourceId": "2802c388-b5a0-4c84-aa87-2eb3545ed03f"
+    },
     "DirectionalLights": [
         {
             "Id": 23,
             "Name": "DirectionalLight",
             "Postion": [
                 -6.043875217437744,
-                23.249353408813478,
-                -49.19540786743164
+                69.87437438964844,
+                -145.8278045654297
             ],
             "bCastsShadow": true,
             "Direction": [
                 0.0,
-                -0.363472580909729,
-                0.9316049218177795
+                -0.8310559988021851,
+                0.5561887621879578
             ],
             "Illuminance": 1.0,
             "Left": -20.0,
@@ -366,6 +371,17 @@
             ],
             "bCastsShadow": true,
             "AttenuationRadius": 50.0
+        }
+    ],
+    "Terrains": [
+        {
+            "Name": "Terrain",
+            "BaseActorResourceId": "9e5d1bc5-a749-4f3f-8362-772db2c9ddec",
+            "Postion": [
+                76.94441986083985,
+                -13.32132625579834,
+                0.0
+            ]
         }
     ]
 }

@@ -208,6 +208,11 @@ namespace lucid::gpu
             SetLineWidth(InPipelineState.LineWidth);
         }
 
+        if (GGPUState->PipelineState.FrontFace != InPipelineState.FrontFace)
+        {
+            SetFrontFace(InPipelineState.FrontFace);
+        }
+
         GGPUState->PipelineState = InPipelineState;
     }
 
@@ -257,5 +262,12 @@ namespace lucid::gpu
     void BindDefaultFramebuffer()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    static const GLenum GL_FRONT_FACE_MAPPING[] { GL_CW, GL_CCW };
+    
+    void SetFrontFace(const EFrontFace& FrontFace)
+    {
+        glFrontFace(GL_FRONT_FACE_MAPPING[static_cast<u8>(FrontFace)]);
     }
 } // namespace lucid::gpu

@@ -32,13 +32,14 @@ namespace lucid::scene
 
         i32 Seed = -1;
 
-        i32   Octaves     = 4;
-        float Frequency   = 0.005f;
-        float Amplitude   = 1.0f;
-        float Lacunarity  = 4.152f;
-        float Persistence = 0.122f;
-        float MinHeight   = 5.f;
-        float MaxHeight   = 5.f;
+        i32   Octaves                  = 4;
+        float Frequency                = 0.005f;
+        float Amplitude                = 1.0f;
+        float Lacunarity               = 4.152f;
+        float Persistence              = 0.122f;
+        float MinHeight                = 5.f;
+        float MaxHeight                = 5.f;
+        bool  bRegeneratingTerrainMesh = false;
     };
 
     struct FTerrainVertex
@@ -69,7 +70,7 @@ namespace lucid::scene
 
         float GetVerticalMidPoint() const override;
 
-        void FillDescription(FTerrainDescription& OutDescription) const;
+        void FillActorAssetDescription(FTerrainDescription& OutDescription) const;
 
         static CTerrain* CreateAsset(const FDString& InName, const FTerrainSettings& InTerrainSettings);
         virtual IActor*  CreateAssetFromActor(const FDString& InName) const override;

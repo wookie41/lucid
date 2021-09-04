@@ -43,7 +43,7 @@ namespace lucid::scene
 
     float CTerrain::GetVerticalMidPoint() const { return 0; }
 
-    void CTerrain::FillDescription(FTerrainDescription& OutDescription) const
+    void CTerrain::FillActorAssetDescription(FTerrainDescription& OutDescription) const
     {
         OutDescription.Name                  = Name;
         OutDescription.ResolutionX           = TerrainSettings.Resolution.x;
@@ -137,7 +137,7 @@ namespace lucid::scene
 
             // Normals
             const glm::vec3 Edge0 = VertexData[FaceVert0].Position - VertexData[FaceVert1].Position;
-            const glm::vec3 Edge1 = VertexData[FaceVert2].Position - VertexData[FaceVert1].Position;
+            const glm::vec3 Edge1 = VertexData[FaceVert1].Position - VertexData[FaceVert2].Position;
 
             const glm::vec3 Normal = glm::cross(Edge0, Edge1);
 
@@ -153,8 +153,8 @@ namespace lucid::scene
             {
                 // First triangle
                 {
-                    const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x;
-                    const u32 FaceVert1 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                    const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                    const u32 FaceVert1 = (z * (TerrainSettings.Resolution.x + 1)) + x;
                     const u32 FaceVert2 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
 
                     StoreIndicesAndUpdateNormals(FaceVert0, FaceVert1, FaceVert2);
@@ -162,9 +162,9 @@ namespace lucid::scene
 
                 // Second triangle
                 {
-                    const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                    const u32 FaceVert0 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
                     const u32 FaceVert1 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x + 1;
-                    const u32 FaceVert2 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
+                    const u32 FaceVert2 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
 
                     StoreIndicesAndUpdateNormals(FaceVert0, FaceVert1, FaceVert2);
                 }
@@ -210,8 +210,11 @@ namespace lucid::scene
 
         TerrainMesh->SaveSynchronously();
 
-        VertexDataBuffer.Free();
-        IndicesDataBuffer.Free();
+        if (!TerrainSettings.bRegeneratingTerrainMesh)
+        {
+            VertexDataBuffer.Free();
+            IndicesDataBuffer.Free();
+        }
 
         return TerrainMesh;
     }
@@ -240,22 +243,6 @@ namespace lucid::scene
     {
         auto* TerrainDescription = (FTerrainDescription const*)InActorDescription;
 
-        FTerrainSettings InTerrainSettings;
-
-        InTerrainSettings.Resolution.x = TerrainDescription->ResolutionX;
-        InTerrainSettings.Resolution.y = TerrainDescription->ResolutionZ;
-        InTerrainSettings.GridSize.x   = TerrainDescription->GridSizeX;
-        InTerrainSettings.GridSize.y   = TerrainDescription->GridSizeZ;
-        InTerrainSettings.bFlatMesh    = TerrainDescription->bFlat;
-        InTerrainSettings.Seed         = TerrainDescription->Seed;
-        InTerrainSettings.Octaves      = TerrainDescription->Octaves;
-        InTerrainSettings.Frequency    = TerrainDescription->Frequency;
-        InTerrainSettings.Amplitude    = TerrainDescription->Amplitude;
-        InTerrainSettings.Lacunarity   = TerrainDescription->Lacunarity;
-        InTerrainSettings.Persistence  = TerrainDescription->Persistence;
-        InTerrainSettings.MinHeight    = TerrainDescription->MinHeight;
-        InTerrainSettings.MaxHeight    = TerrainDescription->MaxHeight;
-
         resources::CMeshResource* TerrainMeshResource = nullptr;
         if (TerrainDescription->TerrainMeshResourceId == sole::INVALID_UUID)
         {
@@ -267,7 +254,7 @@ namespace lucid::scene
         }
 
         auto* TerrainActor =
-          new CTerrain{ TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, InTerrainSettings, TerrainMeshResource,
+          new CTerrain{ TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, TerrainSettings, TerrainMeshResource,
                         TerrainMaterial };
 
         AddAssetReference(TerrainActor);
@@ -362,7 +349,7 @@ namespace lucid::scene
     void CTerrain::CleanupAfterRemove()
     {
         IActor::CleanupAfterRemove();
-        
+
         if (TerrainMaterial)
         {
             TerrainMaterial->UnloadResources();
@@ -415,9 +402,12 @@ namespace lucid::scene
                 bRegenerateTerrain |= ImGui::InputFloat("Persistence", &NewTerrainSettings.Persistence);
                 bRegenerateTerrain |= ImGui::InputFloat("Min height", &NewTerrainSettings.MinHeight);
                 bRegenerateTerrain |= ImGui::InputFloat("Max height", &NewTerrainSettings.MaxHeight);
+                bRegenerateTerrain |= ImGui::Button("Regenerate");
 
                 if (bRegenerateTerrain)
                 {
+                    NewTerrainSettings.bRegeneratingTerrainMesh = true;
+
                     resources::CMeshResource* NewTerrainMesh = GenerateTerrainMesh(NewTerrainSettings);
                     GEngine.RemoveMeshResource(TerrainMesh);
 
@@ -444,7 +434,7 @@ namespace lucid::scene
                     else
                     {
                         BrushSize += 1;
-                    }                    
+                    }
                 }
                 else if (GetMouseWheelDelta() < 0)
                 {
@@ -460,10 +450,9 @@ namespace lucid::scene
 
                 BrushSize = BrushSize < 1 ? 1 : BrushSize;
 
-
                 ImGui::Text("Brush size: %d", BrushSize);
                 ImGui::Text("Brush strength: %f", SculptStrength);
-                
+
                 // Button to submit the new terrain
                 if (ImGui::Button("Submit terrain"))
                 {
@@ -474,13 +463,13 @@ namespace lucid::scene
                         {
                             // First triangle
                             {
-                                const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x;
-                                const u32 FaceVert1 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                                const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                                const u32 FaceVert1 = (z * (TerrainSettings.Resolution.x + 1)) + x;
                                 const u32 FaceVert2 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
 
                                 // Normals
                                 const glm::vec3 Edge0 = TerrainSculptData[FaceVert0].Position - TerrainSculptData[FaceVert1].Position;
-                                const glm::vec3 Edge1 = TerrainSculptData[FaceVert2].Position - TerrainSculptData[FaceVert1].Position;
+                                const glm::vec3 Edge1 = TerrainSculptData[FaceVert1].Position - TerrainSculptData[FaceVert2].Position;
 
                                 const glm::vec3 Normal = glm::cross(Edge0, Edge1);
 
@@ -491,13 +480,13 @@ namespace lucid::scene
 
                             // Second triangle
                             {
-                                const u32 FaceVert0 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
+                                const u32 FaceVert0 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
                                 const u32 FaceVert1 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x + 1;
-                                const u32 FaceVert2 = ((z + 1) * (TerrainSettings.Resolution.x + 1)) + x;
+                                const u32 FaceVert2 = (z * (TerrainSettings.Resolution.x + 1)) + x + 1;
 
                                 // Normals
                                 const glm::vec3 Edge0 = TerrainSculptData[FaceVert0].Position - TerrainSculptData[FaceVert1].Position;
-                                const glm::vec3 Edge1 = TerrainSculptData[FaceVert2].Position - TerrainSculptData[FaceVert1].Position;
+                                const glm::vec3 Edge1 = TerrainSculptData[FaceVert1].Position - TerrainSculptData[FaceVert2].Position;
 
                                 const glm::vec3 Normal = glm::cross(Edge0, Edge1);
 
@@ -658,7 +647,7 @@ namespace lucid::scene
     void CTerrain::InternalSaveAssetToFile(const FString& InFilePath)
     {
         FTerrainDescription TerrainDescription;
-        FillDescription(TerrainDescription);
+        FillActorAssetDescription(TerrainDescription);
         WriteToJSONFile(TerrainDescription, *InFilePath);
     }
 

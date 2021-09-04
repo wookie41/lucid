@@ -72,7 +72,7 @@ namespace lucid::scene
 
     static const FSString LIGHT_NEAR_PLANE{ "uLightNearPlane" };
     static const FSString LIGHT_FAR_PLANE{ "uLightFarPlane" };
-    
+
     constexpr gpu::EImmutableBufferUsage COHERENT_WRITE_USAGE =
       (gpu::EImmutableBufferUsage)(gpu::EImmutableBufferUsage::IMM_BUFFER_WRITE | gpu::EImmutableBufferUsage::IMM_BUFFER_COHERENT);
 
@@ -172,7 +172,8 @@ namespace lucid::scene
         ShadowMapGenerationPipelineState.IsDepthTestEnabled       = true;
         ShadowMapGenerationPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
         ShadowMapGenerationPipelineState.IsBlendingEnabled        = false;
-        ShadowMapGenerationPipelineState.IsCullingEnabled         = false;
+        ShadowMapGenerationPipelineState.IsCullingEnabled         = true;
+        ShadowMapGenerationPipelineState.CullMode                 = gpu::ECullMode::FRONT;
         ShadowMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
         ShadowMapGenerationPipelineState.IsDepthBufferReadOnly    = false;
 
@@ -180,7 +181,7 @@ namespace lucid::scene
         PrepassPipelineState.IsDepthTestEnabled       = true;
         PrepassPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
         PrepassPipelineState.IsBlendingEnabled        = false;
-        PrepassPipelineState.IsCullingEnabled         = false;
+        PrepassPipelineState.IsCullingEnabled         = true;
         PrepassPipelineState.CullMode                 = gpu::ECullMode::BACK;
         PrepassPipelineState.IsSRGBFramebufferEnabled = false;
         PrepassPipelineState.IsDepthBufferReadOnly    = false;
@@ -1121,7 +1122,7 @@ namespace lucid::scene
                 for (u8 Face = 0; Face < 6; ++Face)
                 {
                     ShadowCubeMapShaderNoGS->SetMatrix("uLightSpaceMatrix", PointLight->LightSpaceMatrices[Face]);
-                    
+
                     ShadowCubeMap->AttachAsDepth(0, static_cast<gpu::CCubemap::EFace>(Face));
                     gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
 

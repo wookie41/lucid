@@ -1,0 +1,13 @@
+{
+    "Name": "GeneratedTerrain",
+    "TerrainMeshResourceId": "4ac28e4a-ee2e-4977-9303-39d61bfc4380",
+    "TerrainMaterialId": "daa3b514-59ff-4854-a9ea-6c66ec4174c6",
+    "ResolutionX": 400.0,
+    "ResolutionZ": 400.0,
+    "GridSizeX": 800.0,
+    "GridSizeZ": 800.0,
+    "Amplitude": 0.4000000059604645,
+    "Lacunarity": 4.0,
+    "Persistence": 0.12300000339746475,
+    "MaxHeight": 50.0
+}

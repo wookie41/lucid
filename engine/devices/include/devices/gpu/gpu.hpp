@@ -90,10 +90,18 @@ namespace lucid::gpu
         FRONT_AND_BACK
     };
 
+    enum class EFrontFace : u8
+    {
+        CLOCK_WISE,
+        COUNTER_CLOCK_WISE
+    };
+
     void EnableCullFace();
     void DisableCullFace();
 
     void SetCullMode(ECullMode Mode);
+
+    void SetFrontFace(const EFrontFace& FrontFace);
 
     /////////////////////////////////////
     //              sRGB               //
@@ -101,7 +109,7 @@ namespace lucid::gpu
 
     void EnableSRGBFramebuffer();
     void DisableSRGBFramebuffer();
-    
+
     /////////////////////////////////////
     //            Rasterizer           //
     /////////////////////////////////////
@@ -139,8 +147,9 @@ namespace lucid::gpu
         EBlendFunction BlendFunctionAlphaSrc;
         EBlendFunction BlendFunctionAlphaDst;
 
-        bool      IsCullingEnabled = false;
-        ECullMode CullMode;
+        bool       IsCullingEnabled = false;
+        ECullMode  CullMode;
+        EFrontFace FrontFace = EFrontFace::COUNTER_CLOCK_WISE;
 
         bool IsSRGBFramebufferEnabled = false;
         bool IsDepthBufferReadOnly    = false;
@@ -153,10 +162,10 @@ namespace lucid::gpu
     struct FIndexedBufferBinding
     {
         CGPUBuffer* Buffer;
-        u32 Offset;
-        u32 Size;
+        u32         Offset;
+        u32         Size;
     };
-    
+
     struct FGPUState
     {
         CFramebuffer* Framebuffer      = nullptr;
@@ -169,16 +178,14 @@ namespace lucid::gpu
         CRenderbuffer* Renderbuffer  = nullptr;
         CVertexArray*  VAO           = nullptr;
 
-        CGPUBuffer* VertexBuffer        = nullptr;
-        CGPUBuffer* ElementBuffer       = nullptr;
-        CGPUBuffer* ReadBuffer          = nullptr;
-        CGPUBuffer* WriteBuffer         = nullptr;
-        CGPUBuffer* ShaderStorageBuffer = nullptr;
-        FIndexedBufferBinding IndexedBuffers[64] = { nullptr};
+        CGPUBuffer*           VertexBuffer        = nullptr;
+        CGPUBuffer*           ElementBuffer       = nullptr;
+        CGPUBuffer*           ReadBuffer          = nullptr;
+        CGPUBuffer*           WriteBuffer         = nullptr;
+        CGPUBuffer*           ShaderStorageBuffer = nullptr;
+        FIndexedBufferBinding IndexedBuffers[64]  = { nullptr };
 
         FPipelineState PipelineState;
-
-        
     };
 
     void ConfigurePipelineState(const FPipelineState& InPipelineState);

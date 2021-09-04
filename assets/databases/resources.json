@@ -68,13 +68,6 @@
             "Type": 1
         },
         {
-            "Id": "a4de1f51-6768-40a7-bf74-e025f59b05f4",
-            "Name": "Cube",
-            "Path": "assets/meshes/Cube.asset",
-            "Type": 1,
-            "bIsDefault": true
-        },
-        {
             "Id": "c149c93d-348c-439e-b140-98f6f13afe34",
             "Name": "BrickNormal",
             "Path": "assets/textures/BrickNormal.asset"
@@ -563,6 +556,42 @@
             "Id": "18178ed3-d17a-4c93-99ec-9f73c0bd65e0",
             "Name": "Terrain",
             "Path": "assets/meshes/Terrain_f11f801d-279a-46ed-aa62-1d9ff20ee8c5.asset",
+            "Type": 1
+        },
+        {
+            "Id": "233a741c-4b29-4268-8f27-11909b27f910",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_a4b9a7eb-6068-4f3e-8115-0fe5f70b182e.asset",
+            "Type": 1
+        },
+        {
+            "Id": "5f63a446-3e44-4b2c-89b5-39b089d49f26",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_cc418886-e993-4734-9687-8fd6ec9df236.asset",
+            "Type": 1
+        },
+        {
+            "Id": "684b6005-0193-4586-8d64-d77628996047",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_02600045-3a30-481e-9800-0422b347a567.asset",
+            "Type": 1
+        },
+        {
+            "Id": "103885da-f2c6-4707-af7e-dd1dac9d607f",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_01bd22fb-216f-4a20-a814-9f809aaf02ae.asset",
+            "Type": 1
+        },
+        {
+            "Id": "0f4ef439-3488-46ec-a1f4-a32a188a2ccb",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_ef95a8f8-6cf1-4a86-a4b2-efcfa3c744c6.asset",
+            "Type": 1
+        },
+        {
+            "Id": "4ac28e4a-ee2e-4977-9303-39d61bfc4380",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_32d8a865-9833-4757-ae3b-fd7040a577f8.asset",
             "Type": 1
         }
     ]
