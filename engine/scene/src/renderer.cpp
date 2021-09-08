@@ -25,7 +25,12 @@ namespace lucid::scene
 
         if (CastsShadow)
         {
-            DirectionalLight->ShadowMap = CreateShadowMap(ELightType::DIRECTIONAL);
+            for (u8 i = 0; i < DirectionalLight->CascadeCount; ++i)
+            {
+                DirectionalLight->CascadeShadowMaps[i] = CreateShadowMap(ELightType::DIRECTIONAL);
+                DirectionalLight->CascadeShadowMaps[i]->GetShadowMapTexture()->GetBindlessHandle();
+                DirectionalLight->CascadeShadowMaps[i]->GetShadowMapTexture()->MakeBindlessResident();
+            }
         }
 
         arrput(CreatedLights, DirectionalLight);

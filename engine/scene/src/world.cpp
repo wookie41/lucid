@@ -199,17 +199,17 @@ namespace lucid::scene
             DirLight->Transform.Translation = Float3ToVec(DirLightEntry.Postion);
             DirLight->Transform.Rotation    = Float4ToQuat(DirLightEntry.Rotation);
 
-            DirLight->Color             = Float3ToVec(DirLightEntry.Color);
-            DirLight->Direction         = Float3ToVec(DirLightEntry.Direction);
-            DirLight->LightUp           = Float3ToVec(DirLightEntry.LightUp);
-            DirLight->bShouldCastShadow = DirLightEntry.bCastsShadow;
-            DirLight->Illuminance       = DirLightEntry.Illuminance;
-            DirLight->Left              = DirLightEntry.Left;
-            DirLight->Right             = DirLightEntry.Right;
-            DirLight->Bottom            = DirLightEntry.Bottom;
-            DirLight->Top               = DirLightEntry.Top;
-            DirLight->NearPlane         = DirLightEntry.NearPlane;
-            DirLight->FarPlane          = DirLightEntry.FarPlane;
+            DirLight->Color        = Float3ToVec(DirLightEntry.Color);
+            DirLight->Direction    = Float3ToVec(DirLightEntry.Direction);
+            DirLight->LightUp      = Float3ToVec(DirLightEntry.LightUp);
+            DirLight->bCastsShadow = DirLightEntry.bCastsShadow;
+            DirLight->Illuminance  = DirLightEntry.Illuminance;
+            DirLight->Left         = DirLightEntry.Left;
+            DirLight->Right        = DirLightEntry.Right;
+            DirLight->Bottom       = DirLightEntry.Bottom;
+            DirLight->Top          = DirLightEntry.Top;
+            DirLight->NearPlane    = DirLightEntry.NearPlane;
+            DirLight->FarPlane     = DirLightEntry.FarPlane;
 
             if (DirLightEntry.ParentId && !DirLight->Parent)
             {
@@ -236,7 +236,7 @@ namespace lucid::scene
             SpotLight->AttenuationRadius = SpotLightEntry.AttenuationRadius;
             SpotLight->InnerCutOffRad    = SpotLightEntry.InnerCutOffRad;
             SpotLight->OuterCutOffRad    = SpotLightEntry.OuterCutOffRad;
-            SpotLight->bShouldCastShadow = SpotLightEntry.bCastsShadow;
+            SpotLight->bCastsShadow      = SpotLightEntry.bCastsShadow;
             SpotLight->LightUnit         = SpotLightEntry.LightUnit;
             SpotLight->LightSourceType   = SpotLightEntry.LightSourceType;
             SpotLight->RadiantPower      = SpotLightEntry.RadiantPowery;
@@ -263,7 +263,7 @@ namespace lucid::scene
             PointLight->Color = Float3ToVec(PointLightEntry.Color);
 
             PointLight->AttenuationRadius = PointLightEntry.AttenuationRadius;
-            PointLight->bShouldCastShadow = PointLightEntry.bCastsShadow;
+            PointLight->bCastsShadow      = PointLightEntry.bCastsShadow;
             PointLight->LightUnit         = PointLightEntry.LightUnit;
             PointLight->LightSourceType   = PointLightEntry.LightSourceType;
             PointLight->RadiantPower      = PointLightEntry.RadiantPowery;
@@ -345,7 +345,7 @@ namespace lucid::scene
             DirLightEntry.Rotation            = { 0, 0, 0 };
             DirLightEntry.Direction           = VecToFloat3(DirLight->Direction);
             DirLightEntry.LightUp             = VecToFloat3(DirLight->LightUp);
-            DirLightEntry.bCastsShadow        = DirLight->ShadowMap != nullptr;
+            DirLightEntry.bCastsShadow        = DirLight->bCastsShadow;
             DirLightEntry.Illuminance         = DirLight->Illuminance;
             DirLightEntry.Left                = DirLight->Left;
             DirLightEntry.Right               = DirLight->Right;

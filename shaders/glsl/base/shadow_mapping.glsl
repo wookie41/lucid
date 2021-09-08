@@ -5,29 +5,52 @@ float CalculateShadow(in vec3 FragPos, in vec3 NormalN, in vec3 LightDirN)
         return 1;
     }
 
-    vec4 lightSpaceFragPos = uLightMatrix * vec4(FragPos, 1.0);
-    vec3 clipSpaceCoords = lightSpaceFragPos.xyz / lightSpaceFragPos.w;
-    clipSpaceCoords = (clipSpaceCoords * 0.5) + 0.5;
+    sampler2D ShadowMap = uLightShadowMap;
+    vec4 lightSpaceFragPos = vec4(0);
+
+    if (uLightType == DIRECTIONAL_LIGHT)
+    {
+        float FragViewSpaceZ = (uView * vec4(FragPos, 1.0)).z;
+
+        int CascadeIndex = 0;
+        while (FragViewSpaceZ > uCascadeFarPlanes[CascadeIndex] && CascadeIndex < uCascadeCount)
+        {
+            CascadeIndex += 1;
+        }
+
+        lightSpaceFragPos = uCascadeMatrices[CascadeIndex] * vec4(FragPos, 1.0);
+        ShadowMap = uCascadeShadowMaps[CascadeIndex];
+    }
+    else
+    {
+        lightSpaceFragPos = uLightMatrix * vec4(FragPos, 1.0);
+    }
+
+    vec3 clipSpaceCoords   = lightSpaceFragPos.xyz / lightSpaceFragPos.w;
+    clipSpaceCoords        = (clipSpaceCoords * 0.5) + 0.5;
+
     if (clipSpaceCoords.z > 1.0)
     {
         return 1;
     }
-    float currentDepth = clipSpaceCoords.z;
+
+    float currentDepth = clipSpaceCoords.z;    
+
     float samplesSum = 0;
-    vec2 texelSize = 1.0 / textureSize(uLightShadowMap, 0);
+    vec2 texelSize = 1.0 / textureSize(ShadowMap, 0);
     int numSamples = uNumPCFSamples / 2;
     float bias = max(0.05 * (1.0 - dot(NormalN, normalize(uLightPosition - FragPos))), 0.005);
     currentDepth -= bias;
     if (uNumPCFSamples == 1)
     {
-        float closestDepth = texture(uLightShadowMap, clipSpaceCoords.xy).r;
+        float closestDepth = texture(ShadowMap, clipSpaceCoords.xy).r;
         return currentDepth > closestDepth ? 0.0 : 1.0;
     }
     for (int x = -numSamples; x <= numSamples; ++x)
     {
         for (int y = -numSamples; y <= numSamples; ++y)
         {
-            float closestDepth = texture(uLightShadowMap, clipSpaceCoords.xy + vec2(x, y) * texelSize).r;
+            float closestDepth = texture(ShadowMap, clipSpaceCoords.xy + vec2(x, y) * texelSize).r;
             samplesSum += (currentDepth > closestDepth ? 0.0 : 1.0);
         }
     }

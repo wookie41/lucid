@@ -6,16 +6,6 @@
             "ActorType": 1
         },
         {
-            "ActorId": "0abeaa63-b7cd-4493-b939-809986855b30",
-            "ActorPath": "assets/actors/Cube.asset",
-            "ActorType": 1
-        },
-        {
-            "ActorId": "dba078a6-f017-4114-aba0-6aa1ba6f0e53",
-            "ActorPath": "assets/actors/TestCube.asset",
-            "ActorType": 1
-        },
-        {
             "ActorId": "2802c388-b5a0-4c84-aa87-2eb3545ed03f",
             "ActorPath": "assets/actors/TestSkybox.asset",
             "ActorType": 2
@@ -44,6 +34,11 @@
             "ActorId": "9e5d1bc5-a749-4f3f-8362-772db2c9ddec",
             "ActorPath": "assets/actors/GeneratedTerrain.asset",
             "ActorType": 4
+        },
+        {
+            "ActorId": "8678b945-dccc-446e-94ed-5791842e1d1e",
+            "ActorPath": "assets/actors/Cube.asset",
+            "ActorType": 1
         }
     ]
 }

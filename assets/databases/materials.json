@@ -315,6 +315,16 @@
             "Id": "daa3b514-59ff-4854-a9ea-6c66ec4174c6",
             "MaterialPath": "assets/materials/TerrainMaterial_6ca6f1a8-75d5-4c83-a159-cb73ab2f80c4_daa3b514-59ff-4854-a9ea-6c66ec4174c6.asset",
             "MaterialType": 4
+        },
+        {
+            "Id": "11fd4faf-0d3f-46b8-a362-91be7e6fd28d",
+            "MaterialPath": "assets/materials/Cube_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "d373f697-d940-4ea4-b3b7-fdb77b90902e",
+            "MaterialPath": "assets/materials/Cube_Material.asset",
+            "MaterialType": 3
         }
     ]
 }

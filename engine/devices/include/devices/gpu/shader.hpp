@@ -46,6 +46,8 @@ namespace lucid::gpu
         virtual void SetMatrix(const FString& InUniformName, const glm::mat4& Value) = 0;
 
         virtual void UseTexture(const FString& InUniformName, CTexture* TextureToUse) = 0;
+        virtual void UseBindlessTexture(const FString& InUniformName, const u64& Value) = 0;
+        
         virtual void RestoreTextureBindings() = 0;
 
         virtual void AddBinding(BufferBinding* Binding) = 0;

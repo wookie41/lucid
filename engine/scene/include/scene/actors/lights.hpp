@@ -16,6 +16,8 @@ namespace lucid::gpu
 
 namespace lucid::scene
 {
+    constexpr u8 MAX_SHADOW_CASCADES = 6;
+
     class CShadowMap;
 
     class CLight : public IActor
@@ -31,6 +33,7 @@ namespace lucid::scene
         /** Sets up the shader's uniform to use this light's data */
         virtual void SetupShader(gpu::CShader* InShader) const;
         virtual void SetupShadowMapShader(gpu::CShader* InShader) = 0;
+        virtual void CreateShadowMap();
 
         virtual float GetVerticalMidPoint() const override;
 
@@ -60,7 +63,7 @@ namespace lucid::scene
 
         CShadowMap* ShadowMap = nullptr;
 
-        bool bShouldCastShadow = false;
+        bool bCastsShadow = false;
 
         virtual ~CLight() = default;
 
@@ -84,6 +87,7 @@ namespace lucid::scene
       public:
         CDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
 
+        virtual void    CreateShadowMap() override;
         virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
         virtual void    SetupShader(gpu::CShader* InShader) const override;
         virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
@@ -106,6 +110,15 @@ namespace lucid::scene
         float Top       = 10;
         float NearPlane = -10;
         float FarPlane  = 10000;
+
+        u8    CascadeCount          = 3;
+        float CascadeSplitLogFactor = 0.9f;
+        float FirstCascadeNearPlane = 1.f;
+
+        CShadowMap* CascadeShadowMaps[MAX_SHADOW_CASCADES]{ nullptr };
+
+        float     CascadeFarPlanes[MAX_SHADOW_CASCADES];
+        glm::mat4 CascadeMatrices[MAX_SHADOW_CASCADES];
 
 #if DEVELOPMENT
         virtual void UIDrawActorDetails() override;

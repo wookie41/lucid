@@ -108,6 +108,8 @@ namespace lucid::scene
 
         void SetupGlobalRenderData(const FRenderView* InRenderView);
 
+        void GeneratePointShadowMapWithoutGS(CPointLight* InLight, FRenderScene* InRenderScene);
+        void GenerateCascadeShadowMaps(CDirectionalLight* InLight);
         void GenerateShadowMaps(FRenderScene* InSceneToRender);
         void Prepass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);
         void LightingPass(const FRenderScene* InSceneToRender, const FRenderView* InRenderSource);

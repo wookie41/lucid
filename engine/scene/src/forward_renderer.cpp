@@ -72,6 +72,9 @@ namespace lucid::scene
 
     static const FSString LIGHT_NEAR_PLANE{ "uLightNearPlane" };
     static const FSString LIGHT_FAR_PLANE{ "uLightFarPlane" };
+    static const FSString LIGHT_SPACE_MATRIX{ "uLightMatrix" };
+
+    constexpr float G_CascadeMaxFarPlane = 1000.f;
 
     constexpr gpu::EImmutableBufferUsage COHERENT_WRITE_USAGE =
       (gpu::EImmutableBufferUsage)(gpu::EImmutableBufferUsage::IMM_BUFFER_WRITE | gpu::EImmutableBufferUsage::IMM_BUFFER_COHERENT);
@@ -1090,7 +1093,7 @@ namespace lucid::scene
         {
             CLight* Light = InSceneToRender->AllLights.GetByIndex(i);
 
-            if (!Light->ShadowMap)
+            if (!Light->bCastsShadow)
             {
                 continue; // Light doesn't cast shadows
             }
@@ -1100,8 +1103,16 @@ namespace lucid::scene
             // @TODO This should happen only if light moves
             Light->UpdateLightSpaceMatrix(LightSettingsByQuality[Light->Quality]);
 
+            //@TODO Handle for cascade shadow map
             // Check if we need to adjust the viewport based on light's shadow map quality
-            if (Light->ShadowMap->GetQuality() != PrevShadowMapQuality)
+            if (Light->GetType() == ELightType::DIRECTIONAL && Light->bCastsShadow)
+            {
+                CDirectionalLight* DirLight = (CDirectionalLight*)Light;
+                PrevShadowMapQuality = DirLight->CascadeShadowMaps[0]->GetQuality();
+                gpu::SetViewport({ 0, 0, ShadowMapSizeByQuality[PrevShadowMapQuality].x, ShadowMapSizeByQuality[PrevShadowMapQuality].y });
+
+            }
+            else if (Light->GetType() != ELightType::DIRECTIONAL && Light->ShadowMap->GetQuality() != PrevShadowMapQuality)
             {
                 PrevShadowMapQuality = Light->ShadowMap->GetQuality();
                 gpu::SetViewport({ 0, 0, ShadowMapSizeByQuality[PrevShadowMapQuality].x, ShadowMapSizeByQuality[PrevShadowMapQuality].y });
@@ -1109,32 +1120,15 @@ namespace lucid::scene
 
             if (Light->GetType() == ELightType::POINT && !RendererSettings.bUseGeometryShaderForShadowMaps)
             {
-                ShadowCubeMapShaderNoGS->Use();
+                GeneratePointShadowMapWithoutGS((CPointLight*)Light, InSceneToRender);
+                gpu::PopDebugGroup();
+                continue;
+            }
 
-                CPointLight*   PointLight    = (CPointLight*)Light;
-                gpu::CCubemap* ShadowCubeMap = PointLight->ShadowMap->GetShadowCubeMapTexture();
-
-                ShadowCubeMap->Bind();
-
-                ShadowCubeMapShaderNoGS->SetVector("uLightPosition", PointLight->Transform.Translation);
-                ShadowCubeMapShaderNoGS->SetFloat(LIGHT_FAR_PLANE, PointLight->CachedFarPlane);
-
-                for (u8 Face = 0; Face < 6; ++Face)
-                {
-                    ShadowCubeMapShaderNoGS->SetMatrix("uLightSpaceMatrix", PointLight->LightSpaceMatrices[Face]);
-
-                    ShadowCubeMap->AttachAsDepth(0, static_cast<gpu::CCubemap::EFace>(Face));
-                    gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
-
-                    // Static geometry
-                    for (const FMeshBatch& MeshBatch : MeshBatches)
-                    {
-                        MeshBatch.MeshVertexArray->Bind();
-                        ShadowCubeMapShaderNoGS->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
-                        MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchSize);
-                    }
-                }
-
+            if (Light->GetType() == ELightType::DIRECTIONAL)
+            {
+                GenerateCascadeShadowMaps((CDirectionalLight*)Light);
+                gpu::PopDebugGroup();
                 continue;
             }
 
@@ -1348,6 +1342,95 @@ namespace lucid::scene
         GlobalRenderData->FarPlane                       = InRenderView->Camera->FarPlane;
 
         GlobalDataUBO->BindIndexed(0, gpu::EBufferBindPoint::UNIFORM, GLOBAL_DATA_BUFFER_SIZE, BufferOffset);
+    }
+
+    void CForwardRenderer::GeneratePointShadowMapWithoutGS(CPointLight* InLight, FRenderScene* InRenderScene)
+    {
+        ShadowCubeMapShaderNoGS->Use();
+
+        gpu::CCubemap* ShadowCubeMap = InLight->ShadowMap->GetShadowCubeMapTexture();
+
+        ShadowCubeMap->Bind();
+
+        ShadowCubeMapShaderNoGS->SetVector("uLightPosition", InLight->Transform.Translation);
+        ShadowCubeMapShaderNoGS->SetFloat(LIGHT_FAR_PLANE, InLight->CachedFarPlane);
+
+        for (u8 Face = 0; Face < 6; ++Face)
+        {
+            ShadowCubeMapShaderNoGS->SetMatrix("uLightSpaceMatrix", InLight->LightSpaceMatrices[Face]);
+
+            ShadowCubeMap->AttachAsDepth(0, static_cast<gpu::CCubemap::EFace>(Face));
+            gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
+
+            // Static geometry
+            for (const FMeshBatch& MeshBatch : MeshBatches)
+            {
+                MeshBatch.MeshVertexArray->Bind();
+                ShadowCubeMapShaderNoGS->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
+                MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchSize);
+            }
+        }
+    }
+
+    void CForwardRenderer::GenerateCascadeShadowMaps(CDirectionalLight* InLight)
+    {
+        // Calculate cascade far planes
+        {
+            const float CascadeMinNearPlane = InLight->FirstCascadeNearPlane;
+            const float CascadeMaxFarPlane  = G_CascadeMaxFarPlane;
+            const float PlanesDistance      = CascadeMaxFarPlane - CascadeMinNearPlane;
+            const float CamFarOverCamNear   = CascadeMaxFarPlane - CascadeMinNearPlane;
+
+            const float CascadeCount = (float)InLight->CascadeCount;
+            for (u8 i = 0, i_f = 1.f; i < InLight->CascadeCount - 1; ++i, i_f += 1.f)
+            {
+                // Calculation of the cascade planes based on
+                // https://developer.download.nvidia.com/SDK/10.5/opengl/src/cascaded_shadow_maps/doc/cascaded_shadow_maps.pdf
+                InLight->CascadeFarPlanes[i] = math::Lerp(CascadeMinNearPlane + (i_f / CascadeCount) * (PlanesDistance),
+                                                          CascadeMinNearPlane * powf(CamFarOverCamNear, i_f / CascadeCount),
+                                                          InLight->CascadeSplitLogFactor);
+            }
+
+            InLight->CascadeFarPlanes[InLight->CascadeCount - 1] = CascadeMaxFarPlane;
+        }
+
+        // Create the cascade matrices
+        {
+            for (u8 i = 0; i < InLight->CascadeCount; ++i)
+            {
+                const float CascadeFarPlane = InLight->CascadeFarPlanes[i];
+
+                const glm::mat4 ViewMatrix       = glm::lookAt(glm::vec3{ 0 }, InLight->Direction, InLight->LightUp);
+                const glm::mat4 ProjectionMatrix = glm::ortho(InLight->Left, InLight->Right, InLight->Bottom, InLight->Top, InLight->NearPlane, InLight->FarPlane);
+
+                InLight->CascadeMatrices[i] = ProjectionMatrix * ViewMatrix;
+            }
+        }
+
+        // Generate shadow maps
+        {
+            ShadowMapShader->Use();
+
+            for (u8 i = 0; i < InLight->CascadeCount; ++i)
+            {
+                gpu::PushDebugGroup("Cascade");
+            
+                ShadowMapFramebuffer->SetupDepthAttachment(InLight->CascadeShadowMaps[i]->GetShadowMapTexture());
+                gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
+
+                ShadowMapShader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->CascadeMatrices[i]);
+                
+                // Static geometry
+                for (const FMeshBatch& MeshBatch : MeshBatches)
+                {
+                    MeshBatch.MeshVertexArray->Bind();
+                    ShadowMapShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
+                    MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchSize);
+                }
+
+                gpu::PopDebugGroup();
+            }
+        }
     }
 
     inline void CForwardRenderer::RenderSkybox(const CSkybox* InSkybox, const FRenderView* InRenderView)

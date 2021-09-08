@@ -143,9 +143,28 @@ namespace lucid::gpu
                 NewTextureVariable.TextureIndex = texturesCount++;
                 NewTextureVariable.BoundTexture = nullptr;
                 textureBindings.Add(NewTextureVariable);
-
                 glUniform1i(GLUniformLocation, NewTextureVariable.TextureIndex);
 
+                if (UniformArraySize > 1)
+                {
+                    // the uniform is an array and OpenGL return active uniform only for the 0th index of the array
+                    // length of the array is equal to uniformSize and thats how many additional uniforms we have to add
+                    for (int i = 1; i < UniformArraySize; ++i)
+                    {
+                        std::string NextArrayEntry { *NewTextureVariable.Name };
+                        NextArrayEntry.replace(NextArrayEntry.find("0"), 1, std::to_string(i));
+
+                        FTextureBinding TexureUniformArrayVariable;
+                        TexureUniformArrayVariable.Location = glGetUniformLocation(ShaderProgramID, NextArrayEntry.c_str());
+                        TexureUniformArrayVariable.Name = CopyToString(NextArrayEntry.c_str(), NextArrayEntry.length());
+                        TexureUniformArrayVariable.Type = EType::SAMPLER;
+                        TexureUniformArrayVariable.TextureIndex = texturesCount++;
+                        TexureUniformArrayVariable.BoundTexture = nullptr;
+                        textureBindings.Add(TexureUniformArrayVariable);
+                        glUniform1i(TexureUniformArrayVariable.Location, TexureUniformArrayVariable.TextureIndex);
+                    }
+                }
+                
                 continue;
             }
 
@@ -361,6 +380,17 @@ namespace lucid::gpu
         glActiveTexture(GL_TEXTURE0 + Binding->TextureIndex);
         TextureToUse->Bind();
         glUniform1i(Binding->Location, Binding->TextureIndex);
+    }
+
+    void CGLShader::UseBindlessTexture(const FString& InUniformName, const u64& Value)
+    {
+        assert(GGPUState->Shader == this);
+        uint32 UniformId = GetTextureId(InUniformName);
+
+        if (UniformId < uniformVariables.GetLength())
+        {
+            glUniformHandleui64ARB(TextureBindings[UniformId]->Location, Value);
+        }
     }
 
     void CGLShader::RestoreTextureBindings()
