@@ -16,8 +16,8 @@
 
 namespace lucid::scene
 {
-    CStaticMesh::CStaticMesh(const FDString& InName, IActor* InParent, CWorld* InWorld, resources::CMeshResource* InMeshResource, const EStaticMeshType& InType)
-    : IActor(InName, InParent, InWorld), MeshResource(InMeshResource), Type(InType)
+    CStaticMesh::CStaticMesh(const FDString& InName, IActor* InParent, CWorld* InWorld, resources::CMeshResource* InMeshResource, const EStaticMeshType& InType, const math::FAABB& InAABB)
+    : IActor(InName, InParent, InWorld, InAABB), MeshResource(InMeshResource), Type(InType)
     {
     }
 
@@ -39,6 +39,8 @@ namespace lucid::scene
                 {
                     NewMeshResource  = NewStaticMesh->MeshResource;
                     NewBaseMeshAsset = NewStaticMesh;
+
+                    AABB = NewStaticMesh->AABB;
                 }
 
                 GEngine.AddActorWithDirtyResources(this);
@@ -304,9 +306,9 @@ namespace lucid::scene
         OutDescription.Id              = ActorId;
         OutDescription.ParentId        = Parent ? Parent->ActorId : 0;
         OutDescription.Name            = Name;
-        OutDescription.Postion         = VecToFloat3(Transform.Translation);
-        OutDescription.Rotation        = QuatToFloat4(Transform.Rotation);
-        OutDescription.Scale           = VecToFloat3(Transform.Scale);
+        OutDescription.Postion         = VecToFloat3(GetTransform().Translation);
+        OutDescription.Rotation        = QuatToFloat4(GetTransform().Rotation);
+        OutDescription.Scale           = VecToFloat3(GetTransform().Scale);
         OutDescription.bVisible        = bVisible;
         OutDescription.bReverseNormals = bReverseNormals;
     }
@@ -317,22 +319,7 @@ namespace lucid::scene
         FillDescription(StaticMeshDescription);
         WriteToJSONFile(StaticMeshDescription, *InFilePath);
     }
-
 #endif
-    float CStaticMesh::GetVerticalMidPoint() const
-    {
-#if DEVELOPMENT
-        if (!MeshResource)
-        {
-            return 0;
-        }
-#endif
-        if (0.002f > fabs(MeshResource->MinPosY))
-        {
-            return (MeshResource->MaxPosY - MeshResource->MinPosY) * Transform.Scale.y / 2.f;
-        }
-        return 0;
-    }
 
     IActor* CStaticMesh::LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription)
     {
@@ -353,15 +340,18 @@ namespace lucid::scene
 
         LoadedActorMeshResource->Acquire(false, true);
 
-        auto* StaticMesh    = new CStaticMesh{ StaticMeshDescription->Name, Parent, InWorld, LoadedActorMeshResource, StaticMeshDescription->Type };
-        StaticMesh->ActorId = StaticMeshDescription->Id;
-        StaticMesh->Transform.Translation = Float3ToVec(StaticMeshDescription->Postion);
-        StaticMesh->Transform.Rotation    = Float4ToQuat(StaticMeshDescription->Rotation);
-        StaticMesh->Transform.Scale       = Float3ToVec(StaticMeshDescription->Scale);
-        StaticMesh->bVisible              = StaticMeshDescription->bVisible;
-        StaticMesh->BaseActorAsset        = this;
-        StaticMesh->BaseStaticMesh        = this;
-        StaticMesh->bReverseNormals       = StaticMeshDescription->bReverseNormals;
+        FTransform3D Transform;
+        Transform.Translation = Float3ToVec(StaticMeshDescription->Postion);
+        Transform.Rotation    = Float4ToQuat(StaticMeshDescription->Rotation);
+        Transform.Scale       = Float3ToVec(StaticMeshDescription->Scale);
+
+        auto* StaticMesh            = new CStaticMesh{ StaticMeshDescription->Name, Parent, InWorld, LoadedActorMeshResource, StaticMeshDescription->Type, AABB };
+        StaticMesh->ActorId         = StaticMeshDescription->Id;
+        StaticMesh->bVisible        = StaticMeshDescription->bVisible;
+        StaticMesh->BaseActorAsset  = this;
+        StaticMesh->BaseStaticMesh  = this;
+        StaticMesh->bReverseNormals = StaticMeshDescription->bReverseNormals;
+        StaticMesh->SetTransform(Transform);
 
         for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
@@ -452,7 +442,7 @@ namespace lucid::scene
 
     IActor* CStaticMesh::CreateAssetFromActor(const FDString& InName) const
     {
-        auto* ActorAsset          = new CStaticMesh{ InName, nullptr, nullptr, MeshResource, EStaticMeshType::STATIONARY };
+        auto* ActorAsset          = new CStaticMesh{ InName, nullptr, nullptr, MeshResource, EStaticMeshType::STATIONARY, AABB };
         ActorAsset->MaterialSlots = FArray<CMaterial*>(MaterialSlots.GetLength(), true);
         for (u16 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
@@ -463,8 +453,13 @@ namespace lucid::scene
 
     CStaticMesh* CStaticMesh::LoadAsset(const FStaticMeshDescription& InStaticMeshDescription)
     {
-        auto* ActorAsset         = new CStaticMesh{ InStaticMeshDescription.Name, nullptr, nullptr, nullptr, EStaticMeshType::STATIONARY };
+        auto* ActorAsset         = new CStaticMesh{ InStaticMeshDescription.Name, nullptr, nullptr, nullptr, EStaticMeshType::STATIONARY, math::FAABB {} };
         ActorAsset->MeshResource = GEngine.GetMeshesHolder().Get(InStaticMeshDescription.MeshResourceId.Value);
+
+        if (ActorAsset->MeshResource)
+        {
+            ActorAsset->AABB = ActorAsset->MeshResource->GetAABB();
+        }
 
         ActorAsset->MaterialSlots = FArray<CMaterial*>(InStaticMeshDescription.MaterialIds.size(), true);
         for (u16 i = 0; i < InStaticMeshDescription.MaterialIds.size(); ++i)
@@ -537,7 +532,7 @@ namespace lucid::scene
 
     IActor* CStaticMesh::CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition)
     {
-        auto* SpawnedMesh = new CStaticMesh{ Name.GetCopy(), nullptr, InWorld, MeshResource, Type };
+        auto* SpawnedMesh = new CStaticMesh{ Name.GetCopy(), nullptr, InWorld, MeshResource, Type, AABB };
 
         AddAssetReference(SpawnedMesh);
 
@@ -553,18 +548,21 @@ namespace lucid::scene
                 SpawnedMesh->AddMaterial(nullptr);
             }
         }
-        SpawnedMesh->Transform.Translation = InSpawnPosition;
-        SpawnedMesh->BaseActorAsset        = this;
-        SpawnedMesh->BaseStaticMesh        = this;
-        SpawnedMesh->MeshResource          = MeshResource;
-        InWorld->AddStaticMesh(SpawnedMesh);
+
+        SpawnedMesh->SetTranslation(InSpawnPosition);
+        SpawnedMesh->BaseActorAsset = this;
+        SpawnedMesh->BaseStaticMesh = this;
+        SpawnedMesh->MeshResource   = MeshResource;
         SpawnedMesh->MeshResource->Acquire(false, true);
+
+        InWorld->AddStaticMesh(SpawnedMesh);
+
         return SpawnedMesh;
     }
 
     IActor* CStaticMesh::CreateActorCopy()
     {
-        auto* SpawnedMesh = new CStaticMesh{ Name.GetCopy(), Parent, World, MeshResource, Type };
+        auto* SpawnedMesh = new CStaticMesh{ Name.GetCopy(), Parent, World, MeshResource, Type, AABB };
         for (u8 i = 0; i < MaterialSlots.GetLength(); ++i)
         {
             if (*MaterialSlots[i])
@@ -577,19 +575,24 @@ namespace lucid::scene
                 SpawnedMesh->AddMaterial(nullptr);
             }
         }
-        SpawnedMesh->Transform = Transform;
-        SpawnedMesh->Transform.Translation += glm::vec3{ 1, 0, 0 };
+
         SpawnedMesh->BaseActorAsset = BaseActorAsset;
         SpawnedMesh->BaseStaticMesh = BaseStaticMesh;
-        BaseStaticMesh->AddAssetReference(SpawnedMesh);
-        World->AddStaticMesh(SpawnedMesh);
+
         SpawnedMesh->MeshResource->Acquire(false, true);
+        SpawnedMesh->SetTransform(GetTransform());
+        SpawnedMesh->Translate({ 1, 0, 0 });
+
+        BaseStaticMesh->AddAssetReference(SpawnedMesh);
+
+        World->AddStaticMesh(SpawnedMesh);
+
         return SpawnedMesh;
     }
 
     CStaticMesh* CStaticMesh::CreateAsset(const FDString& InName)
     {
-        return new CStaticMesh{ InName, nullptr, nullptr, nullptr, scene::EStaticMeshType::STATIONARY };
+        return new CStaticMesh{ InName, nullptr, nullptr, nullptr, scene::EStaticMeshType::STATIONARY, math::FAABB {} };
     }
 
     void CStaticMesh::OnAddToWorld(CWorld* InWorld)
@@ -686,5 +689,5 @@ namespace lucid::scene
         MaterialsToLoad.clear();
         MaterialsToUnload.clear();
         MaterialsToDelete.clear();
-    };
+    }
 } // namespace lucid::scene

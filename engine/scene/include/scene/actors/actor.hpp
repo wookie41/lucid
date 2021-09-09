@@ -25,7 +25,7 @@ namespace lucid::scene
     class IActor
     {
       public:
-        IActor(const FDString& InName, IActor* InParent, CWorld* InWorld) : Name(InName), Parent(InParent), World(InWorld)
+        IActor(const FDString& InName, IActor* InParent, CWorld* InWorld, const math::FAABB& InAABB) : Name(InName), Parent(InParent), World(InWorld), AABB(InAABB)
         {
             if (Parent)
             {
@@ -62,7 +62,7 @@ namespace lucid::scene
          * If called on an actor asset, it just saves te asset.
          * If called on actor instance, it creates an asset based on the instance and saves it
          */
-        void         SaveAssetToFile();
+        void SaveAssetToFile();
 
         /**
          * Called by the engine before a frame so the actor can react to changes in it's resources
@@ -74,7 +74,7 @@ namespace lucid::scene
          * Called on the selected actor by the editor after the simulation is updated but before a frame.
          * Used to do editor-only stuff like drawing lines indicating light direction.
          */
-        virtual void OnSelectedPreFrameRender(){};
+        virtual void OnSelectedPreFrameRender();
 
       protected:
         virtual void InternalSaveAssetToFile(const FString& InActorResourceName) = 0;
@@ -84,10 +84,6 @@ namespace lucid::scene
 
         virtual EActorType GetActorType() const = 0;
 
-        virtual float GetVerticalMidPoint() const = 0;
-        virtual float GetMaxY() const { return 0; }
-        virtual float GetMaxZ() const { return 0; }
-
         /** Called on the asset when to create an instance of this asset to place in the world */
         virtual IActor* CreateActorInstanceFromAsset(CWorld* InWorld, const glm::vec3& InSpawnPosition) = 0;
 
@@ -96,10 +92,10 @@ namespace lucid::scene
          *  The InActor and InActorDescription will be derived types needed to spawn an actor of a given type
          */
         virtual IActor* LoadActor(CWorld* InWorld, FActorEntry const* InActorDescription) = 0;
-        
+
         /** Creates an actor asset from actor instance so it can be saved to an asset file */
         virtual IActor* CreateAssetFromActor(const FDString& InName) const = 0;
-        virtual IActor* CreateActorCopy() = 0;
+        virtual IActor* CreateActorCopy()                                  = 0;
 
         /** Used when actor asset is referenced for the first time, up to this point no data is loaded for an asset */
         virtual void LoadAssetResources(){};
@@ -135,21 +131,51 @@ namespace lucid::scene
         void AddAssetReference(IActor* InChildReference);
         void RemoveAssetReference(IActor* InChildReference);
 
+        /** Makes the actor calculate it's AABB an return it afterwards */
+        inline const math::FAABB& GetAABB() const { return AABB; }
+
+        virtual void Tick(const float& InDeltaTime);
+
+        virtual void OnScaled(const glm::vec3& InOldScale, const glm::vec3& InNewScale);
+        virtual void OnTranslated(const glm::vec3& InOldPostion, const glm::vec3& InNewPosition);
+        virtual void OnRotated(const glm::quat& InOldRotation, const glm::quat& InNewRotation);
+
+        inline const FTransform3D& GetTransform() const { return Transform; }
+        inline void                SetTransform(const FTransform3D& InTransform)
+        {
+            OldTransform     = Transform;
+            Transform        = InTransform;
+            bRotationUpdated = bTranslationUpdated = bRotationUpdated = true;
+        }
+
+        inline void Translate(const glm::vec3 InTranslation)
+        {
+            OldTransform = Transform;
+            Transform.Translation += InTranslation;
+            bTranslationUpdated = true;
+        }
+
+        inline void SetTranslation(const glm::vec3 InTranslation)
+        {
+            OldTransform          = Transform;
+            Transform.Translation = InTranslation;
+            bTranslationUpdated   = true;
+        }
+
         virtual ~IActor() = default;
 
         /**
          * Unique id for an actor in the world, used e.x. by the renderer when generating the hitmap texture
          * Starts with 1, 0 = INVALID
          */
-        u32          ActorId = 0;
-        IActor*      Parent  = nullptr;
-        FDString     Name;
-        FTransform3D Transform;
-        bool         bVisible   = true;
-        UUID         AssetId = sole::INVALID_UUID;
-        FDString     AssetPath{ "" };
-        CWorld*      World; // World that this actor is in
-        glm::mat4    CachedModelMatrix{ 1 };
+        u32       ActorId = 0;
+        IActor*   Parent  = nullptr;
+        FDString  Name;
+        bool      bVisible = true;
+        UUID      AssetId  = sole::INVALID_UUID;
+        FDString  AssetPath{ "" };
+        CWorld*   World; // World that this actor is in
+        glm::mat4 CachedModelMatrix{ 1 };
 
         FLinkedList<IActor> Children;
 
@@ -162,14 +188,22 @@ namespace lucid::scene
         IActor* PrevBaseActorAsset = nullptr;
 
       protected:
+        math::FAABB AABB;
+
         bool bMovable    = true;
         bool bParentable = true;
 
-#if DEVELOPMENT
-        bool bRenaming           = false;
+      private:
+        FTransform3D Transform;
+        FTransform3D OldTransform;
+
         bool bTranslationUpdated = false;
         bool bScaleUpdated       = false;
         bool bRotationUpdated    = false;
+
+#if DEVELOPMENT
+        bool bRenaming = false;
+        bool bDrawAABB = false;
 #endif
     };
 } // namespace lucid::scene

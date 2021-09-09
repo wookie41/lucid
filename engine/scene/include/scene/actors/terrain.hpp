@@ -57,7 +57,8 @@ namespace lucid::scene
                  CWorld*                   InWorld,
                  const FTerrainSettings&   InTerrainSettings,
                  resources::CMeshResource* InTerrainMesh,
-                 CMaterial*                InTerrainMaterial);
+                 CMaterial*                InTerrainMaterial,
+                 const math::FAABB&        InAABB);
 
         /** Terrain stuff */
         static EActorType  GetActorTypeStatic() { return EActorType::TERRAIN; }
@@ -67,8 +68,6 @@ namespace lucid::scene
         inline CMaterial*                GetTerrainMaterial() const { return TerrainMaterial; }
 
         /** Actor interface stuff */
-
-        float GetVerticalMidPoint() const override;
 
         void FillActorAssetDescription(FTerrainDescription& OutDescription) const;
 

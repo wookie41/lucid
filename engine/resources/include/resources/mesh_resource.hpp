@@ -31,15 +31,25 @@ namespace lucid::resources
         u8 MaterialIndex = 0;
     };
 
+    enum class EMeshImportStretegy : u8
+    {
+        SUBMESHES, // Imports each object as a submesh
+        SINGLE_MESH, // Squashes all object into a single submesh
+        SPLIT_MESHES, // Imports all objects as seperate mesh resources
+    };
+
+    struct FTerrainSettings;
+
     class CMeshResource : public CResource
     {
       public:
-        CMeshResource(const UUID&    InID,
-                      const FString& InName,
-                      const FString& InFilePath,
-                      const u64&     InOffset,
-                      const u64&     InDataSize,
-                      const u32&     InAssetSerializationVersion);
+        CMeshResource(const UUID&        InID,
+                      const FString&     InName,
+                      const FString&     InFilePath,
+                      const u64&         InOffset,
+                      const u64&         InDataSize,
+                      const u32&         InAssetSerializationVersion,
+                      const math::FAABB& InAABB);
 
         virtual EResourceType GetType() const override { return MESH; };
 
@@ -54,11 +64,9 @@ namespace lucid::resources
         virtual void FreeMainMemory() override;
         virtual void FreeVideoMemory() override;
 
-        virtual CResource* CreateCopy() const override;
+        inline const math::FAABB& GetAABB() const { return AABB; }
 
-        float MinPosX = 0, MaxPosX = 0;
-        float MinPosY = 0, MaxPosY = 0;
-        float MinPosZ = 0, MaxPosZ = 0;
+        virtual CResource* CreateCopy() const override;
 
         gpu::EDrawMode DrawMode = gpu::EDrawMode::TRIANGLES;
 
@@ -68,13 +76,9 @@ namespace lucid::resources
         /** Thumb texture used to show the mesh in asset browser */
         gpu::CTexture* Thumb;
 #endif
-    };
 
-    enum class EMeshImportStretegy : u8
-    {
-        SUBMESHES, // Imports each object as a submesh
-        SINGLE_MESH, // Squashes all object into a single submesh
-        SPLIT_MESHES, // Imports all objects as seperate mesh resources
+      private:
+        math::FAABB AABB;
     };
 
     /**

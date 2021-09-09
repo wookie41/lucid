@@ -1352,7 +1352,7 @@ namespace lucid::scene
 
         ShadowCubeMap->Bind();
 
-        ShadowCubeMapShaderNoGS->SetVector("uLightPosition", InLight->Transform.Translation);
+        ShadowCubeMapShaderNoGS->SetVector("uLightPosition", InLight->GetTransform().Translation);
         ShadowCubeMapShaderNoGS->SetFloat(LIGHT_FAR_PLANE, InLight->CachedFarPlane);
 
         for (u8 Face = 0; Face < 6; ++Face)
@@ -1472,7 +1472,7 @@ namespace lucid::scene
         for (int i = 0; i < InScene->AllLights.GetLength(); ++i)
         {
             CLight* Light = InScene->AllLights.GetByIndex(i);
-            BillboardShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
+            BillboardShader->SetVector(BILLBOARD_WORLD_POS, Light->GetTransform().Translation);
             BillboardShader->SetVector(BILLBOARD_COLOR_TINT, Light->Color);
             ScreenWideQuadVAO->Draw();
         }
@@ -1513,7 +1513,7 @@ namespace lucid::scene
         {
             CLight* Light = InScene->AllLights.GetByIndex(i);
 
-            EditorBillboardsShader->SetVector(BILLBOARD_WORLD_POS, Light->Transform.Translation);
+            EditorBillboardsShader->SetVector(BILLBOARD_WORLD_POS, Light->GetTransform().Translation);
             EditorBillboardsShader->SetUInt(ACTOR_ID, Light->ActorId);
 
             ScreenWideQuadVAO->Draw();

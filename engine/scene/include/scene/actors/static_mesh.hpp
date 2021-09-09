@@ -21,7 +21,8 @@ namespace lucid::scene
                     IActor*                   InParent,
                     CWorld*                   InWorld,
                     resources::CMeshResource* InMeshResource,
-                    const EStaticMeshType&    InType);
+                    const EStaticMeshType&    InType,
+                    const math::FAABB& InAABB);
 
         inline void SetReverseNormals(const bool& InReverseNormals) { bReverseNormals = InReverseNormals; }
         inline bool GetReverseNormals() const { return bReverseNormals; }
@@ -33,12 +34,7 @@ namespace lucid::scene
 
         void SetMaterialSlot(const u16& InMaterialSlotIndex, CMaterial* InMaterial) const { (*MaterialSlots[InMaterialSlotIndex]) = InMaterial; }
         u32  GetNumMaterialSlots() const { return MaterialSlots.GetLength(); }
-
-        virtual float GetVerticalMidPoint() const override;
-
-        virtual float GetMaxY() const override { return MeshResource->MaxPosZ * Transform.Scale.y; }
-        virtual float GetMaxZ() const override { return MeshResource->MaxPosZ * Transform.Scale.z; }
-
+        
         static EActorType  GetActorTypeStatic() { return EActorType::STATIC_MESH; }
         virtual EActorType GetActorType() const override { return EActorType::STATIC_MESH; }
 

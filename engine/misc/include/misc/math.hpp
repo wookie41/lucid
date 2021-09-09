@@ -39,4 +39,21 @@ namespace lucid::math
         return Low2 + (Value - Low1) * (High2 - Low2) / (High1 - Low1);
     }
 
+    struct FAABB
+    {
+        float MinX = 0, MaxX = 0;
+        float MinY = 0, MaxY = 0;
+        float MinZ = 0, MaxZ = 0;
+
+        void operator*=(const glm::vec3& InScale)
+        {
+            MinX *= InScale.x;
+            MaxX *= InScale.x;
+            MinY *= InScale.y;
+            MaxY *= InScale.y;
+            MinZ *= InScale.z;
+            MaxZ *= InScale.z;
+        }
+    };
+
 } // namespace lucid::misc

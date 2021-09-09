@@ -196,8 +196,10 @@ namespace lucid::scene
 
             DirLight->ActorId = DirLightEntry.Id;
 
-            DirLight->Transform.Translation = Float3ToVec(DirLightEntry.Postion);
-            DirLight->Transform.Rotation    = Float4ToQuat(DirLightEntry.Rotation);
+            FTransform3D LightTransform;
+
+            LightTransform.Translation = Float3ToVec(DirLightEntry.Postion);
+            LightTransform.Rotation    = Float4ToQuat(DirLightEntry.Rotation);
 
             DirLight->Color        = Float3ToVec(DirLightEntry.Color);
             DirLight->Direction    = Float3ToVec(DirLightEntry.Direction);
@@ -210,6 +212,7 @@ namespace lucid::scene
             DirLight->Top          = DirLightEntry.Top;
             DirLight->NearPlane    = DirLightEntry.NearPlane;
             DirLight->FarPlane     = DirLightEntry.FarPlane;
+            DirLight->SetTransform(LightTransform);
 
             if (DirLightEntry.ParentId && !DirLight->Parent)
             {
@@ -226,13 +229,14 @@ namespace lucid::scene
 
             SpotLight->ActorId = SpotLightEntry.Id;
 
-            SpotLight->Transform.Translation = Float3ToVec(SpotLightEntry.Postion);
-            SpotLight->Transform.Rotation    = Float4ToQuat(SpotLightEntry.Rotation);
+            FTransform3D LightTransform;
+            LightTransform.Translation = Float3ToVec(SpotLightEntry.Postion);
+            LightTransform.Rotation    = Float4ToQuat(SpotLightEntry.Rotation);
+            SpotLight->SetTransform(LightTransform);
 
-            SpotLight->Color     = Float3ToVec(SpotLightEntry.Color);
-            SpotLight->Direction = Float3ToVec(SpotLightEntry.Direction);
-            SpotLight->LightUp   = Float3ToVec(SpotLightEntry.LightUp);
-
+            SpotLight->Color             = Float3ToVec(SpotLightEntry.Color);
+            SpotLight->Direction         = Float3ToVec(SpotLightEntry.Direction);
+            SpotLight->LightUp           = Float3ToVec(SpotLightEntry.LightUp);
             SpotLight->AttenuationRadius = SpotLightEntry.AttenuationRadius;
             SpotLight->InnerCutOffRad    = SpotLightEntry.InnerCutOffRad;
             SpotLight->OuterCutOffRad    = SpotLightEntry.OuterCutOffRad;
@@ -257,8 +261,10 @@ namespace lucid::scene
 
             PointLight->ActorId = PointLightEntry.Id;
 
-            PointLight->Transform.Translation = Float3ToVec(PointLightEntry.Postion);
-            PointLight->Transform.Rotation    = Float4ToQuat(PointLightEntry.Rotation);
+            FTransform3D LightTransform;
+            LightTransform.Translation = Float3ToVec(PointLightEntry.Postion);
+            LightTransform.Rotation    = Float4ToQuat(PointLightEntry.Rotation);
+            PointLight->SetTransform(LightTransform);
 
             PointLight->Color = Float3ToVec(PointLightEntry.Color);
 
@@ -341,7 +347,7 @@ namespace lucid::scene
             DirLightEntry.Color               = VecToFloat3(DirLight->Color);
             DirLightEntry.Quality             = DirLight->Quality;
             DirLightEntry.Name                = DirLight->Name;
-            DirLightEntry.Postion             = VecToFloat3(DirLight->Transform.Translation);
+            DirLightEntry.Postion             = VecToFloat3(DirLight->GetTransform().Translation);
             DirLightEntry.Rotation            = { 0, 0, 0 };
             DirLightEntry.Direction           = VecToFloat3(DirLight->Direction);
             DirLightEntry.LightUp             = VecToFloat3(DirLight->LightUp);
@@ -367,8 +373,8 @@ namespace lucid::scene
             SpotLightEntry.Color             = VecToFloat3(SpotLight->Color);
             SpotLightEntry.Quality           = SpotLight->Quality;
             SpotLightEntry.Name              = SpotLight->Name;
-            SpotLightEntry.Postion           = VecToFloat3(SpotLight->Transform.Translation);
-            SpotLightEntry.Rotation          = QuatToFloat4(SpotLight->Transform.Rotation);
+            SpotLightEntry.Postion           = VecToFloat3(SpotLight->GetTransform().Translation);
+            SpotLightEntry.Rotation          = QuatToFloat4(SpotLight->GetTransform().Rotation);
             SpotLightEntry.Direction         = VecToFloat3(SpotLight->Direction);
             SpotLightEntry.AttenuationRadius = SpotLight->AttenuationRadius;
             SpotLightEntry.InnerCutOffRad    = SpotLight->InnerCutOffRad;
@@ -392,7 +398,7 @@ namespace lucid::scene
             PointLightEntry.Color             = VecToFloat3(PointLight->Color);
             PointLightEntry.Quality           = PointLight->Quality;
             PointLightEntry.Name              = PointLight->Name;
-            PointLightEntry.Postion           = VecToFloat3(PointLight->Transform.Translation);
+            PointLightEntry.Postion           = VecToFloat3(PointLight->GetTransform().Translation);
             PointLightEntry.AttenuationRadius = PointLight->AttenuationRadius;
             PointLightEntry.bCastsShadow      = PointLight->ShadowMap != nullptr;
             PointLightEntry.LightUnit         = PointLight->LightUnit;
@@ -412,9 +418,9 @@ namespace lucid::scene
             TerrainEntry.ParentId            = Terrain->Parent ? Terrain->Parent->ActorId : 0;
             TerrainEntry.ParentId            = Terrain->Parent ? Terrain->Parent->ActorId : 0;
             TerrainEntry.BaseActorResourceId = Terrain->BaseActorAsset->AssetId;
-            TerrainEntry.Postion             = VecToFloat3(Terrain->Transform.Translation);
-            TerrainEntry.Rotation            = QuatToFloat4(Terrain->Transform.Rotation);
-            TerrainEntry.Scale               = VecToFloat3(Terrain->Transform.Scale);
+            TerrainEntry.Postion             = VecToFloat3(Terrain->GetTransform().Translation);
+            TerrainEntry.Rotation            = QuatToFloat4(Terrain->GetTransform().Rotation);
+            TerrainEntry.Scale               = VecToFloat3(Terrain->GetTransform().Scale);
             OutWorldDescription.Terrains.push_back(TerrainEntry);
         }
     }

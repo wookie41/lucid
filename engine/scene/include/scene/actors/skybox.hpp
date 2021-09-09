@@ -23,8 +23,6 @@ namespace lucid::scene
                 const u32&                   InHeight,
                 resources::CTextureResource* InFaceTextures[6]);
 
-        virtual float GetVerticalMidPoint() const override;
-
         static EActorType  GetActorTypeStatic() { return EActorType::SKYBOX; }
         virtual EActorType GetActorType() const override { return EActorType::SKYBOX; }
 

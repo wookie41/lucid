@@ -35,13 +35,14 @@ namespace lucid::resources
 {
 #define SUBMESH_INFO_SIZE (((sizeof(u32) * 4) + (sizeof(bool) * 4)))
 
-    CMeshResource::CMeshResource(const UUID&    InID,
-                                 const FString& InName,
-                                 const FString& InFilePath,
-                                 const u64&     InOffset,
-                                 const u64&     InDataSize,
-                                 const u32&     InAssetSerializationVersion)
-    : CResource(InID, InName, InFilePath, InOffset, InDataSize, InAssetSerializationVersion)
+    CMeshResource::CMeshResource(const UUID&        InID,
+                                 const FString&     InName,
+                                 const FString&     InFilePath,
+                                 const u64&         InOffset,
+                                 const u64&         InDataSize,
+                                 const u32&         InAssetSerializationVersion,
+                                 const math::FAABB& InAABB)
+    : CResource(InID, InName, InFilePath, InOffset, InDataSize, InAssetSerializationVersion), AABB(InAABB)
     {
     }
 
@@ -53,16 +54,9 @@ namespace lucid::resources
         for (u16 i = 0; i < NumSubMeshes; ++i)
         {
             FSubMesh SubMesh;
-            fread_s(&SubMesh.VertexDataBuffer.Capacity,
-                    sizeof(SubMesh.VertexDataBuffer.Capacity),
-                    sizeof(SubMesh.VertexDataBuffer.Capacity),
-                    1,
-                    ResourceFile);
-            fread_s(&SubMesh.ElementDataBuffer.Capacity,
-                    sizeof(SubMesh.ElementDataBuffer.Capacity),
-                    sizeof(SubMesh.ElementDataBuffer.Capacity),
-                    1,
-                    ResourceFile);
+            fread_s(&SubMesh.VertexDataBuffer.Capacity, sizeof(SubMesh.VertexDataBuffer.Capacity), sizeof(SubMesh.VertexDataBuffer.Capacity), 1, ResourceFile);
+            fread_s(
+              &SubMesh.ElementDataBuffer.Capacity, sizeof(SubMesh.ElementDataBuffer.Capacity), sizeof(SubMesh.ElementDataBuffer.Capacity), 1, ResourceFile);
 
             fread_s(&SubMesh.VertexCount, sizeof(SubMesh.VertexCount), sizeof(SubMesh.VertexCount), 1, ResourceFile);
             fread_s(&SubMesh.ElementCount, sizeof(SubMesh.ElementCount), sizeof(SubMesh.ElementCount), 1, ResourceFile);
@@ -82,17 +76,17 @@ namespace lucid::resources
 
         if (AssetSerializationVersion > 0)
         {
-            fread_s(&MinPosX, sizeof(MinPosX), sizeof(MinPosX), 1, ResourceFile);
-            fread_s(&MaxPosX, sizeof(MaxPosX), sizeof(MaxPosX), 1, ResourceFile);
-            fread_s(&MinPosY, sizeof(MinPosY), sizeof(MinPosY), 1, ResourceFile);
-            fread_s(&MaxPosY, sizeof(MaxPosY), sizeof(MaxPosY), 1, ResourceFile);
-            fread_s(&MinPosZ, sizeof(MinPosZ), sizeof(MinPosZ), 1, ResourceFile);
-            fread_s(&MaxPosZ, sizeof(MaxPosZ), sizeof(MaxPosZ), 1, ResourceFile);
+            fread_s(&AABB.MinX, sizeof(AABB.MinX), sizeof(AABB.MinX), 1, ResourceFile);
+            fread_s(&AABB.MaxX, sizeof(AABB.MaxX), sizeof(AABB.MaxX), 1, ResourceFile);
+            fread_s(&AABB.MinY, sizeof(AABB.MinY), sizeof(AABB.MinY), 1, ResourceFile);
+            fread_s(&AABB.MaxY, sizeof(AABB.MaxY), sizeof(AABB.MaxY), 1, ResourceFile);
+            fread_s(&AABB.MinZ, sizeof(AABB.MinZ), sizeof(AABB.MinZ), 1, ResourceFile);
+            fread_s(&AABB.MaxZ, sizeof(AABB.MaxZ), sizeof(AABB.MaxZ), 1, ResourceFile);
         }
 
         if (AssetSerializationVersion > 2)
         {
-            fread_s(&DrawMode, sizeof(DrawMode), sizeof(DrawMode), 1, ResourceFile);            
+            fread_s(&DrawMode, sizeof(DrawMode), sizeof(DrawMode), 1, ResourceFile);
         }
     }
 
@@ -110,7 +104,7 @@ namespace lucid::resources
             return;
         }
         // Position the file pointer to the beginning of mesh data
-        u32 VertexDataOffset = Offset + RESOURCE_FILE_HEADER_SIZE + Name.GetLength() + sizeof(u16)  + (SUBMESH_INFO_SIZE * SubMeshes.GetLength());
+        u32 VertexDataOffset = Offset + RESOURCE_FILE_HEADER_SIZE + Name.GetLength() + sizeof(u16) + (SUBMESH_INFO_SIZE * SubMeshes.GetLength());
 
         if (AssetSerializationVersion > 0)
         {
@@ -188,8 +182,7 @@ namespace lucid::resources
                 GPUBufferDescription.Data = SubMesh->ElementDataBuffer.Pointer;
                 GPUBufferDescription.Size = SubMesh->ElementDataBuffer.Size;
 
-                SubMesh->ElementBuffer =
-                  gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC_DRAW, SPrintf("%s_ElementBuffer_%d", *Name, i));
+                SubMesh->ElementBuffer = gpu::CreateBuffer(GPUBufferDescription, gpu::EBufferUsage::STATIC_DRAW, SPrintf("%s_ElementBuffer_%d", *Name, i));
                 assert(SubMesh->ElementBuffer);
             }
 
@@ -267,7 +260,7 @@ namespace lucid::resources
             }
             bShouldCloseFile = true;
         }
-        
+
         // Write header
         SaveHeader(ResourceFile);
 
@@ -289,15 +282,15 @@ namespace lucid::resources
             fwrite(&SubMeshes[i]->MaterialIndex, sizeof(SubMeshes[i]->MaterialIndex), 1, ResourceFile);
         }
 
-        fwrite(&MinPosX, sizeof(MinPosX), 1, ResourceFile);
-        fwrite(&MaxPosX, sizeof(MaxPosX), 1, ResourceFile);
-        fwrite(&MinPosY, sizeof(MinPosY), 1, ResourceFile);
-        fwrite(&MaxPosY, sizeof(MaxPosY), 1, ResourceFile);
-        fwrite(&MinPosZ, sizeof(MinPosZ), 1, ResourceFile);
-        fwrite(&MaxPosZ, sizeof(MaxPosZ), 1, ResourceFile);
+        fwrite(&AABB.MinX, sizeof(AABB.MinX), 1, ResourceFile);
+        fwrite(&AABB.MaxX, sizeof(AABB.MaxX), 1, ResourceFile);
+        fwrite(&AABB.MinY, sizeof(AABB.MinY), 1, ResourceFile);
+        fwrite(&AABB.MaxY, sizeof(AABB.MaxY), 1, ResourceFile);
+        fwrite(&AABB.MinZ, sizeof(AABB.MinZ), 1, ResourceFile);
+        fwrite(&AABB.MaxZ, sizeof(AABB.MaxZ), 1, ResourceFile);
 
         fwrite(&DrawMode, sizeof(gpu::EDrawMode), 1, ResourceFile);
-        
+
         // Save vertex and data for each submesh
         for (u16 i = 0; i < NumSubMeshes; ++i)
         {
@@ -379,6 +372,8 @@ namespace lucid::resources
         u8 MaterialIndex = 0;
 
         u16 VertexSize = 0;
+
+        math::FAABB AABB;
     };
 
     /* Helper structure used when importing the mesh */
@@ -389,9 +384,7 @@ namespace lucid::resources
          * Mapping used to combine meshes using the same material to a single VBO
          * so we can reduce the number of draw calls
          */
-        float MinX = 0, MaxX = 0;
-        float MinY = 0, MaxY = 0;
-        float MinZ = 0, MaxZ = 0;
+        math::FAABB AABB;
     };
 
     /* Helper structure used when importing the mesh */
@@ -490,8 +483,8 @@ namespace lucid::resources
 #ifndef NDEBUG
         StartTime = platform::GetCurrentTimeSeconds();
 #endif
-        MeshInfoHelper.MinX = MeshInfoHelper.MinY = MeshInfoHelper.MinZ = FLT_MAX;
-        MeshInfoHelper.MaxX = MeshInfoHelper.MaxY = MeshInfoHelper.MaxZ = 0;
+        MeshInfoHelper.AABB.MinX = MeshInfoHelper.AABB.MinY = MeshInfoHelper.AABB.MinZ = FLT_MAX;
+        MeshInfoHelper.AABB.MaxX = MeshInfoHelper.AABB.MaxY = MeshInfoHelper.AABB.MaxZ = 0;
 
         const FMeshDataSize MeshDataSize = AssimpCalculateMeshDataSize(Root->mRootNode, Root);
 
@@ -504,12 +497,16 @@ namespace lucid::resources
         // Load meshes to main memory and create MeshResources for them
         if (InMeshImportStrategy == EMeshImportStretegy::SINGLE_MESH)
         {
+            math::FAABB AABB{ MeshInfoHelper.AABB.MinX, MeshInfoHelper.AABB.MaxX, MeshInfoHelper.AABB.MinY,
+                              MeshInfoHelper.AABB.MaxY, MeshInfoHelper.AABB.MinZ, MeshInfoHelper.AABB.MaxZ };
+
             auto* ImportedMesh = new CMeshResource{ sole::uuid4(),
                                                     MeshName,
                                                     SPrintf("assets/meshes/%s.asset", *MeshName),
                                                     0,
                                                     MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize,
-                                                    MESH_SERIALIZATION_VERSION };
+                                                    MESH_SERIALIZATION_VERSION,
+                                                    AABB };
             ImportedMeshes.Add(ImportedMesh);
 
             FMeshImportInfo CombinedMeshInfo{};
@@ -532,15 +529,6 @@ namespace lucid::resources
             CombinedMesh.ElementCount      = CombinedMeshInfo.ElementCount;
             CombinedMesh.MaterialIndex     = 0;
             ImportedMesh->SubMeshes.Add(CombinedMesh);
-
-            ImportedMesh->MinPosX = MeshInfoHelper.MinX;
-            ImportedMesh->MaxPosX = MeshInfoHelper.MaxX;
-
-            ImportedMesh->MinPosY = MeshInfoHelper.MinY;
-            ImportedMesh->MaxPosY = MeshInfoHelper.MaxY;
-
-            ImportedMesh->MinPosZ = MeshInfoHelper.MinZ;
-            ImportedMesh->MaxPosZ = MeshInfoHelper.MaxZ;
         }
         else
         {
@@ -557,7 +545,8 @@ namespace lucid::resources
                                                             SPrintf("assets/meshes/%s.asset", *SubMeshName, SubMeshInfo->Name.C_Str()),
                                                             0,
                                                             SubMeshInfo->VertexData.Size + SubMeshInfo->ElementData.Size,
-                                                            MESH_SERIALIZATION_VERSION };
+                                                            MESH_SERIALIZATION_VERSION,
+                                                            SubMeshInfo->AABB };
                     ImportedMeshes.Add(ImportedMesh);
 
                     FSubMesh SubMesh;
@@ -571,15 +560,6 @@ namespace lucid::resources
                     SubMesh.VertexCount       = SubMeshInfo->VertexCount;
                     SubMesh.ElementCount      = SubMeshInfo->ElementCount;
                     ImportedMesh->SubMeshes.Add(SubMesh);
-
-                    ImportedMesh->MinPosX = MeshInfoHelper.MinX;
-                    ImportedMesh->MaxPosX = MeshInfoHelper.MaxX;
-
-                    ImportedMesh->MinPosY = MeshInfoHelper.MinY;
-                    ImportedMesh->MaxPosY = MeshInfoHelper.MaxY;
-
-                    ImportedMesh->MinPosZ = MeshInfoHelper.MinZ;
-                    ImportedMesh->MaxPosZ = MeshInfoHelper.MaxZ;
                 }
             }
             else
@@ -589,7 +569,8 @@ namespace lucid::resources
                                                         SPrintf("assets/meshes/%s.asset", *MeshName),
                                                         0,
                                                         MeshDataSize.VertexDataSize + MeshDataSize.ElementDataSize,
-                                                        MESH_SERIALIZATION_VERSION };
+                                                        MESH_SERIALIZATION_VERSION,
+                                                        MeshInfoHelper.AABB };
                 ImportedMeshes.Add(ImportedMesh);
 
                 for (u16 i = 0; i < MeshInfoHelper.SubMeshes.GetLength(); ++i)
@@ -606,15 +587,6 @@ namespace lucid::resources
                     SubMesh.ElementCount      = MeshInfoHelper.SubMeshes[i]->ElementCount;
                     ImportedMesh->SubMeshes.Add(SubMesh);
                 }
-
-                ImportedMesh->MinPosX = MeshInfoHelper.MinX;
-                ImportedMesh->MaxPosX = MeshInfoHelper.MaxX;
-
-                ImportedMesh->MinPosY = MeshInfoHelper.MinY;
-                ImportedMesh->MaxPosY = MeshInfoHelper.MaxY;
-
-                ImportedMesh->MinPosZ = MeshInfoHelper.MinZ;
-                ImportedMesh->MaxPosZ = MeshInfoHelper.MaxZ;
             }
         }
 
@@ -667,12 +639,14 @@ namespace lucid::resources
             // Create a static mesh actor for each of the submeshes
             for (u32 i = 0; i < ImportedMeshes.GetLength(); ++i)
             {
+
                 auto* ImportedMesh         = *ImportedMeshes[i];
                 auto* StaticMeshActorAsset = new scene::CStaticMesh{ SPrintf("%s_%s", *MeshName, MeshInfoHelper.SubMeshes[i]->Name.C_Str()),
                                                                      nullptr,
                                                                      nullptr,
                                                                      ImportedMesh,
-                                                                     scene::EStaticMeshType::STATIONARY };
+                                                                     scene::EStaticMeshType::STATIONARY,
+                                                                     MeshInfoHelper.SubMeshes[i]->AABB };
 
                 StaticMeshActorAsset->AssetId   = sole::uuid4();
                 StaticMeshActorAsset->AssetPath = SPrintf("assets/actors/%s.asset", *StaticMeshActorAsset->Name);
@@ -687,7 +661,7 @@ namespace lucid::resources
         {
             // Create a static mesh actor for this mesh
             auto* StaticMeshActorAsset = new scene::CStaticMesh{
-                CopyToString(*MeshName, MeshName.GetLength()), nullptr, nullptr, *ImportedMeshes[0], scene::EStaticMeshType::STATIONARY
+                CopyToString(*MeshName, MeshName.GetLength()), nullptr, nullptr, *ImportedMeshes[0], scene::EStaticMeshType::STATIONARY, MeshInfoHelper.AABB
             };
             StaticMeshActorAsset->AssetId   = sole::uuid4();
             StaticMeshActorAsset->AssetPath = SPrintf("assets/actors/%s.asset", *MeshName);
@@ -745,7 +719,6 @@ namespace lucid::resources
         LUCID_LOG(ELogLevel::INFO, "Loading textures of mesh %s took %f", *MeshName, platform::GetCurrentTimeSeconds() - StartTime);
         LUCID_LOG(ELogLevel::INFO, "Sending mesh %s data to GPU took %f", *MeshName, platform::GetCurrentTimeSeconds() - StartTime);
 #endif
-
 
         for (u32 i = 0; i < ImportedMeshes.GetLength(); ++i)
         {
@@ -894,14 +867,23 @@ namespace lucid::resources
                 VertexDataPointer->y = Mesh->mVertices[i].y;
                 VertexDataPointer->z = Mesh->mVertices[i].z;
 
-                MeshData.MinX = VertexDataPointer->x < MeshData.MinX ? VertexDataPointer->x : MeshData.MinX;
-                MeshData.MaxX = VertexDataPointer->x > MeshData.MaxX ? VertexDataPointer->x : MeshData.MaxX;
+                MeshData.AABB.MinX = VertexDataPointer->x < MeshData.AABB.MinX ? VertexDataPointer->x : MeshData.AABB.MinX;
+                MeshData.AABB.MaxX = VertexDataPointer->x > MeshData.AABB.MaxX ? VertexDataPointer->x : MeshData.AABB.MaxX;
 
-                MeshData.MinY = VertexDataPointer->y < MeshData.MinY ? VertexDataPointer->y : MeshData.MinY;
-                MeshData.MaxY = VertexDataPointer->y > MeshData.MaxY ? VertexDataPointer->y : MeshData.MaxY;
+                MeshData.AABB.MinY = VertexDataPointer->y < MeshData.AABB.MinY ? VertexDataPointer->y : MeshData.AABB.MinY;
+                MeshData.AABB.MaxY = VertexDataPointer->y > MeshData.AABB.MaxY ? VertexDataPointer->y : MeshData.AABB.MaxY;
 
-                MeshData.MinZ = VertexDataPointer->z < MeshData.MinZ ? VertexDataPointer->z : MeshData.MinZ;
-                MeshData.MaxZ = VertexDataPointer->z > MeshData.MaxZ ? VertexDataPointer->z : MeshData.MaxZ;
+                MeshData.AABB.MinZ = VertexDataPointer->z < MeshData.AABB.MinZ ? VertexDataPointer->z : MeshData.AABB.MinZ;
+                MeshData.AABB.MaxZ = VertexDataPointer->z > MeshData.AABB.MaxZ ? VertexDataPointer->z : MeshData.AABB.MaxZ;
+
+                SubMeshInfo->AABB.MinX = VertexDataPointer->x < SubMeshInfo->AABB.MinX ? VertexDataPointer->x : SubMeshInfo->AABB.MinX;
+                SubMeshInfo->AABB.MaxX = VertexDataPointer->x > SubMeshInfo->AABB.MaxX ? VertexDataPointer->x : SubMeshInfo->AABB.MaxX;
+
+                SubMeshInfo->AABB.MinY = VertexDataPointer->y < SubMeshInfo->AABB.MinY ? VertexDataPointer->y : SubMeshInfo->AABB.MinY;
+                SubMeshInfo->AABB.MaxY = VertexDataPointer->y > SubMeshInfo->AABB.MaxY ? VertexDataPointer->y : SubMeshInfo->AABB.MaxY;
+
+                SubMeshInfo->AABB.MinZ = VertexDataPointer->z < SubMeshInfo->AABB.MinZ ? VertexDataPointer->z : SubMeshInfo->AABB.MinZ;
+                SubMeshInfo->AABB.MaxZ = VertexDataPointer->z > SubMeshInfo->AABB.MaxZ ? VertexDataPointer->z : SubMeshInfo->AABB.MaxZ;
 
                 VertexDataPointer += 1;
                 SubMeshInfo->VertexData.Size += sizeof(glm::vec3);
@@ -973,14 +955,14 @@ namespace lucid::resources
             VertexDataPointer += 1;
             CombinedMesh.VertexData.Size += sizeof(glm::vec3);
 
-            MeshData.MinX = VertexDataPointer->x < MeshData.MinX ? VertexDataPointer->x : MeshData.MinX;
-            MeshData.MaxX = VertexDataPointer->x > MeshData.MaxX ? VertexDataPointer->x : MeshData.MaxX;
+            MeshData.AABB.MinX = VertexDataPointer->x < MeshData.AABB.MinX ? VertexDataPointer->x : MeshData.AABB.MinX;
+            MeshData.AABB.MaxX = VertexDataPointer->x > MeshData.AABB.MaxX ? VertexDataPointer->x : MeshData.AABB.MaxX;
 
-            MeshData.MinY = VertexDataPointer->y < MeshData.MinY ? VertexDataPointer->y : MeshData.MinY;
-            MeshData.MaxY = VertexDataPointer->y > MeshData.MaxY ? VertexDataPointer->y : MeshData.MaxY;
+            MeshData.AABB.MinY = VertexDataPointer->y < MeshData.AABB.MinY ? VertexDataPointer->y : MeshData.AABB.MinY;
+            MeshData.AABB.MaxY = VertexDataPointer->y > MeshData.AABB.MaxY ? VertexDataPointer->y : MeshData.AABB.MaxY;
 
-            MeshData.MinZ = VertexDataPointer->z < MeshData.MinZ ? VertexDataPointer->z : MeshData.MinZ;
-            MeshData.MaxZ = VertexDataPointer->z > MeshData.MaxZ ? VertexDataPointer->z : MeshData.MaxZ;
+            MeshData.AABB.MinZ = VertexDataPointer->z < MeshData.AABB.MinZ ? VertexDataPointer->z : MeshData.AABB.MinZ;
+            MeshData.AABB.MaxZ = VertexDataPointer->z > MeshData.AABB.MaxZ ? VertexDataPointer->z : MeshData.AABB.MaxZ;
 
             VertexDataPointer->x = Mesh->mNormals[i].x;
             VertexDataPointer->y = Mesh->mNormals[i].y;
@@ -1109,9 +1091,9 @@ namespace lucid::resources
     {
         if (AssetSerializationVersion == 0)
         {
-            MinPosX = 0, MaxPosX = 0;
-            MinPosY = 0, MaxPosY = 0;
-            MinPosZ = 0, MaxPosZ = 0;
+            AABB.MinX = 0, AABB.MaxX = 0;
+            AABB.MinY = 0, AABB.MaxY = 0;
+            AABB.MinZ = 0, AABB.MaxZ = 0;
             AssetSerializationVersion = 1;
         }
 
@@ -1119,7 +1101,7 @@ namespace lucid::resources
         {
             DrawMode = gpu::EDrawMode::TRIANGLES;
         }
-        
+
         Save(MESH_SERIALIZATION_VERSION);
     }
 

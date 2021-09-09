@@ -13,12 +13,12 @@ namespace lucid::resources
     {
         const u64 Offset = ftell(ResourceFile);
 
-        UUID ResourceUUID;
+        UUID          ResourceUUID;
         EResourceType ResourceType;
-        u64 ResourceDataSize;
-        char* ResourceName;
-        u32 ResourceNameLength;
-        u32 AssetSerializationVersion;
+        u64           ResourceDataSize;
+        char*         ResourceName;
+        u32           ResourceNameLength;
+        u32           AssetSerializationVersion;
 
         // Read the resource file header
         fread_s(&ResourceUUID, sizeof(ResourceUUID), sizeof(ResourceUUID), 1, ResourceFile);
@@ -27,23 +27,25 @@ namespace lucid::resources
         fread_s(&ResourceDataSize, sizeof(ResourceDataSize), sizeof(ResourceDataSize), 1, ResourceFile);
         fread_s(&ResourceNameLength, sizeof(ResourceNameLength), sizeof(ResourceNameLength), 1, ResourceFile);
 
-        ResourceName = (char*)malloc(ResourceNameLength + 1);
+        ResourceName                     = (char*)malloc(ResourceNameLength + 1);
         ResourceName[ResourceNameLength] = '\0';
 
         fread_s(ResourceName, ResourceNameLength, ResourceNameLength, 1, ResourceFile);
-        
+
         // Create a resource based on the type read from the resource file
         CResource* LoadedResource = nullptr;
         switch (ResourceType)
         {
         case TEXTURE:
         {
-            LoadedResource = new CTextureResource{ ResourceUUID, FDString{ ResourceName }, ResourceFilePath, Offset, ResourceDataSize, AssetSerializationVersion };
+            LoadedResource =
+              new CTextureResource{ ResourceUUID, FDString{ ResourceName }, ResourceFilePath, Offset, ResourceDataSize, AssetSerializationVersion };
             break;
         }
         case MESH:
         {
-            LoadedResource = new CMeshResource{ ResourceUUID, FDString{ ResourceName }, ResourceFilePath, Offset, ResourceDataSize, AssetSerializationVersion };
+            LoadedResource =
+              new CMeshResource{ ResourceUUID, FDString{ ResourceName }, ResourceFilePath, Offset, ResourceDataSize, AssetSerializationVersion, math::FAABB{} };
             break;
         }
         default:

@@ -14,6 +14,7 @@
 
 #include "platform/input.hpp"
 #include "platform/util.hpp"
+#include "scene/renderer.hpp"
 
 namespace lucid::scene
 {
@@ -171,6 +172,8 @@ namespace lucid::scene
                     bScaleUpdated       = false;
                     bRotationUpdated    = false;
 
+                    OldTransform = Transform;
+
                     if (ImGui::DragFloat3("Translation (x, y, z)", &Transform.Translation.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX))
                     {
                         bTranslationUpdated = true;
@@ -189,6 +192,9 @@ namespace lucid::scene
                     Transform.Rotation = glm::quat({ glm::radians(EulerRotation.x), glm::radians(EulerRotation.y), glm::radians(EulerRotation.z) });
                 }
             }
+
+            // AABB
+            ImGui::Checkbox("Draw AABB", &bDrawAABB);
         }
     }
 
@@ -316,7 +322,7 @@ namespace lucid::scene
     {
         if (BaseActorAsset)
         {
-            auto* NewActorAsset         = CreateAssetFromActor(Name.GetCopy());
+            auto* NewActorAsset      = CreateAssetFromActor(Name.GetCopy());
             NewActorAsset->AssetId   = sole::uuid4();
             NewActorAsset->AssetPath = SPrintf("assets/actors/%s.asset", *Name);
 
@@ -333,6 +339,27 @@ namespace lucid::scene
         {
             assert(AssetPath.GetLength());
             InternalSaveAssetToFile(AssetPath);
+        }
+    }
+
+    void IActor::OnSelectedPreFrameRender()
+    {
+        if (bDrawAABB)
+        {
+            CRenderer* Renderer = GEngine.GetRenderer();
+
+            // Front square
+            {
+                const glm::vec3 UpperLeftCorner  = Transform.Translation + glm::vec3{ AABB.MinX, AABB.MaxY, AABB.MaxZ };
+                const glm::vec3 LowerLeftCorner  = Transform.Translation + glm::vec3{ AABB.MinX, AABB.MinY, AABB.MaxZ };
+                const glm::vec3 UpperRightCorner = Transform.Translation + glm::vec3{ AABB.MaxX, AABB.MaxY, AABB.MaxZ };
+                const glm::vec3 LowerRightCorner = Transform.Translation + glm::vec3{ AABB.MaxX, AABB.MinY, AABB.MaxZ };
+
+                Renderer->AddDebugLine(UpperLeftCorner, LowerLeftCorner, WhiteColor, WhiteColor);
+                Renderer->AddDebugLine(LowerLeftCorner, LowerRightCorner, WhiteColor, WhiteColor);
+                Renderer->AddDebugLine(LowerRightCorner, UpperRightCorner, WhiteColor, WhiteColor);
+                Renderer->AddDebugLine(UpperRightCorner, UpperLeftCorner, WhiteColor, WhiteColor);
+            }
         }
     }
 
@@ -402,4 +429,30 @@ namespace lucid::scene
         }
     }
 
+    void IActor::Tick(const float& InDeltaTime)
+    {
+        if (bScaleUpdated)
+        {
+            OnScaled(OldTransform.Scale, Transform.Scale);
+            bScaleUpdated = false;
+        }
+
+        if (bTranslationUpdated)
+        {
+            OnTranslated(OldTransform.Translation, Transform.Translation);
+            bTranslationUpdated = false;
+        }
+
+        if (bRotationUpdated)
+        {
+            OnRotated(OldTransform.Rotation, Transform.Rotation);
+            bRotationUpdated = false;
+        }
+    }
+
+    void IActor::OnScaled(const glm::vec3& InOldScale, const glm::vec3& InNewScale) { AABB *= InNewScale; }
+
+    void IActor::OnTranslated(const glm::vec3& InOldPostion, const glm::vec3& InNewPosition) {}
+
+    void IActor::OnRotated(const glm::quat& InOldRotation, const glm::quat& InNewRotation) {}
 } // namespace lucid::scene

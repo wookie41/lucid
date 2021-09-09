@@ -27,7 +27,6 @@
 
 #include "glm/gtc/quaternion.hpp"
 
-
 #include "schemas/json.hpp"
 
 #include "sole/sole.hpp"
@@ -155,10 +154,8 @@ int main(int argc, char** argv)
             GEngine.GetRenderer()->Render(GSceneEditorState.World->MakeRenderScene(GSceneEditorState.CurrentCamera), &RenderView);
         }
 
-        GSceneEditorState.NumDrawCalls[GSceneEditorState.NumDrawCallsIndex++ % GSceneEditorState.NumDrawCallSamples] =
-          scene::GRenderStats.NumDrawCalls;
-        GSceneEditorState.FrameTimes[GSceneEditorState.FrameTimesIndex++ % (GSceneEditorState.NumFrameTimesSamples)] =
-          scene::GRenderStats.FrameTimeMiliseconds;
+        GSceneEditorState.NumDrawCalls[GSceneEditorState.NumDrawCallsIndex++ % GSceneEditorState.NumDrawCallSamples] = scene::GRenderStats.NumDrawCalls;
+        GSceneEditorState.FrameTimes[GSceneEditorState.FrameTimesIndex++ % (GSceneEditorState.NumFrameTimesSamples)] = scene::GRenderStats.FrameTimeMiliseconds;
 
         DoActorPicking();
 
@@ -335,7 +332,7 @@ void HandleCameraMovement(const float& DeltaTime)
     {
         if (!GSceneEditorState.bBlockActorPicking)
         {
-                GSceneEditorState.CurrentlySelectedActor = nullptr;
+            GSceneEditorState.CurrentlySelectedActor = nullptr;
         }
         GSceneEditorState.CurrentCamera->AddRotation(-MousePos.DeltaX * .9f, MousePos.DeltaY * .9f);
     }
@@ -347,7 +344,7 @@ void DoActorPicking()
     {
         return;
     }
-    
+
     if (scene::IActor* ClickedActor = SceneWindow_GetActorUnderCursor())
     {
         if (GSceneEditorState.CurrentlySelectedActor == nullptr)
@@ -412,8 +409,8 @@ void HandleInput()
         glm::quat Rotation;
         glm::decompose(GSceneEditorState.CurrentlySelectedActor->CalculateModelMatrix(), Scale, Rotation, Translation, Skew, Perspective);
         GSceneEditorState.CurrentCamera->MoveToOverTime(Translation + glm::vec3{ 0,
-                                                                                 GSceneEditorState.CurrentlySelectedActor->GetMaxZ() + 5,
-                                                                                 GSceneEditorState.CurrentlySelectedActor->GetMaxY() + 5 },
+                                                                                 GSceneEditorState.CurrentlySelectedActor->GetAABB().MaxZ + 5,
+                                                                                 GSceneEditorState.CurrentlySelectedActor->GetAABB().MaxY + 5 },
                                                         -90,
                                                         -45.f,
                                                         3.f);
@@ -679,7 +676,7 @@ void UIDrawSceneWindow()
 
                     if (SpawnedActor)
                     {
-                        SpawnedActor->Transform.Translation = GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(GetMouseNDCPos(), 5);
+                        SpawnedActor->SetTranslation(GSceneEditorState.CurrentCamera->GetMouseRayInWorldSpace(GetMouseNDCPos(), 5));
                     }
                 }
 
@@ -1312,10 +1309,8 @@ void UIDrawActorDetailsWindow()
         {
             ImGuizmo::Enable(true);
             ImGuizmo::SetOrthographic(false);
-            ImGuizmo::SetRect(GSceneEditorState.SceneWindowPos.x,
-                              GSceneEditorState.SceneWindowPos.y,
-                              GSceneEditorState.SceneWindowWidth,
-                              GSceneEditorState.SceneWindowHeight);
+            ImGuizmo::SetRect(
+              GSceneEditorState.SceneWindowPos.x, GSceneEditorState.SceneWindowPos.y, GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight);
 
             ImGuizmo::BeginFrame();
             GSceneEditorState.CurrentlySelectedActor->DrawGizmos(GSceneEditorState.CurrentCamera);
@@ -1508,9 +1503,8 @@ void UIDrawActorResourceCreationMenu()
                     if (GSceneEditorState.GenericIntParam0 > 0 || GSceneEditorState.GenericIntParam1 > 0)
                     {
                         GSceneEditorState.bDisableCameraMovement = true;
-                        CreatedActor =
-                          scene::CSkybox::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer),
-                                                      { (u32)GSceneEditorState.GenericIntParam0, (u32)GSceneEditorState.GenericIntParam1 });
+                        CreatedActor                             = scene::CSkybox::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer),
+                                                                   { (u32)GSceneEditorState.GenericIntParam0, (u32)GSceneEditorState.GenericIntParam1 });
                     }
                     break;
                 }
@@ -1531,7 +1525,7 @@ void UIDrawActorResourceCreationMenu()
                     TerrainSettings.MaxHeight   = GSceneEditorState.GenericFloatParam5;
 
                     GSceneEditorState.bDisableCameraMovement = true;
-                    CreatedActor = scene::CTerrain::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer), TerrainSettings);
+                    CreatedActor                             = scene::CTerrain::CreateAsset(CopyToString(GSceneEditorState.AssetNameBuffer), TerrainSettings);
                     break;
                 }
 
@@ -1712,8 +1706,7 @@ void UIDrawStatsWindow()
 
         ImGui::Spacing();
 
-        ImGui::PlotHistogram(
-          "Num draw calls", GSceneEditorState.NumDrawCalls, GSceneEditorState.NumDrawCallSamples, 0, NULL, 0.0f, 2000, ImVec2(0, 100));
+        ImGui::PlotHistogram("Num draw calls", GSceneEditorState.NumDrawCalls, GSceneEditorState.NumDrawCallSamples, 0, NULL, 0.0f, 2000, ImVec2(0, 100));
 
         ImGui::Spacing();
 
@@ -1727,7 +1720,7 @@ void UIDrawSettingsWindows()
 {
     if (GSceneEditorState.bShowingRendererSettinsWindow)
     {
-        if(!GEngine.GetRenderer()->UIDrawSettingsWindow())
+        if (!GEngine.GetRenderer()->UIDrawSettingsWindow())
         {
             GSceneEditorState.bShowingRendererSettinsWindow = false;
         }

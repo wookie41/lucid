@@ -23,7 +23,7 @@ namespace lucid::scene
     class CLight : public IActor
     {
       public:
-        CLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : IActor(InName, InParent, InWorld){};
+        CLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : IActor(InName, InParent, InWorld, math::FAABB {}){};
 
         virtual ELightType GetType() const = 0;
 
@@ -34,8 +34,6 @@ namespace lucid::scene
         virtual void SetupShader(gpu::CShader* InShader) const;
         virtual void SetupShadowMapShader(gpu::CShader* InShader) = 0;
         virtual void CreateShadowMap();
-
-        virtual float GetVerticalMidPoint() const override;
 
         static EActorType GetActorTypeStatic() { return EActorType::LIGHT; }
 
@@ -98,6 +96,8 @@ namespace lucid::scene
 
         virtual ELightType GetType() const override { return ELightType::DIRECTIONAL; }
 
+        void OnRotated(const glm::quat& InOldRotation, const glm::quat& InNewRotation) override;
+
         glm::vec3 Direction = { 0, 0, -1 };
         glm::vec3 LightUp{ 0, 1, 0 };
         glm::mat4 LightSpaceMatrix{ 1 };
@@ -126,6 +126,13 @@ namespace lucid::scene
 #endif
     };
 
+    inline void CDirectionalLight::OnRotated(const glm::quat& in_old_rotation, const glm::quat& in_new_rotation)
+    {
+        CLight::OnRotated(in_old_rotation, in_new_rotation);
+
+        Direction = glm::normalize(glm::vec3{ 0, 0, 1 } * GetTransform().Rotation);
+    }
+
     /////////////////////////////////////
     //            Spot light           //
     /////////////////////////////////////
@@ -144,7 +151,9 @@ namespace lucid::scene
 
         virtual void OnAddToWorld(CWorld* InWorld) override;
         virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
-
+        
+        void OnRotated(const glm::quat& InOldRotation, const glm::quat& InNewRotation) override;
+        
         glm::vec3 Direction{ 0, 0, -1 };
         glm::vec3 LightUp{ 0, 1, 0 };
 

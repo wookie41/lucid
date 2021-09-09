@@ -1,4 +1,5 @@
-﻿#include "scene/actors/skybox.hpp"
+﻿
+#include "scene/actors/skybox.hpp"
 #include "scene/world.hpp"
 
 #include "devices/gpu/texture_enums.hpp"
@@ -39,7 +40,7 @@ namespace lucid::scene
                      const u32&                   InWidth,
                      const u32&                   InHeight,
                      resources::CTextureResource* InFaceTextures[6])
-    : IActor(InName, InParent, InWorld), SkyboxCubemap(InSkyboxCubemap), Width(InWidth), Height(InHeight)
+    : IActor(InName, InParent, InWorld, math::FAABB { }), SkyboxCubemap(InSkyboxCubemap), Width(InWidth), Height(InHeight)
     {
         bMovable    = false;
         bParentable = false;
@@ -118,8 +119,6 @@ namespace lucid::scene
             }
         }
     }
-
-    float CSkybox::GetVerticalMidPoint() const { return 0; }
 
     CSkybox* CSkybox::CreateAsset(const FDString& InName, const glm::uvec2& FaceTextureSize)
     {

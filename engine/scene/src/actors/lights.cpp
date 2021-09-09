@@ -120,7 +120,7 @@ namespace lucid::scene
     void CLight::SetupShader(gpu::CShader* InShader) const
     {
         InShader->SetInt(LIGHT_TYPE, static_cast<u32>(GetType()));
-        InShader->SetVector(LIGHT_POSITION, Transform.Translation);
+        InShader->SetVector(LIGHT_POSITION, GetTransform().Translation);
         InShader->SetVector(LIGHT_COLOR, Color);
     }
 
@@ -163,8 +163,6 @@ namespace lucid::scene
 #endif
 
     void CLight::CreateShadowMap() { ShadowMap = GEngine.GetRenderer()->CreateShadowMap(GetType()); }
-
-    float CLight::GetVerticalMidPoint() const { return 0; }
 
     void CLight::InternalSaveAssetToFile(const FString& InFilePath)
     {
@@ -254,28 +252,26 @@ namespace lucid::scene
             ImGui::DragFloat3("Light up", &LightUp.x, 0.001, -1, 1);
             ImGui::DragFloat("Illuminance (lux)", &Illuminance, 1);
             ImGui::DragFloat("Left", &Left, 1);
+
             ImGui::DragFloat("Right", &Right, 1);
             ImGui::DragFloat("Bottom", &Bottom, 1);
             ImGui::DragFloat("Top", &Top, 1);
             ImGui::DragFloat("Near", &NearPlane, 1);
             ImGui::DragFloat("Far", &FarPlane, 1);
         }
-
-        if (bRotationUpdated)
-        {
-            Direction = glm::normalize(glm::vec3{ 0, 0, 1 } * Transform.Rotation);
-        }
     }
 
     void CDirectionalLight::OnSelectedPreFrameRender()
     {
+        CLight::OnSelectedPreFrameRender();
+        
         constexpr glm::vec3 ArrowsOffsets[] = {
             { 0, 0, 0 },
             { 0, 2, 0 },
             { 0, -3, 0 },
         };
 
-        const FDebugArrow DebugArrow = MakeDebugArrowData(Transform.Translation, Direction, 20);
+        const FDebugArrow DebugArrow = MakeDebugArrowData(GetTransform().Translation, Direction, 20);
 
         for (int i = 0; i < sizeof(ArrowsOffsets) / sizeof(glm::vec3); ++i)
         {
@@ -293,16 +289,15 @@ namespace lucid::scene
         Copy->Color        = Color;
         Copy->LightUp      = LightUp;
         Copy->Quality      = Quality;
-        Copy->Transform    = Transform;
         Copy->bCastsShadow = bCastsShadow;
         Copy->Illuminance  = Illuminance;
+        Copy->SetTransform(GetTransform());
+        Copy->Translate({ 1, 0, 0 });
 
         if (ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
         }
-
-        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
 
         World->AddDirectionalLight(Copy);
         return Copy;
@@ -337,7 +332,7 @@ namespace lucid::scene
         const float ShadowMapWidth  = (float)ShadowMap->GetShadowMapTexture()->GetWidth();
         const float ShadowMapHeight = (float)ShadowMap->GetShadowMapTexture()->GetHeight();
 
-        const glm::mat4 ViewMatrix       = glm::lookAt(Transform.Translation, Transform.Translation + Direction, LightUp);
+        const glm::mat4 ViewMatrix       = glm::lookAt(GetTransform().Translation, GetTransform().Translation + Direction, LightUp);
         const glm::mat4 ProjectionMatrix = glm::perspective(OuterCutOffRad * 2, ShadowMapWidth / ShadowMapHeight, LightSettings.Near, LightSettings.Far);
         LightSpaceMatrix                 = ProjectionMatrix * ViewMatrix;
     }
@@ -396,28 +391,24 @@ namespace lucid::scene
 
             UIDrawLightIntensityPanel(&LuminousPower, &RadiantPower, &LightUnit, &LightSourceType);
         }
-
-        if (bRotationUpdated)
-        {
-            Direction = glm::normalize(glm::vec3{ 0, 0, 1 } * Transform.Rotation);
-            LightUp   = glm::normalize(glm::vec3{ 0, 1, 0 } * Transform.Rotation);
-        }
     }
 
     void CSpotLight::OnSelectedPreFrameRender()
     {
+        CLight::OnSelectedPreFrameRender();
+        
         constexpr float Step       = glm::radians(15.f);
         const float     Radius     = AttenuationRadius / glm::tan(OuterCutOffRad);
-        const glm::vec3 BaseMiddle = Transform.Translation + (Direction * AttenuationRadius);
+        const glm::vec3 BaseMiddle = GetTransform().Translation + (Direction * AttenuationRadius);
 
         for (float Rotation = 0; Rotation < 6.14; Rotation += Step)
         {
             glm::vec3 LineEnd = BaseMiddle + ((glm::angleAxis(Rotation, Direction) * LightUp) * Radius);
-            GEngine.GetRenderer()->AddDebugLine(Transform.Translation, LineEnd, Color, Color);
+            GEngine.GetRenderer()->AddDebugLine(GetTransform().Translation, LineEnd, Color, Color);
         }
 
         {
-            const FDebugArrow DirectionArrow = MakeDebugArrowData(Transform.Translation, Direction, 2);
+            const FDebugArrow DirectionArrow = MakeDebugArrowData(GetTransform().Translation, Direction, 2);
             GEngine.GetRenderer()->AddDebugLine(DirectionArrow.BodyStart, DirectionArrow.BodyEnd, Color, Color);
             GEngine.GetRenderer()->AddDebugLine(DirectionArrow.HeadStart0, DirectionArrow.HeadEnd0, Color, Color);
             GEngine.GetRenderer()->AddDebugLine(DirectionArrow.HeadStart1, DirectionArrow.HeadEnd1, Color, Color);
@@ -436,19 +427,18 @@ namespace lucid::scene
         Copy->AttenuationRadius = AttenuationRadius;
         Copy->InnerCutOffRad    = InnerCutOffRad;
         Copy->OuterCutOffRad    = OuterCutOffRad;
-        Copy->Transform         = Transform;
         Copy->bCastsShadow      = bCastsShadow;
         Copy->LightUnit         = LightUnit;
         Copy->LightSourceType   = LightSourceType;
         Copy->RadiantPower      = RadiantPower;
         Copy->LuminousPower     = LuminousPower;
+        Copy->SetTransform(GetTransform());
+        Copy->Translate({ 1, 0, 0 });
 
         if (ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::SPOT);
         }
-
-        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
 
         World->AddSpotLight(Copy);
         return Copy;
@@ -474,6 +464,14 @@ namespace lucid::scene
         }
     }
 
+    void CSpotLight::OnRotated(const glm::quat& in_old_rotation, const glm::quat& in_new_rotation)
+    {
+        CLight::OnRotated(in_old_rotation, in_new_rotation);
+
+        Direction = glm::normalize(glm::vec3{ 0, 0, 1 } * GetTransform().Rotation);
+        LightUp   = glm::normalize(glm::vec3{ 0, 1, 0 } * GetTransform().Rotation);
+    }
+
     /////////////////////////////////////
     //           Point light           //
     /////////////////////////////////////
@@ -489,17 +487,17 @@ namespace lucid::scene
         const glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.f), ShadowMapWidth / ShadowMapHeight, CachedNearPlane, CachedFarPlane);
 
         LightSpaceMatrices[0] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix * glm::lookAt(GetTransform().Translation, GetTransform().Translation + glm::vec3{ 1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
         LightSpaceMatrices[1] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix * glm::lookAt(GetTransform().Translation, GetTransform().Translation + glm::vec3{ -1.0, 0.0, 0.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
         LightSpaceMatrices[2] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 1.0, 0.0 }, glm::vec3{ 0.0, 0.0, 1.0 });
+          projectionMatrix * glm::lookAt(GetTransform().Translation, GetTransform().Translation + glm::vec3{ 0.0, 1.0, 0.0 }, glm::vec3{ 0.0, 0.0, 1.0 });
         LightSpaceMatrices[3] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, -1.0, 0.0 }, glm::vec3{ 0.0, 0.0, -1.0 });
+          projectionMatrix * glm::lookAt(GetTransform().Translation, GetTransform().Translation + glm::vec3{ 0.0, -1.0, 0.0 }, glm::vec3{ 0.0, 0.0, -1.0 });
         LightSpaceMatrices[4] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 0.0, 1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix * glm::lookAt(GetTransform().Translation, GetTransform().Translation + glm::vec3{ 0.0, 0.0, 1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
         LightSpaceMatrices[5] =
-          projectionMatrix * glm::lookAt(Transform.Translation, Transform.Translation + glm::vec3{ 0.0, 0.0, -1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
+          projectionMatrix * glm::lookAt(GetTransform().Translation, GetTransform().Translation + glm::vec3{ 0.0, 0.0, -1.0 }, glm::vec3{ 0.0, -1.0, 0.0 });
     }
 
     void CPointLight::SetupShader(gpu::CShader* InShader) const
@@ -531,9 +529,9 @@ namespace lucid::scene
 
     void CPointLight::SetupShadowMapShader(gpu::CShader* InShader)
     {
-        InShader->SetVector(LIGHT_POSITION, Transform.Translation);
+        InShader->SetVector(LIGHT_POSITION, GetTransform().Translation);
         InShader->SetFloat(LIGHT_FAR_PLANE, CachedFarPlane);
-        InShader->SetVector(LIGHT_DIRECTION, Transform.Translation);
+        InShader->SetVector(LIGHT_DIRECTION, GetTransform().Translation);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_0, LightSpaceMatrices[0]);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_1, LightSpaceMatrices[1]);
         InShader->SetMatrix(LIGHT_SPACE_MATRIX_2, LightSpaceMatrices[2]);
@@ -554,7 +552,7 @@ namespace lucid::scene
         }
     }
 
-    void CPointLight::OnSelectedPreFrameRender() { DrawDebugSphere(Transform.Translation, AttenuationRadius, Color); }
+    void CPointLight::OnSelectedPreFrameRender() { DrawDebugSphere(GetTransform().Translation, AttenuationRadius, Color); }
 
 #endif
 
@@ -566,19 +564,19 @@ namespace lucid::scene
         Copy->AttenuationRadius = AttenuationRadius;
         Copy->CachedNearPlane   = CachedNearPlane;
         Copy->CachedFarPlane    = CachedFarPlane;
-        Copy->Transform         = Transform;
         Copy->bCastsShadow      = bCastsShadow;
         Copy->LightUnit         = LightUnit;
         Copy->LightSourceType   = LightSourceType;
         Copy->RadiantPower      = RadiantPower;
         Copy->LuminousPower     = LuminousPower;
+        Copy->SetTransform(GetTransform());
+        Copy->Translate({ 1, 0, 0 });
 
         if (ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::POINT);
         }
 
-        Copy->Transform.Translation += glm::vec3{ 1, 0, 0 };
         World->AddPointLight(Copy);
         return Copy;
     }
