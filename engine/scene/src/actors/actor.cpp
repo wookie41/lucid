@@ -336,10 +336,6 @@ namespace lucid::scene
 
     void IActor::OnSelectedPreFrameRender()
     {
-        if (bDrawAABB)
-        {
-            DrawAABB();
-        }
     }
 
     void IActor::DrawAABB() const
@@ -479,6 +475,11 @@ namespace lucid::scene
         if (bTransformUpdated)
         {
             AABB.OrientAround(Transform);
+        }
+
+        if (bDrawAABB)
+        {
+            DrawAABB();
         }
     }
 

@@ -123,9 +123,9 @@ namespace lucid::scene
                     TerrainAABB.MinY = VertexData->Position.y;
                 }
 
-                if (VertexData->Position.y > TerrainAABB.MaxX)
+                if (VertexData->Position.y > TerrainAABB.MaxY)
                 {
-                    TerrainAABB.MaxX = VertexData->Position.y;
+                    TerrainAABB.MaxY = VertexData->Position.y;
                 }
 
                 VertexData->Normal = glm::vec3{ 0 };
@@ -197,7 +197,7 @@ namespace lucid::scene
         TerrainAABB.MaxX = -UpperLeft.x;
 
         TerrainAABB.MinZ = -UpperLeft.z;
-        TerrainAABB.MaxZ = UpperLeft.x;
+        TerrainAABB.MaxZ = UpperLeft.z;
 
         auto* TerrainMesh = new resources::CMeshResource{ sole::uuid4(),
                                                           "Terrain",
@@ -426,6 +426,7 @@ namespace lucid::scene
 
                     resources::CMeshResource* NewTerrainMesh = GenerateTerrainMesh(NewTerrainSettings);
                     GEngine.RemoveMeshResource(TerrainMesh);
+                    AABB = NewTerrainMesh->GetAABB();
 
                     if (auto* BaseTerrainAsset = dynamic_cast<CTerrain*>(BaseActorAsset))
                     {

@@ -589,15 +589,15 @@
             "Type": 1
         },
         {
-            "Id": "4ac28e4a-ee2e-4977-9303-39d61bfc4380",
-            "Name": "Terrain",
-            "Path": "assets/meshes/Terrain_32d8a865-9833-4757-ae3b-fd7040a577f8.asset",
-            "Type": 1
-        },
-        {
             "Id": "a182c9dc-688e-46e3-8cb7-f0df5df8e3c2",
             "Name": "Cube",
             "Path": "assets/meshes/Cube.asset",
+            "Type": 1
+        },
+        {
+            "Id": "178f0117-706a-40b4-9742-3a698be7c357",
+            "Name": "Terrain",
+            "Path": "assets/meshes/Terrain_e03e6b0a-aa12-4c10-ae00-9b38609f1b4d.asset",
             "Type": 1
         }
     ]
