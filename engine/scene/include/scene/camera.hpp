@@ -43,10 +43,8 @@ namespace lucid::scene
         glm::vec3 GetMouseRayInViewSpace(const glm::vec2& InMousePosNDC, const float InT = 1) const;
         glm::vec3 GetMouseRayInWorldSpace(const glm::vec2& InMousePosNDC, const float InT = 1) const;
 
-        void FocusOnLocation(const glm::vec3& InLocation, const float& InCameraZTranslation = 5, const float& InCameraYTranslation = 5);
-
-        void Update(const float& DeltaTime);
-        void MoveToOverTime(const glm::vec3& InLocation, const float& InYaw, const float& InPitch, const float& InDuration);
+        void Tick(const float& DeltaTime);
+        void MoveToOverTime(const glm::vec3& InLocation, const glm::vec3& InDirection, const float& InDuration);
 
         real NearPlane = 0.1;
         real FarPlane  = 1000.0;
@@ -71,12 +69,15 @@ namespace lucid::scene
         real FOV;
 
       protected:
-        float MoveDuration     = 0;
-        float CurrenteMoveTime = 0;
-        bool  bMoveRequested   = false;
+        
+        float MoveDuration    = 0;
+        float CurrentMoveTime = 0;
+        bool  bMoveRequested  = false;
 
-        glm::vec3 DesiredPos{ 0, 0, 0 };
-        float     DesiredYaw   = 0;
-        float     DesiredPitch = 0;
+        glm::vec3 StartingPosition{ 0, 0, 0 };
+        glm::vec3 StartingDirection{ 0, 0, 0 };
+
+        glm::vec3 DesiredPosition{ 0, 0, 0 };
+        glm::vec3 DesiredDirection{ 0, 0, 0 };
     };
 } // namespace lucid::scene

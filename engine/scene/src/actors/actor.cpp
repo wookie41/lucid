@@ -470,6 +470,8 @@ namespace lucid::scene
             OnRotated(OldTransform.Rotation, Transform.Rotation);
             bRotationUpdated  = false;
             bTransformUpdated = true;
+
+            ForwardVector = Transform.Rotation * glm::vec3 { 0, 0, 1 };
         }
 
         if (bTransformUpdated)

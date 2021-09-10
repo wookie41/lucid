@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 
             HandleCameraMovement(platform::SimulationStep);
 
-            GSceneEditorState.CurrentCamera->Update(platform::SimulationStep);
+            GSceneEditorState.CurrentCamera->Tick(platform::SimulationStep);
             GSceneEditorState.SecondsSinceLastVideoMemorySnapshot += platform::SimulationStep;
 
             if (GSceneEditorState.SecondsSinceLastVideoMemorySnapshot > 1)
@@ -407,18 +407,18 @@ void HandleInput()
 
     if (IsKeyPressed(SDLK_c) && GSceneEditorState.CurrentlySelectedActor)
     {
-        glm::vec3 Skew;
-        glm::vec4 Perspective;
-        glm::vec3 Translation;
-        glm::vec3 Scale;
-        glm::quat Rotation;
-        glm::decompose(GSceneEditorState.CurrentlySelectedActor->CalculateModelMatrix(), Scale, Rotation, Translation, Skew, Perspective);
-        GSceneEditorState.CurrentCamera->MoveToOverTime(Translation + glm::vec3{ 0,
-                                                                                 GSceneEditorState.CurrentlySelectedActor->GetAABB().MaxZ + 5,
-                                                                                 GSceneEditorState.CurrentlySelectedActor->GetAABB().MaxY + 5 },
-                                                        -90,
-                                                        -45.f,
-                                                        3.f);
+        const scene::IActor* ActorToFocusOn   = GSceneEditorState.CurrentlySelectedActor;
+        const glm::vec3&     ToCameraPosition = (ActorToFocusOn->GetAABB().FrontUpperLeftCorner - ActorToFocusOn->GetTransform().Translation);
+        const glm::vec3      CameraPosition    = ActorToFocusOn->GetTransform().Translation + (ToCameraPosition * 2.f);
+        const glm::vec3&     FocusPoint       = ActorToFocusOn->GetTransform().Translation;
+        glm::vec3      CameraDirection  = normalize(FocusPoint - CameraPosition);
+
+        if (glm::isnan(CameraDirection.x) || glm::isnan(CameraDirection.y) || glm::isnan(CameraDirection.z))
+        {
+            CameraDirection = ActorToFocusOn->GetActorForwardVector();
+        }
+
+        GSceneEditorState.CurrentCamera->MoveToOverTime(CameraPosition, CameraDirection, 0.5f);
     }
 }
 

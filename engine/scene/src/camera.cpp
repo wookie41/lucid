@@ -15,8 +15,8 @@ namespace lucid::scene
                      const real&        CameraSpeed,
                      const real&        CameraSensitivity,
                      const real&        CameraFOV)
-    : Mode(CameraMode), Position(CameraPosition), UpVector(CameraUp), Yaw(CameraYaw), Pitch(CameraPitch), Speed(CameraSpeed),
-      Sensitivity(CameraSensitivity), FOV(CameraFOV), WorldUpVector(CameraUp)
+    : Mode(CameraMode), Position(CameraPosition), UpVector(CameraUp), Yaw(CameraYaw), Pitch(CameraPitch), Speed(CameraSpeed), Sensitivity(CameraSensitivity),
+      FOV(CameraFOV), WorldUpVector(CameraUp)
     {
         UpdateCameraVectors();
     }
@@ -38,30 +38,35 @@ namespace lucid::scene
     {
         float velocity = Speed * DeltaTime;
         Position += FrontVector * velocity;
+        bMoveRequested = false;
     }
 
     void CCamera::MoveBackward(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position -= FrontVector * velocity;
+        bMoveRequested = false;
     }
 
     void CCamera::MoveRight(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position += RightVector * velocity;
+        bMoveRequested = false;
     }
 
     void CCamera::MoveLeft(const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position -= RightVector * velocity;
+        bMoveRequested = false;
     }
 
     void CCamera::Move(const glm::vec3& DirectionVector, const real& DeltaTime)
     {
         float velocity = Speed * DeltaTime;
         Position += DirectionVector * velocity;
+        bMoveRequested = false;
     }
     void CCamera::AddRotation(real YawOffset, real PitchOffset, const bool& constrainPitch)
     {
@@ -86,13 +91,17 @@ namespace lucid::scene
 
     void CCamera::UpdateCameraVectors()
     {
-        // calculate the new Front vector
-        glm::vec3 newFront;
-        newFront.x  = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-        newFront.y  = sin(glm::radians(Pitch));
-        newFront.z  = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-        FrontVector = glm::normalize(newFront);
-        // also re-calculate the Right and Up vector
+        if (!bMoveRequested)
+        {
+            // calculate the new Front vector
+            glm::vec3 newFront;
+            newFront.x  = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+            newFront.y  = sin(glm::radians(Pitch));
+            newFront.z  = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+            FrontVector = glm::normalize(newFront);
+        }
+
+        // re-calculate the Right and Up vector
         RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector)); // normalize the vectors, because their length gets closer to 0 the more
                                                                               // you look up or down which results in slower movement.
         UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
@@ -111,47 +120,44 @@ namespace lucid::scene
         return glm::vec3(glm::inverse(GetViewMatrix()) * MouseRayView);
     }
 
-    void CCamera::FocusOnLocation(const glm::vec3& InLocation, const float& InCameraZTranslation, const float& InCameraYTranslation)
-    {
-        Position = InLocation + glm::vec3{ 0, InCameraZTranslation, InCameraYTranslation };
-        Yaw      = -90.f;
-        Pitch    = -45;
-        UpdateCameraVectors();
-    }
-
-    void CCamera::Update(const float& DeltaTime)
+    void CCamera::Tick(const float& DeltaTime)
     {
         if (bMoveRequested)
         {
-            if (glm::length(Position - DesiredPos) < 0.01 && glm::abs(DesiredYaw - Yaw) < 0.1 && glm::abs(DesiredPitch - Pitch) < 0.1)
+            if (glm::length(Position - DesiredPosition) < 0.01)
             {
                 bMoveRequested = false;
             }
-            else if (CurrenteMoveTime > MoveDuration)
+            else if (CurrentMoveTime > MoveDuration)
             {
                 bMoveRequested = false;
             }
             else
             {
-                const float T = CurrenteMoveTime / MoveDuration;
-                Position      = math::Lerp(Position, DesiredPos, T);
-                Yaw           = math::Lerp(Yaw, DesiredYaw, T);
-                Pitch         = math::Lerp(Pitch, DesiredPitch, T);
+                const float T = CurrentMoveTime / MoveDuration;
+                Position      = math::Lerp(StartingPosition, DesiredPosition, T);
+                FrontVector   = glm::normalize(math::Lerp(StartingDirection, DesiredDirection, T));
+                Yaw           = glm::degrees(atan2f(FrontVector.z, FrontVector.x));
+                Pitch         = glm::degrees(asinf(FrontVector.y));
             }
 
+            CurrentMoveTime += DeltaTime;
+        }
+        else
+        {
             UpdateCameraVectors();
-            CurrenteMoveTime += DeltaTime;
         }
     }
 
-    void CCamera::MoveToOverTime(const glm::vec3& InLocation, const float& InYaw, const float& InPitch, const float& InDuration)
+    void CCamera::MoveToOverTime(const glm::vec3& InPosition, const glm::vec3& InDirection, const float& InDuration)
     {
-        CurrenteMoveTime = 0;
-        MoveDuration     = InDuration;
-        DesiredPos       = InLocation;
-        DesiredYaw       = InYaw;
-        DesiredPitch     = InPitch;
-        bMoveRequested   = true;
+        CurrentMoveTime   = 0;
+        MoveDuration      = InDuration;
+        DesiredPosition   = InPosition;
+        DesiredDirection  = InDirection;
+        StartingPosition  = Position;
+        StartingDirection = FrontVector;
+        bMoveRequested    = true;
     }
 
 } // namespace lucid::scene

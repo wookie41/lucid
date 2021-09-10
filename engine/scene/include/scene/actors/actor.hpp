@@ -140,6 +140,8 @@ namespace lucid::scene
         virtual void OnTranslated(const glm::vec3& InOldPostion, const glm::vec3& InNewPosition);
         virtual void OnRotated(const glm::quat& InOldRotation, const glm::quat& InNewRotation);
 
+        inline glm::vec3 GetActorForwardVector() const { return ForwardVector; }
+
         inline const FTransform3D& GetTransform() const { return Transform; }
         inline void                SetTransform(const FTransform3D& InTransform)
         {
@@ -198,6 +200,8 @@ namespace lucid::scene
       private:
         FTransform3D Transform;
         FTransform3D OldTransform;
+
+        glm::vec3 ForwardVector;
 
         bool bTranslationUpdated = false;
         bool bScaleUpdated       = false;
