@@ -119,7 +119,6 @@ namespace lucid::scene
         Copy->NumLayers = NumLayers;
 
         // @NOTE Currently there is a 1:1 mapping between terrain asset and terrain material, relax this requirement if it's actually needed
-        Copy->bIsAsset  = true;
         
         memcpy(Copy->TerrainLayers, TerrainLayers, sizeof(TerrainLayers));
         return Copy;

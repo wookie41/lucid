@@ -244,7 +244,7 @@ namespace lucid::scene
 
     IActor* CTerrain::CreateActorCopy()
     {
-        auto* TerrainActorCopy = new CTerrain{ Name.GetCopy(), Parent, World, TerrainSettings, TerrainMesh, TerrainMaterial, AABB };
+        auto* TerrainActorCopy = new CTerrain{ Name.GetCopy(), Parent, World, TerrainSettings, TerrainMesh, TerrainMaterial->GetCopy(), AABB };
         AddAssetReference(TerrainActorCopy);
         return TerrainActorCopy;
     }
@@ -269,8 +269,10 @@ namespace lucid::scene
         }
 
         auto* TerrainActor = new CTerrain{
-            TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, TerrainSettings, TerrainMeshResource, TerrainMaterial, AABB
+            TerrainDescription->Name, InWorld->GetActorById(TerrainDescription->ParentId), InWorld, TerrainSettings, TerrainMeshResource, TerrainMaterial->GetCopy(), AABB
         };
+
+        TerrainActor->TerrainMaterial->LoadResources();
 
         AddAssetReference(TerrainActor);
 
@@ -305,7 +307,7 @@ namespace lucid::scene
         resources::CMeshResource* TerrainMesh = GEngine.GetMeshesHolder().Get(InTerrainDescription.TerrainMeshResourceId);
 
         return new CTerrain{ InTerrainDescription.Name, nullptr,     nullptr,
-                             InTerrainSettings,         TerrainMesh, GEngine.GetMaterialsHolder().Get(InTerrainDescription.TerrainMaterialId),
+                             InTerrainSettings,         TerrainMesh, GEngine.GetMaterialsHolder().Get(InTerrainDescription.TerrainMaterialId)->GetCopy(),
                              TerrainMesh->GetAABB() };
     }
 
@@ -341,6 +343,11 @@ namespace lucid::scene
         if (TerrainMesh)
         {
             TerrainMesh->Release();
+        }
+
+        if (TerrainMaterial)
+        {
+            TerrainMaterial->UnloadResources();
         }
 
         bAssetResourcesLoaded = false;

@@ -713,7 +713,6 @@ namespace lucid::scene
 
     void CForwardRenderer::ResetState()
     {
-
         for (const auto& It : MaterialDataBufferPerMaterialType)
         {
             It.second.GPUBuffer->MemoryUnmap();
