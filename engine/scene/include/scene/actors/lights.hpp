@@ -126,9 +126,9 @@ namespace lucid::scene
 #endif
     };
 
-    inline void CDirectionalLight::OnRotated(const glm::quat& in_old_rotation, const glm::quat& in_new_rotation)
+    inline void CDirectionalLight::OnRotated(const glm::quat& InOldRotation, const glm::quat& InNewRotation)
     {
-        CLight::OnRotated(in_old_rotation, in_new_rotation);
+        CLight::OnRotated(InOldRotation, InNewRotation);
 
         Direction = glm::normalize(glm::vec3{ 0, 0, 1 } * GetTransform().Rotation);
     }

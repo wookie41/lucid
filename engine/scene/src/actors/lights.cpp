@@ -306,7 +306,6 @@ namespace lucid::scene
     void CDirectionalLight::OnAddToWorld(CWorld* InWorld)
     {
         CLight::OnAddToWorld(InWorld);
-        InWorld->AddDirectionalLight(this);
         if (bCastsShadow && !ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
@@ -447,7 +446,6 @@ namespace lucid::scene
     void CSpotLight::OnAddToWorld(CWorld* InWorld)
     {
         CLight::OnAddToWorld(InWorld);
-        InWorld->AddSpotLight(this);
         if (bCastsShadow && !ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
@@ -584,7 +582,6 @@ namespace lucid::scene
     void CPointLight::OnAddToWorld(CWorld* InWorld)
     {
         CLight::OnAddToWorld(InWorld);
-        InWorld->AddPointLight(this);
         if (bCastsShadow && !ShadowMap)
         {
             ShadowMap = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);

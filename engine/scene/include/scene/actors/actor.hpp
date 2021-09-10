@@ -25,7 +25,8 @@ namespace lucid::scene
     class IActor
     {
       public:
-        IActor(const FDString& InName, IActor* InParent, CWorld* InWorld, const math::FAABB& InAABB) : Name(InName), Parent(InParent), World(InWorld), AABB(InAABB)
+        IActor(const FDString& InName, IActor* InParent, CWorld* InWorld, const math::FAABB& InAABB)
+        : Name(InName), Parent(InParent), World(InWorld), AABB(InAABB)
         {
             if (Parent)
             {
@@ -98,7 +99,7 @@ namespace lucid::scene
         virtual IActor* CreateActorCopy()                                  = 0;
 
         /** Used when actor asset is referenced for the first time, up to this point no data is loaded for an asset */
-        virtual void LoadAssetResources(){};
+        virtual void LoadAssetResources() {}
         virtual void UnloadAssetResources() {}
 
         virtual void OnAddToWorld(CWorld* InWorld);
@@ -131,7 +132,6 @@ namespace lucid::scene
         void AddAssetReference(IActor* InChildReference);
         void RemoveAssetReference(IActor* InChildReference);
 
-        /** Makes the actor calculate it's AABB an return it afterwards */
         inline const math::FAABB& GetAABB() const { return AABB; }
 
         virtual void Tick(const float& InDeltaTime);
@@ -161,6 +161,8 @@ namespace lucid::scene
             Transform.Translation = InTranslation;
             bTranslationUpdated   = true;
         }
+
+        void DrawAABB() const;
 
         virtual ~IActor() = default;
 

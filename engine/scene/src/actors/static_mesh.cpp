@@ -598,7 +598,6 @@ namespace lucid::scene
     void CStaticMesh::OnAddToWorld(CWorld* InWorld)
     {
         IActor::OnAddToWorld(InWorld);
-        World->AddStaticMesh(this);
     }
 
     void CStaticMesh::OnRemoveFromWorld(const bool& InbHardRemove)

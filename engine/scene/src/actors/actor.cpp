@@ -168,10 +168,6 @@ namespace lucid::scene
                                              glm::degrees(eulerAngles(Transform.Rotation).y),
                                              glm::degrees(eulerAngles(Transform.Rotation).z) };
 
-                    bTranslationUpdated = false;
-                    bScaleUpdated       = false;
-                    bRotationUpdated    = false;
-
                     OldTransform = Transform;
 
                     if (ImGui::DragFloat3("Translation (x, y, z)", &Transform.Translation.x, 0.005f, -FLT_HALF_MAX, FLT_HALF_MAX))
@@ -294,10 +290,6 @@ namespace lucid::scene
             glm::quat Rotation;
             glm::decompose(ModelMatrix, Scale, Rotation, Translation, Skew, Perspective);
 
-            bTranslationUpdated = false;
-            bScaleUpdated       = false;
-            bRotationUpdated    = false;
-
             if (CurrentGizmoOperation == ImGuizmo::TRANSLATE)
             {
                 Transform.Translation = Translation;
@@ -346,21 +338,49 @@ namespace lucid::scene
     {
         if (bDrawAABB)
         {
-            CRenderer* Renderer = GEngine.GetRenderer();
-
-            // Front square
-            {
-                const glm::vec3 UpperLeftCorner  = Transform.Translation + glm::vec3{ AABB.MinX, AABB.MaxY, AABB.MaxZ };
-                const glm::vec3 LowerLeftCorner  = Transform.Translation + glm::vec3{ AABB.MinX, AABB.MinY, AABB.MaxZ };
-                const glm::vec3 UpperRightCorner = Transform.Translation + glm::vec3{ AABB.MaxX, AABB.MaxY, AABB.MaxZ };
-                const glm::vec3 LowerRightCorner = Transform.Translation + glm::vec3{ AABB.MaxX, AABB.MinY, AABB.MaxZ };
-
-                Renderer->AddDebugLine(UpperLeftCorner, LowerLeftCorner, WhiteColor, WhiteColor);
-                Renderer->AddDebugLine(LowerLeftCorner, LowerRightCorner, WhiteColor, WhiteColor);
-                Renderer->AddDebugLine(LowerRightCorner, UpperRightCorner, WhiteColor, WhiteColor);
-                Renderer->AddDebugLine(UpperRightCorner, UpperLeftCorner, WhiteColor, WhiteColor);
-            }
+            DrawAABB();
         }
+    }
+
+    void IActor::DrawAABB() const
+    {
+        CRenderer* Renderer = GEngine.GetRenderer();
+
+        // Front square
+        Renderer->AddDebugLine(AABB.FrontUpperLeftCorner, AABB.FrontLowerLeftCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.FrontLowerLeftCorner, AABB.FrontLowerRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.FrontLowerRightCorner, AABB.FrontUpperRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.FrontUpperRightCorner, AABB.FrontUpperLeftCorner, WhiteColor, WhiteColor);
+
+        // Right square
+        Renderer->AddDebugLine(AABB.FrontUpperRightCorner, AABB.FrontLowerRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.FrontLowerRightCorner, AABB.BackLowerRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackLowerRightCorner, AABB.BackUpperRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackUpperRightCorner, AABB.FrontUpperRightCorner, WhiteColor, WhiteColor);
+
+        // Back square
+        Renderer->AddDebugLine(AABB.BackUpperLeftCorner, AABB.BackLowerLeftCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackLowerLeftCorner, AABB.BackLowerRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackLowerRightCorner, AABB.BackUpperRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackUpperRightCorner, AABB.BackUpperLeftCorner, WhiteColor, WhiteColor);
+
+        // Left square
+        Renderer->AddDebugLine(AABB.FrontUpperLeftCorner, AABB.FrontLowerLeftCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.FrontLowerLeftCorner, AABB.BackLowerLeftCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackLowerLeftCorner, AABB.BackUpperLeftCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackUpperLeftCorner, AABB.FrontUpperLeftCorner, WhiteColor, WhiteColor);
+
+        // Top square
+        Renderer->AddDebugLine(AABB.FrontUpperLeftCorner, AABB.FrontUpperRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.FrontUpperRightCorner, AABB.BackUpperRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackUpperRightCorner, AABB.BackUpperLeftCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackUpperLeftCorner, AABB.FrontUpperLeftCorner, WhiteColor, WhiteColor);
+
+        // Bottom square
+        Renderer->AddDebugLine(AABB.FrontLowerLeftCorner, AABB.FrontLowerRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.FrontLowerRightCorner, AABB.BackLowerRightCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackLowerRightCorner, AABB.BackLowerLeftCorner, WhiteColor, WhiteColor);
+        Renderer->AddDebugLine(AABB.BackLowerLeftCorner, AABB.FrontLowerLeftCorner, WhiteColor, WhiteColor);
     }
 
     void IActor::OnAddToWorld(CWorld* InWorld)
@@ -376,6 +396,8 @@ namespace lucid::scene
         {
             BaseActorAsset->AddAssetReference(this);
         }
+
+        AABB.OrientAround(Transform);
     }
 
     void IActor::OnRemoveFromWorld(const bool& InbHardRemove)
@@ -431,22 +453,32 @@ namespace lucid::scene
 
     void IActor::Tick(const float& InDeltaTime)
     {
+        bool bTransformUpdated = false;
+
         if (bScaleUpdated)
         {
             OnScaled(OldTransform.Scale, Transform.Scale);
-            bScaleUpdated = false;
+            bScaleUpdated     = false;
+            bTransformUpdated = true;
         }
 
         if (bTranslationUpdated)
         {
             OnTranslated(OldTransform.Translation, Transform.Translation);
             bTranslationUpdated = false;
+            bTransformUpdated   = true;
         }
 
         if (bRotationUpdated)
         {
             OnRotated(OldTransform.Rotation, Transform.Rotation);
-            bRotationUpdated = false;
+            bRotationUpdated  = false;
+            bTransformUpdated = true;
+        }
+
+        if (bTransformUpdated)
+        {
+            AABB.OrientAround(Transform);
         }
     }
 

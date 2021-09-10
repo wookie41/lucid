@@ -21,7 +21,18 @@ namespace lucid::scene
 {
     FRenderScene StaticRenderScene;
 
-    void CWorld::Init() {}
+    void CWorld::Init()
+    {
+        
+    }
+
+    void CWorld::Tick(const float& InDeltaTime)
+    {
+        for (int i = 0; i < ActorById.GetLength(); ++i)
+        {
+            ActorById.GetByIndex(i)->Tick(InDeltaTime);
+        }
+    }
 
     void CWorld::AddStaticMesh(CStaticMesh* InStaticMesh)
     {
@@ -127,6 +138,7 @@ namespace lucid::scene
             NextActorId = NextActorId > InActor->ActorId ? NextActorId : InActor->ActorId + 1;
         }
         ActorById.Add(InActor->ActorId, InActor);
+        InActor->OnAddToWorld(this);
         LUCID_LOG(ELogLevel::INFO, "Actor '%s' added to the world", *InActor->Name);
         return InActor->ActorId;
     }
@@ -200,6 +212,7 @@ namespace lucid::scene
 
             LightTransform.Translation = Float3ToVec(DirLightEntry.Postion);
             LightTransform.Rotation    = Float4ToQuat(DirLightEntry.Rotation);
+            DirLight->SetTransform(LightTransform);
 
             DirLight->Color        = Float3ToVec(DirLightEntry.Color);
             DirLight->Direction    = Float3ToVec(DirLightEntry.Direction);
@@ -212,7 +225,6 @@ namespace lucid::scene
             DirLight->Top          = DirLightEntry.Top;
             DirLight->NearPlane    = DirLightEntry.NearPlane;
             DirLight->FarPlane     = DirLightEntry.FarPlane;
-            DirLight->SetTransform(LightTransform);
 
             if (DirLightEntry.ParentId && !DirLight->Parent)
             {
@@ -347,8 +359,7 @@ namespace lucid::scene
             DirLightEntry.Color               = VecToFloat3(DirLight->Color);
             DirLightEntry.Quality             = DirLight->Quality;
             DirLightEntry.Name                = DirLight->Name;
-            DirLightEntry.Postion             = VecToFloat3(DirLight->GetTransform().Translation);
-            DirLightEntry.Rotation            = { 0, 0, 0 };
+            DirLightEntry.Rotation            = QuatToFloat4(DirLight->GetTransform().Rotation);
             DirLightEntry.Direction           = VecToFloat3(DirLight->Direction);
             DirLightEntry.LightUp             = VecToFloat3(DirLight->LightUp);
             DirLightEntry.bCastsShadow        = DirLight->bCastsShadow;

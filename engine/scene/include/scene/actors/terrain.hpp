@@ -85,7 +85,6 @@ namespace lucid::scene
         virtual void UpdateDirtyResources() override;
 
         /** World callbacks */
-        virtual void OnAddToWorld(CWorld* InWorld) override;
         virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
         virtual void CleanupAfterRemove() override;
 

@@ -199,7 +199,7 @@ namespace lucid
     template <typename K, typename V>
     u32 FHashMap<K, V>::GetLength() const
     {
-        return hmlen(HashMap);
+        return HashMap ? hmlen(HashMap) : 0;
     }   
 
     template <typename K, typename V>

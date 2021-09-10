@@ -351,8 +351,6 @@ namespace lucid::scene
         // noop
     }
 
-    void CTerrain::OnAddToWorld(CWorld* InWorld) { InWorld->AddTerrain(this); }
-
     void CTerrain::OnRemoveFromWorld(const bool& InbHardRemove)
     {
         IActor::OnRemoveFromWorld(InbHardRemove);

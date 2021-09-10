@@ -141,6 +141,11 @@ int main(int argc, char** argv)
                   float(gpu::GGPUStatus.TotalAvailableVideoMemoryKB - gpu::GGPUStatus.CurrentAvailableVideoMemoryKB) / 1024.f;
                 GSceneEditorState.SecondsSinceLastVideoMemorySnapshot = 0;
             }
+
+            if (GSceneEditorState.World)
+            {
+                GSceneEditorState.World->Tick(platform::SimulationStep);
+            }
         }
 
         if (GSceneEditorState.CurrentlySelectedActor)

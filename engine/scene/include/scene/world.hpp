@@ -32,6 +32,9 @@ namespace lucid::scene
       public:
         void Init();
 
+
+        void Tick(const float& InDeltaTime);
+        
         void AddStaticMesh(CStaticMesh* InStaticMesh);
         void RemoveStaticMesh(const u32& InId);
 
