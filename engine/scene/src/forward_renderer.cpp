@@ -210,6 +210,7 @@ namespace lucid::scene
         SkyboxPipelineState.IsBlendingEnabled        = false;
         SkyboxPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
         SkyboxPipelineState.IsSRGBFramebufferEnabled = false;
+        SkyboxPipelineState.IsCullingEnabled         = false;
 
         GammaCorrectionPipelineState.ClearColorBufferColor    = FColor{ 0 };
         GammaCorrectionPipelineState.IsDepthTestEnabled       = false;
@@ -1108,9 +1109,8 @@ namespace lucid::scene
             if (Light->GetType() == ELightType::DIRECTIONAL && Light->bCastsShadow)
             {
                 CDirectionalLight* DirLight = (CDirectionalLight*)Light;
-                PrevShadowMapQuality = DirLight->CascadeShadowMaps[0]->GetQuality();
+                PrevShadowMapQuality        = DirLight->CascadeShadowMaps[0]->GetQuality();
                 gpu::SetViewport({ 0, 0, ShadowMapSizeByQuality[PrevShadowMapQuality].x, ShadowMapSizeByQuality[PrevShadowMapQuality].y });
-
             }
             else if (Light->GetType() != ELightType::DIRECTIONAL && Light->ShadowMap->GetQuality() != PrevShadowMapQuality)
             {
@@ -1400,8 +1400,9 @@ namespace lucid::scene
             {
                 const float CascadeFarPlane = InLight->CascadeFarPlanes[i];
 
-                const glm::mat4 ViewMatrix       = glm::lookAt(glm::vec3{ 0 }, InLight->Direction, InLight->LightUp);
-                const glm::mat4 ProjectionMatrix = glm::ortho(InLight->Left, InLight->Right, InLight->Bottom, InLight->Top, InLight->NearPlane, InLight->FarPlane);
+                const glm::mat4 ViewMatrix = glm::lookAt(glm::vec3{ 0 }, InLight->Direction, InLight->LightUp);
+                const glm::mat4 ProjectionMatrix =
+                  glm::ortho(InLight->Left, InLight->Right, InLight->Bottom, InLight->Top, InLight->NearPlane, InLight->FarPlane);
 
                 InLight->CascadeMatrices[i] = ProjectionMatrix * ViewMatrix;
             }
@@ -1414,12 +1415,12 @@ namespace lucid::scene
             for (u8 i = 0; i < InLight->CascadeCount; ++i)
             {
                 gpu::PushDebugGroup("Cascade");
-            
+
                 ShadowMapFramebuffer->SetupDepthAttachment(InLight->CascadeShadowMaps[i]->GetShadowMapTexture());
                 gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
 
                 ShadowMapShader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->CascadeMatrices[i]);
-                
+
                 // Static geometry
                 for (const FMeshBatch& MeshBatch : MeshBatches)
                 {

@@ -409,9 +409,9 @@ void HandleInput()
     {
         const scene::IActor* ActorToFocusOn   = GSceneEditorState.CurrentlySelectedActor;
         const glm::vec3&     ToCameraPosition = (ActorToFocusOn->GetAABB().FrontUpperLeftCorner - ActorToFocusOn->GetTransform().Translation);
-        const glm::vec3      CameraPosition    = ActorToFocusOn->GetTransform().Translation + (ToCameraPosition * 2.f);
+        const glm::vec3      CameraPosition   = ActorToFocusOn->GetTransform().Translation + (ToCameraPosition * 2.f);
         const glm::vec3&     FocusPoint       = ActorToFocusOn->GetTransform().Translation;
-        glm::vec3      CameraDirection  = normalize(FocusPoint - CameraPosition);
+        glm::vec3            CameraDirection  = normalize(FocusPoint - CameraPosition);
 
         if (glm::isnan(CameraDirection.x) || glm::isnan(CameraDirection.y) || glm::isnan(CameraDirection.z))
         {
