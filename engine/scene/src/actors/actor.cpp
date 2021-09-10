@@ -187,10 +187,10 @@ namespace lucid::scene
 
                     Transform.Rotation = glm::quat({ glm::radians(EulerRotation.x), glm::radians(EulerRotation.y), glm::radians(EulerRotation.z) });
                 }
-            }
 
-            // AABB
-            ImGui::Checkbox("Draw AABB", &bDrawAABB);
+                // AABB
+                ImGui::Checkbox("Draw AABB", &bDrawAABB);
+            }
         }
     }
 
