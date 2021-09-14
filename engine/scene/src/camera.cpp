@@ -1,9 +1,11 @@
 #include "scene/camera.hpp"
 
+#include <engine/engine.hpp>
 #include <glm/ext/quaternion_common.hpp>
 #include <misc/math.hpp>
 
 #include "glm/gtc/matrix_transform.hpp"
+#include "scene/renderer.hpp"
 
 namespace lucid::scene
 {
@@ -19,6 +21,7 @@ namespace lucid::scene
       FOV(CameraFOV), WorldUpVector(CameraUp)
     {
         UpdateCameraVectors();
+        UpdateFrustumAABB();
     }
 
     glm::mat4 CCamera::GetViewMatrix() const { return glm::lookAt(Position, Position + FrontVector, UpVector); }
@@ -107,6 +110,25 @@ namespace lucid::scene
         UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
     }
 
+    void CCamera::UpdateFrustumAABB()
+    {
+        FrustumAABB.MinZ = NearPlane;
+        FrustumAABB.MaxZ = FarPlane;
+
+        const float FrustumLength  = FarPlane - NearPlane;
+        const float HalfFOVRadians = glm::radians(FOV / 2.f);
+
+        const float FrustumHalfHeight = glm::tan(HalfFOVRadians) * FrustumLength;
+
+        FrustumAABB.MinY = -FrustumHalfHeight;
+        FrustumAABB.MaxY = FrustumHalfHeight;
+
+        const float FrustumHalfWidth = FrustumHalfHeight * AspectRatio;
+
+        FrustumAABB.MinX = -FrustumHalfWidth;
+        FrustumAABB.MaxX = FrustumHalfWidth;
+    }
+
     glm::vec3 CCamera::GetMouseRayInViewSpace(const glm::vec2& InMousePosNDC, const float InT) const
     {
         const glm::vec4 MouseRayClip{ InMousePosNDC, -1, 1 };
@@ -147,6 +169,11 @@ namespace lucid::scene
         {
             UpdateCameraVectors();
         }
+
+        FTransform3D CameraTransform;
+        CameraTransform.Translation = Position;
+        CameraTransform.Rotation    = glm::quatLookAt(FrontVector, WorldUpVector);
+        FrustumAABB.OrientAround(CameraTransform);
     }
 
     void CCamera::MoveToOverTime(const glm::vec3& InPosition, const glm::vec3& InDirection, const float& InDuration)

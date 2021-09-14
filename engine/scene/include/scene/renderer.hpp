@@ -170,16 +170,21 @@ namespace lucid::scene
         inline const FCachedTexture<float>& GetCachedDistanceToCameraMap() const { return CachedDistanceToCameraMap; }
         inline gpu::CTexture*               GetLightBulbTexture() const { return LightBulbTexture; }
 
-        /** Queues a debug line to draw during the next Render() call.
+        /**
+         * Queues a debug line to draw during the next Render() call.
          * The debug line will persist for n seconds after it's added.
          * If you want to  draw a line only for one frame, then pass 0 as InPersistTime.
          */
-        void AddDebugLine(const glm::vec3&  InStart,
+        void DrawDebugLine(const glm::vec3&  InStart,
                           const glm::vec3&  InEnd,
                           const glm::vec3&  InStartColor,
                           const glm::vec3&  InEndColor,
                           const float&      InPersistTime = 0,
                           const ESpaceType& InSpaceType   = WORLD_SPACE);
+
+
+        
+        void DrawAABB(const math::FAABB& InAABB, const FColor& InColor);
 
 #endif
 

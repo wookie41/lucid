@@ -2,6 +2,7 @@
 
 #include "glm/glm.hpp"
 #include "common/types.hpp"
+#include "misc/math.hpp"
 
 namespace lucid::scene
 {
@@ -37,6 +38,7 @@ namespace lucid::scene
         // called automatically when you use AddRotation(), but has to be called manually when
         // any of the camera's properties are updated by hand
         void UpdateCameraVectors();
+        void UpdateFrustumAABB();
 
         void AddRotation(real YawOffset, real PitchOffset, const bool& constrainPitch = true);
 
@@ -46,17 +48,34 @@ namespace lucid::scene
         void Tick(const float& DeltaTime);
         void MoveToOverTime(const glm::vec3& InLocation, const glm::vec3& InDirection, const float& InDuration);
 
-        inline void SetAspectRatio(const float& InAspectRatio) { AspectRatio = InAspectRatio; }
-        inline void SetYaw(const float& InYaw) { Yaw = InYaw; }
-        inline void SetPosition(const glm::vec3& InPosition) { Position = InPosition; }
+        inline void SetAspectRatio(const float& InAspectRatio)
+        {
+            AspectRatio = InAspectRatio;
+            UpdateFrustumAABB();
+        }
+        inline void SetYaw(const float& InYaw)
+        {
+            Yaw = InYaw;
+            UpdateFrustumAABB();
+        }
+        inline void SetPosition(const glm::vec3& InPosition)
+        {
+            Position = InPosition;
+            UpdateFrustumAABB();
+        }
 
         inline glm::vec3 GetPosition() const { return Position; }
         inline float     GetNearPlane() const { return NearPlane; }
         inline float     GetFarPlane() const { return FarPlane; }
 
+        const math::FAABB& GetFrustumAABB() const { return FrustumAABB; }
+    
       protected:
+
+        math::FAABB FrustumAABB;
+        
         real NearPlane = 0.1;
-        real FarPlane  = 1000.0;
+        real FarPlane  = 100.0;
 
         real Left = 0, Right = 0;
         real Bottom = 0, Top = 0;

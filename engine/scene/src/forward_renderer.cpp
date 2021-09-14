@@ -1611,9 +1611,9 @@ namespace lucid::scene
             const glm::vec3 AxisEndY = AxisCenter + (ViewMatrixRotation * glm::vec3{ 0, 0.05, 0 });
             const glm::vec3 AxisEndZ = AxisCenter + (ViewMatrixRotation * glm::vec3{ 0, 0, 0.05 });
 
-            AddDebugLine(AxisCenter, AxisEndX, { 1, 0, 0 }, { 1, 0, 0 }, 0, ESpaceType::CLIP_SPACE);
-            AddDebugLine(AxisCenter, AxisEndY, { 0, 1, 0 }, { 0, 1, 0 }, 0, ESpaceType::CLIP_SPACE);
-            AddDebugLine(AxisCenter, AxisEndZ, { 0, 0, 1 }, { 0, 0, 1 }, 0, ESpaceType::CLIP_SPACE);
+            DrawDebugLine(AxisCenter, AxisEndX, { 1, 0, 0 }, { 1, 0, 0 }, 0, ESpaceType::CLIP_SPACE);
+            DrawDebugLine(AxisCenter, AxisEndY, { 0, 1, 0 }, { 0, 1, 0 }, 0, ESpaceType::CLIP_SPACE);
+            DrawDebugLine(AxisCenter, AxisEndZ, { 0, 0, 1 }, { 0, 0, 1 }, 0, ESpaceType::CLIP_SPACE);
         }
 
         // Copy lines data to GPU

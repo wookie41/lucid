@@ -342,41 +342,7 @@ namespace lucid::scene
     {
         CRenderer* Renderer = GEngine.GetRenderer();
 
-        // Front square
-        Renderer->AddDebugLine(AABB.FrontUpperLeftCorner, AABB.FrontLowerLeftCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.FrontLowerLeftCorner, AABB.FrontLowerRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.FrontLowerRightCorner, AABB.FrontUpperRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.FrontUpperRightCorner, AABB.FrontUpperLeftCorner, WhiteColor, WhiteColor);
 
-        // Right square
-        Renderer->AddDebugLine(AABB.FrontUpperRightCorner, AABB.FrontLowerRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.FrontLowerRightCorner, AABB.BackLowerRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackLowerRightCorner, AABB.BackUpperRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackUpperRightCorner, AABB.FrontUpperRightCorner, WhiteColor, WhiteColor);
-
-        // Back square
-        Renderer->AddDebugLine(AABB.BackUpperLeftCorner, AABB.BackLowerLeftCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackLowerLeftCorner, AABB.BackLowerRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackLowerRightCorner, AABB.BackUpperRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackUpperRightCorner, AABB.BackUpperLeftCorner, WhiteColor, WhiteColor);
-
-        // Left square
-        Renderer->AddDebugLine(AABB.FrontUpperLeftCorner, AABB.FrontLowerLeftCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.FrontLowerLeftCorner, AABB.BackLowerLeftCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackLowerLeftCorner, AABB.BackUpperLeftCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackUpperLeftCorner, AABB.FrontUpperLeftCorner, WhiteColor, WhiteColor);
-
-        // Top square
-        Renderer->AddDebugLine(AABB.FrontUpperLeftCorner, AABB.FrontUpperRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.FrontUpperRightCorner, AABB.BackUpperRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackUpperRightCorner, AABB.BackUpperLeftCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackUpperLeftCorner, AABB.FrontUpperLeftCorner, WhiteColor, WhiteColor);
-
-        // Bottom square
-        Renderer->AddDebugLine(AABB.FrontLowerLeftCorner, AABB.FrontLowerRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.FrontLowerRightCorner, AABB.BackLowerRightCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackLowerRightCorner, AABB.BackLowerLeftCorner, WhiteColor, WhiteColor);
-        Renderer->AddDebugLine(AABB.BackLowerLeftCorner, AABB.FrontLowerLeftCorner, WhiteColor, WhiteColor);
     }
 
     void IActor::OnAddToWorld(CWorld* InWorld)

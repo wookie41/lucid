@@ -275,9 +275,9 @@ namespace lucid::scene
 
         for (int i = 0; i < sizeof(ArrowsOffsets) / sizeof(glm::vec3); ++i)
         {
-            GEngine.GetRenderer()->AddDebugLine(DebugArrow.BodyStart + ArrowsOffsets[i], DebugArrow.BodyEnd + ArrowsOffsets[i], Color, Color);
-            GEngine.GetRenderer()->AddDebugLine(DebugArrow.HeadStart0 + ArrowsOffsets[i], DebugArrow.HeadEnd0 + ArrowsOffsets[i], Color, Color);
-            GEngine.GetRenderer()->AddDebugLine(DebugArrow.HeadStart1 + ArrowsOffsets[i], DebugArrow.HeadEnd1 + ArrowsOffsets[i], Color, Color);
+            GEngine.GetRenderer()->DrawDebugLine(DebugArrow.BodyStart + ArrowsOffsets[i], DebugArrow.BodyEnd + ArrowsOffsets[i], Color, Color);
+            GEngine.GetRenderer()->DrawDebugLine(DebugArrow.HeadStart0 + ArrowsOffsets[i], DebugArrow.HeadEnd0 + ArrowsOffsets[i], Color, Color);
+            GEngine.GetRenderer()->DrawDebugLine(DebugArrow.HeadStart1 + ArrowsOffsets[i], DebugArrow.HeadEnd1 + ArrowsOffsets[i], Color, Color);
         }
     }
 #endif
@@ -403,14 +403,14 @@ namespace lucid::scene
         for (float Rotation = 0; Rotation < 6.14; Rotation += Step)
         {
             glm::vec3 LineEnd = BaseMiddle + ((glm::angleAxis(Rotation, Direction) * LightUp) * Radius);
-            GEngine.GetRenderer()->AddDebugLine(GetTransform().Translation, LineEnd, Color, Color);
+            GEngine.GetRenderer()->DrawDebugLine(GetTransform().Translation, LineEnd, Color, Color);
         }
 
         {
             const FDebugArrow DirectionArrow = MakeDebugArrowData(GetTransform().Translation, Direction, 2);
-            GEngine.GetRenderer()->AddDebugLine(DirectionArrow.BodyStart, DirectionArrow.BodyEnd, Color, Color);
-            GEngine.GetRenderer()->AddDebugLine(DirectionArrow.HeadStart0, DirectionArrow.HeadEnd0, Color, Color);
-            GEngine.GetRenderer()->AddDebugLine(DirectionArrow.HeadStart1, DirectionArrow.HeadEnd1, Color, Color);
+            GEngine.GetRenderer()->DrawDebugLine(DirectionArrow.BodyStart, DirectionArrow.BodyEnd, Color, Color);
+            GEngine.GetRenderer()->DrawDebugLine(DirectionArrow.HeadStart0, DirectionArrow.HeadEnd0, Color, Color);
+            GEngine.GetRenderer()->DrawDebugLine(DirectionArrow.HeadStart1, DirectionArrow.HeadEnd1, Color, Color);
         }
     }
 

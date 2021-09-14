@@ -128,7 +128,7 @@ namespace lucid::scene
     }
 
 #if DEVELOPMENT
-    void CRenderer::AddDebugLine(const glm::vec3&  InStart,
+    void CRenderer::DrawDebugLine(const glm::vec3&  InStart,
                                  const glm::vec3&  InEnd,
                                  const glm::vec3&  InStartColor,
                                  const glm::vec3&  InEndColor,
@@ -137,6 +137,45 @@ namespace lucid::scene
     {
         DebugLines.emplace_back(
           InStart, InEnd, InStartColor, InEndColor, InPersistTime < 0 ? -1 : platform::GetCurrentTimeSeconds() + InPersistTime, InSpaceType);
+    }
+
+    void CRenderer::DrawAABB(const math::FAABB& InAABB, const FColor& InColor)
+    {
+        // Front square
+        DrawDebugLine(InAABB.FrontUpperLeftCorner, InAABB.FrontLowerLeftCorner, InColor, InColor);
+        DrawDebugLine(InAABB.FrontLowerLeftCorner, InAABB.FrontLowerRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.FrontLowerRightCorner, InAABB.FrontUpperRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.FrontUpperRightCorner, InAABB.FrontUpperLeftCorner, InColor, InColor);
+
+        // Right square
+        DrawDebugLine(InAABB.FrontUpperRightCorner, InAABB.FrontLowerRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.FrontLowerRightCorner, InAABB.BackLowerRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackLowerRightCorner, InAABB.BackUpperRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackUpperRightCorner, InAABB.FrontUpperRightCorner, InColor, InColor);
+
+        // Back square
+        DrawDebugLine(InAABB.BackUpperLeftCorner, InAABB.BackLowerLeftCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackLowerLeftCorner, InAABB.BackLowerRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackLowerRightCorner, InAABB.BackUpperRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackUpperRightCorner, InAABB.BackUpperLeftCorner, InColor, InColor);
+
+        // Left square
+        DrawDebugLine(InAABB.FrontUpperLeftCorner, InAABB.FrontLowerLeftCorner, InColor, InColor);
+        DrawDebugLine(InAABB.FrontLowerLeftCorner, InAABB.BackLowerLeftCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackLowerLeftCorner, InAABB.BackUpperLeftCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackUpperLeftCorner, InAABB.FrontUpperLeftCorner, InColor, InColor);
+
+        // Top square
+        DrawDebugLine(InAABB.FrontUpperLeftCorner, InAABB.FrontUpperRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.FrontUpperRightCorner, InAABB.BackUpperRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackUpperRightCorner, InAABB.BackUpperLeftCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackUpperLeftCorner, InAABB.FrontUpperLeftCorner, InColor, InColor);
+
+        // Bottom square
+        DrawDebugLine(InAABB.FrontLowerLeftCorner, InAABB.FrontLowerRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.FrontLowerRightCorner, InAABB.BackLowerRightCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackLowerRightCorner, InAABB.BackLowerLeftCorner, InColor, InColor);
+        DrawDebugLine(InAABB.BackLowerLeftCorner, InAABB.FrontLowerLeftCorner, InColor, InColor);
     }
 
     void CRenderer::RemoveStaleDebugLines()
@@ -194,17 +233,17 @@ namespace lucid::scene
             const glm::vec3 AroundYStart = SphereCenter + glm::vec3{ CurrentPointOffsetSin, 0, CurrentPointOffsetCos };
             const glm::vec3 AroundYEnd   = SphereCenter + glm::vec3{ NextPointOffsetSin, 0, NextPointOffsetCos };
 
-            GEngine.GetRenderer()->AddDebugLine(AroundYStart, AroundYEnd, InColor, InColor);
+            GEngine.GetRenderer()->DrawDebugLine(AroundYStart, AroundYEnd, InColor, InColor);
 
             const glm::vec3 AroundXStart = SphereCenter + glm::vec3{ 0, CurrentPointOffsetSin, CurrentPointOffsetCos };
             const glm::vec3 AroundXEnd   = SphereCenter + glm::vec3{ 0, NextPointOffsetSin, NextPointOffsetCos };
 
-            GEngine.GetRenderer()->AddDebugLine(AroundXStart, AroundXEnd, InColor, InColor);
+            GEngine.GetRenderer()->DrawDebugLine(AroundXStart, AroundXEnd, InColor, InColor);
 
             const glm::vec3 AroundZStart = SphereCenter + glm::vec3{ CurrentPointOffsetCos, CurrentPointOffsetSin, 0 };
             const glm::vec3 AroundZEnd   = SphereCenter + glm::vec3{ NextPointOffsetCos, NextPointOffsetSin, 0 };
 
-            GEngine.GetRenderer()->AddDebugLine(AroundZStart, AroundZEnd, InColor, InColor);
+            GEngine.GetRenderer()->DrawDebugLine(AroundZStart, AroundZEnd, InColor, InColor);
         }
     }
 
