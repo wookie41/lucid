@@ -282,9 +282,9 @@ bool InitializeSceneEditor()
     }
 
     // Configure the camera
-    GSceneEditorState.PerspectiveCamera.AspectRatio = GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y;
-    GSceneEditorState.PerspectiveCamera.Position    = { 0, 0, 0 };
-    GSceneEditorState.PerspectiveCamera.Yaw         = -90.f;
+    GSceneEditorState.PerspectiveCamera.SetAspectRatio(GSceneEditorState.ImSceneWindow->Size.x / GSceneEditorState.ImSceneWindow->Size.y);
+    GSceneEditorState.PerspectiveCamera.SetPosition({ 0, 0, 0 });
+    GSceneEditorState.PerspectiveCamera.SetYaw(-90.f);
     GSceneEditorState.PerspectiveCamera.UpdateCameraVectors();
 
     GSceneEditorState.CurrentCamera = &GSceneEditorState.PerspectiveCamera;

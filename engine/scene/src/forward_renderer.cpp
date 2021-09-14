@@ -1333,12 +1333,12 @@ namespace lucid::scene
         GlobalRenderData->NumPCFsamples                  = NumSamplesPCF;
         GlobalRenderData->ProjectionMatrix               = InRenderView->Camera->GetProjectionMatrix();
         GlobalRenderData->ViewMatrix                     = InRenderView->Camera->GetViewMatrix();
-        GlobalRenderData->ViewPos                        = InRenderView->Camera->Position;
+        GlobalRenderData->ViewPos                        = InRenderView->Camera->GetPosition();
         GlobalRenderData->ParallaxHeightScale            = 0.1f;
         GlobalRenderData->ViewportSize                   = glm::vec2{ InRenderView->Viewport.Width, InRenderView->Viewport.Height };
         GlobalRenderData->AmbientOcclusionBindlessHandle = RendererSettings.bEnableSSAO ? SSAOBlurredBindlessHandle : BlankTextureBindlessHandle;
-        GlobalRenderData->NearPlane                      = InRenderView->Camera->NearPlane;
-        GlobalRenderData->FarPlane                       = InRenderView->Camera->FarPlane;
+        GlobalRenderData->NearPlane                      = InRenderView->Camera->GetNearPlane();
+        GlobalRenderData->FarPlane                       = InRenderView->Camera->GetFarPlane();
 
         GlobalDataUBO->BindIndexed(0, gpu::EBufferBindPoint::UNIFORM, GLOBAL_DATA_BUFFER_SIZE, BufferOffset);
     }

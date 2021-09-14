@@ -40,7 +40,7 @@ namespace lucid
         PipelineState.IsSRGBFramebufferEnabled = false;
         PipelineState.IsDepthBufferReadOnly = false;
 
-        Camera.Yaw = -90.f;
+        Camera.SetYaw(-90.f);
         Camera.UpdateCameraVectors();
 
     }
@@ -65,7 +65,7 @@ namespace lucid
         gpu::ConfigurePipelineState(PipelineState);
         gpu::ClearBuffers((gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH));
 
-        Camera.AspectRatio = (float)InWidth / (float)InHeight;
+        Camera.SetAspectRatio((float)InWidth / (float)InHeight);
 
         MeshThumbShader->Use();
 

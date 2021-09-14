@@ -46,6 +46,15 @@ namespace lucid::scene
         void Tick(const float& DeltaTime);
         void MoveToOverTime(const glm::vec3& InLocation, const glm::vec3& InDirection, const float& InDuration);
 
+        inline void SetAspectRatio(const float& InAspectRatio) { AspectRatio = InAspectRatio; }
+        inline void SetYaw(const float& InYaw) { Yaw = InYaw; }
+        inline void SetPosition(const glm::vec3& InPosition) { Position = InPosition; }
+
+        inline glm::vec3 GetPosition() const { return Position; }
+        inline float     GetNearPlane() const { return NearPlane; }
+        inline float     GetFarPlane() const { return FarPlane; }
+
+      protected:
         real NearPlane = 0.1;
         real FarPlane  = 1000.0;
 
@@ -68,8 +77,6 @@ namespace lucid::scene
         real Sensitivity;
         real FOV;
 
-      protected:
-        
         float MoveDuration    = 0;
         float CurrentMoveTime = 0;
         bool  bMoveRequested  = false;
