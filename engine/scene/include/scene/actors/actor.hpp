@@ -208,8 +208,11 @@ namespace lucid::scene
         bool bRotationUpdated    = false;
 
 #if DEVELOPMENT
-        bool bRenaming = false;
-        bool bDrawAABB = false;
+    public:
+        FColor AABBColor { 1 };
+    private:
+        bool   bRenaming = false;
+        bool   bDrawAABB = false;
 #endif
     };
 } // namespace lucid::scene

@@ -340,9 +340,7 @@ namespace lucid::scene
 
     void IActor::DrawAABB() const
     {
-        CRenderer* Renderer = GEngine.GetRenderer();
-
-
+        GEngine.GetRenderer()->DrawAABB(AABB, AABBColor);
     }
 
     void IActor::OnAddToWorld(CWorld* InWorld)

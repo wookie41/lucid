@@ -36,9 +36,15 @@ namespace lucid::math
 
     struct FAABB
     {
+        // These are in model space
         float MinX = 0, MaxX = 0;
         float MinY = 0, MaxY = 0;
         float MinZ = 0, MaxZ = 0;
+
+        // These are in world space
+        float MinXWS = 0, MaxXWS = 0;
+        float MinYWS = 0, MaxYWS = 0;
+        float MinZWS = 0, MaxZWS = 0;
 
         glm::vec3 FrontUpperLeftCorner{ 0 };
         glm::vec3 FrontLowerLeftCorner{ 0 };
@@ -52,8 +58,10 @@ namespace lucid::math
 
         void OrientAround(const scene::FTransform3D& Transform);
 
+        float GetMinWS(const u8& Axis) const;
+        float GetMaxWS(const u8& Axis) const;
+
         FAABB operator*(const glm::vec3& InScale) const;
         void  operator*=(const glm::vec3& InScale);
     };
-
 } // namespace lucid::math

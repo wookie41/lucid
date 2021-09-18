@@ -17,7 +17,14 @@ namespace lucid::math
     void FAABB::OrientAround(const scene::FTransform3D& Transform)
     {
         const FAABB ScaledAABB = (*this) * Transform.Scale;
-        
+
+        MinXWS = MinX + Transform.Translation.x;
+        MaxXWS = MaxX + Transform.Translation.x;
+        MinYWS = MinY + Transform.Translation.y;
+        MaxYWS = MaxY + Transform.Translation.y;
+        MinZWS = MinZ + Transform.Translation.z;
+        MaxZWS = MaxZ + Transform.Translation.z;
+
         FrontUpperLeftCorner  = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MinX, ScaledAABB.MaxY, ScaledAABB.MaxZ };
         FrontLowerLeftCorner  = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MinX, ScaledAABB.MinY, ScaledAABB.MaxZ };
         FrontUpperRightCorner = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MaxX, ScaledAABB.MaxY, ScaledAABB.MaxZ };
@@ -27,6 +34,42 @@ namespace lucid::math
         BackLowerLeftCorner  = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MinX, ScaledAABB.MinY, ScaledAABB.MinZ };
         BackUpperRightCorner = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MaxX, ScaledAABB.MaxY, ScaledAABB.MinZ };
         BackLowerRightCorner = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MaxX, ScaledAABB.MinY, ScaledAABB.MinZ };
+    }
+
+    float FAABB::GetMinWS(const u8& Axis) const
+    {
+        if (Axis == 0)
+        {
+            return MinXWS;
+        }
+        if (Axis == 1)
+        {
+            return MinYWS;
+        }
+        if (Axis == 2)
+        {
+            return MinZWS;
+        }
+        assert(0);
+        return 0;
+    }
+
+    float FAABB::GetMaxWS(const u8& Axis) const
+    {
+        if (Axis == 0)
+        {
+            return MaxXWS;
+        }
+        if (Axis == 1)
+        {
+            return MaxYWS;
+        }
+        if (Axis == 2)
+        {
+            return MaxZWS;
+        }
+        assert(0);
+        return 0;
     }
 
     FAABB FAABB::operator*(const glm::vec3& InScale) const
