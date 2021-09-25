@@ -325,6 +325,16 @@
             "Id": "d373f697-d940-4ea4-b3b7-fdb77b90902e",
             "MaterialPath": "assets/materials/Cube_Material.asset",
             "MaterialType": 3
+        },
+        {
+            "Id": "a52850dc-17b0-4b56-9f4f-19a2dc420d2e",
+            "MaterialPath": "assets/materials/Cube2_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "f3ef5f62-ebb6-48c7-aca5-558c03da9d2e",
+            "MaterialPath": "assets/materials/Cube2_Material.asset",
+            "MaterialType": 3
         }
     ]
 }

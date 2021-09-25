@@ -1,0 +1,10 @@
+{
+    "Id": "a52850dc-17b0-4b56-9f4f-19a2dc420d2e",
+    "Name": "Cube2_DefaultMaterial",
+    "ShaderName": "BlinnPhongMaps",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

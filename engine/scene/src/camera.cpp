@@ -112,8 +112,8 @@ namespace lucid::scene
 
     void CCamera::UpdateFrustumAABB()
     {
-        FrustumAABB.MinZ = NearPlane;
-        FrustumAABB.MaxZ = FarPlane;
+        FrustumAABB.MinZ = -FarPlane;
+        FrustumAABB.MaxZ = -NearPlane;
 
         const float FrustumLength  = FarPlane - NearPlane;
         const float HalfFOVRadians = glm::radians(FOV / 2.f);
@@ -127,6 +127,11 @@ namespace lucid::scene
 
         FrustumAABB.MinX = -FrustumHalfWidth;
         FrustumAABB.MaxX = FrustumHalfWidth;
+
+        FTransform3D CameraTransform;
+        CameraTransform.Translation = Position;
+        CameraTransform.Rotation = glm::quatLookAt(FrontVector, WorldUpVector);
+        FrustumAABB.OrientAround(CameraTransform);
     }
 
     glm::vec3 CCamera::GetMouseRayInViewSpace(const glm::vec2& InMousePosNDC, const float InT) const
@@ -170,10 +175,7 @@ namespace lucid::scene
             UpdateCameraVectors();
         }
 
-        FTransform3D CameraTransform;
-        CameraTransform.Translation = Position;
-        CameraTransform.Rotation    = glm::quatLookAt(FrontVector, WorldUpVector);
-        FrustumAABB.OrientAround(CameraTransform);
+        UpdateFrustumAABB();
     }
 
     void CCamera::MoveToOverTime(const glm::vec3& InPosition, const glm::vec3& InDirection, const float& InDuration)

@@ -59,7 +59,7 @@ namespace lucid::scene
     static const FSString BILLBOARD_WORLD_POS("uBillboardWorldPos");
     static const FSString BILLBOARD_COLOR_TINT("uBillboardColorTint");
 
-    static const FSString MODEL_MATRIX("uModel");
+    static const FSString MODEL_MATRIX("uModelMatrix");
     static const FSString VIEW_MATRIX("uView");
     static const FSString PROJECTION_MATRIX("uProjection");
 
@@ -648,7 +648,7 @@ namespace lucid::scene
         gpu::SetViewport(InRenderView->Viewport);
 
         gpu::PushDebugGroup("Shadow maps generation");
-        GenerateShadowMaps(InSceneToRender);
+        GenerateShadowMaps(InSceneToRender, InRenderView->Camera);
         gpu::PopDebugGroup();
 
         gpu::PushDebugGroup("Prepass");
@@ -1079,7 +1079,7 @@ namespace lucid::scene
 
     } // namespace lucid::scene
 
-    void CForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender)
+    void CForwardRenderer::GenerateShadowMaps(FRenderScene* InSceneToRender, CCamera* InCamera)
     {
         // Prepare the pipeline state
         gpu::ConfigurePipelineState(ShadowMapGenerationPipelineState);
@@ -1126,7 +1126,7 @@ namespace lucid::scene
 
             if (Light->GetType() == ELightType::DIRECTIONAL)
             {
-                GenerateCascadeShadowMaps((CDirectionalLight*)Light);
+                GenerateCascadeShadowMaps((CDirectionalLight*)Light, InSceneToRender, InCamera);
                 gpu::PopDebugGroup();
                 continue;
             }
@@ -1371,7 +1371,7 @@ namespace lucid::scene
         }
     }
 
-    void CForwardRenderer::GenerateCascadeShadowMaps(CDirectionalLight* InLight)
+    void CForwardRenderer::GenerateCascadeShadowMaps(CDirectionalLight* InLight, const FRenderScene* InRenderScene, CCamera* InCamera)
     {
         // Calculate cascade far planes
         {
@@ -1380,6 +1380,7 @@ namespace lucid::scene
             const float PlanesDistance      = CascadeMaxFarPlane - CascadeMinNearPlane;
             const float CamFarOverCamNear   = CascadeMaxFarPlane - CascadeMinNearPlane;
 
+            // Calculate cascade planes
             const float CascadeCount = (float)InLight->CascadeCount;
             for (u8 i = 0, i_f = 1.f; i < InLight->CascadeCount - 1; ++i, i_f += 1.f)
             {
@@ -1393,43 +1394,112 @@ namespace lucid::scene
             InLight->CascadeFarPlanes[InLight->CascadeCount - 1] = CascadeMaxFarPlane;
         }
 
-        // Create the cascade matrices
-        {
-            for (u8 i = 0; i < InLight->CascadeCount; ++i)
-            {
-                const float CascadeFarPlane = InLight->CascadeFarPlanes[i];
-
-                const glm::mat4 ViewMatrix = glm::lookAt(glm::vec3{ 0 }, InLight->Direction, InLight->LightUp);
-                const glm::mat4 ProjectionMatrix =
-                  glm::ortho(InLight->Left, InLight->Right, InLight->Bottom, InLight->Top, InLight->NearPlane, InLight->FarPlane);
-
-                InLight->CascadeMatrices[i] = ProjectionMatrix * ViewMatrix;
-            }
-        }
-
         // Generate shadow maps
         {
+            // Save the camera near and far plane so we can restore them
+            // after we generate shadow map for each cascade
+            const float     CameraNearPlane = InCamera->GetNearPlane();
+            const float     CameraFarPlane  = InCamera->GetFarPlane();
+
             ShadowMapShader->Use();
 
+            float CascadeNearPlane = InLight->FirstCascadeNearPlane;
             for (u8 i = 0; i < InLight->CascadeCount; ++i)
             {
                 gpu::PushDebugGroup("Cascade");
 
+                // Prepare the depth map
                 ShadowMapFramebuffer->SetupDepthAttachment(InLight->CascadeShadowMaps[i]->GetShadowMapTexture());
                 gpu::ClearBuffers(gpu::EGPUBuffer::DEPTH);
 
-                ShadowMapShader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->CascadeMatrices[i]);
+                // Set camera's near and far planes to cascade's near and far plane
+                // so we can get a proper camera frustum aabb to test for objects in the cascade
+                const float CascadeFarPlane = InLight->CascadeFarPlanes[i];
+                InCamera->SetNearPlane(CascadeNearPlane);
+                InCamera->SetFarPlane(CascadeFarPlane);
+                InCamera->UpdateFrustumAABB();
 
-                // Static geometry
-                for (const FMeshBatch& MeshBatch : MeshBatches)
+                // Find geometry that is inside this cascade
+                const glm::vec3 ToLight     = -InLight->Direction;
+                math::FAABB     CascadeAABB = InCamera->GetFrustumAABB();
+
+                // @TODO build clip frustum based on this
+                FGeometryIntersectionQueryResult QueryResult;
+                FindGeometryOverlappingSweptAABB(InRenderScene, CascadeAABB, ToLight, QueryResult);
+
+                // Calculate view and projection matrices
+                const glm::vec3 FrustumCenter     = CascadeAABB.GetFrustumCenter();
+                const glm::vec3 CascadeFrustumPos = FrustumCenter - InLight->Direction;
+                
+                float Left = FLT_MAX, Right = 0;
+                float Bottom = FLT_MAX, Top = 0;
+                float Near = FLT_MAX, Far = 0;
+
+                for (int c = 0; c < 8; ++c)
                 {
-                    MeshBatch.MeshVertexArray->Bind();
-                    ShadowMapShader->SetInt(MESH_BATCH_OFFSET, MeshBatch.BatchedSoFar);
-                    MeshBatch.MeshVertexArray->DrawInstanced(MeshBatch.BatchSize);
+                    const glm::vec3 Corner = CascadeAABB[c] - CascadeFrustumPos;
+                    if (Corner.x < Left)
+                    {
+                        Left = Corner.x;
+                    }
+                    if (Corner.x > Right)
+                    {
+                        Right = Corner.x;
+                    }
+                    if (Corner.y < Bottom)
+                    {
+                        Bottom = Corner.y;
+                    }
+                    if (Corner.y > Top)
+                    {
+                        Top = Corner.y;
+                    }
+                    if (Corner.z < Near)
+                    {
+                        Near = Corner.z;
+                    }
+                    if (Corner.z > Far)
+                    {
+                        Far = Corner.z;
+                    }
                 }
+
+                const glm::mat4 ViewMatrix       = glm::lookAt(CascadeFrustumPos, FrustumCenter, { 0, 1, 0 });
+                const glm::mat4 ProjectionMatrix = glm::ortho(Left, Right, Bottom, Top, Near, Far);
+
+                InLight->CascadeMatrices[i]         = ProjectionMatrix * ViewMatrix;
+
+                ShadowMapShader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->CascadeMatrices[i]);
+                for (int j = 0; j < InRenderScene->StaticMeshes.GetLength(); ++j)
+                {
+                    const CStaticMesh* StaticMesh = InRenderScene->StaticMeshes.GetByIndex(j);
+                    ShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CachedModelMatrix);
+                    for (int SubMesh = 0; SubMesh < StaticMesh->MeshResource->SubMeshes.GetLength(); ++SubMesh)
+                    {
+                        StaticMesh->MeshResource->SubMeshes[SubMesh]->VAO->Bind();
+                        StaticMesh->MeshResource->SubMeshes[SubMesh]->VAO->Draw();
+                    }
+                }
+
+                for (int j = 0; j < InRenderScene->Terrains.GetLength(); ++j)
+                {
+                    const CTerrain* Terrain = InRenderScene->Terrains.GetByIndex(j);
+                    ShadowMapShader->SetMatrix(MODEL_MATRIX, Terrain->CachedModelMatrix);
+                    for (int SubMesh = 0; SubMesh < Terrain->GetTerrainMesh()->SubMeshes.GetLength(); ++SubMesh)
+                    {
+                        Terrain->GetTerrainMesh()->SubMeshes[SubMesh]->VAO->Bind();
+                        Terrain->GetTerrainMesh()->SubMeshes[SubMesh]->VAO->Draw();
+                    }
+                }
+                
+                CascadeNearPlane = CascadeFarPlane;
 
                 gpu::PopDebugGroup();
             }
+
+            InCamera->SetNearPlane(CameraNearPlane);
+            InCamera->SetFarPlane(CameraFarPlane);
+            InCamera->UpdateFrustumAABB();
         }
     }
 

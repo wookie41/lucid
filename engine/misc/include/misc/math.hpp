@@ -63,5 +63,7 @@ namespace lucid::math
 
         FAABB operator*(const glm::vec3& InScale) const;
         void  operator*=(const glm::vec3& InScale);
+        glm::vec3 GetFrustumCenter() const;
+        glm::vec3 operator[](const int& InCorner);
     };
 } // namespace lucid::math

@@ -1,0 +1,74 @@
+{
+    "StaticMeshes": [
+        {
+            "Id": 1,
+            "Name": "Cyborg",
+            "BaseActorResourceId": "001f7432-2627-44d4-97d9-e78aea60560a",
+            "Postion": [
+                -3.0011096000671388,
+                6.488386631011963,
+                -6.9612202644348148
+            ],
+            "Scale": [
+                2.0,
+                2.0,
+                2.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "2dad9dce-3385-41a9-bba6-57b114d691e4"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "effdef01-1074-4c6e-a26f-0b5916461fac"
+                }
+            ]
+        },
+        {
+            "Id": 3,
+            "Name": "Cube",
+            "BaseActorResourceId": "8678b945-dccc-446e-94ed-5791842e1d1e",
+            "Postion": [
+                12.503310203552246,
+                5.928650856018066,
+                -15.514310836791993
+            ],
+            "Scale": [
+                100.0,
+                1.0,
+                100.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "11fd4faf-0d3f-46b8-a362-91be7e6fd28d"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "d373f697-d940-4ea4-b3b7-fdb77b90902e"
+                }
+            ]
+        }
+    ],
+    "DirectionalLights": [
+        {
+            "Id": 2,
+            "Name": "DirectionalLight",
+            "Rotation": [
+                -0.22113989293575288,
+                0.0,
+                0.0,
+                0.9752420783042908
+            ],
+            "bCastsShadow": true,
+            "Direction": [
+                0.0,
+                -0.4313298463821411,
+                0.9021943211555481
+            ],
+            "Illuminance": 1.0,
+            "FarPlane": 10000.0
+        }
+    ]
+}

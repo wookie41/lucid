@@ -1,0 +1,23 @@
+{
+    "Name": "Cube2",
+    "Rotation": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "MeshResourceId": {
+        "bChanged": true,
+        "Value": "363f9542-2846-4fef-89e1-b5bb068fcc33"
+    },
+    "MaterialIds": [
+        {
+            "bChanged": true,
+            "Value": "a52850dc-17b0-4b56-9f4f-19a2dc420d2e"
+        },
+        {
+            "bChanged": true,
+            "Value": "f3ef5f62-ebb6-48c7-aca5-558c03da9d2e"
+        }
+    ]
+}

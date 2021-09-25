@@ -94,5 +94,52 @@ namespace lucid::math
         MaxZ *= InScale.z;
     }
 
+    glm::vec3 FAABB::GetFrustumCenter() const
+    {
+        const glm::vec3 V            = BackUpperRightCorner - FrontLowerLeftCorner;
+        const float     HalfDistance = glm::length(V) / 2;
+        return FrontLowerLeftCorner + (glm::normalize(V) * HalfDistance);
+    }
+
+    glm::vec3 FAABB::operator[](const int& InCorner)
+    {
+        if (InCorner == 0)
+        {
+            return FrontUpperLeftCorner;
+        }
+        if (InCorner == 1)
+        {
+            return FrontLowerLeftCorner;
+        }
+        if (InCorner == 2)
+        {
+            return FrontUpperRightCorner;
+        }
+        if (InCorner == 3)
+        {
+            return FrontLowerRightCorner;
+        }
+        if (InCorner == 4)
+        {
+            return BackUpperLeftCorner;
+        }
+        if (InCorner == 5)
+        {
+            return BackLowerLeftCorner;
+        }
+        if (InCorner == 6)
+        {
+            return BackUpperRightCorner;
+        }
+        if (InCorner == 7)
+        {
+            return BackLowerRightCorner;
+        }
+
+        assert(0);
+        return glm::vec3 { 0 };
+        
+    }
+
     real Lerp(const real& X, const real& Y, const real& T);
 } // namespace lucid::math

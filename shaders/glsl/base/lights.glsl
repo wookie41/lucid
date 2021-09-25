@@ -27,6 +27,7 @@ uniform int       uCascadeCount;
 uniform mat4      uCascadeMatrices[MAX_SHADOW_CASCADES];
 uniform float     uCascadeFarPlanes[MAX_SHADOW_CASCADES];
 uniform sampler2D uCascadeShadowMaps[MAX_SHADOW_CASCADES];
+uniform vec3      uCascadeFrustumPositions[MAX_SHADOW_CASCADES];
 
 struct LightContribution
 {

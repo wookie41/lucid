@@ -42,6 +42,7 @@ namespace lucid::scene
     {
         FArray<CStaticMesh*> StaticMeshes{ 32, true };
         FArray<CTerrain*>    Terrains{ 32, true };
+        math::FAABB          GeometryAABB;
     };
 
     bool TestOverlap(const math::FAABB& A, const math::FAABB& B);

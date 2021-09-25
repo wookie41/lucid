@@ -17,14 +17,14 @@ namespace lucid::scene
         {
             return true;
         }
-        
+
         // first times of overlap along each axis
         glm::vec3 uv0(0, 0, 0);
 
         // last times of overlap along each axis
         glm::vec3 uv1(FLT_MAX, FLT_MAX, FLT_MAX);
 
-        //the problem is solved in A's frame of reference
+        // the problem is solved in A's frame of reference
         const glm::vec3 V = -SweepDirection;
 
         // find the possible first and last times of overlap along each axis
@@ -56,10 +56,10 @@ namespace lucid::scene
 
         // they could have only collided if the first time of
         // overlap occurred before the last time of overlap
-        if(u0 > 0 && u0 <= u1)
+        if (u0 > 0 && u0 <= u1)
         {
             const glm::vec3 Displacement = SweepDirection * u0;
-            math::FAABB SweptA = A;
+            math::FAABB     SweptA       = A;
 
             SweptA.MinXWS += Displacement.x;
             SweptA.MaxXWS += Displacement.x;
@@ -81,6 +81,13 @@ namespace lucid::scene
                                           const glm::vec3&                  SweepDirection,
                                           FGeometryIntersectionQueryResult& OutQueryResult)
     {
+        OutQueryResult.GeometryAABB.MinX = FLT_MAX;
+        OutQueryResult.GeometryAABB.MinY = FLT_MAX;
+        OutQueryResult.GeometryAABB.MinZ = FLT_MAX;
+        OutQueryResult.GeometryAABB.MaxX = 0;
+        OutQueryResult.GeometryAABB.MaxY = 0;
+        OutQueryResult.GeometryAABB.MaxZ = 0;
+
         for (int i = 0; i < Scene->StaticMeshes.GetLength(); ++i)
         {
             CStaticMesh* StaticMesh = Scene->StaticMeshes.GetByIndex(i);

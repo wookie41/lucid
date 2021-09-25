@@ -48,34 +48,28 @@ namespace lucid::scene
         void Tick(const float& DeltaTime);
         void MoveToOverTime(const glm::vec3& InLocation, const glm::vec3& InDirection, const float& InDuration);
 
-        inline void SetAspectRatio(const float& InAspectRatio)
-        {
-            AspectRatio = InAspectRatio;
-            UpdateFrustumAABB();
-        }
-        inline void SetYaw(const float& InYaw)
-        {
-            Yaw = InYaw;
-            UpdateFrustumAABB();
-        }
-        inline void SetPosition(const glm::vec3& InPosition)
-        {
-            Position = InPosition;
-            UpdateFrustumAABB();
-        }
+        inline void SetAspectRatio(const float& InAspectRatio) { AspectRatio = InAspectRatio; }
+        inline void SetYaw(const float& InYaw) { Yaw = InYaw; }
+        inline void SetPosition(const glm::vec3& InPosition) { Position = InPosition; }
+        inline void SetDirection(const glm::vec3& InDirection) { FrontVector = InDirection;}
+        inline void SetNearPlane(const float& InNearPlane) { NearPlane = InNearPlane; }
+        inline void SetFarPlane(const float& InFarPlane) { FarPlane = InFarPlane; }
+        inline void SetCameraUp(const glm::vec3& InCameraUp) { UpVector = InCameraUp; }
 
         inline glm::vec3 GetPosition() const { return Position; }
+        inline glm::vec3 GetDirection() const { return FrontVector; }
         inline float     GetNearPlane() const { return NearPlane; }
         inline float     GetFarPlane() const { return FarPlane; }
+        inline float     GetYaw() const { return Yaw; }
+        inline glm::vec3 GetCameraUp() const { return UpVector; }
 
         const math::FAABB& GetFrustumAABB() const { return FrustumAABB; }
-    
-      protected:
 
+      protected:
         math::FAABB FrustumAABB;
-        
+
         real NearPlane = 0.1;
-        real FarPlane  = 100.0;
+        real FarPlane  = 10000.0;
 
         real Left = 0, Right = 0;
         real Bottom = 0, Top = 0;

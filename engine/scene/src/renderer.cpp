@@ -76,10 +76,10 @@ namespace lucid::scene
                                                                  FSString{ "ShadowCubemap" },
                                                                  gpu::EMinTextureFilter::LINEAR,
                                                                  gpu::EMagTextureFilter::LINEAR,
-                                                                 gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
-                                                                 gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
-                                                                 gpu::EWrapTextureFilter::CLAMP_TO_EDGE,
-                                                                 { 0, 0, 0, 0 });
+                                                                 gpu::EWrapTextureFilter::CLAMP_TO_BORDER,
+                                                                 gpu::EWrapTextureFilter::CLAMP_TO_BORDER,
+                                                                 gpu::EWrapTextureFilter::CLAMP_TO_BORDER,
+                                                                 { 1, 1, 1, 1 });
 
             auto* ShadowMap = new CShadowMap(arrlen(CreatedShadowMaps), ShadowMapTexture, DefaultShadowMapQuality);
             arrput(CreatedShadowMaps, ShadowMap);

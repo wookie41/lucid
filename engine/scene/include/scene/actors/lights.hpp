@@ -23,7 +23,7 @@ namespace lucid::scene
     class CLight : public IActor
     {
       public:
-        CLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : IActor(InName, InParent, InWorld, math::FAABB {}){};
+        CLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : IActor(InName, InParent, InWorld, math::FAABB{}){};
 
         virtual ELightType GetType() const = 0;
 
@@ -34,6 +34,7 @@ namespace lucid::scene
         virtual void SetupShader(gpu::CShader* InShader) const;
         virtual void SetupShadowMapShader(gpu::CShader* InShader) = 0;
         virtual void CreateShadowMap();
+        virtual void FreeShadowMap();
 
         static EActorType GetActorTypeStatic() { return EActorType::LIGHT; }
 
@@ -86,6 +87,7 @@ namespace lucid::scene
         CDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld) : CLight(InName, InParent, InWorld) {}
 
         virtual void    CreateShadowMap() override;
+        virtual void    FreeShadowMap() override;
         virtual void    UpdateLightSpaceMatrix(const LightSettings& LightSettings) override;
         virtual void    SetupShader(gpu::CShader* InShader) const override;
         virtual void    SetupShadowMapShader(gpu::CShader* InShader) override;
@@ -113,7 +115,7 @@ namespace lucid::scene
 
         u8    CascadeCount          = 3;
         float CascadeSplitLogFactor = 0.9f;
-        float FirstCascadeNearPlane = 1.f;
+        float FirstCascadeNearPlane = 0.1;
 
         CShadowMap* CascadeShadowMaps[MAX_SHADOW_CASCADES]{ nullptr };
 
@@ -151,9 +153,9 @@ namespace lucid::scene
 
         virtual void OnAddToWorld(CWorld* InWorld) override;
         virtual void OnRemoveFromWorld(const bool& InbHardRemove) override;
-        
+
         void OnRotated(const glm::quat& InOldRotation, const glm::quat& InNewRotation) override;
-        
+
         glm::vec3 Direction{ 0, 0, -1 };
         glm::vec3 LightUp{ 0, 1, 0 };
 

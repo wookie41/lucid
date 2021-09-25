@@ -154,8 +154,7 @@ namespace lucid::scene
                 }
                 else if (ShadowMap)
                 {
-                    ShadowMap->Free();
-                    ShadowMap = nullptr;
+                    FreeShadowMap();
                 }
             }
         }
@@ -164,6 +163,12 @@ namespace lucid::scene
 
     void CLight::CreateShadowMap() { ShadowMap = GEngine.GetRenderer()->CreateShadowMap(GetType()); }
 
+    void CLight::FreeShadowMap()
+    {
+        ShadowMap->Free();
+        ShadowMap = nullptr;
+    }
+
     void CLight::InternalSaveAssetToFile(const FString& InFilePath)
     {
         // Light data is written directly to the world file
@@ -171,11 +176,9 @@ namespace lucid::scene
 
     void CLight::CleanupAfterRemove()
     {
-        if (ShadowMap)
+        if (bCastsShadow)
         {
-            ShadowMap->Free();
-            delete ShadowMap;
-            ShadowMap = nullptr;
+            FreeShadowMap();
         }
     }
 
@@ -190,13 +193,18 @@ namespace lucid::scene
             CascadeShadowMaps[i] = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
         }
     }
+    void CDirectionalLight::FreeShadowMap()
+    {
+        for (u8 i = 0; i < CascadeCount; ++i)
+        {
+            CascadeShadowMaps[i]->Free();
+            CascadeShadowMaps[i] = nullptr;
+        }
+    }
 
     void CDirectionalLight::UpdateLightSpaceMatrix(const LightSettings& LightSettings)
     {
-        const glm::mat4 ViewMatrix       = glm::lookAt(glm::vec3{ 0 }, Direction, LightUp);
-        const glm::mat4 ProjectionMatrix = glm::ortho(Left, Right, Bottom, Top, NearPlane, FarPlane);
-
-        LightSpaceMatrix = ProjectionMatrix * ViewMatrix;
+        // noop, dir lights are using CSMs
     }
 
     void CDirectionalLight::SetupShader(gpu::CShader* InShader) const
@@ -204,9 +212,7 @@ namespace lucid::scene
         CLight::SetupShader(InShader);
 
         InShader->SetVector(LIGHT_DIRECTION, Direction);
-        InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix);
         InShader->SetFloat(LIGHT_INTENSITY, Illuminance);
-        InShader->SetInt(CASCADE_COUNT, Illuminance);
 
         if (bCastsShadow)
         {
@@ -241,7 +247,7 @@ namespace lucid::scene
         }
     }
 
-    void CDirectionalLight::SetupShadowMapShader(gpu::CShader* InShader) { InShader->SetMatrix(LIGHT_SPACE_MATRIX, LightSpaceMatrix); }
+    void CDirectionalLight::SetupShadowMapShader(gpu::CShader* InShader) { assert(0); }
 
 #if DEVELOPMENT
     void CDirectionalLight::UIDrawActorDetails()
@@ -251,20 +257,36 @@ namespace lucid::scene
         {
             ImGui::DragFloat3("Light up", &LightUp.x, 0.001, -1, 1);
             ImGui::DragFloat("Illuminance (lux)", &Illuminance, 1);
-            ImGui::DragFloat("Left", &Left, 1);
 
-            ImGui::DragFloat("Right", &Right, 1);
-            ImGui::DragFloat("Bottom", &Bottom, 1);
-            ImGui::DragFloat("Top", &Top, 1);
-            ImGui::DragFloat("Near", &NearPlane, 1);
-            ImGui::DragFloat("Far", &FarPlane, 1);
+            int NewCascadeCount = CascadeCount;
+            
+            ImGui::InputInt("Number of cascades", (int*)&NewCascadeCount, 1, 1);
+            ImGui::DragFloat("Cascade split log factor", &CascadeSplitLogFactor, 0.01, 0.1, 1);
+
+            if (NewCascadeCount != CascadeCount && NewCascadeCount <= MAX_SHADOW_CASCADES)
+            {
+                while (NewCascadeCount > CascadeCount)
+                {
+                    CascadeShadowMaps[CascadeCount] = GEngine.GetRenderer()->CreateShadowMap(ELightType::DIRECTIONAL);
+                    CascadeShadowMaps[CascadeCount]->GetShadowMapTexture()->GetBindlessHandle();
+                    CascadeShadowMaps[CascadeCount]->GetShadowMapTexture()->MakeBindlessResident();
+                    ++CascadeCount;
+                }
+                
+                while (NewCascadeCount < CascadeCount)
+                {
+                    CascadeShadowMaps[CascadeCount - 1]->Free();
+                    CascadeShadowMaps[CascadeCount - 1] = nullptr;
+                    --CascadeCount;
+                }
+            }
         }
     }
 
     void CDirectionalLight::OnSelectedPreFrameRender()
     {
         CLight::OnSelectedPreFrameRender();
-        
+
         constexpr glm::vec3 ArrowsOffsets[] = {
             { 0, 0, 0 },
             { 0, 2, 0 },
@@ -395,7 +417,7 @@ namespace lucid::scene
     void CSpotLight::OnSelectedPreFrameRender()
     {
         CLight::OnSelectedPreFrameRender();
-        
+
         constexpr float Step       = glm::radians(15.f);
         const float     Radius     = AttenuationRadius / glm::tan(OuterCutOffRad);
         const glm::vec3 BaseMiddle = GetTransform().Translation + (Direction * AttenuationRadius);

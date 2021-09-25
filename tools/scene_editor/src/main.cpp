@@ -1284,6 +1284,13 @@ void UIDrawSceneHierarchyWindow()
 {
     ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_None;
     ImGui::Begin(SCENE_HIERARCHY, nullptr, WindowFlags);
+    if (GSceneEditorState.CurrentCamera)
+    {
+        ImGui::Text("Camera position [%.4f, %.4f, %.4f]",
+                    GSceneEditorState.CurrentCamera->GetPosition().x,
+                    GSceneEditorState.CurrentCamera->GetPosition().y,
+                    GSceneEditorState.CurrentCamera->GetPosition().z);
+    }
     {
         if (GSceneEditorState.World)
         {
