@@ -18,13 +18,6 @@ namespace lucid::math
     {
         const FAABB ScaledAABB = (*this) * Transform.Scale;
 
-        MinXWS = MinX + Transform.Translation.x;
-        MaxXWS = MaxX + Transform.Translation.x;
-        MinYWS = MinY + Transform.Translation.y;
-        MaxYWS = MaxY + Transform.Translation.y;
-        MinZWS = MinZ + Transform.Translation.z;
-        MaxZWS = MaxZ + Transform.Translation.z;
-
         FrontUpperLeftCorner  = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MinX, ScaledAABB.MaxY, ScaledAABB.MaxZ };
         FrontLowerLeftCorner  = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MinX, ScaledAABB.MinY, ScaledAABB.MaxZ };
         FrontUpperRightCorner = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MaxX, ScaledAABB.MaxY, ScaledAABB.MaxZ };
@@ -34,6 +27,58 @@ namespace lucid::math
         BackLowerLeftCorner  = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MinX, ScaledAABB.MinY, ScaledAABB.MinZ };
         BackUpperRightCorner = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MaxX, ScaledAABB.MaxY, ScaledAABB.MinZ };
         BackLowerRightCorner = Transform.Translation + Transform.Rotation * glm::vec3{ ScaledAABB.MaxX, ScaledAABB.MinY, ScaledAABB.MinZ };
+
+        MinXWS = std::min({ FrontUpperLeftCorner.x,
+                            FrontLowerLeftCorner.x,
+                            FrontUpperRightCorner.x,
+                            FrontLowerRightCorner.x,
+                            BackUpperLeftCorner.x,
+                            BackLowerLeftCorner.x,
+                            BackUpperRightCorner.x,
+                            BackLowerRightCorner.x });
+        MaxXWS = std::max({ FrontUpperLeftCorner.x,
+                            FrontLowerLeftCorner.x,
+                            FrontUpperRightCorner.x,
+                            FrontLowerRightCorner.x,
+                            BackUpperLeftCorner.x,
+                            BackLowerLeftCorner.x,
+                            BackUpperRightCorner.x,
+                            BackLowerRightCorner.x });
+
+        MinYWS = std::min({ FrontUpperLeftCorner.y,
+                            FrontLowerLeftCorner.y,
+                            FrontUpperRightCorner.y,
+                            FrontLowerRightCorner.y,
+                            BackUpperLeftCorner.y,
+                            BackLowerLeftCorner.y,
+                            BackUpperRightCorner.y,
+                            BackLowerRightCorner.y });
+
+        MaxYWS = std::max({ FrontUpperLeftCorner.y,
+                            FrontLowerLeftCorner.y,
+                            FrontUpperRightCorner.y,
+                            FrontLowerRightCorner.y,
+                            BackUpperLeftCorner.y,
+                            BackLowerLeftCorner.y,
+                            BackUpperRightCorner.y,
+                            BackLowerRightCorner.y });
+
+        MinZWS = std::min({ FrontUpperLeftCorner.z,
+                            FrontLowerLeftCorner.z,
+                            FrontUpperRightCorner.z,
+                            FrontLowerRightCorner.z,
+                            BackUpperLeftCorner.z,
+                            BackLowerLeftCorner.z,
+                            BackUpperRightCorner.z,
+                            BackLowerRightCorner.z });
+        MaxZWS = std::max({ FrontUpperLeftCorner.z,
+                            FrontLowerLeftCorner.z,
+                            FrontUpperRightCorner.z,
+                            FrontLowerRightCorner.z,
+                            BackUpperLeftCorner.z,
+                            BackLowerLeftCorner.z,
+                            BackUpperRightCorner.z,
+                            BackLowerRightCorner.z });
     }
 
     float FAABB::GetMinWS(const u8& Axis) const
@@ -84,16 +129,6 @@ namespace lucid::math
         return NewAABB;
     }
 
-    void FAABB::operator*=(const glm::vec3& InScale)
-    {
-        MinX *= InScale.x;
-        MaxX *= InScale.x;
-        MinY *= InScale.y;
-        MaxY *= InScale.y;
-        MinZ *= InScale.z;
-        MaxZ *= InScale.z;
-    }
-
     glm::vec3 FAABB::GetFrustumCenter() const
     {
         const glm::vec3 V            = BackUpperRightCorner - FrontLowerLeftCorner;
@@ -137,8 +172,70 @@ namespace lucid::math
         }
 
         assert(0);
-        return glm::vec3 { 0 };
-        
+        return glm::vec3{ 0 };
+    }
+
+    void FAABB::TranslateCorner(const int& InCorner, const glm::vec3& InTranslate)
+    {
+        if (InCorner == 0)
+        {
+            FrontUpperLeftCorner += InTranslate;
+            return;
+        }
+
+        if (InCorner == 1)
+        {
+            FrontLowerLeftCorner += InTranslate;
+            return;
+        }
+
+        if (InCorner == 2)
+        {
+            FrontUpperRightCorner += InTranslate;
+            return;
+        }
+
+        if (InCorner == 3)
+        {
+            FrontLowerRightCorner += InTranslate;
+            return;
+        }
+
+        if (InCorner == 4)
+        {
+            BackUpperLeftCorner += InTranslate;
+            return;
+        }
+
+        if (InCorner == 5)
+        {
+            BackLowerLeftCorner += InTranslate;
+            return;
+        }
+
+        if (InCorner == 6)
+        {
+            BackUpperRightCorner += InTranslate;
+            return;
+        }
+
+        if (InCorner == 7)
+        {
+            BackLowerRightCorner += InTranslate;
+            return;
+        }
+
+        assert(0);
+    }
+
+    void FAABB::GrowInWorldSpace(const math::FAABB& Other)
+    {
+        MinXWS = std::min(MinXWS, Other.MinXWS);
+        MaxXWS = std::max(MaxXWS, Other.MaxXWS);
+        MinYWS = std::min(MinYWS, Other.MinYWS);
+        MaxYWS = std::max(MaxYWS, Other.MaxYWS);
+        MinZWS = std::min(MinZWS, Other.MinZWS);
+        MaxZWS = std::max(MaxZWS, Other.MaxZWS);
     }
 
     real Lerp(const real& X, const real& Y, const real& T);

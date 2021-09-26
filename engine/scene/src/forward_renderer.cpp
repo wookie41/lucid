@@ -592,6 +592,7 @@ namespace lucid::scene
 
     void CForwardRenderer::Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
+
         for (u32 i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
         {
             InSceneToRender->StaticMeshes.GetByIndex(i)->CalculateModelMatrix();
@@ -1398,8 +1399,8 @@ namespace lucid::scene
         {
             // Save the camera near and far plane so we can restore them
             // after we generate shadow map for each cascade
-            const float     CameraNearPlane = InCamera->GetNearPlane();
-            const float     CameraFarPlane  = InCamera->GetFarPlane();
+            const float CameraNearPlane = InCamera->GetNearPlane();
+            const float CameraFarPlane  = InCamera->GetFarPlane();
 
             ShadowMapShader->Use();
 
@@ -1420,12 +1421,11 @@ namespace lucid::scene
                 InCamera->UpdateFrustumAABB();
 
                 // Find geometry that is inside this cascade
-                const glm::vec3 ToLight     = -InLight->Direction;
                 math::FAABB     CascadeAABB = InCamera->GetFrustumAABB();
 
                 // @TODO build clip frustum based on this
                 FGeometryIntersectionQueryResult QueryResult;
-                FindGeometryOverlappingSweptAABB(InRenderScene, CascadeAABB, ToLight, QueryResult);
+                FindGeometryOverlappingSweptAABB(InRenderScene, CascadeAABB, -InLight->Direction, QueryResult);
 
                 // Calculate view and projection matrices
                 const glm::vec3 FrustumCenter     = CascadeAABB.GetFrustumCenter();
@@ -1437,37 +1437,39 @@ namespace lucid::scene
 
                 for (int c = 0; c < 8; ++c)
                 {
-                    const glm::vec3 Corner = CascadeAABB[c] - CascadeFrustumPos;
-                    if (Corner.x < Left)
+                    const glm::vec3 GeometryCorner = QueryResult.GeometryAABB[c] - CascadeFrustumPos;
+                    const glm::vec3 CascadeCorner = CascadeAABB[c] - CascadeFrustumPos;
+                    if (CascadeCorner.x < Left)
                     {
-                        Left = Corner.x;
+                        Left = CascadeCorner.x;
                     }
-                    if (Corner.x > Right)
+                    if (CascadeCorner.x > Right)
                     {
-                        Right = Corner.x;
+                        Right = CascadeCorner.x;
                     }
-                    if (Corner.y < Bottom)
+                    if (CascadeCorner.y < Bottom)
                     {
-                        Bottom = Corner.y;
+                        Bottom = CascadeCorner.y;
                     }
-                    if (Corner.y > Top)
+                    if (CascadeCorner.y > Top)
                     {
-                        Top = Corner.y;
+                        Top = CascadeCorner.y;
                     }
-                    if (Corner.z < Near)
+                    if (GeometryCorner.z < Near)
                     {
-                        Near = Corner.z;
+                        Near = GeometryCorner.z;
                     }
-                    if (Corner.z > Far)
+                    if (GeometryCorner.z > Far)
                     {
-                        Far = Corner.z;
+                        Far = GeometryCorner.z;
                     }
                 }
 
                 const glm::mat4 ViewMatrix       = glm::lookAt(CascadeFrustumPos, FrustumCenter, { 0, 1, 0 });
                 const glm::mat4 ProjectionMatrix = glm::ortho(Left, Right, Bottom, Top, Near, Far);
 
-                InLight->CascadeMatrices[i]         = ProjectionMatrix * ViewMatrix;
+
+                InLight->CascadeMatrices[i] = ProjectionMatrix * ViewMatrix;
 
                 ShadowMapShader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->CascadeMatrices[i]);
                 for (int j = 0; j < InRenderScene->StaticMeshes.GetLength(); ++j)
@@ -1491,7 +1493,7 @@ namespace lucid::scene
                         Terrain->GetTerrainMesh()->SubMeshes[SubMesh]->VAO->Draw();
                     }
                 }
-                
+
                 CascadeNearPlane = CascadeFarPlane;
 
                 gpu::PopDebugGroup();

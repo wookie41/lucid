@@ -1,32 +1,6 @@
 {
     "StaticMeshes": [
         {
-            "Id": 2,
-            "Name": "Cube",
-            "BaseActorResourceId": "8678b945-dccc-446e-94ed-5791842e1d1e",
-            "Scale": [
-                10000.0,
-                1.0,
-                10000.0
-            ],
-            "Rotation": [
-                0.0,
-                0.00264457194134593,
-                0.0,
-                0.9999964833259583
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "11fd4faf-0d3f-46b8-a362-91be7e6fd28d"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "d373f697-d940-4ea4-b3b7-fdb77b90902e"
-                }
-            ]
-        },
-        {
             "Id": 3,
             "Name": "Nanosuit",
             "BaseActorResourceId": "47e313d6-7b07-4207-ae14-0e7fad846573",

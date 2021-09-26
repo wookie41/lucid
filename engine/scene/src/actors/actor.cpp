@@ -449,7 +449,7 @@ namespace lucid::scene
         }
     }
 
-    void IActor::OnScaled(const glm::vec3& InOldScale, const glm::vec3& InNewScale) { AABB *= InNewScale; }
+    void IActor::OnScaled(const glm::vec3& InOldScale, const glm::vec3& InNewScale) { }
 
     void IActor::OnTranslated(const glm::vec3& InOldPostion, const glm::vec3& InNewPosition) {}
 

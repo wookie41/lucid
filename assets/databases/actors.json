@@ -36,13 +36,8 @@
             "ActorType": 4
         },
         {
-            "ActorId": "8678b945-dccc-446e-94ed-5791842e1d1e",
-            "ActorPath": "assets/actors/Cube.asset",
-            "ActorType": 1
-        },
-        {
-            "ActorId": "4acf7b2c-8486-48ea-8727-79d3870b6fdc",
-            "ActorPath": "assets/actors/Cube2.asset",
+            "ActorId": "7c6e8215-a2a0-490f-951d-c5ac3f591947",
+            "ActorPath": "assets/actors/Cube3.asset",
             "ActorType": 1
         }
     ]

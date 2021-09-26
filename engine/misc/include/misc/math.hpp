@@ -61,9 +61,10 @@ namespace lucid::math
         float GetMinWS(const u8& Axis) const;
         float GetMaxWS(const u8& Axis) const;
 
-        FAABB operator*(const glm::vec3& InScale) const;
-        void  operator*=(const glm::vec3& InScale);
+        FAABB     operator*(const glm::vec3& InScale) const;
         glm::vec3 GetFrustumCenter() const;
         glm::vec3 operator[](const int& InCorner);
+        void      TranslateCorner(const int& InCorner, const glm::vec3& InTranslate);
+        void      GrowInWorldSpace(const math::FAABB& Other);
     };
 } // namespace lucid::math

@@ -1,5 +1,5 @@
 {
-    "Name": "Cube",
+    "Name": "Cube3",
     "Rotation": [
         0.0,
         0.0,
@@ -8,16 +8,16 @@
     ],
     "MeshResourceId": {
         "bChanged": true,
-        "Value": "a182c9dc-688e-46e3-8cb7-f0df5df8e3c2"
+        "Value": "f1bc95cc-b3a7-4d65-8568-85b888f4b969"
     },
     "MaterialIds": [
         {
             "bChanged": true,
-            "Value": "11fd4faf-0d3f-46b8-a362-91be7e6fd28d"
+            "Value": "061a9de8-dd24-4a49-a339-1e8c88177ed5"
         },
         {
             "bChanged": true,
-            "Value": "d373f697-d940-4ea4-b3b7-fdb77b90902e"
+            "Value": "76caa7c4-a6d5-4b76-aa77-ebb615aeadaf"
         }
     ]
 }

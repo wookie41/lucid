@@ -81,12 +81,12 @@ namespace lucid::scene
                                           const glm::vec3&                  SweepDirection,
                                           FGeometryIntersectionQueryResult& OutQueryResult)
     {
-        OutQueryResult.GeometryAABB.MinX = FLT_MAX;
-        OutQueryResult.GeometryAABB.MinY = FLT_MAX;
-        OutQueryResult.GeometryAABB.MinZ = FLT_MAX;
-        OutQueryResult.GeometryAABB.MaxX = 0;
-        OutQueryResult.GeometryAABB.MaxY = 0;
-        OutQueryResult.GeometryAABB.MaxZ = 0;
+        OutQueryResult.GeometryAABB.MinXWS = FLT_MAX;
+        OutQueryResult.GeometryAABB.MinYWS = FLT_MAX;
+        OutQueryResult.GeometryAABB.MinZWS = FLT_MAX;
+        OutQueryResult.GeometryAABB.MaxXWS = 0;
+        OutQueryResult.GeometryAABB.MaxYWS = 0;
+        OutQueryResult.GeometryAABB.MaxZWS = 0;
 
         for (int i = 0; i < Scene->StaticMeshes.GetLength(); ++i)
         {
@@ -94,6 +94,7 @@ namespace lucid::scene
             if (SweptTestOverlap(AABB, StaticMesh->GetAABB(), SweepDirection))
             {
                 OutQueryResult.StaticMeshes.Add(StaticMesh);
+                OutQueryResult.GeometryAABB.GrowInWorldSpace(StaticMesh->GetAABB());
             }
         }
 
@@ -103,7 +104,26 @@ namespace lucid::scene
             if (SweptTestOverlap(Terrain->GetAABB(), AABB, SweepDirection))
             {
                 OutQueryResult.Terrains.Add(Terrain);
+                OutQueryResult.GeometryAABB.GrowInWorldSpace(Terrain->GetAABB());
             }
         }
+
+        OutQueryResult.GeometryAABB.FrontUpperLeftCorner =
+          glm::vec3{ OutQueryResult.GeometryAABB.MinXWS, OutQueryResult.GeometryAABB.MaxYWS, OutQueryResult.GeometryAABB.MaxZWS };
+        OutQueryResult.GeometryAABB.FrontLowerLeftCorner =
+          glm::vec3{ OutQueryResult.GeometryAABB.MinXWS, OutQueryResult.GeometryAABB.MinYWS, OutQueryResult.GeometryAABB.MaxZWS };
+        OutQueryResult.GeometryAABB.FrontUpperRightCorner =
+          glm::vec3{ OutQueryResult.GeometryAABB.MaxXWS, OutQueryResult.GeometryAABB.MaxYWS, OutQueryResult.GeometryAABB.MaxZWS };
+        OutQueryResult.GeometryAABB.FrontLowerRightCorner =
+          glm::vec3{ OutQueryResult.GeometryAABB.MaxXWS, OutQueryResult.GeometryAABB.MinYWS, OutQueryResult.GeometryAABB.MaxZWS };
+
+        OutQueryResult.GeometryAABB.BackUpperLeftCorner =
+          glm::vec3{ OutQueryResult.GeometryAABB.MinXWS, OutQueryResult.GeometryAABB.MaxYWS, OutQueryResult.GeometryAABB.MinZWS };
+        OutQueryResult.GeometryAABB.BackLowerLeftCorner =
+          glm::vec3{ OutQueryResult.GeometryAABB.MinXWS, OutQueryResult.GeometryAABB.MinYWS, OutQueryResult.GeometryAABB.MinZWS };
+        OutQueryResult.GeometryAABB.BackUpperRightCorner =
+          glm::vec3{ OutQueryResult.GeometryAABB.MaxXWS, OutQueryResult.GeometryAABB.MaxYWS, OutQueryResult.GeometryAABB.MinZWS };
+        OutQueryResult.GeometryAABB.BackLowerRightCorner =
+          glm::vec3{ OutQueryResult.GeometryAABB.MaxXWS, OutQueryResult.GeometryAABB.MinYWS, OutQueryResult.GeometryAABB.MinZWS };
     }
 }; // namespace lucid::scene
