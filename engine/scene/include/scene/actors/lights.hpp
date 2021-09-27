@@ -106,16 +106,11 @@ namespace lucid::scene
 
         float Illuminance = 10;
 
-        float Left      = -10;
-        float Right     = 10;
-        float Bottom    = -10;
-        float Top       = 10;
-        float NearPlane = -10;
-        float FarPlane  = 10000;
-
         u8    CascadeCount          = 3;
         float CascadeSplitLogFactor = 0.9f;
         float FirstCascadeNearPlane = 0.1;
+        float ShadowsMaxDistance    = 1000;
+        float ShadowsZMuliplier     = 10;
 
         CShadowMap* CascadeShadowMaps[MAX_SHADOW_CASCADES]{ nullptr };
 

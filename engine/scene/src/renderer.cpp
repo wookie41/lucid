@@ -19,13 +19,13 @@ namespace lucid::scene
 
     FRenderStats GRenderStats;
 
-    CDirectionalLight* CRenderer::CreateDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow)
+    CDirectionalLight* CRenderer::CreateDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow, const u8& InCascadeCount)
     {
         auto* DirectionalLight = new CDirectionalLight(InName, InParent, InWorld);
 
         if (CastsShadow)
         {
-            for (u8 i = 0; i < DirectionalLight->CascadeCount; ++i)
+            for (u8 i = 0; i < InCascadeCount; ++i)
             {
                 DirectionalLight->CascadeShadowMaps[i] = CreateShadowMap(ELightType::DIRECTIONAL);
                 DirectionalLight->CascadeShadowMaps[i]->GetShadowMapTexture()->GetBindlessHandle();

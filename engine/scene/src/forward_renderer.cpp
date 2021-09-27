@@ -74,8 +74,6 @@ namespace lucid::scene
     static const FSString LIGHT_FAR_PLANE{ "uLightFarPlane" };
     static const FSString LIGHT_SPACE_MATRIX{ "uLightMatrix" };
 
-    constexpr float G_CascadeMaxFarPlane = 1000.f;
-
     constexpr gpu::EImmutableBufferUsage COHERENT_WRITE_USAGE =
       (gpu::EImmutableBufferUsage)(gpu::EImmutableBufferUsage::IMM_BUFFER_WRITE | gpu::EImmutableBufferUsage::IMM_BUFFER_COHERENT);
 
@@ -1377,12 +1375,12 @@ namespace lucid::scene
         // Calculate cascade far planes
         {
             const float CascadeMinNearPlane = InLight->FirstCascadeNearPlane;
-            const float CascadeMaxFarPlane  = G_CascadeMaxFarPlane;
+            const float CascadeMaxFarPlane  = InLight->ShadowsMaxDistance;
             const float PlanesDistance      = CascadeMaxFarPlane - CascadeMinNearPlane;
             const float CamFarOverCamNear   = CascadeMaxFarPlane - CascadeMinNearPlane;
 
             // Calculate cascade planes
-            const float CascadeCount = (float)InLight->CascadeCount;
+            const float CascadeCount = InLight->CascadeCount;
             for (u8 i = 0, i_f = 1.f; i < InLight->CascadeCount - 1; ++i, i_f += 1.f)
             {
                 // Calculation of the cascade planes based on
@@ -1421,60 +1419,69 @@ namespace lucid::scene
                 InCamera->UpdateFrustumAABB();
 
                 // Find geometry that is inside this cascade
-                math::FAABB     CascadeAABB = InCamera->GetFrustumAABB();
-
-                // @TODO build clip frustum based on this
-                FGeometryIntersectionQueryResult QueryResult;
-                FindGeometryOverlappingSweptAABB(InRenderScene, CascadeAABB, -InLight->Direction, QueryResult);
+                math::FAABB CascadeAABB = InCamera->GetFrustumAABB();
 
                 // Calculate view and projection matrices
                 const glm::vec3 FrustumCenter     = CascadeAABB.GetFrustumCenter();
                 const glm::vec3 CascadeFrustumPos = FrustumCenter - InLight->Direction;
-                
-                float Left = FLT_MAX, Right = 0;
-                float Bottom = FLT_MAX, Top = 0;
-                float Near = FLT_MAX, Far = 0;
 
+                float MinX = FLT_MAX, MaxX = 0;
+                float MinY = FLT_MAX, MaxY = 0;
+                float MinZ = FLT_MAX, MaxZ = 0;
+
+                const glm::mat4 ViewMatrix = glm::lookAt(CascadeFrustumPos, FrustumCenter, { 0, 1, 0 });
                 for (int c = 0; c < 8; ++c)
                 {
-                    const glm::vec3 GeometryCorner = QueryResult.GeometryAABB[c] - CascadeFrustumPos;
-                    const glm::vec3 CascadeCorner = CascadeAABB[c] - CascadeFrustumPos;
-                    if (CascadeCorner.x < Left)
-                    {
-                        Left = CascadeCorner.x;
-                    }
-                    if (CascadeCorner.x > Right)
-                    {
-                        Right = CascadeCorner.x;
-                    }
-                    if (CascadeCorner.y < Bottom)
-                    {
-                        Bottom = CascadeCorner.y;
-                    }
-                    if (CascadeCorner.y > Top)
-                    {
-                        Top = CascadeCorner.y;
-                    }
-                    if (GeometryCorner.z < Near)
-                    {
-                        Near = GeometryCorner.z;
-                    }
-                    if (GeometryCorner.z > Far)
-                    {
-                        Far = GeometryCorner.z;
-                    }
+                    const glm::vec3 CascadeCorner = ViewMatrix * glm::vec4(CascadeAABB[c], 1);
+
+                    MinX = std::min(MinX, CascadeCorner.x);
+                    MaxX = std::max(MaxX, CascadeCorner.x);
+                    MinY = std::min(MinY, CascadeCorner.y);
+                    MaxY = std::max(MaxY, CascadeCorner.y);
+                    MinZ = std::min(MinZ, CascadeCorner.z);
+                    MaxZ = std::max(MaxZ, CascadeCorner.z);
                 }
 
-                const glm::mat4 ViewMatrix       = glm::lookAt(CascadeFrustumPos, FrustumCenter, { 0, 1, 0 });
-                const glm::mat4 ProjectionMatrix = glm::ortho(Left, Right, Bottom, Top, Near, Far);
-
-
-                InLight->CascadeMatrices[i] = ProjectionMatrix * ViewMatrix;
-
-                ShadowMapShader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->CascadeMatrices[i]);
-                for (int j = 0; j < InRenderScene->StaticMeshes.GetLength(); ++j)
+                if (MinZ < 0)
                 {
-                    const CStaticMesh* StaticMesh = InRenderScene->StaticMeshes.GetByIndex(j);
+                    MinZ *= InLight->ShadowsZMuliplier;
+                }
+                else
+                {
+                    MinZ /= InLight->ShadowsZMuliplier;
+                }
+                if (MaxZ < 0)
+                {
+                    MaxZ /= InLight->ShadowsZMuliplier;
+                }
+                else
+                {
+                    MaxZ *= InLight->ShadowsZMuliplier;
+                }
+
+                const glm::mat4 ProjectionMatrix = glm::ortho(-1.f, 1.f, -1.f, 1.f, MinZ, MaxZ);
+
+                glm::mat4   CropMatrix{ 1.0f };
+                const float ScaleX  = 2.0f / (MaxX - MinX);
+                const float ScaleY  = 2.0f / (MaxY - MinY);
+                const float OffsetX = -0.5f * (MinX + MaxX) * ScaleX;
+                const float OffsetY = -0.5f * (MinY + MaxY) * ScaleY;
+
+                CropMatrix[0][0] = ScaleX;
+                CropMatrix[1][1] = ScaleY;
+                CropMatrix[3][0] = OffsetX;
+                CropMatrix[3][1] = OffsetY;
+
+                InLight->CascadeMatrices[i] = CropMatrix * ProjectionMatrix * ViewMatrix;
+                ShadowMapShader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->CascadeMatrices[i]);
+
+                // Find geometry to render for this cascade
+                FGeometryIntersectionQueryResult QueryResult;
+                FindGeometryOverlappingSweptAABB(InRenderScene, CascadeAABB, -InLight->Direction, QueryResult);
+
+                for (int j = 0; j < QueryResult.StaticMeshes.GetLength(); ++j)
+                {
+                    const CStaticMesh* StaticMesh = *QueryResult.StaticMeshes[j];
                     ShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CachedModelMatrix);
                     for (int SubMesh = 0; SubMesh < StaticMesh->MeshResource->SubMeshes.GetLength(); ++SubMesh)
                     {
@@ -1483,9 +1490,9 @@ namespace lucid::scene
                     }
                 }
 
-                for (int j = 0; j < InRenderScene->Terrains.GetLength(); ++j)
+                for (int j = 0; j < QueryResult.Terrains.GetLength(); ++j)
                 {
-                    const CTerrain* Terrain = InRenderScene->Terrains.GetByIndex(j);
+                    const CTerrain* Terrain = *QueryResult.Terrains[j];
                     ShadowMapShader->SetMatrix(MODEL_MATRIX, Terrain->CachedModelMatrix);
                     for (int SubMesh = 0; SubMesh < Terrain->GetTerrainMesh()->SubMeshes.GetLength(); ++SubMesh)
                     {

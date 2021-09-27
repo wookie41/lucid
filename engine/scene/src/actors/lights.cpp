@@ -255,13 +255,15 @@ namespace lucid::scene
         CLight::UIDrawActorDetails();
         if (ImGui::CollapsingHeader("Directional light"))
         {
+            int NewCascadeCount = CascadeCount;
+
             ImGui::DragFloat3("Light up", &LightUp.x, 0.001, -1, 1);
             ImGui::DragFloat("Illuminance (lux)", &Illuminance, 1);
-
-            int NewCascadeCount = CascadeCount;
-            
             ImGui::InputInt("Number of cascades", (int*)&NewCascadeCount, 1, 1);
             ImGui::DragFloat("Cascade split log factor", &CascadeSplitLogFactor, 0.01, 0.1, 1);
+            ImGui::DragFloat("First cascade near plane", &FirstCascadeNearPlane, 0.01, 0.1, 10);
+            ImGui::DragFloat("Shadows max distance", &ShadowsMaxDistance, 0.01, 1, 10000);
+            ImGui::DragFloat("Shadows Z multiplier", &ShadowsZMuliplier, 0.01, 0.1, 100);
 
             if (NewCascadeCount != CascadeCount && NewCascadeCount <= MAX_SHADOW_CASCADES)
             {

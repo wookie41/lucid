@@ -21,8 +21,7 @@ float CalculateShadow(in vec3 FragPos, in vec3 NormalN, in vec3 LightDirN)
 
         lightSpaceFragPos = uCascadeMatrices[CascadeIndex] * vec4(FragPos, 1.0);
         ShadowMap         = uCascadeShadowMaps[CascadeIndex];
-        bias              = 0.0025 * CascadeIndex;
-        numPCFSamples     = 5; // this should be be calculated based on the cascade's far plane and other things
+        numPCFSamples     = 5; // this should be be calculated based on the cascade's far plane and other things or just set per light
     }
     else
     {

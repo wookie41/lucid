@@ -21,10 +21,7 @@ namespace lucid::scene
 {
     FRenderScene StaticRenderScene;
 
-    void CWorld::Init()
-    {
-        
-    }
+    void CWorld::Init() {}
 
     void CWorld::Tick(const float& InDeltaTime)
     {
@@ -204,7 +201,7 @@ namespace lucid::scene
         for (const FDirectionalLightEntry& DirLightEntry : InWorldDescription.DirectionalLights)
         {
             CDirectionalLight* DirLight = GEngine.GetRenderer()->CreateDirectionalLight(
-              DirLightEntry.Name, DirLightEntry.ParentId ? World->GetActorById(DirLightEntry.ParentId) : nullptr, World, DirLightEntry.bCastsShadow);
+              DirLightEntry.Name, DirLightEntry.ParentId ? World->GetActorById(DirLightEntry.ParentId) : nullptr, World, DirLightEntry.bCastsShadow, DirLightEntry.CascadeCount);
 
             DirLight->ActorId = DirLightEntry.Id;
 
@@ -214,17 +211,16 @@ namespace lucid::scene
             LightTransform.Rotation    = Float4ToQuat(DirLightEntry.Rotation);
             DirLight->SetTransform(LightTransform);
 
-            DirLight->Color        = Float3ToVec(DirLightEntry.Color);
-            DirLight->Direction    = Float3ToVec(DirLightEntry.Direction);
-            DirLight->LightUp      = Float3ToVec(DirLightEntry.LightUp);
-            DirLight->bCastsShadow = DirLightEntry.bCastsShadow;
-            DirLight->Illuminance  = DirLightEntry.Illuminance;
-            DirLight->Left         = DirLightEntry.Left;
-            DirLight->Right        = DirLightEntry.Right;
-            DirLight->Bottom       = DirLightEntry.Bottom;
-            DirLight->Top          = DirLightEntry.Top;
-            DirLight->NearPlane    = DirLightEntry.NearPlane;
-            DirLight->FarPlane     = DirLightEntry.FarPlane;
+            DirLight->Color                 = Float3ToVec(DirLightEntry.Color);
+            DirLight->Direction             = Float3ToVec(DirLightEntry.Direction);
+            DirLight->LightUp               = Float3ToVec(DirLightEntry.LightUp);
+            DirLight->bCastsShadow          = DirLightEntry.bCastsShadow;
+            DirLight->Illuminance           = DirLightEntry.Illuminance;
+            DirLight->CascadeCount          = DirLightEntry.CascadeCount;
+            DirLight->CascadeSplitLogFactor = DirLightEntry.CascadeSplitLogFactor;
+            DirLight->FirstCascadeNearPlane = DirLightEntry.FirstCascadeNearPlane;
+            DirLight->ShadowsMaxDistance    = DirLightEntry.ShadowsMaxDistance;
+            DirLight->ShadowsZMuliplier     = DirLightEntry.ShadowsZMuliplier;
 
             if (DirLightEntry.ParentId && !DirLight->Parent)
             {
@@ -353,23 +349,23 @@ namespace lucid::scene
         for (u32 i = 0; i < DirectionalLights.GetLength(); ++i)
         {
             FDirectionalLightEntry   DirLightEntry;
-            const CDirectionalLight* DirLight = DirectionalLights.GetByIndex(i);
-            DirLightEntry.Id                  = DirLight->ActorId;
-            DirLightEntry.ParentId            = DirLight->Parent ? DirLight->Parent->ActorId : 0;
-            DirLightEntry.Color               = VecToFloat3(DirLight->Color);
-            DirLightEntry.Quality             = DirLight->Quality;
-            DirLightEntry.Name                = DirLight->Name;
-            DirLightEntry.Rotation            = QuatToFloat4(DirLight->GetTransform().Rotation);
-            DirLightEntry.Direction           = VecToFloat3(DirLight->Direction);
-            DirLightEntry.LightUp             = VecToFloat3(DirLight->LightUp);
-            DirLightEntry.bCastsShadow        = DirLight->bCastsShadow;
-            DirLightEntry.Illuminance         = DirLight->Illuminance;
-            DirLightEntry.Left                = DirLight->Left;
-            DirLightEntry.Right               = DirLight->Right;
-            DirLightEntry.Bottom              = DirLight->Bottom;
-            DirLightEntry.Top                 = DirLight->Top;
-            DirLightEntry.NearPlane           = DirLight->NearPlane;
-            DirLightEntry.FarPlane            = DirLight->FarPlane;
+            const CDirectionalLight* DirLight   = DirectionalLights.GetByIndex(i);
+            DirLightEntry.Id                    = DirLight->ActorId;
+            DirLightEntry.ParentId              = DirLight->Parent ? DirLight->Parent->ActorId : 0;
+            DirLightEntry.Color                 = VecToFloat3(DirLight->Color);
+            DirLightEntry.Quality               = DirLight->Quality;
+            DirLightEntry.Name                  = DirLight->Name;
+            DirLightEntry.Postion              = VecToFloat3(DirLight->GetTransform().Translation);
+            DirLightEntry.Rotation              = QuatToFloat4(DirLight->GetTransform().Rotation);
+            DirLightEntry.Direction             = VecToFloat3(DirLight->Direction);
+            DirLightEntry.LightUp               = VecToFloat3(DirLight->LightUp);
+            DirLightEntry.bCastsShadow          = DirLight->bCastsShadow;
+            DirLightEntry.Illuminance           = DirLight->Illuminance;
+            DirLightEntry.CascadeCount          = DirLight->CascadeCount;
+            DirLightEntry.CascadeSplitLogFactor = DirLight->CascadeSplitLogFactor;
+            DirLightEntry.FirstCascadeNearPlane = DirLight->FirstCascadeNearPlane;
+            DirLightEntry.ShadowsMaxDistance    = DirLight->ShadowsMaxDistance;
+            DirLightEntry.ShadowsZMuliplier     = DirLight->ShadowsZMuliplier;
 
             OutWorldDescription.DirectionalLights.push_back(DirLightEntry);
         }

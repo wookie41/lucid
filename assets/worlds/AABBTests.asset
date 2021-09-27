@@ -14,6 +14,12 @@
                 2.0,
                 2.0
             ],
+            "Rotation": [
+                0.0,
+                0.0,
+                -0.0005083513678982854,
+                0.9999998807907105
+            ],
             "MaterialIds": [
                 {
                     "bChanged": true,
@@ -50,6 +56,11 @@
         {
             "Id": 2,
             "Name": "DirectionalLight",
+            "Postion": [
+                0.0,
+                9.315710067749024,
+                0.0
+            ],
             "Rotation": [
                 -0.183540940284729,
                 0.0,
@@ -63,7 +74,8 @@
                 0.9326254725456238
             ],
             "Illuminance": 1.0,
-            "FarPlane": 10000.0
+            "CascadeSplitLogFactor": 0.800000011920929,
+            "FirstCascadeNearPlane": 0.10000000149011612
         }
     ]
 }

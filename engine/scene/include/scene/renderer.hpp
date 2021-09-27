@@ -158,7 +158,7 @@ namespace lucid::scene
         //         Lights/ShadowMaps       //
         /////////////////////////////////////
 
-        CDirectionalLight* CreateDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
+        CDirectionalLight* CreateDirectionalLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow, const u8& InCascadeCount);
         CSpotLight*        CreateSpotLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
         CPointLight*       CreatePointLight(const FDString& InName, IActor* InParent, CWorld* InWorld, const bool& CastsShadow);
 
@@ -215,7 +215,7 @@ namespace lucid::scene
         /** Size of a shadow map for a given quality  */
         const glm::uvec2 ShadowMapSizeByQuality[3] = {
             { 512, 512 },
-            { 1024, 1024 },
+            { 4096, 4096 },
             { 2048, 2048 },
         };
 
