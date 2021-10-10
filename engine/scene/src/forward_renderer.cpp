@@ -83,7 +83,18 @@ namespace lucid::scene
     constexpr gpu::EGPUBuffer COLOR_AND_DEPTH = (gpu::EGPUBuffer)(gpu::EGPUBuffer::COLOR | gpu::EGPUBuffer::DEPTH);
 
 #if DEVELOPMENT
+
     static const FSString ACTOR_ID("uActorId");
+
+    enum EDebugTextureType
+    {
+        SSAO,
+        NORMALS,
+        POSITIONS,
+        LIGHTING,
+        HITMAP
+    };
+
 #endif
 
     static constexpr u32 INITIAL_MATERIAL_DATA_BUFFER_SIZE = 1024 * 128 * 3; // 128 KiB
@@ -558,6 +569,9 @@ namespace lucid::scene
 
             DebugLinesVAO = gpu::CreateVertexArray("DebugLinesVAO", VertexAttributes, nullptr, nullptr, gpu::EDrawMode::LINES, 0, 0, false);
         }
+
+        CurrentDebugDebugType = LIGHTING;
+        SelectedDebugTexture   = LightingPassColorBuffers[0];
 #endif
 
         resources::CTextureResource* BlankTexture = GEngine.GetTexturesHolder().GetDefaultResource();
@@ -584,7 +598,6 @@ namespace lucid::scene
 
     void CForwardRenderer::Render(FRenderScene* InSceneToRender, const FRenderView* InRenderView)
     {
-
         for (u32 i = 0; i < InSceneToRender->StaticMeshes.GetLength(); ++i)
         {
             InSceneToRender->StaticMeshes.GetByIndex(i)->CalculateModelMatrix();
@@ -597,16 +610,39 @@ namespace lucid::scene
 
         SkyboxPipelineState.Viewport = LightpassPipelineState.Viewport = PrepassPipelineState.Viewport = InRenderView->Viewport;
 
+        ++GRenderStats.FrameNumber;
+
 #if DEVELOPMENT
         GRenderStats.NumDrawCalls = 0;
         FrameTimer->StartTimer();
+
+        switch (CurrentDebugDebugType)
+        {
+        case SSAO:
+            SelectedDebugTexture = SSAOResult;
+            break;
+        case NORMALS:
+            SelectedDebugTexture = CurrentFrameVSNormalMap;
+            break;
+        case POSITIONS:
+            SelectedDebugTexture = CurrentFrameVSPositionMap;
+            break;
+        case LIGHTING:
+            SelectedDebugTexture = LightingPassColorBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
+            break;
+        case HITMAP:
+            SelectedDebugTexture = HitMapTexture;
+            break;
+        default:
+            SelectedDebugTexture = LightingPassColorBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
+            break;
+        }
+
 #endif
 
-        ++GRenderStats.FrameNumber;
-
         // Make sure we can use the persistent buffers
-        const int    BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
-        gpu::CFence* Fence     = PersistentBuffersFences[BufferIdx];
+        const int BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
+        gpu::CFence* Fence = PersistentBuffersFences[BufferIdx];
 
         while (!Fence->Wait(1))
         {
@@ -1758,6 +1794,9 @@ namespace lucid::scene
                     LightpassPipelineState.IsDepthBufferReadOnly = false;
                 }
             }
+
+            static const char* DebugTextureNames[] = { "SSAO", "NORMALS", "WORLD_POSITIONS", "LIGHTING", "HITMAP" };
+            ImGui::Combo("Texture to show", &CurrentDebugDebugType, DebugTextureNames, IM_ARRAYSIZE(DebugTextureNames));
         }
         ImGui::End();
         return bOpen;

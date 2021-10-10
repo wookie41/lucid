@@ -80,10 +80,9 @@ namespace lucid::scene
 
         virtual void Free() override;
 
-
       private:
         u8             ShadowMapQuality;
-        gpu::CTexture* ShadowMapTexture = nullptr;
+        gpu::CTexture* ShadowMapTexture     = nullptr;
         gpu::CCubemap* ShadowCubeMapTexture = nullptr;
     };
 
@@ -169,21 +168,20 @@ namespace lucid::scene
         inline const FCachedTexture<u32>&   GetCachedHitMap() const { return CachedHitMap; }
         inline const FCachedTexture<float>& GetCachedDistanceToCameraMap() const { return CachedDistanceToCameraMap; }
         inline gpu::CTexture*               GetLightBulbTexture() const { return LightBulbTexture; }
-
+        inline gpu::CTexture*               GetSelectedDebugTexture() const { return SelectedDebugTexture; }
+        
         /**
          * Queues a debug line to draw during the next Render() call.
          * The debug line will persist for n seconds after it's added.
          * If you want to  draw a line only for one frame, then pass 0 as InPersistTime.
          */
         void DrawDebugLine(const glm::vec3&  InStart,
-                          const glm::vec3&  InEnd,
-                          const glm::vec3&  InStartColor,
-                          const glm::vec3&  InEndColor,
-                          const float&      InPersistTime = 0,
-                          const ESpaceType& InSpaceType   = WORLD_SPACE);
+                           const glm::vec3&  InEnd,
+                           const glm::vec3&  InStartColor,
+                           const glm::vec3&  InEndColor,
+                           const float&      InPersistTime = 0,
+                           const ESpaceType& InSpaceType   = WORLD_SPACE);
 
-
-        
         void DrawAABB(const math::FAABB& InAABB, const FColor& InColor);
 
 #endif
@@ -230,6 +228,8 @@ namespace lucid::scene
 
         FCachedTexture<u32>   CachedHitMap              = {};
         FCachedTexture<float> CachedDistanceToCameraMap = {};
+
+        gpu::CTexture* SelectedDebugTexture = nullptr;
 #endif
     };
 

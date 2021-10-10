@@ -629,7 +629,7 @@ void UIDrawSceneWindow()
         GSceneEditorState.SceneWindowPos.y += SceneWindowPos.y;
 
         // Draw the rendered scene into an image
-        GEngine.GetRenderer()->GetResultFrameTexture()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
+        GEngine.GetRenderer()->GetSelectedDebugTexture()->ImGuiDrawToImage({ GSceneEditorState.SceneWindowWidth, GSceneEditorState.SceneWindowHeight });
 
         // Handle actor asset drag and drop into the viewport
         if (GSceneEditorState.World)
