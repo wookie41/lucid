@@ -12,6 +12,7 @@
 
 #define LUCID_SCHEMAS_IMPLEMENTATION
 #include "scene/material.hpp"
+#include "scene/pbr_material.hpp"
 #include "scene/actors/static_mesh.hpp"
 #include "scene/actors/terrain.hpp"
 
@@ -211,32 +212,59 @@ namespace lucid
                 break;
             }
             case scene::EMaterialType::TERRAIN:
+            {
+                FTerrainMaterialDescription MaterialDescription;
+                switch (Entry.FileFormat)
                 {
-                    FTerrainMaterialDescription MaterialDescription;
-                    switch (Entry.FileFormat)
-                    {
-                    case EFileFormat::Json:
-                        {
-                            bFileReadSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);
-                            break;
-                        }
-                    case EFileFormat::Binary:
-                        {
-                            bFileReadSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);
-                            break;
-                        }
-                    }
-                    if (bFileReadSuccess)
-                    {
-                        LoadedMaterial = scene::CTerrainMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);
-                    }
-                    else
-                    {
-                        LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);
-                    }
-
+                case EFileFormat::Json:
+                {
+                    bFileReadSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);
                     break;
                 }
+                case EFileFormat::Binary:
+                {
+                    bFileReadSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                }
+                if (bFileReadSuccess)
+                {
+                    LoadedMaterial = scene::CTerrainMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);
+                }
+                else
+                {
+                    LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);
+                }
+
+                break;
+            }
+            case scene::EMaterialType::PBR:
+            {
+                FPBRMaterialDescription MaterialDescription;
+                switch (Entry.FileFormat)
+                {
+                case EFileFormat::Json:
+                {
+                    bFileReadSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                case EFileFormat::Binary:
+                {
+                    bFileReadSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                }
+                if (bFileReadSuccess)
+                {
+                    LoadedMaterial = scene::CPBRMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);
+                }
+                else
+                {
+                    LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);
+                }
+
+                break;
+            }
             default:
                 assert(0);
             }
@@ -323,9 +351,8 @@ namespace lucid
     void CEngine::RemoveMeshResource(resources::CMeshResource* InMesh)
     {
         // @TODO Don't allow to delete resources referenced by other resources + free main/video memory
-        ResourceDatabase.Entries.erase(std::remove_if(ResourceDatabase.Entries.begin(),
-                                                      ResourceDatabase.Entries.end(),
-                                                      [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == InMesh->GetID(); }));
+        ResourceDatabase.Entries.erase(std::remove_if(
+          ResourceDatabase.Entries.begin(), ResourceDatabase.Entries.end(), [&](const FResourceDatabaseEntry& Entry) { return Entry.Id == InMesh->GetID(); }));
 
         MeshesHolder.Remove(InMesh->GetID());
         remove(*InMesh->GetFilePath());

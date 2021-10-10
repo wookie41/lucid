@@ -50,6 +50,32 @@
                     "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
                 }
             ]
+        },
+        {
+            "Id": 8,
+            "Name": "Cube3",
+            "BaseActorResourceId": "7c6e8215-a2a0-490f-951d-c5ac3f591947",
+            "Postion": [
+                -16.842418670654298,
+                11.53004264831543,
+                -3.468278169631958
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "e67330d5-5716-4d2e-be99-44fcafc0a537"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "76caa7c4-a6d5-4b76-aa77-ebb615aeadaf"
+                }
+            ]
         }
     ],
     "DirectionalLights": [

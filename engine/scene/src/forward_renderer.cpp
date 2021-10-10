@@ -88,12 +88,6 @@ namespace lucid::scene
 
     static constexpr u32 INITIAL_MATERIAL_DATA_BUFFER_SIZE = 1024 * 128 * 3; // 128 KiB
 
-    /* Buffers used when preparing data to be memcpy'ed to the GPU */
-    static char STAGING_BUFFER_TINY_0[1024];
-    static char STAGING_BUFFER_SMALL_0[1024 * 16];
-    static char STAGING_BUFFER_SMALL_1[1024 * 16];
-    static char STAGING_BUFFER_MEDIUM_0[1024 * 1024 * 5];
-
 #pragma pack(push, 1)
 
     struct FActorData
@@ -278,26 +272,26 @@ namespace lucid::scene
             LightingPassColorBuffers[i] = gpu::CreateEmpty2DTexture(ResultResolution.x,
                                                                     ResultResolution.y,
                                                                     gpu::ETextureDataType::FLOAT,
-                                                                    gpu::ETextureDataFormat::RGBA,
+                                                                    gpu::ETextureDataFormat::RGBA16F,
                                                                     gpu::ETexturePixelFormat::RGBA,
                                                                     0,
                                                                     FSString{ "LightingPassColorBuffer" });
 
             LightingPassColorBuffers[i]->Bind();
-            LightingPassColorBuffers[i]->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
-            LightingPassColorBuffers[i]->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
+            LightingPassColorBuffers[i]->SetMinFilter(gpu::EMinTextureFilter::LINEAR);
+            LightingPassColorBuffers[i]->SetMagFilter(gpu::EMagTextureFilter::LINEAR);
 
             // Create textures which will hold the final result
             FrameResultTextures[i] = gpu::CreateEmpty2DTexture(ResultResolution.x,
                                                                ResultResolution.y,
-                                                               gpu::ETextureDataType::FLOAT,
+                                                               gpu::ETextureDataType::UNSIGNED_INT,
                                                                gpu::ETextureDataFormat::RGBA,
                                                                gpu::ETexturePixelFormat::RGBA,
                                                                0,
                                                                FSString{ "FrameResult" });
             FrameResultTextures[i]->Bind();
-            FrameResultTextures[i]->SetMinFilter(gpu::EMinTextureFilter::NEAREST);
-            FrameResultTextures[i]->SetMagFilter(gpu::EMagTextureFilter::NEAREST);
+            FrameResultTextures[i]->SetMinFilter(gpu::EMinTextureFilter::LINEAR);
+            FrameResultTextures[i]->SetMagFilter(gpu::EMagTextureFilter::LINEAR);
         }
 
         // Setup the prepass framebuffer

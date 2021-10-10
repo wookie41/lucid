@@ -39,6 +39,16 @@
             "ActorId": "7c6e8215-a2a0-490f-951d-c5ac3f591947",
             "ActorPath": "assets/actors/Cube3.asset",
             "ActorType": 1
+        },
+        {
+            "ActorId": "0541fe81-2eca-464a-b4e4-ff4838c20ff3",
+            "ActorPath": "assets/actors/PBRCube.asset",
+            "ActorType": 1
+        },
+        {
+            "ActorId": "41509498-ca34-4cae-9fef-af85f5604953",
+            "ActorPath": "assets/actors/Sphere.asset",
+            "ActorType": 1
         }
     ]
 }

@@ -357,7 +357,15 @@ namespace lucid::scene
         {
             if (i < StaticMeshDescription->MaterialIds.size() && StaticMeshDescription->MaterialIds[i].bChanged)
             {
-                StaticMesh->AddMaterial(GEngine.GetMaterialsHolder().Get(StaticMeshDescription->MaterialIds[i].Value)->GetCopy());
+                if (auto* Material = GEngine.GetMaterialsHolder().Get(StaticMeshDescription->MaterialIds[i].Value))
+                {
+                    StaticMesh->AddMaterial(Material->GetCopy());
+                }
+                else
+                {
+                    LUCID_LOG(ELogLevel::INFO, "Failed to find material %s for StaticMesh StaticMesh %s", StaticMeshDescription->MaterialIds[i].Value.str().c_str() , *Name);
+                    StaticMesh->AddMaterial(GEngine.GetDefaultMaterial()->GetCopy());
+                }
             }
             else
             {
@@ -466,11 +474,16 @@ namespace lucid::scene
         {
             if (InStaticMeshDescription.MaterialIds[i].Value == sole::INVALID_UUID)
             {
-                ActorAsset->MaterialSlots.Add(nullptr);
+                ActorAsset->MaterialSlots.Add(GEngine.GetDefaultMaterial());
+            }
+            else if (GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialIds[i].Value))
+            {
+                ActorAsset->MaterialSlots.Add(GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialIds[i].Value));
             }
             else
             {
-                ActorAsset->MaterialSlots.Add(GEngine.GetMaterialsHolder().Get(InStaticMeshDescription.MaterialIds[i].Value));
+                LUCID_LOG(ELogLevel::WARN, "StaticMesth asset %s is mission material at slot %d",  *InStaticMeshDescription.Name, i);
+                ActorAsset->MaterialSlots.Add(GEngine.GetDefaultMaterial());
             }
         }
 

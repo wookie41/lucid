@@ -213,3 +213,10 @@ void BinaryWrite(const lucid::scene::ELightSourceType& value, TDYNAMICARRAY<char
 {
     BinaryWrite(static_cast<uint8_t>(value), output);
 }
+
+void BinaryWrite(const glm::vec3& value, TDYNAMICARRAY<char>& output)
+{
+    BinaryWrite(value.x, output);
+    BinaryWrite(value.y, output);
+    BinaryWrite(value.z, output);
+}

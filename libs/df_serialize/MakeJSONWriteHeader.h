@@ -262,3 +262,13 @@ rapidjson::Value MakeJSONValue(const lucid::scene::ELightSourceType& value, rapi
     ret.SetInt(static_cast<uint8_t>(value));
     return ret;
 }
+
+rapidjson::Value MakeJSONValue(const glm::vec3& value, rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value ret;
+    ret.SetArray();
+    ret.PushBack(value.x, allocator);
+    ret.PushBack(value.y, allocator);
+    ret.PushBack(value.z, allocator);
+    return ret;
+}

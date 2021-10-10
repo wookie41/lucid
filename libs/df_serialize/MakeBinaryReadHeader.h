@@ -364,7 +364,7 @@ bool BinaryRead(lucid::scene::EMaterialType& value, const TDYNAMICARRAY<char>& d
     return false;
 }
 
-bool BinaryRead(lucid::scene::ELightUnit value, const TDYNAMICARRAY<char>& data, size_t& offset)
+bool BinaryRead(lucid::scene::ELightUnit& value, const TDYNAMICARRAY<char>& data, size_t& offset)
 {
     int8_t int_value;
     if(BinaryRead(int_value, data, offset))
@@ -375,7 +375,7 @@ bool BinaryRead(lucid::scene::ELightUnit value, const TDYNAMICARRAY<char>& data,
     return false;
 }
 
-bool BinaryRead(lucid::scene::ELightSourceType value, const TDYNAMICARRAY<char>& data, size_t& offset)
+bool BinaryRead(lucid::scene::ELightSourceType& value, const TDYNAMICARRAY<char>& data, size_t& offset)
 {
     int8_t int_value;
     if(BinaryRead(int_value, data, offset))
@@ -384,4 +384,21 @@ bool BinaryRead(lucid::scene::ELightSourceType value, const TDYNAMICARRAY<char>&
         return true;
     }
     return false;
+}
+
+bool BinaryRead(glm::vec3& value, const TDYNAMICARRAY<char>& data, size_t& offset)
+{
+    if(!BinaryRead(value.x, data, offset))
+    {
+        return false;
+    }
+    if(!BinaryRead(value.y, data, offset))
+    {
+        return false;
+    }
+    if(!BinaryRead(value.z, data, offset))
+    {
+        return false;
+    }
+    return true;
 }

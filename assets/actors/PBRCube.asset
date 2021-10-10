@@ -1,0 +1,19 @@
+{
+    "Name": "PBRCube",
+    "Rotation": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "MeshResourceId": {
+        "bChanged": true,
+        "Value": "f1bc95cc-b3a7-4d65-8568-85b888f4b969"
+    },
+    "MaterialIds": [
+        {
+            "bChanged": true,
+            "Value": "e67330d5-5716-4d2e-be99-44fcafc0a537"
+        }
+    ]
+}

@@ -345,6 +345,56 @@
             "Id": "76caa7c4-a6d5-4b76-aa77-ebb615aeadaf",
             "MaterialPath": "assets/materials/Cube3_Material.asset",
             "MaterialType": 3
+        },
+        {
+            "Id": "f9492b15-3337-4673-b579-0946992d8af5",
+            "MaterialPath": "assets/materials/BasePBR.asset",
+            "MaterialType": 5
+        },
+        {
+            "Id": "8627755a-9336-4901-8dbd-ec41599e4080",
+            "MaterialPath": "assets/materials/BasePBR_8627755a-9336-4901-8dbd-ec41599e4080.asset",
+            "MaterialType": 5
+        },
+        {
+            "Id": "df80d0af-ff51-4cbe-8413-0949fdab9554",
+            "MaterialPath": "assets/materials/Sphere_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "1b1429af-33a7-4efc-9866-09c833b0229a",
+            "MaterialPath": "assets/materials/Sphere_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "8930ddd2-98d3-4ec7-a074-092a2d16ebf5",
+            "MaterialPath": "assets/materials/Sphere_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "dbad17bb-4957-46b1-910f-2f4ef87cc13d",
+            "MaterialPath": "assets/materials/Sphere_DefaultMaterial.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "298cc7b3-88eb-4f3e-bc5a-0ca27fffb42a",
+            "MaterialPath": "assets/materials/Sphere_Material.001.asset",
+            "MaterialType": 3
+        },
+        {
+            "Id": "6214a861-9eea-47ab-afe8-a3d1067f1121",
+            "MaterialPath": "assets/materials/BasePBR.asset",
+            "MaterialType": 5
+        },
+        {
+            "Id": "171bd7b8-ce55-40b5-832a-654864d140a0",
+            "MaterialPath": "assets/materials/BasePBR_171bd7b8-ce55-40b5-832a-654864d140a0.asset",
+            "MaterialType": 5
+        },
+        {
+            "Id": "12a19ce9-5039-4a8e-b1f8-f861d513076d",
+            "MaterialPath": "assets/materials/BasePBR_171bd7b8-ce55-40b5-832a-654864d140a0_12a19ce9-5039-4a8e-b1f8-f861d513076d.asset",
+            "MaterialType": 5
         }
     ]
 }

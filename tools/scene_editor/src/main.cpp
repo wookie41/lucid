@@ -39,6 +39,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include "ImGuizmo.h"
+#include "scene/pbr_material.hpp"
 
 using namespace lucid;
 
@@ -872,21 +873,26 @@ void UIDrawResourceBrowserWindow()
                         if (ImGui::MenuItem("Flat"))
                         {
                             GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::FLAT;
-                            GSceneEditorState.PickedShader           = nullptr;
-                            GSceneEditorState.bDisableCameraMovement = true;
                         }
                         if (ImGui::MenuItem("Blinn Phong"))
                         {
                             GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::BLINN_PHONG;
-                            GSceneEditorState.PickedShader           = nullptr;
-                            GSceneEditorState.bDisableCameraMovement = true;
                         }
                         if (ImGui::MenuItem("Blinn Phong Maps"))
                         {
                             GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::BLINN_PHONG_MAPS;
+                        }
+                        if (ImGui::MenuItem("PBR"))
+                        {
+                            GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::PBR;
+                        }
+
+                        if (GSceneEditorState.TypeOfMaterialToCreate != scene::EMaterialType::NONE)
+                        {
                             GSceneEditorState.PickedShader           = nullptr;
                             GSceneEditorState.bDisableCameraMovement = true;
                         }
+
                         ImGui::EndMenu();
                     }
 
@@ -1424,6 +1430,12 @@ void UIDrawMaterialCreationMenu()
                     case scene::EMaterialType::BLINN_PHONG_MAPS:
                         GSceneEditorState.bDisableCameraMovement = true;
                         CreatedMaterial                          = new scene::CBlinnPhongMapsMaterial{
+                            sole::uuid4(), CopyToString(GSceneEditorState.AssetNameBuffer), CreatedMaterialPath, GSceneEditorState.PickedShader
+                        };
+                        break;
+                    case scene::EMaterialType::PBR:
+                        GSceneEditorState.bDisableCameraMovement = true;
+                        CreatedMaterial                          = new scene::CPBRMaterial{
                             sole::uuid4(), CopyToString(GSceneEditorState.AssetNameBuffer), CreatedMaterialPath, GSceneEditorState.PickedShader
                         };
                         break;

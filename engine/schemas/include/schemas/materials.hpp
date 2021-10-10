@@ -1,4 +1,5 @@
-﻿STRUCT_BEGIN(lucid, FMaterialDescription, "")
+﻿#include "common/types.hpp"
+STRUCT_BEGIN(lucid, FMaterialDescription, "")
     STRUCT_FIELD(UUID, Id, sole::INVALID_UUID, "Id of the material")	
     STRUCT_FIELD(FDString, Name, "", "Name of the material")	
     STRUCT_FIELD(FDString, ShaderName, "", "Name of the shader used by this material")
@@ -32,6 +33,12 @@ STRUCT_END()
 
 STRUCT_INHERIT_BEGIN(lucid, FTerrainMaterialDescription, lucid::FMaterialDescription, "")
 STRUCT_DYNAMIC_ARRAY(FTerrainMaterialLayerDescription, TerrainLayers, ""    )
+STRUCT_END()
+
+STRUCT_INHERIT_BEGIN(lucid, FPBRMaterialDescription, lucid::FMaterialDescription, "")
+    STRUCT_FIELD(glm::vec3, Albedo, lucid::One, "")	    
+    STRUCT_FIELD(float, Metallic, 0, "")	    
+    STRUCT_FIELD(float, Roughness, 0, "")	    
 STRUCT_END()
 
 STRUCT_BEGIN(lucid, FMaterialDatabaseEntry, "")

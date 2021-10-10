@@ -90,6 +90,11 @@
             "Name": "Terrain",
             "VertexShaderSourcePath": "shaders/glsl/terrain.vert",
             "FragmentShaderSourcePath": "shaders/glsl/terrain.frag"
+        },
+        {
+            "Name": "PBR",
+            "VertexShaderSourcePath": "shaders/glsl/pbr.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/pbr.frag"
         }
     ]
 }

@@ -1,0 +1,23 @@
+{
+    "Name": "Sphere",
+    "Rotation": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "MeshResourceId": {
+        "bChanged": true,
+        "Value": "c0e508e8-0962-4528-b707-211521770318"
+    },
+    "MaterialIds": [
+        {
+            "bChanged": true,
+            "Value": "dbad17bb-4957-46b1-910f-2f4ef87cc13d"
+        },
+        {
+            "bChanged": true,
+            "Value": "298cc7b3-88eb-4f3e-bc5a-0ca27fffb42a"
+        }
+    ]
+}

@@ -1,0 +1,36 @@
+{
+    "StaticMeshes": [
+        {
+            "Id": 6,
+            "Name": "Sphere",
+            "BaseActorResourceId": "41509498-ca34-4cae-9fef-af85f5604953",
+            "Postion": [
+                1.2471672296524048,
+                1.523092269897461,
+                -4.841360569000244
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "dbad17bb-4957-46b1-910f-2f4ef87cc13d"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "12a19ce9-5039-4a8e-b1f8-f861d513076d"
+                }
+            ]
+        }
+    ],
+    "PointLights": [
+        {
+            "Id": 5,
+            "Name": "PointLight",
+            "Postion": [
+                -12.215448379516602,
+                16.5996150970459,
+                -1.006866693496704
+            ],
+            "AttenuationRadius": 50.0
+        }
+    ]
+}

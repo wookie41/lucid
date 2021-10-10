@@ -611,6 +611,12 @@
             "Name": "Cube3",
             "Path": "assets/meshes/Cube3.asset",
             "Type": 1
+        },
+        {
+            "Id": "c0e508e8-0962-4528-b707-211521770318",
+            "Name": "Sphere",
+            "Path": "assets/meshes/Sphere.asset",
+            "Type": 1
         }
     ]
 }

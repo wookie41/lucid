@@ -387,7 +387,7 @@ namespace lucid::gpu
         assert(GGPUState->Shader == this);
         uint32 UniformId = GetTextureId(InUniformName);
 
-        if (UniformId < uniformVariables.GetLength())
+        if (UniformId < TextureBindings.GetLength())
         {
             glUniformHandleui64ARB(TextureBindings[UniformId]->Location, Value);
         }

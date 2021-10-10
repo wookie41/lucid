@@ -1,0 +1,10 @@
+{
+    "Id": "298cc7b3-88eb-4f3e-bc5a-0ca27fffb42a",
+    "Name": "Sphere_Material.001",
+    "ShaderName": "BlinnPhongMaps",
+    "SpecularColor": [
+        1.0,
+        1.0,
+        1.0
+    ]
+}

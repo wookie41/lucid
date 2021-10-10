@@ -411,3 +411,19 @@ bool JSONRead(lucid::scene::ELightUnit& value, T& document)
     value = static_cast<lucid::scene::ELightUnit>(document.GetInt());
     return true;
 }
+
+template <typename T>
+bool JSONRead(glm::vec3& value, T& document)
+{
+    if (!document.IsArray())
+    {
+        DFS_LOG("Trying to read an array but it wasn't an array\n");
+        return false;
+    }
+
+    auto arr = document.GetArray();
+    value.x = arr[0].GetFloat();
+    value.y = arr[1].GetFloat();
+    value.z = arr[2].GetFloat();
+    return true;
+}
