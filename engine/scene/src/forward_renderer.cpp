@@ -183,7 +183,7 @@ namespace lucid::scene
         ShadowMapGenerationPipelineState.IsSRGBFramebufferEnabled = false;
         ShadowMapGenerationPipelineState.IsDepthBufferReadOnly    = false;
 
-        PrepassPipelineState.ClearColorBufferColor    = FColor{ 0 };
+        PrepassPipelineState.ClearColorBufferColor    = BlackColor;
         PrepassPipelineState.IsDepthTestEnabled       = true;
         PrepassPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
         PrepassPipelineState.IsBlendingEnabled        = false;
@@ -192,7 +192,7 @@ namespace lucid::scene
         PrepassPipelineState.IsSRGBFramebufferEnabled = false;
         PrepassPipelineState.IsDepthBufferReadOnly    = false;
 
-        LightpassPipelineState.ClearColorBufferColor    = FColor{ 0 };
+        LightpassPipelineState.ClearColorBufferColor    = BlackColor;
         LightpassPipelineState.IsDepthTestEnabled       = true;
         LightpassPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::EQUAL;
         LightpassPipelineState.IsBlendingEnabled        = true;
@@ -215,7 +215,7 @@ namespace lucid::scene
         SkyboxPipelineState.IsSRGBFramebufferEnabled = false;
         SkyboxPipelineState.IsCullingEnabled         = false;
 
-        GammaCorrectionPipelineState.ClearColorBufferColor    = FColor{ 0 };
+        GammaCorrectionPipelineState.ClearColorBufferColor    = BlackColor;
         GammaCorrectionPipelineState.IsDepthTestEnabled       = false;
         GammaCorrectionPipelineState.DepthTestFunction        = gpu::EDepthTestFunction::LEQUAL;
         GammaCorrectionPipelineState.IsBlendingEnabled        = false;
@@ -295,8 +295,8 @@ namespace lucid::scene
             // Create textures which will hold the final result
             FrameResultTextures[i] = gpu::CreateEmpty2DTexture(ResultResolution.x,
                                                                ResultResolution.y,
-                                                               gpu::ETextureDataType::UNSIGNED_INT,
-                                                               gpu::ETextureDataFormat::RGBA,
+                                                               gpu::ETextureDataType::FLOAT,
+                                                               gpu::ETextureDataFormat::RGBA16F,
                                                                gpu::ETexturePixelFormat::RGBA,
                                                                0,
                                                                FSString{ "FrameResult" });
@@ -571,7 +571,7 @@ namespace lucid::scene
         }
 
         CurrentDebugDebugType = LIGHTING;
-        SelectedDebugTexture   = LightingPassColorBuffers[0];
+        SelectedDebugTexture   = FrameResultTextures[0];
 #endif
 
         resources::CTextureResource* BlankTexture = GEngine.GetTexturesHolder().GetDefaultResource();
@@ -628,13 +628,13 @@ namespace lucid::scene
             SelectedDebugTexture = CurrentFrameVSPositionMap;
             break;
         case LIGHTING:
-            SelectedDebugTexture = LightingPassColorBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
+            SelectedDebugTexture = FrameResultTextures[GRenderStats.FrameNumber % NumFrameBuffers];
             break;
         case HITMAP:
             SelectedDebugTexture = HitMapTexture;
             break;
         default:
-            SelectedDebugTexture = LightingPassColorBuffers[GRenderStats.FrameNumber % NumFrameBuffers];
+            SelectedDebugTexture = FrameResultTextures[GRenderStats.FrameNumber % NumFrameBuffers];
             break;
         }
 
