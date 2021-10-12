@@ -21,6 +21,11 @@
             "FragmentShaderSourcePath": "shaders/glsl/empty.frag"
         },
         {
+            "Name": "CascadeShadowMap",
+            "VertexShaderSourcePath": "shaders/glsl/cascade_shadow_map.vert",
+            "FragmentShaderSourcePath": "shaders/glsl/empty.frag"
+        },
+        {
             "Name": "ShadowCubemap",
             "VertexShaderSourcePath": "shaders/glsl/shadow_cubemap.vert",
             "FragmentShaderSourcePath": "shaders/glsl/shadow_cubemap.frag",

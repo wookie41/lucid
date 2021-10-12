@@ -30,7 +30,7 @@ void main()
     
     // Calculate occlusion factor
     float Occlusion = 0;
-    for (int i = 0; i < 64; ++i)
+    for (int i = 0; i < uSSAOKernelSize; ++i)
     {
         // Fetch the sample, transform it to view space and add it to current fragment's position
         vec3 SampleVS = TBN * uSamples[i];
@@ -52,5 +52,5 @@ void main()
         }
     }
 
-    oFragColor = 1.0 - (Occlusion / 64.0);
+    oFragColor = pow(1.0 - (Occlusion / 64.0), uSSAOStrength);
 }

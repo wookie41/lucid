@@ -213,7 +213,7 @@ namespace lucid::scene
         /** Size of a shadow map for a given quality  */
         const glm::uvec2 ShadowMapSizeByQuality[3] = {
             { 512, 512 },
-            { 4096, 4096 },
+            { 1024, 1024 },
             { 2048, 2048 },
         };
 

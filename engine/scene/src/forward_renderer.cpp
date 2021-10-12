@@ -127,6 +127,8 @@ namespace lucid::scene
         float     ParallaxHeightScale;
         float     NearPlane;
         float     FarPlane;
+        int       uSSAOKernelSize;
+        int       uSSAOStrength;
     };
 
 #pragma pack(pop)
@@ -155,6 +157,7 @@ namespace lucid::scene
         }
 
         ShadowMapShader         = GEngine.GetShadersManager().GetShaderByName("ShadowMap");
+        CascadeShadowMapShader  = GEngine.GetShadersManager().GetShaderByName("CascadeShadowMap");
         ShadowCubeMapShader     = GEngine.GetShadersManager().GetShaderByName("ShadowCubemap");
         ShadowCubeMapShaderNoGS = GEngine.GetShadersManager().GetShaderByName("ShadowCubemapNoGS");
         PrepassShader           = GEngine.GetShadersManager().GetShaderByName("ForwardPrepass");
@@ -571,7 +574,7 @@ namespace lucid::scene
         }
 
         CurrentDebugDebugType = LIGHTING;
-        SelectedDebugTexture   = FrameResultTextures[0];
+        SelectedDebugTexture  = FrameResultTextures[0];
 #endif
 
         resources::CTextureResource* BlankTexture = GEngine.GetTexturesHolder().GetDefaultResource();
@@ -641,8 +644,8 @@ namespace lucid::scene
 #endif
 
         // Make sure we can use the persistent buffers
-        const int BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
-        gpu::CFence* Fence = PersistentBuffersFences[BufferIdx];
+        const int    BufferIdx = GRenderStats.FrameNumber % FRAME_DATA_BUFFERS_COUNT;
+        gpu::CFence* Fence     = PersistentBuffersFences[BufferIdx];
 
         while (!Fence->Wait(1))
         {
@@ -1358,8 +1361,10 @@ namespace lucid::scene
         const u32& BufferOffset = CalculateCurrentBufferOffset(GLOBAL_DATA_BUFFER_SIZE);
 
         FGlobalRenderData* GlobalRenderData              = (FGlobalRenderData*)(GlobalDataMappedPtr + BufferOffset);
-        GlobalRenderData->AmbientStrength                = AmbientStrength;
-        GlobalRenderData->NumPCFsamples                  = NumSamplesPCF;
+        GlobalRenderData->AmbientStrength                = RendererSettings.AmbientStrength;
+        GlobalRenderData->NumPCFsamples                  = RendererSettings.NumPCFSamples;
+        GlobalRenderData->uSSAOStrength                  = RendererSettings.SSAOStrength;
+        GlobalRenderData->uSSAOKernelSize                = RendererSettings.SSAOKernelSize;
         GlobalRenderData->ProjectionMatrix               = InRenderView->Camera->GetProjectionMatrix();
         GlobalRenderData->ViewMatrix                     = InRenderView->Camera->GetViewMatrix();
         GlobalRenderData->ViewPos                        = InRenderView->Camera->GetPosition();
@@ -1430,7 +1435,7 @@ namespace lucid::scene
             const float CameraNearPlane = InCamera->GetNearPlane();
             const float CameraFarPlane  = InCamera->GetFarPlane();
 
-            ShadowMapShader->Use();
+            CascadeShadowMapShader->Use();
 
             float CascadeNearPlane = InLight->FirstCascadeNearPlane;
             for (u8 i = 0; i < InLight->CascadeCount; ++i)
@@ -1503,7 +1508,7 @@ namespace lucid::scene
                 CropMatrix[3][1] = OffsetY;
 
                 InLight->CascadeMatrices[i] = CropMatrix * ProjectionMatrix * ViewMatrix;
-                ShadowMapShader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->CascadeMatrices[i]);
+                CascadeShadowMapShader->SetMatrix(LIGHT_SPACE_MATRIX, InLight->CascadeMatrices[i]);
 
                 // Find geometry to render for this cascade
                 FGeometryIntersectionQueryResult QueryResult;
@@ -1512,7 +1517,7 @@ namespace lucid::scene
                 for (int j = 0; j < QueryResult.StaticMeshes.GetLength(); ++j)
                 {
                     const CStaticMesh* StaticMesh = *QueryResult.StaticMeshes[j];
-                    ShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CachedModelMatrix);
+                    CascadeShadowMapShader->SetMatrix(MODEL_MATRIX, StaticMesh->CachedModelMatrix);
                     for (int SubMesh = 0; SubMesh < StaticMesh->MeshResource->SubMeshes.GetLength(); ++SubMesh)
                     {
                         StaticMesh->MeshResource->SubMeshes[SubMesh]->VAO->Bind();
@@ -1523,7 +1528,7 @@ namespace lucid::scene
                 for (int j = 0; j < QueryResult.Terrains.GetLength(); ++j)
                 {
                     const CTerrain* Terrain = *QueryResult.Terrains[j];
-                    ShadowMapShader->SetMatrix(MODEL_MATRIX, Terrain->CachedModelMatrix);
+                    CascadeShadowMapShader->SetMatrix(MODEL_MATRIX, Terrain->CachedModelMatrix);
                     for (int SubMesh = 0; SubMesh < Terrain->GetTerrainMesh()->SubMeshes.GetLength(); ++SubMesh)
                     {
                         Terrain->GetTerrainMesh()->SubMeshes[SubMesh]->VAO->Bind();
@@ -1776,11 +1781,13 @@ namespace lucid::scene
         bool bOpen = true;
         ImGui::Begin("Renderer settings", &bOpen);
         {
-            ImGui::DragFloat("Ambient strength", &AmbientStrength, 0.01, 0, 1);
-            ImGui::DragInt("Num PCF samples", &NumSamplesPCF, 1, 0, 64);
+            ImGui::DragFloat("Ambient strength", &RendererSettings.AmbientStrength, 0.01, 0, 1);
+            ImGui::DragInt("Num PCF samples", &RendererSettings.NumPCFSamples, 1, 0, 64);
             ImGui::Checkbox("Enable SSAO", &RendererSettings.bEnableSSAO);
             ImGui::Checkbox("Draw grid", &RendererSettings.bDrawGrid);
             ImGui::Checkbox("Use geometry shader for shadow mapping", &RendererSettings.bUseGeometryShaderForShadowMaps);
+            ImGui::DragInt("SSAO kernel size", &RendererSettings.SSAOKernelSize, 1, 0, 64);
+            ImGui::DragInt("SSAO strength", &RendererSettings.SSAOStrength, 1, 0, 32);
             if (ImGui::Checkbox("Depth prepass", &RendererSettings.bEnableDepthPrepass))
             {
                 if (RendererSettings.bEnableDepthPrepass)

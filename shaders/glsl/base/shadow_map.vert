@@ -1,12 +1,16 @@
 #version 450 core
 
-
 layout(location = 0) in vec3 aPosition;
 
-uniform mat4 uLightMatrix;
-uniform mat4 uModelMatrix;
+#include "batch_instance.glsl"
 
-void main() 
+in int gl_InstanceID;
+flat out int InstanceID;
+
+uniform mat4 uLightMatrix;
+
+void main()
 {
-    gl_Position = uLightMatrix * uModelMatrix * vec4(aPosition, 1.0);
+    InstanceID = gl_InstanceID;
+    gl_Position = uLightMatrix * INSTANCE_DATA.ModelMatrix * vec4(aPosition, 1.0);
 }

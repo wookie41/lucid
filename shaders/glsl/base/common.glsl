@@ -16,4 +16,6 @@ layout(std140, binding = 0) uniform GlobalDataBlock
     float     uParallaxHeightScale;
     float     uNearPlane;
     float     uFarPlane;
+    int       uSSAOKernelSize;
+    int       uSSAOStrength;
 };

@@ -53,7 +53,7 @@ void main()
     vec3 diffuseColor  = texture(MATERIAL_DATA.DiffuseMap, textureCoords).rgb * AmbientOcclusion;
     vec3 specularColor = MATERIAL_DATA.bHasSpecularMap ? texture(MATERIAL_DATA.SpecularMap, textureCoords).rgb : MATERIAL_DATA.SpecularColor;
 
-    vec3 ambient = diffuseColor * uAmbientStrength * AmbientOcclusion;
+    vec3 ambient = diffuseColor * uAmbientStrength;
 
     float shadowFactor = 1.0;
 
@@ -77,7 +77,6 @@ void main()
     vec3 fragColor = (diffuseColor * lightCntrb.Diffuse) + (specularColor * lightCntrb.Specular);
     
     fragColor *= lightCntrb.Attenuation * uLightIntensity * shadowFactor;
-    ambient *= lightCntrb.Diffuse;
     
     oFragColor     = vec4(ambient + fragColor, 1);
 }

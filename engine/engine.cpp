@@ -47,8 +47,6 @@ namespace lucid
 
         // Setup the renderer
         auto* ForwardRenderer             = new scene::CForwardRenderer{ 32, 4 };
-        ForwardRenderer->AmbientStrength  = 0.05;
-        ForwardRenderer->NumSamplesPCF    = 25;
         ForwardRenderer->ResultResolution = { 1920, 1080 };
         Renderer                          = ForwardRenderer;
 

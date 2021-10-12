@@ -84,12 +84,11 @@ namespace lucid::scene
         virtual ~CForwardRenderer() = default;
 
         /** Renderer properties, have to be set before the first Setup() call */
-        float AmbientStrength = 0.1;
-        int   NumSamplesPCF   = 5;
-        int   NumFrameBuffers = 2;
+        int NumFrameBuffers = 2;
 
         struct FRendererSettings
         {
+            float AmbientStrength                 = 0.05;
             bool  bEnableSSAO                     = true;
             u8    NumSSAOSamples                  = 64;
             float SSAOBias                        = 0.025;
@@ -97,6 +96,9 @@ namespace lucid::scene
             bool  bDrawGrid                       = true;
             bool  bEnableDepthPrepass             = true;
             bool  bUseGeometryShaderForShadowMaps = true;
+            int   SSAOKernelSize                  = 64;
+            int   SSAOStrength                    = 10;
+            int   NumPCFSamples                   = 25;
         } RendererSettings;
 
       private:
@@ -154,6 +156,7 @@ namespace lucid::scene
         gpu::FPipelineState GammaCorrectionPipelineState;
 
         gpu::CShader* ShadowMapShader;
+        gpu::CShader* CascadeShadowMapShader;
         gpu::CShader* ShadowCubeMapShader;
         gpu::CShader* ShadowCubeMapShaderNoGS;
         gpu::CShader* SkyboxShader;
