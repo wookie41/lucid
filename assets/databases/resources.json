@@ -617,6 +617,81 @@
             "Name": "Sphere",
             "Path": "assets/meshes/Sphere.asset",
             "Type": 1
+        },
+        {
+            "Id": "6f1691da-a8c9-4d85-8866-a1218224e06f",
+            "Name": "CavernDepositAlbedo",
+            "Path": "assets/textures/CavernDepositAlbedo.asset"
+        },
+        {
+            "Id": "3243193c-5da5-4e9f-9719-7434a6eac284",
+            "Name": "CavernDepositAO",
+            "Path": "assets/textures/CavernDepositAO.asset"
+        },
+        {
+            "Id": "41654b74-1ea3-4e7e-8593-5c93238f460a",
+            "Name": "CavernDepositHeight",
+            "Path": "assets/textures/CavernDepositHeight.asset"
+        },
+        {
+            "Id": "71606f9a-e716-4bee-b4d1-08c97252ee3b",
+            "Name": "CavernDepositMetallic",
+            "Path": "assets/textures/CavernDepositMetallic.asset"
+        },
+        {
+            "Id": "aa7be06d-0409-4413-887c-882046a7fcbe",
+            "Name": "CavernDepositRoughness",
+            "Path": "assets/textures/CavernDepositRoughness.asset"
+        },
+        {
+            "Id": "46129325-4962-48bb-b0ff-3b62d7d1dfda",
+            "Name": "RustedIronAlbedo",
+            "Path": "assets/textures/RustedIronAlbedo.asset"
+        },
+        {
+            "Id": "d8c2ddc7-a728-418d-8b18-0e61f86a0766",
+            "Name": "RustedIronMetallic",
+            "Path": "assets/textures/RustedIronMetallic.asset"
+        },
+        {
+            "Id": "4b2d9b97-cb84-4740-935a-41234941eaad",
+            "Name": "RustedIronNormal",
+            "Path": "assets/textures/RustedIronNormal.asset"
+        },
+        {
+            "Id": "c42a4077-5dc2-4f3a-a2c9-ff6d853833fe",
+            "Name": "RustedIronRoughness",
+            "Path": "assets/textures/RustedIronRoughness.asset"
+        },
+        {
+            "Id": "58bdf1d8-a132-4dcc-b780-b19ba685bf0b",
+            "Name": "FancyDiamondAlbedo",
+            "Path": "assets/textures/FancyDiamondAlbedo.asset"
+        },
+        {
+            "Id": "5087051d-7683-49ae-bad5-17fe659691e1",
+            "Name": "FancyDiamondAO",
+            "Path": "assets/textures/FancyDiamondAO.asset"
+        },
+        {
+            "Id": "fde60952-ba00-4033-a76c-37446f61a236",
+            "Name": "FancyDiamondMetallic",
+            "Path": "assets/textures/FancyDiamondMetallic.asset"
+        },
+        {
+            "Id": "1a680607-e4a1-46ce-a649-90f037ca7bee",
+            "Name": "FancyDiamondRoughness",
+            "Path": "assets/textures/FancyDiamondRoughness.asset"
+        },
+        {
+            "Id": "32f5f140-a668-4711-bf67-6cbc98d8f94a",
+            "Name": "FancyDiamondNormal2",
+            "Path": "assets/textures/FancyDiamondNormal2.asset"
+        },
+        {
+            "Id": "38639f52-88f2-4520-a8ca-25b32728d816",
+            "Name": "CavernNormal",
+            "Path": "assets/textures/CavernNormal.asset"
         }
     ]
 }

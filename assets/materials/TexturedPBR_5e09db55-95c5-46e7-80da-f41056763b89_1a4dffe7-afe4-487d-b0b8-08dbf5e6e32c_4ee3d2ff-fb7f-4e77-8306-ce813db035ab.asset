@@ -1,0 +1,9 @@
+{
+    "Id": "4ee3d2ff-fb7f-4e77-8306-ce813db035ab",
+    "Name": "TexturedPBR_5e09db55-95c5-46e7-80da-f41056763b89_1a4dffe7-afe4-487d-b0b8-08dbf5e6e32c_4ee3d2ff-fb7f-4e77-8306-ce813db035ab",
+    "ShaderName": "Textured PBR",
+    "RoughnessTextureID": "c42a4077-5dc2-4f3a-a2c9-ff6d853833fe",
+    "MetallicTextureID": "d8c2ddc7-a728-418d-8b18-0e61f86a0766",
+    "AlbedoTextureID": "46129325-4962-48bb-b0ff-3b62d7d1dfda",
+    "NormalTextureID": "4b2d9b97-cb84-4740-935a-41234941eaad"
+}

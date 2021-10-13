@@ -13,6 +13,7 @@
 #define LUCID_SCHEMAS_IMPLEMENTATION
 #include "scene/material.hpp"
 #include "scene/pbr_material.hpp"
+#include "scene/textured_pbr_material.hpp"
 #include "scene/actors/static_mesh.hpp"
 #include "scene/actors/terrain.hpp"
 
@@ -255,6 +256,33 @@ namespace lucid
                 if (bFileReadSuccess)
                 {
                     LoadedMaterial = scene::CPBRMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);
+                }
+                else
+                {
+                    LUCID_LOG(ELogLevel::WARN, "Failed to load material from path %s", *Entry.MaterialPath);
+                }
+
+                break;
+            }
+            case scene::EMaterialType::TEXTURED_PBR:
+            {
+                FTexturedPBRMaterialDescription MaterialDescription;
+                switch (Entry.FileFormat)
+                {
+                case EFileFormat::Json:
+                {
+                    bFileReadSuccess = ReadFromJSONFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                case EFileFormat::Binary:
+                {
+                    bFileReadSuccess = ReadFromBinaryFile(MaterialDescription, *Entry.MaterialPath);
+                    break;
+                }
+                }
+                if (bFileReadSuccess)
+                {
+                    LoadedMaterial = scene::CTexturedPBRMaterial::CreateMaterial(MaterialDescription, Entry.MaterialPath);
                 }
                 else
                 {

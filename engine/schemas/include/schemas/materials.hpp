@@ -41,6 +41,16 @@ STRUCT_INHERIT_BEGIN(lucid, FPBRMaterialDescription, lucid::FMaterialDescription
     STRUCT_FIELD(float, Roughness, 0, "")	    
 STRUCT_END()
 
+STRUCT_INHERIT_BEGIN(lucid, FTexturedPBRMaterialDescription, lucid::FMaterialDescription, "")
+    STRUCT_FIELD(UUID, RoughnessTextureID, sole::INVALID_UUID, "")	    
+    STRUCT_FIELD(UUID, MetallicTextureID, sole::INVALID_UUID, "")	    
+    STRUCT_FIELD(UUID, AlbedoTextureID, sole::INVALID_UUID, "")
+    STRUCT_FIELD(UUID, AOTextureID, sole::INVALID_UUID, "")
+    STRUCT_FIELD(UUID, NormalTextureID, sole::INVALID_UUID, "")
+    STRUCT_FIELD(UUID, DisplacementTextureID, sole::INVALID_UUID, "")
+STRUCT_END()
+
+
 STRUCT_BEGIN(lucid, FMaterialDatabaseEntry, "")
     STRUCT_FIELD(UUID, Id, sole::INVALID_UUID, "Id of the material")	
     STRUCT_FIELD(FDString, MaterialPath, "", "")

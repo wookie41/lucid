@@ -48,6 +48,9 @@ namespace lucid::resources
         {
             switch (NumChannels)
             {
+            case 1:
+                TextureResource->DataFormat = gpu::ETextureDataFormat::R;
+                break;
             case 3:
                 TextureResource->DataFormat = gpu::ETextureDataFormat::SRGB;
                 break;

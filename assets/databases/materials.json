@@ -395,6 +395,31 @@
             "Id": "12a19ce9-5039-4a8e-b1f8-f861d513076d",
             "MaterialPath": "assets/materials/BasePBR_171bd7b8-ce55-40b5-832a-654864d140a0_12a19ce9-5039-4a8e-b1f8-f861d513076d.asset",
             "MaterialType": 5
+        },
+        {
+            "Id": "48cffbb5-1bba-48b4-8ced-ef3a8529c199",
+            "MaterialPath": "assets/materials/TexturedPBR.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "5e09db55-95c5-46e7-80da-f41056763b89",
+            "MaterialPath": "assets/materials/TexturedPBR_5e09db55-95c5-46e7-80da-f41056763b89.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "1a4dffe7-afe4-487d-b0b8-08dbf5e6e32c",
+            "MaterialPath": "assets/materials/TexturedPBR_5e09db55-95c5-46e7-80da-f41056763b89_1a4dffe7-afe4-487d-b0b8-08dbf5e6e32c.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "4ee3d2ff-fb7f-4e77-8306-ce813db035ab",
+            "MaterialPath": "assets/materials/TexturedPBR_5e09db55-95c5-46e7-80da-f41056763b89_1a4dffe7-afe4-487d-b0b8-08dbf5e6e32c_4ee3d2ff-fb7f-4e77-8306-ce813db035ab.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "e273d0fb-bb58-4d79-bd12-0bcc1972ba36",
+            "MaterialPath": "assets/materials/TexturedPBR_5e09db55-95c5-46e7-80da-f41056763b89_1a4dffe7-afe4-487d-b0b8-08dbf5e6e32c_4ee3d2ff-fb7f-4e77-8306-ce813db035ab_e273d0fb-bb58-4d79-bd12-0bcc1972ba36.asset",
+            "MaterialType": 6
         }
     ]
 }

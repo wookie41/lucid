@@ -40,6 +40,7 @@
 
 #include "ImGuizmo.h"
 #include "scene/pbr_material.hpp"
+#include "scene/textured_pbr_material.hpp"
 
 using namespace lucid;
 
@@ -886,6 +887,10 @@ void UIDrawResourceBrowserWindow()
                         {
                             GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::PBR;
                         }
+                        if (ImGui::MenuItem("Textured PBR"))
+                        {
+                            GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::TEXTURED_PBR;
+                        }
 
                         if (GSceneEditorState.TypeOfMaterialToCreate != scene::EMaterialType::NONE)
                         {
@@ -1438,6 +1443,12 @@ void UIDrawMaterialCreationMenu()
                         CreatedMaterial                          = new scene::CPBRMaterial{
                             sole::uuid4(), CopyToString(GSceneEditorState.AssetNameBuffer), CreatedMaterialPath, GSceneEditorState.PickedShader
                         };
+                        break;
+                    case scene::EMaterialType::TEXTURED_PBR:
+                        GSceneEditorState.bDisableCameraMovement = true;
+                        CreatedMaterial                          = new scene::CTexturedPBRMaterial{
+                            sole::uuid4(), CopyToString(GSceneEditorState.AssetNameBuffer), CreatedMaterialPath, GSceneEditorState.PickedShader
+                        };    
                         break;
 
                     default:

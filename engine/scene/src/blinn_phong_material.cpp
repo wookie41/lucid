@@ -402,6 +402,7 @@ namespace lucid::scene
             }
         }
     }
+    
     void CBlinnPhongMapsMaterial::UnloadResources()
     {
         if (DiffuseMap)

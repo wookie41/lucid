@@ -5,9 +5,9 @@
             "Name": "Sphere",
             "BaseActorResourceId": "41509498-ca34-4cae-9fef-af85f5604953",
             "Postion": [
-                1.2471672296524048,
-                1.523092269897461,
-                -4.841360569000244
+                -2.0,
+                10.0,
+                0.0
             ],
             "MaterialIds": [
                 {
@@ -19,6 +19,66 @@
                     "Value": "12a19ce9-5039-4a8e-b1f8-f861d513076d"
                 }
             ]
+        },
+        {
+            "Id": 7,
+            "Name": "Sphere",
+            "BaseActorResourceId": "41509498-ca34-4cae-9fef-af85f5604953",
+            "Postion": [
+                0.0,
+                10.0,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "dbad17bb-4957-46b1-910f-2f4ef87cc13d"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "4ee3d2ff-fb7f-4e77-8306-ce813db035ab"
+                }
+            ]
+        },
+        {
+            "Id": 8,
+            "Name": "Sphere",
+            "BaseActorResourceId": "41509498-ca34-4cae-9fef-af85f5604953",
+            "Postion": [
+                2.0,
+                9.875504493713379,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "dbad17bb-4957-46b1-910f-2f4ef87cc13d"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "e273d0fb-bb58-4d79-bd12-0bcc1972ba36"
+                }
+            ]
+        },
+        {
+            "Id": 9,
+            "Name": "Sphere",
+            "BaseActorResourceId": "41509498-ca34-4cae-9fef-af85f5604953",
+            "Postion": [
+                4.0,
+                9.875504493713379,
+                0.0
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "dbad17bb-4957-46b1-910f-2f4ef87cc13d"
+                },
+                {
+                    "bChanged": true,
+                    "Value": "4ee3d2ff-fb7f-4e77-8306-ce813db035ab"
+                }
+            ]
         }
     ],
     "PointLights": [
@@ -26,11 +86,23 @@
             "Id": 5,
             "Name": "PointLight",
             "Postion": [
-                -12.215448379516602,
-                16.5996150970459,
-                -1.006866693496704
+                -4.0,
+                10.0,
+                5.0
             ],
-            "AttenuationRadius": 50.0
+            "AttenuationRadius": 212.0,
+            "LuminousPower": 41.0
+        },
+        {
+            "Id": 10,
+            "Name": "PointLight",
+            "Postion": [
+                4.0,
+                10.0,
+                5.0
+            ],
+            "AttenuationRadius": 212.0,
+            "LuminousPower": 41.0
         }
     ]
 }
