@@ -1,0 +1,10 @@
+{
+    "Id": "a610d500-bdf2-4eab-9cc9-4cf7e0d33465",
+    "Name": "CavernMaterial",
+    "ShaderName": "Textured PBR",
+    "RoughnessTextureID": "aa7be06d-0409-4413-887c-882046a7fcbe",
+    "MetallicTextureID": "71606f9a-e716-4bee-b4d1-08c97252ee3b",
+    "AlbedoTextureID": "6f1691da-a8c9-4d85-8866-a1218224e06f",
+    "AOTextureID": "5087051d-7683-49ae-bad5-17fe659691e1",
+    "NormalTextureID": "38639f52-88f2-4520-a8ca-25b32728d816"
+}

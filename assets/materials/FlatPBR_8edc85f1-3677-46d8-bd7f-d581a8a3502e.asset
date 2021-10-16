@@ -1,0 +1,12 @@
+{
+    "Id": "8edc85f1-3677-46d8-bd7f-d581a8a3502e",
+    "Name": "FlatPBR",
+    "ShaderName": "PBR",
+    "Albedo": [
+        1.0,
+        0.0,
+        0.0
+    ],
+    "Metallic": 0.4399999976158142,
+    "Roughness": 0.3100000023841858
+}

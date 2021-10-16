@@ -153,12 +153,8 @@
                 0.8782444000244141
             ],
             "Illuminance": 1.0,
-            "Left": -100.0,
-            "Right": 100.0,
-            "Bottom": -100.0,
-            "Top": 100.0,
-            "NearPlane": -100.0,
-            "FarPlane": 100.0
+            "CascadeSplitLogFactor": 0.8999999761581421,
+            "FirstCascadeNearPlane": 0.10000000149011612
         }
     ]
 }

@@ -27,6 +27,7 @@ struct FTexturedPBRMaterial
     sampler2D NormalMap;
     sampler2D DisplacementMap;
 
+    bool bHasAOMap;
     bool bHasNormalMap;
     bool bHasDisplacementMap;
 };
@@ -67,5 +68,10 @@ void main()
     float Metallic  = texture(MATERIAL_DATA.MetallicMap, UV).r;
     vec3  Albedo    = texture(MATERIAL_DATA.AlbedoMap, UV).rgb;
 
-    oFragColor = vec4(CalculatePBR(Normal, Roughness, Metallic, Albedo), 1.0);
+    vec2 ScreenSpaceCoords = (gl_FragCoord.xy / uViewportSize);
+
+    float AmbientOcclusion = MATERIAL_DATA.bHasAOMap ? texture(MATERIAL_DATA.AOMap, UV).r : texture(uAmbientOcclusion, ScreenSpaceCoords).r;
+    vec3  Ambient          = Albedo * uAmbientStrength * AmbientOcclusion;
+
+    oFragColor = vec4(Ambient + CalculatePBR(Normal, Roughness, Metallic, Albedo), 1.0);
 }

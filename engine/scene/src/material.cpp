@@ -18,6 +18,7 @@ namespace lucid::scene
             {
                 Name.ReplaceWithBuffer(RenameBuffer);
                 bIsRenaming = false;
+                InternalSaveToResourceFile(EFileFormat::Json);
             }
         }
         else

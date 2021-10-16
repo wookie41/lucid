@@ -1,0 +1,10 @@
+{
+    "Id": "16defc1c-3816-4cd8-9cac-eb65b36b28e7",
+    "Name": "DiamondMaterial",
+    "ShaderName": "Textured PBR",
+    "RoughnessTextureID": "1a680607-e4a1-46ce-a649-90f037ca7bee",
+    "MetallicTextureID": "fde60952-ba00-4033-a76c-37446f61a236",
+    "AlbedoTextureID": "58bdf1d8-a132-4dcc-b780-b19ba685bf0b",
+    "AOTextureID": "5087051d-7683-49ae-bad5-17fe659691e1",
+    "NormalTextureID": "0599b17a-5919-43f4-8e05-4d6e8a722565"
+}

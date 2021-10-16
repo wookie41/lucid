@@ -52,8 +52,10 @@ namespace lucid::scene
         u64 NormalMapBindlessHandle;
         u64 DisplacementMapBindlessHandle;
 
+        u32 bHasAOMap;
         u32 bHasNormalMap;
         u32 bHasDisplacementMap;
+        u8  _Padding[4];
     };
 #pragma pack(pop)
 
@@ -69,7 +71,8 @@ namespace lucid::scene
         MaterialData->NormalMapBindlessHandle       = NormalMapBindlessHandle;
         MaterialData->DisplacementMapBindlessHandle = DisplacementMapBindlessHandle;
 
-        MaterialData->bHasNormalMap = NormalMap != nullptr;
+        MaterialData->bHasAOMap           = AOMap != nullptr;
+        MaterialData->bHasNormalMap       = NormalMap != nullptr;
         MaterialData->bHasDisplacementMap = DisplacementMap != nullptr;
     }
 

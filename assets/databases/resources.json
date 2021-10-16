@@ -692,6 +692,16 @@
             "Id": "38639f52-88f2-4520-a8ca-25b32728d816",
             "Name": "CavernNormal",
             "Path": "assets/textures/CavernNormal.asset"
+        },
+        {
+            "Id": "0599b17a-5919-43f4-8e05-4d6e8a722565",
+            "Name": "FancyDiamondNormal",
+            "Path": "assets/textures/FancyDiamondNormal.asset"
+        },
+        {
+            "Id": "0b5f0a48-ab1b-44e0-b56c-497e77b308db",
+            "Name": "RustedIronNotGammaCorrected",
+            "Path": "assets/textures/RustedIronNotGammaCorrected.asset"
         }
     ]
 }

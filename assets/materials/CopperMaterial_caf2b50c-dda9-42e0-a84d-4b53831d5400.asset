@@ -1,0 +1,10 @@
+{
+    "Id": "caf2b50c-dda9-42e0-a84d-4b53831d5400",
+    "Name": "CopperMaterial",
+    "ShaderName": "Textured PBR",
+    "RoughnessTextureID": "c42a4077-5dc2-4f3a-a2c9-ff6d853833fe",
+    "MetallicTextureID": "d8c2ddc7-a728-418d-8b18-0e61f86a0766",
+    "AlbedoTextureID": "46129325-4962-48bb-b0ff-3b62d7d1dfda",
+    "AOTextureID": "2e1ae8f0-b45c-490d-b21d-27943d94bae5",
+    "NormalTextureID": "4b2d9b97-cb84-4740-935a-41234941eaad"
+}

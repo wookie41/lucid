@@ -1,28 +1,61 @@
 {
     "StaticMeshes": [
         {
-            "Id": 6,
-            "Name": "Sphere",
+            "Id": 9,
+            "Name": "CopperSphere",
             "BaseActorResourceId": "41509498-ca34-4cae-9fef-af85f5604953",
             "Postion": [
-                -2.0,
+                2.0,
                 10.0,
                 0.0
+            ],
+            "Rotation": [
+                3.715489027555918e-11,
+                0.09357116371393204,
+                4.1675887740844077e-10,
+                0.995612621307373
             ],
             "MaterialIds": [
                 {
                     "bChanged": true,
-                    "Value": "dbad17bb-4957-46b1-910f-2f4ef87cc13d"
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
                 },
                 {
                     "bChanged": true,
-                    "Value": "12a19ce9-5039-4a8e-b1f8-f861d513076d"
+                    "Value": "16defc1c-3816-4cd8-9cac-eb65b36b28e7"
                 }
             ]
         },
         {
             "Id": 7,
-            "Name": "Sphere",
+            "Name": "CavernPlane",
+            "BaseActorResourceId": "0541fe81-2eca-464a-b4e4-ff4838c20ff3",
+            "Postion": [
+                0.0,
+                8.310785293579102,
+                0.0
+            ],
+            "Scale": [
+                10.0,
+                0.10000000149011612,
+                10.0
+            ],
+            "Rotation": [
+                0.0,
+                0.014967433176934719,
+                0.0,
+                0.999888002872467
+            ],
+            "MaterialIds": [
+                {
+                    "bChanged": true,
+                    "Value": "a610d500-bdf2-4eab-9cc9-4cf7e0d33465"
+                }
+            ]
+        },
+        {
+            "Id": 8,
+            "Name": "DiamondSphere",
             "BaseActorResourceId": "41509498-ca34-4cae-9fef-af85f5604953",
             "Postion": [
                 0.0,
@@ -32,77 +65,79 @@
             "MaterialIds": [
                 {
                     "bChanged": true,
-                    "Value": "dbad17bb-4957-46b1-910f-2f4ef87cc13d"
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
                 },
                 {
                     "bChanged": true,
-                    "Value": "4ee3d2ff-fb7f-4e77-8306-ce813db035ab"
+                    "Value": "caf2b50c-dda9-42e0-a84d-4b53831d5400"
                 }
             ]
         },
         {
-            "Id": 8,
-            "Name": "Sphere",
+            "Id": 13,
+            "Name": "FlatSphere",
             "BaseActorResourceId": "41509498-ca34-4cae-9fef-af85f5604953",
             "Postion": [
-                2.0,
-                9.875504493713379,
+                -2.0,
+                10.0,
                 0.0
             ],
             "MaterialIds": [
                 {
                     "bChanged": true,
-                    "Value": "dbad17bb-4957-46b1-910f-2f4ef87cc13d"
+                    "Value": "23d2531e-f152-4e17-87e4-f84cde87b018"
                 },
                 {
                     "bChanged": true,
-                    "Value": "e273d0fb-bb58-4d79-bd12-0bcc1972ba36"
-                }
-            ]
-        },
-        {
-            "Id": 9,
-            "Name": "Sphere",
-            "BaseActorResourceId": "41509498-ca34-4cae-9fef-af85f5604953",
-            "Postion": [
-                4.0,
-                9.875504493713379,
-                0.0
-            ],
-            "MaterialIds": [
-                {
-                    "bChanged": true,
-                    "Value": "dbad17bb-4957-46b1-910f-2f4ef87cc13d"
-                },
-                {
-                    "bChanged": true,
-                    "Value": "4ee3d2ff-fb7f-4e77-8306-ce813db035ab"
+                    "Value": "8edc85f1-3677-46d8-bd7f-d581a8a3502e"
                 }
             ]
         }
     ],
-    "PointLights": [
+    "DirectionalLights": [
         {
-            "Id": 5,
-            "Name": "PointLight",
+            "Id": 11,
+            "Name": "DirectionalLight",
             "Postion": [
-                -4.0,
-                10.0,
-                5.0
+                0.0,
+                15.685115814208985,
+                -10.0
             ],
-            "AttenuationRadius": 212.0,
-            "LuminousPower": 41.0
+            "Rotation": [
+                -0.2662881016731262,
+                -0.017340457066893579,
+                -0.005891723558306694,
+                0.9637194871902466
+            ],
+            "Direction": [
+                0.03656047210097313,
+                -0.513049840927124,
+                0.8575798869132996
+            ],
+            "CascadeSplitLogFactor": 0.8999999761581421,
+            "FirstCascadeNearPlane": 0.10000000149011612
         },
         {
-            "Id": 10,
-            "Name": "PointLight",
+            "Id": 12,
+            "Name": "DirectionalLight",
             "Postion": [
-                4.0,
-                10.0,
-                5.0
+                0.0,
+                15.414344787597657,
+                10.0
             ],
-            "AttenuationRadius": 212.0,
-            "LuminousPower": 41.0
+            "Rotation": [
+                -0.9885083436965942,
+                -0.10695026814937592,
+                0.08469389379024506,
+                0.0651140809059143
+            ],
+            "Direction": [
+                -0.15351329743862153,
+                -0.1468476951122284,
+                -0.9771742820739746
+            ],
+            "CascadeSplitLogFactor": 0.8999999761581421,
+            "FirstCascadeNearPlane": 0.10000000149011612
         }
     ]
 }
