@@ -352,43 +352,28 @@
             "MaterialType": 6
         },
         {
-            "Id": "ddd9a23e-d3a3-4a4b-b7f0-5133b55281d7",
+            "Id": "8edc85f1-3677-46d8-bd7f-d581a8a3502e",
             "MaterialPath": "assets/materials/FlatPBR.asset",
             "MaterialType": 5
         },
         {
-            "Id": "8edc85f1-3677-46d8-bd7f-d581a8a3502e",
-            "MaterialPath": "assets/materials/FlatPBR_8edc85f1-3677-46d8-bd7f-d581a8a3502e.asset",
-            "MaterialType": 5
-        },
-        {
-            "Id": "d2162c01-3787-40a5-8803-e5c0dbb59dc9",
-            "MaterialPath": "assets/materials/CopperMaterial.asset",
-            "MaterialType": 6
-        },
-        {
-            "Id": "caf2b50c-dda9-42e0-a84d-4b53831d5400",
-            "MaterialPath": "assets/materials/CopperMaterial_caf2b50c-dda9-42e0-a84d-4b53831d5400.asset",
-            "MaterialType": 6
-        },
-        {
-            "Id": "1b36bdb0-8337-4ef0-9139-dbd128a75029",
+            "Id": "16defc1c-3816-4cd8-9cac-eb65b36b28e7",
             "MaterialPath": "assets/materials/DiamondMaterial.asset",
             "MaterialType": 6
         },
         {
-            "Id": "16defc1c-3816-4cd8-9cac-eb65b36b28e7",
-            "MaterialPath": "assets/materials/DiamondMaterial_16defc1c-3816-4cd8-9cac-eb65b36b28e7.asset",
-            "MaterialType": 6
-        },
-        {
-            "Id": "bef4c553-be1e-4f40-baf1-df730aadb9a4",
-            "MaterialPath": "assets/materials/CavernMaterial.asset",
+            "Id": "caf2b50c-dda9-42e0-a84d-4b53831d5400",
+            "MaterialPath": "assets/materials/CopperMaterial.asset",
             "MaterialType": 6
         },
         {
             "Id": "a610d500-bdf2-4eab-9cc9-4cf7e0d33465",
-            "MaterialPath": "assets/materials/CavernMaterial_a610d500-bdf2-4eab-9cc9-4cf7e0d33465.asset",
+            "MaterialPath": "assets/materials/CavernMaterial.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "07516362-22f0-4f24-81bb-badb2ef40c16",
+            "MaterialPath": "assets/materials/TestPBR.asset",
             "MaterialType": 6
         }
     ]

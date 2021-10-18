@@ -2,6 +2,8 @@
 #include "engine/engine.hpp"
 #include "schemas/types.hpp"
 #include "imgui.h"
+#include "platform/fs.hpp"
+#include "platform/platform.hpp"
 
 namespace lucid::scene
 {
@@ -10,25 +12,36 @@ namespace lucid::scene
     {
         static char RenameBuffer[256];
 
-        if (bIsRenaming)
+        if (bIsAsset)
         {
-            ImGui::InputText("##Rename Material", RenameBuffer, 255);
-            ImGui::SameLine();
-            if (ImGui::Button("Rename"))
+            if (bIsRenaming)
             {
-                Name.ReplaceWithBuffer(RenameBuffer);
-                bIsRenaming = false;
-                InternalSaveToResourceFile(EFileFormat::Json);
+                ImGui::InputText("##Rename Material", RenameBuffer, 255);
+                ImGui::SameLine();
+                if (ImGui::Button("Rename"))
+                {
+                    // Remove the old
+                    GEngine.RemoveMaterialAsset(this);
+                    AssetPath.Free();
+
+                    // Save with new name
+                    Name.ReplaceWithBuffer(RenameBuffer);
+                    AssetPath = SPrintf("assets/materials/%s.asset", *Name);
+
+                    GEngine.AddMaterialAsset(this, GetType(), AssetPath);
+
+                    bIsRenaming = false;
+                }
             }
-        }
-        else
-        {
-            ImGui::Text("Material name: %s", *Name);
-            ImGui::SameLine();
-            if (ImGui::Button("Rename"))
+            else
             {
-                Name.CopyToBuffer(RenameBuffer);
-                bIsRenaming = true;
+                ImGui::Text("Material name: %s", *Name);
+                ImGui::SameLine();
+                if (ImGui::Button("Rename"))
+                {
+                    Name.CopyToBuffer(RenameBuffer);
+                    bIsRenaming = true;
+                }
             }
         }
     }
@@ -43,13 +56,13 @@ namespace lucid::scene
         }
         else
         {
-            bIsAsset = true;
-            AssetId = sole::uuid4();
-            Name = SPrintf("%s_%s", *Name, AssetId.str().c_str());
+            bIsAsset  = true;
+            AssetId   = sole::uuid4();
+            Name      = SPrintf("%s_%s", *Name, AssetId.str().c_str());
             AssetPath = SPrintf("assets/materials/%s.asset", *Name);
-            GEngine.GetMaterialDatabase().Entries.push_back({AssetId, AssetPath, InFileFormat, GetType(), false});
+            GEngine.GetMaterialDatabase().Entries.push_back({ AssetId, AssetPath, InFileFormat, GetType(), false });
             GEngine.SaveMaterialDatabase();
             SaveToResourceFile(InFileFormat);
         }
     }
-}
+} // namespace lucid::scene

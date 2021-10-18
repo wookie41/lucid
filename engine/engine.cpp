@@ -11,6 +11,7 @@
 #include "scene/forward_renderer.hpp"
 
 #define LUCID_SCHEMAS_IMPLEMENTATION
+#include "platform/fs.hpp"
 #include "scene/material.hpp"
 #include "scene/pbr_material.hpp"
 #include "scene/textured_pbr_material.hpp"
@@ -399,6 +400,8 @@ namespace lucid
 
     void CEngine::RemoveMaterialAsset(scene::CMaterial* InMaterial)
     {
+        assert(InMaterial->bIsAsset);
+        
         MaterialDatabase.Entries.erase(
           std::remove_if(MaterialDatabase.Entries.begin(), MaterialDatabase.Entries.end(), [&](const FMaterialDatabaseEntry& Entry) {
               if (Entry.Id == InMaterial->GetID())
@@ -408,6 +411,8 @@ namespace lucid
               }
               return false;
           }));
+
+        platform::RemoveFile(*InMaterial->AssetPath);
 
         MaterialsHolder.Remove(InMaterial->GetID());
         SaveMaterialDatabase();

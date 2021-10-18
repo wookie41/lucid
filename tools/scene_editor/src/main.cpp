@@ -1454,7 +1454,7 @@ void UIDrawMaterialCreationMenu()
                     default:
                         assert(0);
                     }
-
+                    CreatedMaterial->bIsAsset = true;
                     GEngine.AddMaterialAsset(CreatedMaterial, GSceneEditorState.TypeOfMaterialToCreate, CreatedMaterialPath);
                     GSceneEditorState.TypeOfMaterialToCreate = scene::EMaterialType::NONE;
                     GSceneEditorState.PickedShader           = nullptr;

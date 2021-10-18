@@ -1,4 +1,4 @@
-    #include "platform/fs.hpp"
+#include "platform/fs.hpp"
 
 #include <stdio.h>
 #include <cstdint>
@@ -8,17 +8,17 @@ namespace lucid::platform
     // @TODO Unicode path support
     FDString ReadFile(const char* FilePath, const bool& NullTerminate)
     {
-        char* retVal = nullptr;
+        char* retVal     = nullptr;
         FILE* fileToRead = fopen(FilePath, "rb");
 
         if (fileToRead == nullptr)
         {
-            return FDString { "" };
+            return FDString{ "" };
         }
 
         fseek(fileToRead, 0, SEEK_END);
 
-        char* buffer = nullptr;
+        char*   buffer  = nullptr;
         int32_t numRead = 0;
 
         u32 fileSize = ftell(fileToRead);
@@ -32,7 +32,7 @@ namespace lucid::platform
 
         rewind(fileToRead);
 
-        buffer = new char[fileSize + NullTerminate];
+        buffer  = new char[fileSize + NullTerminate];
         numRead = fread(buffer, 1, fileSize, fileToRead);
 
         if (numRead != fileSize)
@@ -50,7 +50,7 @@ namespace lucid::platform
 
     readFileEnd:
         fclose(fileToRead);
-        return FDString { retVal } ;
+        return FDString{ retVal };
     }
 
     FMemBuffer ReadFileToBuffer(const char* FilePath)
@@ -58,9 +58,11 @@ namespace lucid::platform
         FDString Str = ReadFile(FilePath, false);
         if (Str.GetLength())
         {
-            return FMemBuffer { *Str, Str.GetLength(), Str.GetLength() };
+            return FMemBuffer{ *Str, Str.GetLength(), Str.GetLength() };
         }
         return {};
     }
+
+    void RemoveFile(const char* FilePath) { remove(FilePath); }
 
 } // namespace lucid::platform
