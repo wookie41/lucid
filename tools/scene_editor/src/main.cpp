@@ -51,7 +51,7 @@ bool EqualIgnoreCase(const std::string& a, const std::string& b)
 
 bool InitializeSceneEditor();
 
-void HandleCameraMovement(const float& DeltaTime);
+void HandleCameraMovement();
 void DoActorPicking();
 void DrawActiveActorGizmos();
 void HandleInput();
@@ -127,12 +127,11 @@ int main(int argc, char** argv)
 
         ReadEvents(GSceneEditorState.Window);
         HandleInput();
+        HandleCameraMovement();
 
-        if (dt > platform::SimulationStep)
+        while (dt > platform::SimulationStep)
         {
             dt -= platform::SimulationStep;
-
-            HandleCameraMovement(platform::SimulationStep);
 
             GSceneEditorState.CurrentCamera->Tick(platform::SimulationStep);
             GSceneEditorState.SecondsSinceLastVideoMemorySnapshot += platform::SimulationStep;
@@ -298,7 +297,7 @@ bool InitializeSceneEditor()
     return true;
 }
 
-void HandleCameraMovement(const float& DeltaTime)
+void HandleCameraMovement()
 {
     // Check if we're inside the scene window
     const ImVec2 MousePositionAbs = ImGui::GetMousePos();
@@ -317,22 +316,22 @@ void HandleCameraMovement(const float& DeltaTime)
     const FMousePosition MousePos = GetMousePostion();
     if (IsKeyPressed(SDLK_w))
     {
-        GSceneEditorState.CurrentCamera->MoveForward(platform::SimulationStep);
+        GSceneEditorState.CurrentCamera->AddForwardVelocity(GSceneEditorState.CameraSpeed);
     }
 
     if (IsKeyPressed(SDLK_s))
     {
-        GSceneEditorState.CurrentCamera->MoveBackward(platform::SimulationStep);
+        GSceneEditorState.CurrentCamera->AddForwardVelocity(-GSceneEditorState.CameraSpeed);
     }
 
     if (IsKeyPressed(SDLK_a))
     {
-        GSceneEditorState.CurrentCamera->MoveLeft(platform::SimulationStep);
+        GSceneEditorState.CurrentCamera->AddRightVelocity(-GSceneEditorState.CameraSpeed);
     }
 
     if (IsKeyPressed(SDLK_d))
     {
-        GSceneEditorState.CurrentCamera->MoveRight(platform::SimulationStep);
+        GSceneEditorState.CurrentCamera->AddRightVelocity(GSceneEditorState.CameraSpeed);
     }
 
     if (IsMouseButtonPressed(RIGHT))

@@ -65,6 +65,9 @@ namespace lucid::scene
 
         const math::FAABB& GetFrustumAABB() const { return FrustumAABB; }
 
+        void AddForwardVelocity(const float& InSpeed);
+        void AddRightVelocity(const float& InSpeed);
+
       protected:
         math::FAABB FrustumAABB;
 
@@ -76,7 +79,9 @@ namespace lucid::scene
 
         ECameraMode Mode;
         real        AspectRatio = 0;
-
+        
+        glm::vec3 Velocity = { 0, 0, 0 };
+        
         glm::vec3 Position;
         glm::vec3 FrontVector;
         glm::vec3 UpVector;

@@ -130,7 +130,7 @@ namespace lucid::scene
 
         FTransform3D CameraTransform;
         CameraTransform.Translation = Position;
-        CameraTransform.Rotation = glm::quatLookAt(FrontVector, WorldUpVector);
+        CameraTransform.Rotation    = glm::quatLookAt(FrontVector, WorldUpVector);
         FrustumAABB.OrientAround(CameraTransform);
     }
 
@@ -172,6 +172,9 @@ namespace lucid::scene
         }
         else
         {
+            Position += (Velocity * DeltaTime);
+            Velocity *= 0.85;
+            
             UpdateCameraVectors();
         }
 
@@ -189,4 +192,7 @@ namespace lucid::scene
         bMoveRequested    = true;
     }
 
+    void CCamera::AddForwardVelocity(const float& InSpeed) { Velocity += (FrontVector * InSpeed); }
+
+    void CCamera::AddRightVelocity(const float& InSpeed) { Velocity += (RightVector * InSpeed); }
 } // namespace lucid::scene

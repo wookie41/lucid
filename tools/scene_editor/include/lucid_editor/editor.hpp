@@ -63,7 +63,7 @@ namespace lucid
     {
         platform::CWindow* Window;
         ImGuiContext*      ImGuiContext;
-        ImGuiWindow* ImSceneWindow;
+        ImGuiWindow*       ImSceneWindow;
 
         ImGuiID MainDockId  = 0;
         ImGuiID SceneDockId = 0;
@@ -90,6 +90,7 @@ namespace lucid
 
         scene::CCamera  PerspectiveCamera{ scene::ECameraMode::PERSPECTIVE };
         scene::CCamera* CurrentCamera = nullptr;
+        float           CameraSpeed   = 5;
 
         /** File dialog related things, used e.x. when importing assets */
         bool               bShowFileDialog = false;
