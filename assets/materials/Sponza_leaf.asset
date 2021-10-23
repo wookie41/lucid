@@ -1,12 +1,8 @@
 {
-    "Id": "c13dde67-7209-4570-911e-f661d196f9ef",
+    "Id": "1ad0e833-c7dd-4cd3-b281-5f3c7b59c53e",
     "Name": "Sponza_leaf",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "b5b5973e-32fc-42c0-8852-04db4f98e4f5",
-    "NormalTextureID": "a81536c2-ed0e-4ce6-8269-3f7097fa2f35",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "84ec7b9d-9ada-43a5-8807-314df2698fa2",
+    "NormalTextureID": "4f83f045-4dc6-4d56-ae33-61f83a3a6153",
+    "Roughness": 0.25
 }

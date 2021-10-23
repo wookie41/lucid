@@ -57,48 +57,8 @@
             "MaterialType": 2
         },
         {
-            "Id": "2dad9dce-3385-41a9-bba6-57b114d691e4",
-            "MaterialPath": "assets/materials/Cyborg_DefaultMaterial.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "effdef01-1074-4c6e-a26f-0b5916461fac",
-            "MaterialPath": "assets/materials/Cyborg_Cyborg.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "dfc785a5-8f03-47fc-938c-f8ac9cdd023f",
-            "MaterialPath": "assets/materials/Nanosuit_DefaultMaterial.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "32c28086-ced3-4c0f-ac50-2a00e08322e2",
-            "MaterialPath": "assets/materials/Nanosuit_Arm.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "3c184a45-509b-4a55-be72-b6d3b0486079",
-            "MaterialPath": "assets/materials/Nanosuit_Body.asset",
-            "MaterialType": 3
-        },
-        {
             "Id": "a996c08e-1cf8-4043-a626-e746fcfa868d",
             "MaterialPath": "assets/materials/Nanosuit_Glass.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "4801d5ae-4b33-45b2-9d0d-e7f44459c665",
-            "MaterialPath": "assets/materials/Nanosuit_Hand.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "cd5ba48c-bec1-4814-b2c8-7cb848cb6fc2",
-            "MaterialPath": "assets/materials/Nanosuit_Helmet.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "06ad013d-57a6-41b8-9b0d-3ddc24f07658",
-            "MaterialPath": "assets/materials/Nanosuit_Leg.asset",
             "MaterialType": 3
         },
         {
@@ -115,136 +75,6 @@
             "Id": "ac97150b-dd8f-4526-ae78-802571470adf",
             "MaterialPath": "assets/materials/TerrainMaterial_af6694b1-c4cb-4e5f-bae5-847abcaa3f79_ac97150b-dd8f-4526-ae78-802571470adf.asset",
             "MaterialType": 4
-        },
-        {
-            "Id": "148cb343-2fd2-41ac-a271-a9beb6855d45",
-            "MaterialPath": "assets/materials/Sponza_DefaultMaterial.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "001f92d1-b51b-4549-b5ac-702b2a52a870",
-            "MaterialPath": "assets/materials/Sponza_Material__25.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "1185b233-5a30-46d2-bda4-05e832507138",
-            "MaterialPath": "assets/materials/Sponza_Material__298.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "a88a1db9-6bc4-49db-aaf8-6cffeaf8472a",
-            "MaterialPath": "assets/materials/Sponza_Material__47.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "05625ac4-8767-4675-9c1a-cfea7c9d2b09",
-            "MaterialPath": "assets/materials/Sponza_Material__57.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "a1a620e1-f0ca-4117-8a61-41f5f35cf6e7",
-            "MaterialPath": "assets/materials/Sponza_arch.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "35eb27af-5b85-4e65-bc43-b4a107a4a1d3",
-            "MaterialPath": "assets/materials/Sponza_bricks.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "10686788-5495-49c5-bd13-e5d027d876ee",
-            "MaterialPath": "assets/materials/Sponza_ceiling.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "dacd23c2-4a37-4928-a553-7dedcaaabad3",
-            "MaterialPath": "assets/materials/Sponza_chain.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "2fcd5377-200a-421a-972b-95ecd25c04ae",
-            "MaterialPath": "assets/materials/Sponza_column_a.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "4d4a4ba9-fc3e-493c-a1cf-419b1370daa5",
-            "MaterialPath": "assets/materials/Sponza_column_b.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "55751321-6bc2-4586-8178-29c42fa44893",
-            "MaterialPath": "assets/materials/Sponza_column_c.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "61496903-a569-4b29-9f43-174eaa14c031",
-            "MaterialPath": "assets/materials/Sponza_details.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "db017a9a-d57c-41cc-afc0-9fceaaf3d18e",
-            "MaterialPath": "assets/materials/Sponza_fabric_a.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "222ca28b-bb4f-4ead-a0c1-889903f73084",
-            "MaterialPath": "assets/materials/Sponza_fabric_c.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "5e0db8cb-eb29-43cb-aaee-353680449d70",
-            "MaterialPath": "assets/materials/Sponza_fabric_d.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "5376ab52-c40f-4db1-bac7-0df04a5415d3",
-            "MaterialPath": "assets/materials/Sponza_fabric_e.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "76d0ed11-0ec1-43f4-9ebb-26c98a9f3676",
-            "MaterialPath": "assets/materials/Sponza_fabric_f.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "a6942022-aa77-4bec-a210-72a665c97c07",
-            "MaterialPath": "assets/materials/Sponza_fabric_g.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "e331b7c3-68af-489e-b390-eaa6da947f7f",
-            "MaterialPath": "assets/materials/Sponza_flagpole.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "1f6bee8d-0fa5-4006-9dcf-b1b010f6406a",
-            "MaterialPath": "assets/materials/Sponza_floor.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "c13dde67-7209-4570-911e-f661d196f9ef",
-            "MaterialPath": "assets/materials/Sponza_leaf.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "a062bcb1-bcd3-4b83-a7d1-d2e68a5bc483",
-            "MaterialPath": "assets/materials/Sponza_roof.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "d596ddd8-3670-41f0-a9b5-58ce9fc90eeb",
-            "MaterialPath": "assets/materials/Sponza_vase.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "a72da743-1031-4ee1-b0f3-1b41ed046ccc",
-            "MaterialPath": "assets/materials/Sponza_vase_hanging.asset",
-            "MaterialType": 3
-        },
-        {
-            "Id": "9674124a-d4a9-4ed3-97e9-96df95916c58",
-            "MaterialPath": "assets/materials/Sponza_vase_round.asset",
-            "MaterialType": 3
         },
         {
             "Id": "c66c0a4b-9af2-47fa-a679-c28906a38533",
@@ -374,6 +204,171 @@
         {
             "Id": "07516362-22f0-4f24-81bb-badb2ef40c16",
             "MaterialPath": "assets/materials/TestPBR.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "0d5a881b-b0f5-4f07-af5a-ae523e50c31b",
+            "MaterialPath": "assets/materials/Sponza_DefaultMaterial.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "c4c88419-9122-40b9-afc6-1f8ce4d800b1",
+            "MaterialPath": "assets/materials/Sponza_Material__25.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "de7c0c99-496e-4fbd-ba26-553092026811",
+            "MaterialPath": "assets/materials/Sponza_Material__298.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "4d5a0d14-e294-4aae-98f5-c8ea3b5ab07c",
+            "MaterialPath": "assets/materials/Sponza_Material__47.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "a8f11115-2d5b-4bdc-aa87-e57e693c4dc3",
+            "MaterialPath": "assets/materials/Sponza_Material__57.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "aa96a442-8068-4da0-a75b-660351022df0",
+            "MaterialPath": "assets/materials/Sponza_arch.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "1d715d02-b41c-4b16-9f7b-5bd6da9a538a",
+            "MaterialPath": "assets/materials/Sponza_bricks.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "fd86d7e7-cd36-40c1-bcba-19abc8d39c1c",
+            "MaterialPath": "assets/materials/Sponza_ceiling.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "15cf8877-37b6-4dd8-982a-2971d3bb1c01",
+            "MaterialPath": "assets/materials/Sponza_chain.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "2983f4fd-19cb-48c8-a7a1-8503ce38d194",
+            "MaterialPath": "assets/materials/Sponza_column_a.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "18b82d07-aa54-4907-89fb-d6c030f9713d",
+            "MaterialPath": "assets/materials/Sponza_column_b.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "ec7eb9c3-eddc-4293-931f-f93f18aba517",
+            "MaterialPath": "assets/materials/Sponza_column_c.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "34b6fe59-48d9-4bcb-8b7e-97b38f7a9b41",
+            "MaterialPath": "assets/materials/Sponza_details.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "bdc0ac25-13e8-4432-94bd-6e88023a40eb",
+            "MaterialPath": "assets/materials/Sponza_fabric_a.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "2a7da6d0-9be1-4919-9024-f06177e9b358",
+            "MaterialPath": "assets/materials/Sponza_fabric_c.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "636aefa0-77cb-40b7-9173-955254053cdb",
+            "MaterialPath": "assets/materials/Sponza_fabric_d.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "d5f379a6-728e-4bab-858a-35664f3b275f",
+            "MaterialPath": "assets/materials/Sponza_fabric_e.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "be37cf77-af94-4246-9861-6710e8cdebb6",
+            "MaterialPath": "assets/materials/Sponza_fabric_f.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "fbe66072-271d-4fdf-8a6b-cc37c6dff3f9",
+            "MaterialPath": "assets/materials/Sponza_fabric_g.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "4c9f1852-0d39-4f97-8965-db51d1953675",
+            "MaterialPath": "assets/materials/Sponza_flagpole.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "5a0abaed-8ac3-4c2d-8272-dbc77ed4d277",
+            "MaterialPath": "assets/materials/Sponza_floor.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "1ad0e833-c7dd-4cd3-b281-5f3c7b59c53e",
+            "MaterialPath": "assets/materials/Sponza_leaf.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "82873769-ccc8-4ea6-8c25-14f9921fb32d",
+            "MaterialPath": "assets/materials/Sponza_roof.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "697c34df-ba9f-4db0-b669-0a26a08606a0",
+            "MaterialPath": "assets/materials/Sponza_vase.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "d34152dd-6997-4529-9378-feb7e60205da",
+            "MaterialPath": "assets/materials/Sponza_vase_hanging.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "2ca99d17-79e0-4ca9-bc97-1c281abce716",
+            "MaterialPath": "assets/materials/Sponza_vase_round.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "e83ef22e-ca66-4f56-b44a-3a42957fbe46",
+            "MaterialPath": "assets/materials/Nanosuit_DefaultMaterial.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "bac456a9-d367-4e27-821a-057b72046fce",
+            "MaterialPath": "assets/materials/Nanosuit_Arm.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "fae7d3a1-f26b-4d3b-babf-358bd39a1015",
+            "MaterialPath": "assets/materials/Nanosuit_Body.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "8fd3b294-8a5c-4b41-b0fb-dae73db1b512",
+            "MaterialPath": "assets/materials/Nanosuit_Glass.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "58f646b5-271d-457f-844e-cb39db4fe12e",
+            "MaterialPath": "assets/materials/Nanosuit_Hand.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "77efa16c-8cc1-4d87-9a79-0acadbbef186",
+            "MaterialPath": "assets/materials/Nanosuit_Helmet.asset",
+            "MaterialType": 6
+        },
+        {
+            "Id": "17889671-d1ae-4cef-8433-dae8ba325e38",
+            "MaterialPath": "assets/materials/Nanosuit_Leg.asset",
             "MaterialType": 6
         }
     ]

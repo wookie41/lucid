@@ -16,6 +16,7 @@ namespace lucid::scene
     CTexturedPBRMaterial::CTexturedPBRMaterial(const UUID& InId, const FDString& InName, const FDString& InResourcePath, gpu::CShader* InShader)
     : CMaterial(InId, InName, InResourcePath, InShader)
     {
+        AlbedoMap = NormalMap = RoughnessMap = MetallicMap = DisplacementMap = AOMap = nullptr;
     }
 
     CTexturedPBRMaterial* CTexturedPBRMaterial::CreateMaterial(const FTexturedPBRMaterialDescription& Description, const FDString& InResourcePath)
@@ -23,28 +24,38 @@ namespace lucid::scene
         gpu::CShader* Shader   = GEngine.GetShadersManager().GetShaderByName(Description.ShaderName);
         auto*         Material = new CTexturedPBRMaterial{ Description.Id, Description.Name, InResourcePath, Shader };
 
-        Material->RoughnessMap = GEngine.GetTexturesHolder().Get(Description.RoughnessTextureID);
-        Material->MetallicMap  = GEngine.GetTexturesHolder().Get(Description.MetallicTextureID);
-        Material->AlbedoMap    = GEngine.GetTexturesHolder().Get(Description.AlbedoTextureID);
-        Material->AOMap        = GEngine.GetTexturesHolder().Get(Description.AOTextureID);
+        Material->RoughnessMap =
+          Description.RoughnessTextureID == sole::INVALID_UUID ? nullptr : GEngine.GetTexturesHolder().Get(Description.RoughnessTextureID);
 
-        if (Description.NormalTextureID != sole::INVALID_UUID)
-        {
-            Material->NormalMap = GEngine.GetTexturesHolder().Get(Description.NormalTextureID);
-        }
+        Material->MetallicMap = Description.MetallicTextureID == sole::INVALID_UUID ? nullptr : GEngine.GetTexturesHolder().Get(Description.MetallicTextureID);
+        Material->AlbedoMap   = Description.AlbedoTextureID == sole::INVALID_UUID ? nullptr : GEngine.GetTexturesHolder().Get(Description.AlbedoTextureID);
+        Material->AOMap       = Description.AOTextureID == sole::INVALID_UUID ? nullptr : GEngine.GetTexturesHolder().Get(Description.AOTextureID);
+        Material->NormalMap   = Description.NormalTextureID == sole::INVALID_UUID ? nullptr : GEngine.GetTexturesHolder().Get(Description.NormalTextureID);
 
-        if (Description.DisplacementTextureID != sole::INVALID_UUID)
-        {
-            Material->DisplacementMap = GEngine.GetTexturesHolder().Get(Description.DisplacementTextureID);
-        }
+        Material->DisplacementMap =
+          Description.DisplacementTextureID == sole::INVALID_UUID ? nullptr : GEngine.GetTexturesHolder().Get(Description.DisplacementTextureID);
+
+        Material->Albedo    = Description.Albedo;
+        Material->Roughness = Description.Roughness;
+        Material->Metallic  = Description.Metallic;
 
         return Material;
     }
 
 #pragma pack(push, 1)
+
+    enum PBRMaterialFlags
+    {
+        HAS_ALBEDO       = 1,
+        HAS_NORMAL       = 2,
+        HAS_METALLIC     = 4,
+        HAS_ROUGHNESS    = 8,
+        HAS_AO           = 16,
+        HAS_DISPLACEMENT = 32
+    };
+
     struct FTexturedPBRMaterialData
     {
-
         u64 RoughnessMapBindlessHandle;
         u64 MetallicMapBindlessHandle;
         u64 AlbedoMapBindlessHandle;
@@ -52,10 +63,12 @@ namespace lucid::scene
         u64 NormalMapBindlessHandle;
         u64 DisplacementMapBindlessHandle;
 
-        u32 bHasAOMap;
-        u32 bHasNormalMap;
-        u32 bHasDisplacementMap;
-        u8  _Padding[4];
+        glm::vec3 Albedo    = { 1, 0, 0 };
+        float     Roughness = 0;
+        float     Metallic  = 0;
+
+        u32 Flags;
+        u8  _Padding[8];
     };
 #pragma pack(pop)
 
@@ -71,9 +84,49 @@ namespace lucid::scene
         MaterialData->NormalMapBindlessHandle       = NormalMapBindlessHandle;
         MaterialData->DisplacementMapBindlessHandle = DisplacementMapBindlessHandle;
 
-        MaterialData->bHasAOMap           = AOMap != nullptr;
-        MaterialData->bHasNormalMap       = NormalMap != nullptr;
-        MaterialData->bHasDisplacementMap = DisplacementMap != nullptr;
+        MaterialData->Flags = 0;
+
+        if (AlbedoMap)
+        {
+            MaterialData->Flags |= PBRMaterialFlags::HAS_ALBEDO;
+        }
+        else
+        {
+            MaterialData->Albedo = Albedo;
+        }
+
+        if (NormalMap)
+        {
+            MaterialData->Flags |= PBRMaterialFlags::HAS_NORMAL;
+        }
+
+        if (RoughnessMap)
+        {
+            MaterialData->Flags |= PBRMaterialFlags::HAS_ROUGHNESS;
+        }
+        else
+        {
+            MaterialData->Roughness = Roughness;
+        }
+
+        if (MetallicMap)
+        {
+            MaterialData->Flags |= PBRMaterialFlags::HAS_METALLIC;
+        }
+        else
+        {
+            MaterialData->Metallic = Metallic;
+        }
+
+        if (AOMap)
+        {
+            MaterialData->Flags |= PBRMaterialFlags::HAS_AO;
+        }
+
+        if (DisplacementMap)
+        {
+            MaterialData->Flags |= PBRMaterialFlags::HAS_DISPLACEMENT;
+        }
     }
 
     void CTexturedPBRMaterial::SetupPrepassShader(FForwardPrepassUniforms* InPrepassUniforms)
@@ -100,6 +153,9 @@ namespace lucid::scene
         Copy->AOMapBindlessHandle           = AOMapBindlessHandle;
         Copy->NormalMapBindlessHandle       = NormalMapBindlessHandle;
         Copy->DisplacementMapBindlessHandle = DisplacementMapBindlessHandle;
+        Copy->Albedo                        = Albedo;
+        Copy->Roughness                     = Roughness;
+        Copy->Metallic                      = Metallic;
         return Copy;
     }
 
@@ -108,6 +164,10 @@ namespace lucid::scene
     void CTexturedPBRMaterial::UIDrawMaterialEditor()
     {
         CMaterial::UIDrawMaterialEditor();
+
+        bMaterialDataDirty |= ImGui::ColorEdit3("Albedo", &Albedo.x);
+        bMaterialDataDirty |= ImGui::DragFloat("Roughness", &Roughness, 0.01, 0, 1);
+        bMaterialDataDirty |= ImGui::DragFloat("Metallic", &Metallic, 0.01, 0, 1);
 
         ImGui::Text("Roughness texture:");
         resources::CTextureResource* OldRoughnessMap = RoughnessMap;
@@ -218,6 +278,10 @@ namespace lucid::scene
         MaterialDescription.Id         = AssetId;
         MaterialDescription.Name       = FDString{ *Name, Name.GetLength() };
         MaterialDescription.ShaderName = FDString{ *Shader->GetName(), Shader->GetName().GetLength() };
+
+        MaterialDescription.Albedo    = Albedo;
+        MaterialDescription.Metallic  = Metallic;
+        MaterialDescription.Roughness = Roughness;
 
         MaterialDescription.RoughnessTextureID    = RoughnessMap ? RoughnessMap->GetID() : sole::INVALID_UUID;
         MaterialDescription.MetallicTextureID     = MetallicMap ? MetallicMap->GetID() : sole::INVALID_UUID;

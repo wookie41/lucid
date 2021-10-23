@@ -7,7 +7,7 @@
 
 #include "scene/actors/actor.hpp"
 #include "scene/material.hpp"
-#include "scene/blinn_phong_material.hpp"
+#include "scene/textured_pbr_material.hpp"
 #include "scene/actors/actor_enums.hpp"
 #include "scene/actors/static_mesh.hpp"
 
@@ -351,7 +351,7 @@ namespace lucid::resources
     static Assimp::Importer AssimpImporter;
 
     static constexpr u32 ASSIMP_DEFAULT_FLAGS =
-      aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices;
+      aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices | aiProcess_Triangulate;
 
     /* Helper structure used when importing the mesh */
     struct FMeshImportInfo
@@ -612,28 +612,23 @@ namespace lucid::resources
 #endif
                 CTextureResource* DiffuseMap =
                   AssimpImportMaterialTexture(0, MeshFileDirPath, Material, aiTextureType_DIFFUSE, MeshName, FString{ "Diffuse" }, InbFilpUVs);
-                CTextureResource* SpecularMap =
-                  AssimpImportMaterialTexture(0, MeshFileDirPath, Material, aiTextureType_SPECULAR, MeshName, FString{ "Specular" }, InbFilpUVs);
                 CTextureResource* NormalMap =
                   AssimpImportMaterialTexture(0, MeshFileDirPath, Material, aiTextureType_HEIGHT, MeshName, FString{ "Normal" }, InbFilpUVs);
 
-                auto* ImportedMaterial = new scene::CBlinnPhongMapsMaterial{ sole::uuid4(),
+                auto* ImportedMaterial = new scene::CTexturedPBRMaterial{ sole::uuid4(),
                                                                              SPrintf("%s_%s", *MeshName, MaterialName.C_Str()),
                                                                              SPrintf("assets/materials/%s_%s.asset", *MeshName, MaterialName.C_Str()),
-                                                                             GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
+                                                                             GEngine.GetShadersManager().GetShaderByName("Textured PBR") };
 
-                ImportedMaterial->SetShininess(32);
-                ImportedMaterial->SetDiffuseMap(DiffuseMap);
-                ImportedMaterial->SetSpecularMap(SpecularMap);
+                ImportedMaterial->SetAlbedoMap(DiffuseMap);
                 ImportedMaterial->SetNormalMap(NormalMap);
-                ImportedMaterial->SetDisplacementMap(nullptr);
                 ImportedMaterial->bIsAsset = true;
 
                 ImportedMaterials.Add(ImportedMaterial);
 
                 // Add material do the engine
                 ImportedMaterial->SaveToResourceFile(EFileFormat::Json);
-                GEngine.AddMaterialAsset(ImportedMaterial, scene::EMaterialType::BLINN_PHONG_MAPS, ImportedMaterial->AssetPath);
+                GEngine.AddMaterialAsset(ImportedMaterial, scene::EMaterialType::TEXTURED_PBR, ImportedMaterial->AssetPath);
             }
 
             // Create a static mesh actor for each of the submeshes
@@ -679,18 +674,14 @@ namespace lucid::resources
 #endif
                 CTextureResource* DiffuseMap =
                   AssimpImportMaterialTexture(0, MeshFileDirPath, Material, aiTextureType_DIFFUSE, MeshName, FString{ "Diffuse" }, InbFilpUVs);
-                CTextureResource* SpecularMap =
-                  AssimpImportMaterialTexture(0, MeshFileDirPath, Material, aiTextureType_SPECULAR, MeshName, FString{ "Specular" }, InbFilpUVs);
                 CTextureResource* NormalMap =
                   AssimpImportMaterialTexture(0, MeshFileDirPath, Material, aiTextureType_HEIGHT, MeshName, FString{ "Normal" }, InbFilpUVs);
 
-                auto* ImportedMaterial = new scene::CBlinnPhongMapsMaterial{ sole::uuid4(),
+                auto* ImportedMaterial = new scene::CTexturedPBRMaterial{ sole::uuid4(),
                                                                              SPrintf("%s_%s", *MeshName, MaterialName.C_Str()),
                                                                              SPrintf("assets/materials/%s_%s.asset", *MeshName, MaterialName.C_Str()),
-                                                                             GEngine.GetShadersManager().GetShaderByName("BlinnPhongMaps") };
-                ImportedMaterial->SetShininess(32);
-                ImportedMaterial->SetDiffuseMap(DiffuseMap);
-                ImportedMaterial->SetSpecularMap(SpecularMap);
+                                                                             GEngine.GetShadersManager().GetShaderByName("Textured PBR") };
+                ImportedMaterial->SetAlbedoMap(DiffuseMap);
                 ImportedMaterial->SetNormalMap(NormalMap);
                 ImportedMaterial->SetDisplacementMap(nullptr);
                 ImportedMaterial->bIsAsset = true;
@@ -707,7 +698,7 @@ namespace lucid::resources
 
                 // Add material do the engine
                 ImportedMaterial->SaveToResourceFile(EFileFormat::Json);
-                GEngine.AddMaterialAsset(ImportedMaterial, scene::EMaterialType::BLINN_PHONG_MAPS, ImportedMaterial->AssetPath);
+                GEngine.AddMaterialAsset(ImportedMaterial, scene::EMaterialType::TEXTURED_PBR, ImportedMaterial->AssetPath);
             }
 
             AddAssetsToEngine(StaticMeshActorAsset, StaticMeshActorAsset->MeshResource);

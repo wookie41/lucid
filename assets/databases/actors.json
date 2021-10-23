@@ -1,34 +1,9 @@
 {
     "Entries": [
         {
-            "ActorId": "d42fcdc8-5274-444b-8e17-0db9715e0e58",
-            "ActorPath": "assets/actors/Backpack.asset",
-            "ActorType": 1
-        },
-        {
             "ActorId": "2802c388-b5a0-4c84-aa87-2eb3545ed03f",
             "ActorPath": "assets/actors/TestSkybox.asset",
             "ActorType": 2
-        },
-        {
-            "ActorId": "001f7432-2627-44d4-97d9-e78aea60560a",
-            "ActorPath": "assets/actors/Cyborg.asset",
-            "ActorType": 1
-        },
-        {
-            "ActorId": "47e313d6-7b07-4207-ae14-0e7fad846573",
-            "ActorPath": "assets/actors/Nanosuit.asset",
-            "ActorType": 1
-        },
-        {
-            "ActorId": "87951067-769d-4673-9436-090710a194f0",
-            "ActorPath": "assets/actors/Mesh.asset",
-            "ActorType": 1
-        },
-        {
-            "ActorId": "dae52ac9-a99c-4402-a998-0e2253a5051f",
-            "ActorPath": "assets/actors/Sponza.asset",
-            "ActorType": 1
         },
         {
             "ActorId": "9e5d1bc5-a749-4f3f-8362-772db2c9ddec",
@@ -48,6 +23,16 @@
         {
             "ActorId": "41509498-ca34-4cae-9fef-af85f5604953",
             "ActorPath": "assets/actors/Sphere.asset",
+            "ActorType": 1
+        },
+        {
+            "ActorId": "56278edb-b3a9-4f80-b4a0-7a672994122c",
+            "ActorPath": "assets/actors/Sponza.asset",
+            "ActorType": 1
+        },
+        {
+            "ActorId": "002368f3-3051-4cbc-a04b-3f81d7b603f1",
+            "ActorPath": "assets/actors/Nanosuit.asset",
             "ActorType": 1
         }
     ]

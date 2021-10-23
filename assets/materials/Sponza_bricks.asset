@@ -1,12 +1,8 @@
 {
-    "Id": "35eb27af-5b85-4e65-bc43-b4a107a4a1d3",
+    "Id": "1d715d02-b41c-4b16-9f7b-5bd6da9a538a",
     "Name": "Sponza_bricks",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "3df0e8a7-b320-4c3c-8b5d-5bdf5cfe5b0f",
-    "NormalTextureID": "bd5d5787-1d67-4b4d-bab8-c058b30651c6",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "18b777ed-3f10-4126-85cc-46fc3852fba7",
+    "NormalTextureID": "0ee6c9b6-d3f1-4a47-bd8b-268b69cb0a07",
+    "Roughness": 0.25
 }

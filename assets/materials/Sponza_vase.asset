@@ -1,12 +1,8 @@
 {
-    "Id": "d596ddd8-3670-41f0-a9b5-58ce9fc90eeb",
+    "Id": "697c34df-ba9f-4db0-b669-0a26a08606a0",
     "Name": "Sponza_vase",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "338402f1-fb57-4e0b-86f3-05e6000959af",
-    "NormalTextureID": "1c172d6b-f5c9-432b-89e4-883f1371b776",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "d4ee0aea-877f-4bae-86b2-b34b605cab7b",
+    "NormalTextureID": "8751e71a-ad26-4a65-9b48-fc725e248261",
+    "Roughness": 0.25
 }

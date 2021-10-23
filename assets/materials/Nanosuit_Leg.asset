@@ -1,8 +1,8 @@
 {
-    "Id": "06ad013d-57a6-41b8-9b0d-3ddc24f07658",
+    "Id": "17889671-d1ae-4cef-8433-dae8ba325e38",
     "Name": "Nanosuit_Leg",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "37b27ad9-0145-4757-8559-3cab1ca73526",
-    "SpecularTextureID": "5e745264-9bf6-4d3d-8926-a78e094d373b",
-    "NormalTextureID": "acba463e-c246-40cb-a464-8da6c426e441"
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "aa568d29-9b2c-4275-9516-c963c3df883f",
+    "NormalTextureID": "b49b6aa8-84c3-4123-b59a-33b094c6f2c9",
+    "Roughness": 0.25
 }

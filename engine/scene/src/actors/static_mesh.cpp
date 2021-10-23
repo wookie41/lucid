@@ -281,7 +281,7 @@ namespace lucid::scene
 
             for (u16 i = 0; i < BaseStaticMesh->MaterialSlots.GetLength(); ++i)
             {
-                if (i < MaterialSlots.GetLength() && *MaterialSlots[i] && *MaterialSlots[i] != *(BaseStaticMesh->MaterialSlots[i]))
+                if (i < MaterialSlots.GetLength() && *MaterialSlots[i] && (*MaterialSlots[i])->GetID() != (*(BaseStaticMesh->MaterialSlots[i]))->GetID())
                 {
                     OutDescription.MaterialIds.push_back({ (*MaterialSlots[i])->GetID(), true });
                 }

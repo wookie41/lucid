@@ -1,12 +1,8 @@
 {
-    "Id": "a72da743-1031-4ee1-b0f3-1b41ed046ccc",
+    "Id": "d34152dd-6997-4529-9378-feb7e60205da",
     "Name": "Sponza_vase_hanging",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "b676b53b-6318-4c5c-9867-6e476d77ae83",
-    "NormalTextureID": "2e4680b4-baf9-4468-87d3-0865fabe0a4f",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "e9da4d62-9a73-45f5-80f6-9012b12e58e7",
+    "NormalTextureID": "21d65a3b-9a36-43d9-8400-79d9ae3a484b",
+    "Roughness": 0.25
 }

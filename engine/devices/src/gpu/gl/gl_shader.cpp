@@ -403,6 +403,7 @@ namespace lucid::gpu
             {
                 gpu::GGPUInfo.ActiveTextureUnit = TextureBindings[i]->TextureIndex;
                 glActiveTexture(GL_TEXTURE0 + TextureBindings[i]->TextureIndex);
+
                 TextureBindings[i]->BoundTexture->Bind();
                 glUniform1i(TextureBindings[i]->Location, TextureBindings[i]->TextureIndex);
             }

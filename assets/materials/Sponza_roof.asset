@@ -1,12 +1,8 @@
 {
-    "Id": "a062bcb1-bcd3-4b83-a7d1-d2e68a5bc483",
+    "Id": "82873769-ccc8-4ea6-8c25-14f9921fb32d",
     "Name": "Sponza_roof",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "31963763-604e-4be9-81f9-c5efb3c4d110",
-    "NormalTextureID": "ec1c08ce-7b59-4158-a683-0d1396c1db70",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "d97140ed-fda7-4f9d-8220-3156f312d930",
+    "NormalTextureID": "173944ba-c78c-4d2f-9f7d-77320aea7929",
+    "Roughness": 0.25
 }

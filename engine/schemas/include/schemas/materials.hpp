@@ -48,6 +48,9 @@ STRUCT_INHERIT_BEGIN(lucid, FTexturedPBRMaterialDescription, lucid::FMaterialDes
     STRUCT_FIELD(UUID, AOTextureID, sole::INVALID_UUID, "")
     STRUCT_FIELD(UUID, NormalTextureID, sole::INVALID_UUID, "")
     STRUCT_FIELD(UUID, DisplacementTextureID, sole::INVALID_UUID, "")
+    STRUCT_FIELD(glm::vec3, Albedo, lucid::One, "")
+    STRUCT_FIELD(float, Metallic, 0, "")
+    STRUCT_FIELD(float, Roughness, 0, "")
 STRUCT_END()
 
 

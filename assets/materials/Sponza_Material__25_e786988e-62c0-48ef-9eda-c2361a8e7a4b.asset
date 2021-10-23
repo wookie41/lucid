@@ -1,0 +1,8 @@
+{
+    "Id": "e786988e-62c0-48ef-9eda-c2361a8e7a4b",
+    "Name": "Sponza_Material__25_e786988e-62c0-48ef-9eda-c2361a8e7a4b",
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "9b311884-7999-4415-9520-f5e2504ee13e",
+    "NormalTextureID": "a86ea9bf-bf70-4a4b-bea1-342b3dea39f7",
+    "Roughness": 0.25
+}

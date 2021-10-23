@@ -1,12 +1,9 @@
 {
-    "Id": "10686788-5495-49c5-bd13-e5d027d876ee",
+    "Id": "fd86d7e7-cd36-40c1-bcba-19abc8d39c1c",
     "Name": "Sponza_ceiling",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "a8ca7010-a57f-4ddb-bef7-cf980a4fa0ce",
-    "NormalTextureID": "dc803928-83d0-46cd-843f-3b8e44996cea",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "3649e4c0-6220-4650-9079-93da05ee1abf",
+    "NormalTextureID": "db2ee2e5-8bc0-43ad-9d23-9d1f27fcd0e6",
+    "Roughness": 0.25
+
 }

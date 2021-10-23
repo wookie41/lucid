@@ -1,11 +1,7 @@
 {
-    "Id": "05625ac4-8767-4675-9c1a-cfea7c9d2b09",
+    "Id": "a8f11115-2d5b-4bdc-aa87-e57e693c4dc3",
     "Name": "Sponza_Material__57",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "27664acf-6e62-470c-8a12-284a4353b4cb",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "1e9f5e8d-d95f-4f51-96ac-3ff1602d1fcf",
+    "Roughness": 0.25
 }

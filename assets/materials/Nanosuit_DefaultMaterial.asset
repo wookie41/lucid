@@ -1,10 +1,5 @@
 {
-    "Id": "dfc785a5-8f03-47fc-938c-f8ac9cdd023f",
+    "Id": "e83ef22e-ca66-4f56-b44a-3a42957fbe46",
     "Name": "Nanosuit_DefaultMaterial",
-    "ShaderName": "BlinnPhongMaps",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR"
 }

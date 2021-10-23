@@ -1,12 +1,8 @@
 {
-    "Id": "76d0ed11-0ec1-43f4-9ebb-26c98a9f3676",
+    "Id": "be37cf77-af94-4246-9861-6710e8cdebb6",
     "Name": "Sponza_fabric_f",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "ce5c76b6-f285-4751-8fe7-4cc57811436f",
-    "NormalTextureID": "e8316080-2460-4415-8f22-1602598481d9",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "92638a8a-c7f6-49d9-8382-b0d6d86b6bdd",
+    "NormalTextureID": "d4f2dcc8-16d3-4744-869b-5b1490bcfa7f",
+    "Roughness": 0.25
 }

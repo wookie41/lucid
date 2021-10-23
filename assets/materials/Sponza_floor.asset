@@ -1,12 +1,8 @@
 {
-    "Id": "1f6bee8d-0fa5-4006-9dcf-b1b010f6406a",
+    "Id": "5a0abaed-8ac3-4c2d-8272-dbc77ed4d277",
     "Name": "Sponza_floor",
-    "ShaderName": "BlinnPhongMaps",
-    "DiffuseTextureID": "0063faf6-fd53-4245-b398-c901c99f4be6",
-    "NormalTextureID": "bd4cac9b-b23a-46d9-aea4-04f12adfbadc",
-    "SpecularColor": [
-        1.0,
-        1.0,
-        1.0
-    ]
+    "ShaderName": "Textured PBR",
+    "AlbedoTextureID": "236ed803-fda8-4207-800a-6ccf13472545",
+    "NormalTextureID": "62985fe8-c85f-4547-bd53-e51cb61e3905",
+    "Roughness": 0.25
 }
